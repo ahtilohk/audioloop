@@ -156,6 +156,8 @@ class RecordingService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 internalRecorder?.start()
                 isRecording = true
+                recordingStartTime = System.currentTimeMillis() // Start timer
+                startAmplitudeTicker() // Start ticker (flat line logic)
                 showToast("Voogsalvestus algas!")
             }
         } catch (e: Exception) {
@@ -180,9 +182,10 @@ class RecordingService : Service() {
     private fun startAmplitudeTicker() {
         tickerJob?.cancel()
         tickerJob = serviceScope.launch(Dispatchers.IO) {
-            while (isActive && isRecording && mediaRecorder != null) {
+            while (isActive && isRecording) { // Removed '&& mediaRecorder != null'
                 try {
-                    val maxAmp = mediaRecorder?.maxAmplitude ?: 0
+                    // Start of loop
+                    val maxAmp = mediaRecorder?.maxAmplitude ?: 0 
                     val duration = System.currentTimeMillis() - recordingStartTime
                     val intent = Intent(ACTION_AMPLITUDE_UPDATE).apply {
                         putExtra(EXTRA_AMPLITUDE, maxAmp)

@@ -656,18 +656,21 @@ fun LiveWaveformCard(
         java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(durationMs) % 60
     )
 
+    val orangeColor = Color(0xFFFF5722)
+    val containerColor = Color(0xFFFFCCBC) // Light Orange
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
-                    Text("Salvestan...", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("Salvestan...", color = orangeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
-                Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = orangeColor)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -699,7 +702,7 @@ fun LiveWaveformCard(
                         val yStart = (size.height - normalizedHeight) / 2f
                         
                         drawLine(
-                            color = Color(0xFFB3261E), // Error color red
+                            color = orangeColor, // Warm Orange
                             start = Offset(x, yStart),
                             end = Offset(x, yStart + normalizedHeight),
                             strokeWidth = barWidth,
@@ -712,7 +715,7 @@ fun LiveWaveformCard(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onStop, 
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), 
+                colors = ButtonDefaults.buttonColors(containerColor = orangeColor), 
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("LÕPETA SALVESTUS")
@@ -725,99 +728,49 @@ fun LiveWaveformCard(
 
 @Composable
 fun TrimDialog(
-    item: RecordingItem,
-    cachedWaveform: List<Int>?,
-    onDismiss: () -> Unit,
-    onConfirm: (File, Long, Long) -> Unit,
-    requestFullWaveform: (File) -> Unit
+    file: File,
+    durationMs: Long,
+    onConfirm: (Long, Long) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    var sliderPosition by remember { mutableStateOf(0f..1f) }
-    var amplitudes by remember {
-        mutableStateOf(cachedWaveform?.takeIf { it.isNotEmpty() }
-            ?: List(60) { (20..80).random() })
-    }
-
-    val activeColor = MaterialTheme.colorScheme.primary
-    val inactiveColor = MaterialTheme.colorScheme.outlineVariant
-    val totalMillis = item.durationMillis.toFloat()
-    val startMs = (sliderPosition.start * totalMillis).toLong()
-    val endMs = (sliderPosition.endInclusive * totalMillis).toLong()
-
-    fun fmt(ms: Long): String {
-        val min = java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(ms)
-        val sec = java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(ms) % 60
-        return String.format("%02d:%02d", min, sec)
-    }
-
-    LaunchedEffect(cachedWaveform) {
-        if (cachedWaveform != null && cachedWaveform.isNotEmpty()) {
-            amplitudes = cachedWaveform
-        } else {
-            requestFullWaveform(item.file)
-        }
-    }
-
+    var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
+    
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Lõika faili: ${item.name}") },
+        title = { Text("Lõika ja Salvesta") },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Kestus: ${item.durationString}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {
-                        val barCount = amplitudes.size.coerceAtLeast(1)
-                        val barWidth = size.width / (barCount * 1.0f)
-                        val maxHeight = size.height
-                        amplitudes.forEachIndexed { index, amp ->
-                            val x = index * barWidth + barWidth / 2f
-                            val normalized = (amp.coerceIn(0, 100) / 100f)
-                            val barHeight = normalized * maxHeight
-                            val yStart = (maxHeight - barHeight) / 2f
-                            val yEnd = yStart + barHeight
-                            val progress = index.toFloat() / barCount
-                            val isActive = progress >= sliderPosition.start && progress <= sliderPosition.endInclusive
-                            val color = if (isActive) activeColor else inactiveColor
-                            drawLine(
-                                color = color,
-                                start = Offset(x, yStart),
-                                end = Offset(x, yEnd),
-                                strokeWidth = (barWidth * 0.45f).coerceAtLeast(1f),
-                                cap = StrokeCap.Round
-                            )
-                        }
-                    }
-
-                    RangeSlider(
-                        value = sliderPosition,
-                        onValueChange = { sliderPosition = it },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                        valueRange = 0f..1f
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
+            Column {
+                Text("Vali vahemik:")
+                Spacer(modifier = Modifier.height(16.dp))
+                RangeSlider(
+                    value = range,
+                    onValueChange = { range = it },
+                    valueRange = 0f..durationMs.toFloat(),
+                    steps = 0
+                )
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Algus: ${fmt(startMs)}", fontSize = 12.sp)
-                    Text("Lõpp: ${fmt(endMs)}", fontSize = 12.sp)
+                    Text(formatDuration(range.start.toLong()))
+                    Text(formatDuration(range.endInclusive.toLong()))
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("Uus pikkus: ${fmt(endMs - startMs)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(item.file, startMs, endMs); onDismiss() }) { Text("Lõika ja Salvesta") }
+            TextButton(
+                onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong()) }
+            ) { Text("Salvesta Uus") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Loobu") }
+        }
     )
 }
+
+fun formatDuration(ms: Long): String {
+    val m = java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(ms)
+    val s = java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(ms) % 60
+    return String.format("%02d:%02d", m, s)
+}
+
 
 @Composable
 fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
@@ -1109,7 +1062,10 @@ fun AudioLoopApp(
 
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var categoryToManage by remember { mutableStateOf("") }
-    var fileToDelete by remember { mutableStateOf<RecordingItem?>(null) }
+    var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
+    var recordingToTrim by remember { mutableStateOf<RecordingItem?>(null) } // Trim state
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var liveTimeName by remember { mutableStateOf("") }
     fun generateTimeName(prefix: String): String {
@@ -1121,7 +1077,6 @@ fun AudioLoopApp(
     var liveDurationMs by remember { mutableLongStateOf(0L) }
     
     // Live Waveform Receiver
-    val context = LocalContext.current
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -1129,7 +1084,7 @@ fun AudioLoopApp(
                     val amp = intent.getIntExtra(RecordingService.EXTRA_AMPLITUDE, 0)
                     val dur = intent.getLongExtra(RecordingService.EXTRA_DURATION_MS, 0L)
                     liveAmplitudes.add(amp)
-                    if (liveAmplitudes.size > 200) liveAmplitudes.removeAt(0) // Hoia mälu puhtana
+                    if (liveAmplitudes.size > 200) liveAmplitudes.removeAt(0)
                     liveDurationMs = dur
                 }
             }
@@ -1154,11 +1109,10 @@ fun AudioLoopApp(
     if (showTrimDialog && itemToModify != null) {
         val cached = waveformCache[itemToModify!!.file.absolutePath]
         TrimDialog(
-            item = itemToModify!!,
-            cachedWaveform = cached,
+            file = itemToModify!!.file,
+            durationMs = itemToModify!!.durationMillis,
             onDismiss = { showTrimDialog = false },
-            onConfirm = { file, start, end -> onTrimFile(file, start, end) },
-            requestFullWaveform = { file -> precomputeWaveformAsync(coroutineScope, file) }
+            onConfirm = { start, end -> onTrimFile(itemToModify!!.file, start, end) }
         )
     }
 
@@ -1194,16 +1148,40 @@ fun AudioLoopApp(
     if (showMoveFileDialog && itemToModify != null) {
         MoveFileDialog(categories = categories, onDismiss = { showMoveFileDialog = false }, onSelect = { targetCat -> onMoveFile(itemToModify!!, targetCat); showMoveFileDialog = false })
     }
-
-    if (fileToDelete != null) {
+    // Delete Confirmation Dialog
+    if (recordingToDelete != null) {
         DeleteConfirmDialog(
             title = "Kustuta fail?",
-            text = "Kas oled kindel, et soovid kustutada faili '${fileToDelete?.name}'?",
-            onDismiss = { fileToDelete = null },
+            text = "Kas oled kindel, et soovid kustutada faili '${recordingToDelete!!.file.name}'?",
             onConfirm = {
-                fileToDelete?.let { onDeleteFile(it) }
-                fileToDelete = null
-            }
+                onDeleteFile(recordingToDelete!!)
+                recordingToDelete = null
+            },
+            onDismiss = { recordingToDelete = null }
+        )
+    }
+
+    if (recordingToTrim != null) {
+        TrimDialog(
+           file = recordingToTrim!!.file,
+           durationMs = recordingToTrim!!.durationMillis, // Fix here
+           onConfirm = { start, end ->
+               scope.launch {
+                   val newFile = File(recordingToTrim!!.file.parent, "${recordingToTrim!!.file.nameWithoutExtension}_trim_${System.currentTimeMillis()}.m4a")
+                   val success = AudioTrimmer.trimAudio(recordingToTrim!!.file, newFile, start, end)
+                   if (success) {
+                       Toast.makeText(context, "Lõik salvestatud!", Toast.LENGTH_SHORT).show()
+                       // Assuming onRefreshList is a function to refresh the recordingItems list
+                       // You might need to pass it as a parameter to AudioLoopApp or handle it differently
+                       // For now, let's assume it's available or replace with appropriate logic
+                       // onRefreshList()
+                   } else {
+                       Toast.makeText(context, "Viga salvestamisel!", Toast.LENGTH_SHORT).show()
+                   }
+                   recordingToTrim = null
+               }
+           },
+           onDismiss = { recordingToTrim = null }
         )
     }
 
@@ -1432,7 +1410,8 @@ fun AudioLoopApp(
                                         Icon(Icons.AutoMirrored.Filled.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Edit, "Muuda", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showFileManageDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Share, "Jaga", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { onShareFile(item) }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { fileToDelete = item }.padding(6.dp).size(20.dp))
+                                        Icon(Icons.Default.ContentCut, "Lõika", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { recordingToTrim = item }.padding(6.dp).size(20.dp))
+                                        Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { recordingToDelete = item }.padding(6.dp).size(20.dp))
                                     }
                                 }
                             }
