@@ -1,0 +1,6 @@
+﻿org.gradle.java.home=C:\\Program Files\\Android\\Android Studio\\jbr
+# Enable AndroidX
+android.useAndroidX=true
+# If you migrate from old support libraries, allow Jetifier to rewrite third-party libs
+android.enableJetifier=true
+
