@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 import android.media.MediaMetadataRetriever
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -342,6 +344,25 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 mp.release()
             } catch (e: Exception) { }
         }
+        // Varuplaan 2: MediaExtractor (Kõige madalam tase, töötab ka siis kui metaandmed puuduvad)
+        if (millis == 0L) {
+            try {
+                val extractor = MediaExtractor()
+                extractor.setDataSource(file.absolutePath)
+                for (i in 0 until extractor.trackCount) {
+                    val format = extractor.getTrackFormat(i)
+                    val mime = format.getString(MediaFormat.KEY_MIME)
+                    if (mime?.startsWith("audio/") == true) {
+                        if (format.containsKey(MediaFormat.KEY_DURATION)) {
+                            millis = format.getLong(MediaFormat.KEY_DURATION) / 1000 // algselt mikrosekundites
+                            break
+                        }
+                    }
+                }
+                extractor.release()
+            } catch (e: Exception) { }
+        }
+
         if (millis == 0L) return Pair("00:00", 0L)
         return Pair(formatTime(millis), millis)
     }
