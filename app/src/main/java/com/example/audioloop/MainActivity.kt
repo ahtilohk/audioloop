@@ -18,6 +18,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
@@ -576,7 +577,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
-                setDataSource(fileToPlay.absolutePath)
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                // Fallback FD logic
+                val fis = java.io.FileInputStream(fileToPlay)
+                setDataSource(fis.fd)
+                fis.close()
+
                 setOnPreparedListener { mp ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         try { mp.playbackParams = mp.playbackParams.setSpeed(speed) } catch (e: Exception) { }
@@ -585,13 +596,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     mp.start()
                 }
                 setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete) }
-                setOnErrorListener { _, _, _ ->
+                setOnErrorListener { _, what, extra ->
+                    Toast.makeText(this@MainActivity, "Viga mängimisel: $what / $extra", Toast.LENGTH_SHORT).show()
                     playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
                     true
                 }
                 prepareAsync()
             }
-        } catch (e: Exception) { playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete) }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Viga faili avamisel: ${e.message}", Toast.LENGTH_SHORT).show()
+            playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
+        }
     }
 
     private fun stopPlaying() { mediaPlayer?.release(); mediaPlayer = null }
