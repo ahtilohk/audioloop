@@ -124,28 +124,10 @@ fun sanitizeName(name: String): String {
     return sb.toString().trim()
 }
 
-fun generateWaveform(file: File, numBars: Int = 60): List<Int> {
-    if (!file.exists() || file.length() < 10) return List(numBars) { (20..80).random() }
-    return try {
-        val result = MutableList(numBars) { 0 }
-        java.io.RandomAccessFile(file, "r").use { raf ->
-            val fileLength = raf.length()
-            val headerSkip = 100L
-            val available = (fileLength - headerSkip).coerceAtLeast(1)
-            val step = available / numBars
-            for (i in 0 until numBars) {
-                val pos = headerSkip + (i * step)
-                if (pos < fileLength) {
-                    raf.seek(pos)
-                    val byteVal = raf.readByte().toInt() and 0xFF
-                    val height = (byteVal / 2.5).toInt().coerceIn(10, 100)
-                    result[i] = height
-                } else { result[i] = 50 }
-            }
-        }
-        result
-    } catch (e: Exception) { List(numBars) { (20..80).random() } }
-}
+    // Generate waveform using MediaCodec (via WaveformGenerator)
+    private fun generateWaveform(file: File, numBars: Int = 60): List<Int> {
+        return WaveformGenerator.extractWaveform(file, numBars)
+    }
 
 data class RecordingItem(val file: File, val name: String, val durationString: String, val durationMillis: Long)
 
