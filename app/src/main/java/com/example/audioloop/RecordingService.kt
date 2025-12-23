@@ -49,6 +49,7 @@ class RecordingService : Service() {
     }
 
     override fun onDestroy() {
+        safelyStopRecorder()
         super.onDestroy()
         serviceScope.cancel()
     }
@@ -106,9 +107,13 @@ class RecordingService : Service() {
                 setAudioSource(source)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                // OLULINE MUUDATUS: Eemaldasime sampleRate ja bitRate sundimise.
-                // Laseme telefonil valida vaikesätted, mis on riistvaraga ühilduvad.
+                setAudioEncodingBitRate(128000)
+                setAudioSamplingRate(44100)
                 setOutputFile(file.absolutePath)
+                setOnErrorListener { _, _, _ ->
+                   showToast("Viga salvestamisel!")
+                   safelyStopRecorder()
+                }
                 prepare()
                 start()
             }
@@ -150,22 +155,26 @@ class RecordingService : Service() {
         }
     }
 
-    private suspend fun stopRecording() {
-        if (mediaRecorder != null) {
-            try {
-                mediaRecorder?.stop()
-            } catch (e: RuntimeException) {
-                currentFile?.delete()
-            } finally {
-                cleanupMicRecorder()
-            }
+    private fun safelyStopRecorder() {
+        if (!isRecording) return
+        try {
+            mediaRecorder?.stop()
+        } catch (e: Exception) {
+            // Kui stop() viskab vea (nt fail on liiga lühike või tühi), siis kustutame katkise faili
+            currentFile?.delete()
+        } finally {
+            cleanupMicRecorder()
         }
+
         if (internalRecorder != null) {
             internalRecorder?.stop()
             internalRecorder = null
         }
-
         isRecording = false
+    }
+
+    private suspend fun stopRecording() {
+        safelyStopRecorder()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
