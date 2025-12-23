@@ -58,6 +58,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
@@ -762,6 +763,7 @@ fun LiveWaveformCard(
 fun TrimDialog(
     file: File,
     durationMs: Long,
+    waveform: List<Int>?,
     onConfirm: (Long, Long, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -774,12 +776,42 @@ fun TrimDialog(
             Column {
                 Text("Vali vahemik:")
                 Spacer(modifier = Modifier.height(16.dp))
-                RangeSlider(
-                    value = range,
-                    onValueChange = { range = it },
-                    valueRange = 0f..durationMs.toFloat(),
-                    steps = 0
-                )
+                
+                // Waveform + Slider Stack
+                Box(modifier = Modifier.height(80.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    if (waveform != null && waveform.isNotEmpty()) {
+                        Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).graphicsLayer(alpha = 0.5f)) {
+                            val barWidth = 4.dp.toPx()
+                            val gap = 2.dp.toPx()
+                            val step = (size.width / (waveform.size.coerceAtLeast(1))).coerceAtLeast(barWidth + gap)
+                            
+                            val orangeColor = Color(0xFFFF5722)
+                            
+                            waveform.forEachIndexed { index, amp ->
+                                val x = index * step
+                                if (x > size.width) return@forEachIndexed
+                                val normalizedHeight = (amp / 10000f).coerceIn(0.1f, 1f) * size.height
+                                val yStart = (size.height - normalizedHeight) / 2f
+                                
+                                drawLine(
+                                    color = orangeColor,
+                                    start = Offset(x, yStart),
+                                    end = Offset(x, yStart + normalizedHeight),
+                                    strokeWidth = barWidth,
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        }
+                    }
+                    
+                    RangeSlider(
+                        value = range,
+                        onValueChange = { range = it },
+                        valueRange = 0f..durationMs.toFloat(),
+                        steps = 0
+                    )
+                }
+
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(formatDuration(range.start.toLong()))
                     Text(formatDuration(range.endInclusive.toLong()))
@@ -1152,6 +1184,7 @@ fun AudioLoopApp(
         TrimDialog(
             file = itemToModify!!.file,
             durationMs = itemToModify!!.durationMillis,
+            waveform = cached,
             onDismiss = { showTrimDialog = false },
             onConfirm = { start, end, replace -> onTrimFile(itemToModify!!.file, start, end, replace) }
         )
@@ -1203,9 +1236,11 @@ fun AudioLoopApp(
     }
 
     if (recordingToTrim != null) {
+        val cached = waveformCache[recordingToTrim!!.file.absolutePath]
         TrimDialog(
            file = recordingToTrim!!.file,
            durationMs = recordingToTrim!!.durationMillis, // Fix here
+           waveform = cached,
            onConfirm = { start, end, replace ->
                // Delegate to onTrimFile
                onTrimFile(recordingToTrim!!.file, start, end, replace)

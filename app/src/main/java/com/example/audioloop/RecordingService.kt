@@ -8,13 +8,16 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.media.MediaRecorder
+import android.media.*
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ActivityCompat
+import android.content.pm.PackageManager
+import android.Manifest
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -43,6 +46,12 @@ class RecordingService : Service() {
     private var isRecording = false
     private var currentFile: File? = null
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
+    
+    // New properties for AAC Internal Recording
+    private var mediaProjection: android.media.projection.MediaProjection? = null
+    private var isInternalRecording = false
+    private var audioRecord: android.media.AudioRecord? = null
+    private var recordingJob: Job? = null
     
     // Live Waveform Ticker
     private var tickerJob: Job? = null
@@ -148,17 +157,127 @@ class RecordingService : Service() {
         }
 
         try {
-            val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
-            val mediaProjection = mpManager.getMediaProjection(resultCode, data)
-            if (mediaProjection == null) { stopSelf(); return }
+            val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection!!)
+                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                .build()
 
-            internalRecorder = InternalAudioRecorder(mediaProjection, file)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                internalRecorder?.start()
-                isRecording = true
-                recordingStartTime = System.currentTimeMillis() // Start timer
-                startAmplitudeTicker() // Start ticker (flat line logic)
-                showToast("Voogsalvestus algas!")
+            val sampleRate = 44100
+            val channelConfig = AudioFormat.CHANNEL_IN_STEREO
+            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+            val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                showToast("RECORD_AUDIO permission not granted for internal recording.")
+                stopSelf()
+                return
+            }
+
+            audioRecord = AudioRecord.Builder()
+                .setAudioPlaybackCaptureConfig(config)
+                .setAudioFormat(AudioFormat.Builder()
+                    .setEncoding(audioFormat)
+                    .setSampleRate(sampleRate)
+                    .setChannelMask(channelConfig)
+                    .build())
+                .setBufferSizeInBytes(minBufferSize * 2)
+                .build()
+
+            audioRecord?.startRecording()
+            recordingStartTime = System.currentTimeMillis()
+            isInternalRecording = true
+            isRecording = true // Mark as recording for general service state
+
+            startAmplitudeTicker() // Start timer updates
+            showToast("Voogsalvestus algas!")
+
+            recordingJob = serviceScope.launch {
+                try {
+                    // Setup MediaCodec for AAC encoding
+                    val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
+                    format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+                    format.setInteger(MediaFormat.KEY_BIT_RATE, 192000)
+                    format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, minBufferSize * 2)
+                    
+                    val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
+                    encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+                    encoder.start()
+
+                    // Setup MediaMuxer
+                    val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                    var trackIndex = -1
+                    var muxerStarted = false
+                    
+                    val bufferInfo = MediaCodec.BufferInfo()
+                    val buffer = ByteArray(minBufferSize)
+
+                    while (isActive && isInternalRecording) {
+                        // 1. Read PCM from AudioRecord
+                        val readResult = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+                        
+                        if (readResult > 0) {
+                            // 2. Feed to Encoder
+                            val inputBufferId = encoder.dequeueInputBuffer(10000)
+                            if (inputBufferId >= 0) {
+                                val inputBuffer = encoder.getInputBuffer(inputBufferId)
+                                inputBuffer?.clear()
+                                inputBuffer?.put(buffer, 0, readResult)
+                                encoder.queueInputBuffer(inputBufferId, 0, readResult, System.nanoTime() / 1000, 0)
+                            }
+                        }
+
+                        // 3. Drain Encoder to Muxer
+                        var outputBufferId = encoder.dequeueOutputBuffer(bufferInfo, 0)
+                        while (outputBufferId >= 0) {
+                            val outputBuffer = encoder.getOutputBuffer(outputBufferId)
+                            
+                            if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                                bufferInfo.size = 0
+                            }
+
+                            if (bufferInfo.size != 0) {
+                                if (!muxerStarted) {
+                                    // Should have raised OUTPUT_FORMAT_CHANGED by now, but sometimes it comes here?
+                                    // Usually configure happens on FORMAT_CHANGED
+                                } else {
+                                    outputBuffer?.position(bufferInfo.offset)
+                                    outputBuffer?.limit(bufferInfo.offset + bufferInfo.size)
+                                    muxer.writeSampleData(trackIndex, outputBuffer!!, bufferInfo)
+                                }
+                            }
+                            
+                            encoder.releaseOutputBuffer(outputBufferId, false)
+                            outputBufferId = encoder.dequeueOutputBuffer(bufferInfo, 0)
+                        }
+                        
+                        if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                            if (muxerStarted) throw RuntimeException("Format changed twice")
+                            val newFormat = encoder.outputFormat
+                            trackIndex = muxer.addTrack(newFormat)
+                            muxer.start()
+                            muxerStarted = true
+                        }
+                    }
+
+                    // Cleanup
+                    try {
+                        encoder.stop()
+                        encoder.release()
+                        if (muxerStarted) {
+                            muxer.stop()
+                            muxer.release()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) { showToast("Internal recording error: ${e.message}") }
+                } finally {
+                    withContext(Dispatchers.Main) { stopRecording() } // Stop the service if recording job ends
+                }
             }
         } catch (e: Exception) {
             showToast("Viga: ${e.message}")
@@ -182,10 +301,16 @@ class RecordingService : Service() {
     private fun startAmplitudeTicker() {
         tickerJob?.cancel()
         tickerJob = serviceScope.launch(Dispatchers.IO) {
-            while (isActive && isRecording) { // Removed '&& mediaRecorder != null'
+            while (isActive && isRecording) {
                 try {
-                    // Start of loop
-                    val maxAmp = mediaRecorder?.maxAmplitude ?: 0 
+                    val maxAmp = if (isInternalRecording) {
+                        // For internal recording, we don't have maxAmplitude directly from AudioRecord
+                        // Could implement a custom amplitude calculation from PCM buffer if needed
+                        // For now, return 0 or a placeholder
+                        0
+                    } else {
+                        mediaRecorder?.maxAmplitude ?: 0
+                    }
                     val duration = System.currentTimeMillis() - recordingStartTime
                     val intent = Intent(ACTION_AMPLITUDE_UPDATE).apply {
                         putExtra(EXTRA_AMPLITUDE, maxAmp)
@@ -193,7 +318,7 @@ class RecordingService : Service() {
                         setPackage(packageName)
                     }
                     sendBroadcast(intent)
-                } catch (e: Exception) { }
+                } catch (e: Exception) { /* Ignore exceptions during amplitude polling */ }
                 delay(50) // 20 korda sekundis sujuva liikumise jaoks
             }
         }
@@ -202,16 +327,33 @@ class RecordingService : Service() {
     private fun stopAmplitudeTicker() {
         tickerJob?.cancel()
         tickerJob = null
+    }
 
-        if (internalRecorder != null) {
-            internalRecorder?.stop()
-            internalRecorder = null
+    private fun stopInternalRecording() {
+        if (!isInternalRecording) return
+        isInternalRecording = false
+        isRecording = false // Update general service state
+        recordingJob?.cancel() // Cancel the coroutine that handles encoding and muxing
+        recordingJob = null
+        stopAmplitudeTicker()
+        try {
+            audioRecord?.stop()
+            audioRecord?.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        isRecording = false
+        audioRecord = null
+        mediaProjection?.stop()
+        mediaProjection = null
     }
 
     private suspend fun stopRecording() {
-        safelyStopRecorder()
+        if (isInternalRecording) {
+            stopInternalRecording()
+        } else {
+            safelyStopRecorder()
+        }
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
