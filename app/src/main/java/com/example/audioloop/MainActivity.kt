@@ -44,6 +44,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -830,17 +832,17 @@ fun CategoryManageDialog(
                         onClick = onMoveLeft,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) > 1
-                    ) { Icon(Icons.Default.ArrowBack, contentDescription = "Vasakule") }
+                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Vasakule") }
 
                     Button(
                         onClick = onMoveRight,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) < allCategories.size - 1
-                    ) { Icon(Icons.Default.ArrowForward, contentDescription = "Paremale") }
+                    ) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Paremale") }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Delete, contentDescription = null); Spacer(modifier = Modifier.width(8.dp)); Text("Kustuta kategooria")
@@ -916,7 +918,7 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
                             fontSize = 18.sp,
                             modifier = Modifier.fillMaxWidth().clickable { onSelect(category) }.padding(vertical = 12.dp, horizontal = 8.dp)
                         )
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
                     }
                 }
             }
@@ -1186,7 +1188,7 @@ fun AudioLoopApp(
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        Divider()
+        HorizontalDivider()
 
         Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             if (isSelectionMode && selectedFiles.isNotEmpty()) {
@@ -1282,7 +1284,7 @@ fun AudioLoopApp(
                                 )
                                 if (!isSelectionMode && !isThisPlaying) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
+                                        Icon(Icons.AutoMirrored.Filled.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Edit, "Muuda", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showFileManageDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Share, "Jaga", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { onShareFile(item) }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { onDeleteFile(item) }.padding(6.dp).size(20.dp))

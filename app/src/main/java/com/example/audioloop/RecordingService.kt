@@ -63,7 +63,12 @@ class RecordingService : Service() {
             ACTION_START_INTERNAL -> {
                 val fileName = intent.getStringExtra(EXTRA_FILENAME) ?: "internal_rec"
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, 0)
-                val data = intent.getParcelableExtra<Intent>(EXTRA_DATA)
+                val data = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_DATA, Intent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra<Intent>(EXTRA_DATA)
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && data != null) {
                     serviceScope.launch { startInternalRecording(fileName, resultCode, data) }
                 } else {
@@ -93,6 +98,7 @@ class RecordingService : Service() {
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(this)
             } else {
+                @Suppress("DEPRECATION")
                 MediaRecorder()
             }
 
@@ -160,7 +166,12 @@ class RecordingService : Service() {
         }
 
         isRecording = false
-        stopForeground(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
         stopSelf()
 
         val broadcastIntent = Intent(ACTION_RECORDING_SAVED)
