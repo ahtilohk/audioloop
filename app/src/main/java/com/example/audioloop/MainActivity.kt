@@ -287,10 +287,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                             savedItems.forEach { item -> precomputeWaveformAsync(coroutineScope, item.file) }
                         },
-                        onTrimFile = { file, start, end ->
-                            trimAudioFile(file, start, end) {
+                        onTrimFile = { file, start, end, replace ->
+                            trimAudioFile(file, start, end, replace) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                precomputeWaveformAsync(coroutineScope, file)
+                                if (replace) precomputeWaveformAsync(coroutineScope, file)
+                                else {
+                                    // Uus fail tekkis, leiame selle
+                                    val files = getSavedRecordings(uiCategory, filesDir)
+                                    val newFile = files.firstOrNull()?.file // Eeldame et sorteeritud kuupäeva järgi (uusim ees)
+                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
+                                }
                             }
                         }
                     )
@@ -504,21 +510,47 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         oldDir.renameTo(newDir)
     }
 
-    private fun trimAudioFile(file: File, start: Long, end: Long, onSuccess: () -> Unit) {
+    private fun trimAudioFile(file: File, start: Long, end: Long, replace: Boolean, onSuccess: () -> Unit) {
         stopPlaying()
         val ext = file.extension
+        val isWav = ext.equals("wav", ignoreCase = true)
         val tempFile = File(file.parent, "temp_trim_${System.currentTimeMillis()}.$ext")
+        
         launch(Dispatchers.IO) {
-            val success = AudioTrimmer.trimAudio(file, tempFile, start, end)
+            val success = if (isWav) {
+                WavAudioTrimmer.trimWav(file, tempFile, start, end)
+            } else {
+                AudioTrimmer.trimAudio(file, tempFile, start, end)
+            }
+            
             withContext(Dispatchers.Main) {
                 if (success) {
-                    if (file.delete()) {
-                        tempFile.renameTo(file)
-                        waveformCache.remove(file.absolutePath)
-                        getWaveformFile(file).delete()
-                        onSuccess()
-                    } else tempFile.delete()
-                } else tempFile.delete()
+                    if (replace) {
+                        // Kustuta algne, nimeta temp ümber
+                        if (file.delete()) {
+                            tempFile.renameTo(file)
+                            waveformCache.remove(file.absolutePath)
+                            getWaveformFile(file).delete()
+                            onSuccess()
+                        } else {
+                            tempFile.delete()
+                            Toast.makeText(this@MainActivity, "Ei saanud algset faili asendada!", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        // Jäta temp uue nimena (nt fail_trim_123.m4a)
+                        val newName = "${file.nameWithoutExtension}_trim_${System.currentTimeMillis()}.$ext"
+                        val newFile = File(file.parent, newName)
+                        if (tempFile.renameTo(newFile)) {
+                            onSuccess()
+                            Toast.makeText(this@MainActivity, "Salvestatud: $newName", Toast.LENGTH_SHORT).show()
+                        } else {
+                            tempFile.delete()
+                        }
+                    }
+                } else {
+                    tempFile.delete()
+                    Toast.makeText(this@MainActivity, "Viga lõikamisel (vale formaat?)", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -668,7 +700,7 @@ fun LiveWaveformCard(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     Text("Salvestan...", color = orangeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFFBF360C)) // Deep Orange for visibility
                 }
                 Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = orangeColor)
             }
@@ -730,7 +762,7 @@ fun LiveWaveformCard(
 fun TrimDialog(
     file: File,
     durationMs: Long,
-    onConfirm: (Long, Long) -> Unit,
+    onConfirm: (Long, Long, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
@@ -752,12 +784,21 @@ fun TrimDialog(
                     Text(formatDuration(range.start.toLong()))
                     Text(formatDuration(range.endInclusive.toLong()))
                 }
+                Text("Kestus: ${formatDuration((range.endInclusive - range.start).toLong())}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong()) }
-            ) { Text("Salvesta Uus") }
+            Column(horizontalAlignment = Alignment.End) {
+                Button(
+                    onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }
+                ) { Text("Salvesta Uus Fail") }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                OutlinedButton(
+                    onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }
+                ) { Text("Asenda Originaal") }
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Loobu") }
@@ -1036,7 +1077,7 @@ fun AudioLoopApp(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long) -> Unit
+    onTrimFile: (File, Long, Long, Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1112,7 +1153,7 @@ fun AudioLoopApp(
             file = itemToModify!!.file,
             durationMs = itemToModify!!.durationMillis,
             onDismiss = { showTrimDialog = false },
-            onConfirm = { start, end -> onTrimFile(itemToModify!!.file, start, end) }
+            onConfirm = { start, end, replace -> onTrimFile(itemToModify!!.file, start, end, replace) }
         )
     }
 
@@ -1165,21 +1206,10 @@ fun AudioLoopApp(
         TrimDialog(
            file = recordingToTrim!!.file,
            durationMs = recordingToTrim!!.durationMillis, // Fix here
-           onConfirm = { start, end ->
-               scope.launch {
-                   val newFile = File(recordingToTrim!!.file.parent, "${recordingToTrim!!.file.nameWithoutExtension}_trim_${System.currentTimeMillis()}.m4a")
-                   val success = AudioTrimmer.trimAudio(recordingToTrim!!.file, newFile, start, end)
-                   if (success) {
-                       Toast.makeText(context, "Lõik salvestatud!", Toast.LENGTH_SHORT).show()
-                       // Assuming onRefreshList is a function to refresh the recordingItems list
-                       // You might need to pass it as a parameter to AudioLoopApp or handle it differently
-                       // For now, let's assume it's available or replace with appropriate logic
-                       // onRefreshList()
-                   } else {
-                       Toast.makeText(context, "Viga salvestamisel!", Toast.LENGTH_SHORT).show()
-                   }
-                   recordingToTrim = null
-               }
+           onConfirm = { start, end, replace ->
+               // Delegate to onTrimFile
+               onTrimFile(recordingToTrim!!.file, start, end, replace)
+               recordingToTrim = null
            },
            onDismiss = { recordingToTrim = null }
         )
