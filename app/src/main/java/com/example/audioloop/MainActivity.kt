@@ -644,6 +644,83 @@ fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colorScheme, content = content)
 }
 
+@Composable
+fun LiveWaveformCard(
+    currentFileName: String,
+    durationMs: Long,
+    amplitudes: List<Int>,
+    onStop: () -> Unit
+) {
+    val durationText = String.format("%02d:%02d", 
+        java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(durationMs),
+        java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(durationMs) % 60
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("Salvestan...", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+                Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Live Waveform Canvas
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val barWidth = 6.dp.toPx()
+                    val gap = 2.dp.toPx()
+                    val totalBars = (size.width / (barWidth + gap)).toInt()
+                    
+                    // Võtame tagantpoolt 'totalBars' arvu
+                    val visibleAmplitudes = amplitudes.takeLast(totalBars)
+                    
+                    visibleAmplitudes.forEachIndexed { index, amp ->
+                        // Normaalime (maxAmp on nt 32767, aga tavaline kõne on ~5000-15000)
+                        // Võimendame visuaalselt
+                        val normalizedHeight = (amp / 10000f).coerceIn(0.1f, 1f) * size.height
+                        
+                        // Joonistame paremalt vasakule
+                        val x = size.width - ((visibleAmplitudes.size - 1 - index) * (barWidth + gap)) - barWidth
+                        
+                        val yStart = (size.height - normalizedHeight) / 2f
+                        
+                        drawLine(
+                            color = Color(0xFFB3261E), // Error color red
+                            start = Offset(x, yStart),
+                            end = Offset(x, yStart + normalizedHeight),
+                            strokeWidth = barWidth,
+                            cap = StrokeCap.Round
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onStop, 
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), 
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("LÕPETA SALVESTUS")
+            }
+        }
+    }
+}
+
 // --- DIALOOGID JA KOMPONENDID --- //
 
 @Composable
@@ -1032,11 +1109,34 @@ fun AudioLoopApp(
 
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var categoryToManage by remember { mutableStateOf("") }
+    var fileToDelete by remember { mutableStateOf<RecordingItem?>(null) }
 
     var liveTimeName by remember { mutableStateOf("") }
     fun generateTimeName(prefix: String): String {
         val sdf = java.text.SimpleDateFormat("dd.MM.yy HH:mm:ss", java.util.Locale.getDefault())
         return "$prefix ${sdf.format(java.util.Date())}"
+    }
+
+    val liveAmplitudes = remember { mutableStateListOf<Int>() }
+    var liveDurationMs by remember { mutableLongStateOf(0L) }
+    
+    // Live Waveform Receiver
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == RecordingService.ACTION_AMPLITUDE_UPDATE) {
+                    val amp = intent.getIntExtra(RecordingService.EXTRA_AMPLITUDE, 0)
+                    val dur = intent.getLongExtra(RecordingService.EXTRA_DURATION_MS, 0L)
+                    liveAmplitudes.add(amp)
+                    if (liveAmplitudes.size > 200) liveAmplitudes.removeAt(0) // Hoia mälu puhtana
+                    liveDurationMs = dur
+                }
+            }
+        }
+        val filter = IntentFilter(RecordingService.ACTION_AMPLITUDE_UPDATE)
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        onDispose { context.unregisterReceiver(receiver) }
     }
 
     LaunchedEffect(isRawMode) {
@@ -1095,6 +1195,18 @@ fun AudioLoopApp(
         MoveFileDialog(categories = categories, onDismiss = { showMoveFileDialog = false }, onSelect = { targetCat -> onMoveFile(itemToModify!!, targetCat); showMoveFileDialog = false })
     }
 
+    if (fileToDelete != null) {
+        DeleteConfirmDialog(
+            title = "Kustuta fail?",
+            text = "Kas oled kindel, et soovid kustutada faili '${fileToDelete?.name}'?",
+            onDismiss = { fileToDelete = null },
+            onConfirm = {
+                fileToDelete?.let { onDeleteFile(it) }
+                fileToDelete = null
+            }
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(top = 50.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -1134,7 +1246,22 @@ fun AudioLoopApp(
             }
         }
 
-        if (!isSelectionMode) {
+        if (isRecording) {
+            LiveWaveformCard(
+                currentFileName = if (recordingName.isBlank()) liveTimeName else recordingName,
+                durationMs = liveDurationMs,
+                amplitudes = liveAmplitudes,
+                onStop = { 
+                    isRecording = false
+                    onStopRecord()
+                    recordingName = ""
+                    liveAmplitudes.clear()
+                    liveDurationMs = 0L
+                    focusManager.clearFocus()
+                }
+            )
+            Spacer(modifier = Modifier.height(15.dp))
+        } else if (!isSelectionMode) {
             OutlinedTextField(
                 value = recordingName,
                 onValueChange = { recordingName = it },
@@ -1153,7 +1280,7 @@ fun AudioLoopApp(
                 }
             )
             Spacer(modifier = Modifier.height(4.dp))
-
+ 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 FilterChip(
                     selected = !isRawMode,
@@ -1170,20 +1297,20 @@ fun AudioLoopApp(
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
-
+ 
             Button(
                 onClick = {
-                    if (isRecording) {
-                        isRecording = false; onStopRecord(); recordingName = ""; focusManager.clearFocus()
-                    } else {
-                        val finalName = if (recordingName.isBlank()) liveTimeName else recordingName
-                        if (onStartRecord(finalName, isRawMode)) isRecording = true
+                    val finalName = if (recordingName.isBlank()) liveTimeName else recordingName
+                    if (onStartRecord(finalName, isRawMode)) {
+                        isRecording = true
+                        liveAmplitudes.clear()
+                        liveDurationMs = 0L
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
-            ) { Text(if (isRecording) "LÕPETA SALVESTUS" else "SALVESTA UUS") }
-
+            ) { Text("SALVESTA UUS") }
+ 
             Spacer(modifier = Modifier.height(15.dp))
         }
 
@@ -1305,7 +1432,7 @@ fun AudioLoopApp(
                                         Icon(Icons.AutoMirrored.Filled.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Edit, "Muuda", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showFileManageDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Share, "Jaga", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { onShareFile(item) }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { onDeleteFile(item) }.padding(6.dp).size(20.dp))
+                                        Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { fileToDelete = item }.padding(6.dp).size(20.dp))
                                     }
                                 }
                             }

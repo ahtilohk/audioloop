@@ -25,11 +25,14 @@ class RecordingService : Service() {
         const val ACTION_START_INTERNAL = "ACTION_START_INTERNAL"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_RECORDING_SAVED = "com.example.audioloop.RECORDING_SAVED"
+        const val ACTION_AMPLITUDE_UPDATE = "com.example.audioloop.AMPLITUDE_UPDATE" // NEW
 
         const val EXTRA_FILENAME = "EXTRA_FILENAME"
         const val EXTRA_AUDIO_SOURCE = "EXTRA_AUDIO_SOURCE"
         const val EXTRA_RESULT_CODE = "EXTRA_RESULT_CODE"
         const val EXTRA_DATA = "EXTRA_DATA"
+        const val EXTRA_AMPLITUDE = "EXTRA_AMPLITUDE" // NEW
+        const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS" // NEW
 
         private const val CHANNEL_ID = "recording_channel"
         private const val NOTIFICATION_ID = 1
@@ -40,6 +43,10 @@ class RecordingService : Service() {
     private var isRecording = false
     private var currentFile: File? = null
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
+    
+    // Live Waveform Ticker
+    private var tickerJob: Job? = null
+    private var recordingStartTime = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -118,6 +125,8 @@ class RecordingService : Service() {
                 start()
             }
             isRecording = true
+            recordingStartTime = System.currentTimeMillis()
+            startAmplitudeTicker()
             showToast("Salvestan: ${file.name}")
         } catch (e: Exception) {
             e.printStackTrace()
@@ -164,7 +173,32 @@ class RecordingService : Service() {
             currentFile?.delete()
         } finally {
             cleanupMicRecorder()
+            stopAmplitudeTicker()
         }
+    }
+
+    private fun startAmplitudeTicker() {
+        tickerJob?.cancel()
+        tickerJob = serviceScope.launch(Dispatchers.IO) {
+            while (isActive && isRecording && mediaRecorder != null) {
+                try {
+                    val maxAmp = mediaRecorder?.maxAmplitude ?: 0
+                    val duration = System.currentTimeMillis() - recordingStartTime
+                    val intent = Intent(ACTION_AMPLITUDE_UPDATE).apply {
+                        putExtra(EXTRA_AMPLITUDE, maxAmp)
+                        putExtra(EXTRA_DURATION_MS, duration)
+                        setPackage(packageName)
+                    }
+                    sendBroadcast(intent)
+                } catch (e: Exception) { }
+                delay(50) // 20 korda sekundis sujuva liikumise jaoks
+            }
+        }
+    }
+
+    private fun stopAmplitudeTicker() {
+        tickerJob?.cancel()
+        tickerJob = null
 
         if (internalRecorder != null) {
             internalRecorder?.stop()
