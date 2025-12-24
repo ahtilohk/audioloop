@@ -777,40 +777,53 @@ fun TrimDialog(
                 Text("Vali vahemik:")
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Waveform + Slider Stack
-                Box(modifier = Modifier.height(80.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    if (waveform != null && waveform.isNotEmpty()) {
-                        Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).graphicsLayer(alpha = 0.5f)) {
-                            val barWidth = 4.dp.toPx()
-                            val gap = 2.dp.toPx()
-                            val step = (size.width / (waveform.size.coerceAtLeast(1))).coerceAtLeast(barWidth + gap)
-                            
-                            val orangeColor = Color(0xFFFF5722)
-                            
-                            waveform.forEachIndexed { index, amp ->
-                                val x = index * step
-                                if (x > size.width) return@forEachIndexed
-                                val normalizedHeight = (amp / 10000f).coerceIn(0.1f, 1f) * size.height
-                                val yStart = (size.height - normalizedHeight) / 2f
-                                
-                                drawLine(
-                                    color = orangeColor,
-                                    start = Offset(x, yStart),
-                                    end = Offset(x, yStart + normalizedHeight),
-                                    strokeWidth = barWidth,
-                                    cap = StrokeCap.Round
-                                )
-                            }
+                // Waveform Area
+                if (waveform != null && waveform.isNotEmpty()) {
+                    val maxAmp = waveform.maxOrNull() ?: 1
+                    val normFactor = if (maxAmp > 0) 1f / maxAmp else 1f / 10000f
+                    
+                    Canvas(modifier = Modifier.fillMaxWidth().height(100.dp).padding(vertical = 8.dp)) {
+                        val barWidth = 4.dp.toPx()
+                        val gap = 2.dp.toPx()
+                        val totalBars = (size.width / (barWidth + gap)).toInt()
+                        val step = waveform.size / totalBars.toFloat()
+                        
+                        val orangeColor = Color(0xFFFF5722)
+                        
+                        for (i in 0 until totalBars) {
+                             val index = (i * step).toInt()
+                             if (index < waveform.size) {
+                                  val amp = waveform[index]
+                                  // Normalize locally to fill height, but respect minimums
+                                  val fraction = (amp * normFactor).coerceIn(0.05f, 1f)
+                                  val barHeight = fraction * size.height
+                                  val x = i * (barWidth + gap)
+                                  val yStart = (size.height - barHeight) / 2f
+                                  
+                                  drawLine(
+                                      color = orangeColor,
+                                      start = Offset(x, yStart),
+                                      end = Offset(x, yStart + barHeight),
+                                      strokeWidth = barWidth,
+                                      cap = StrokeCap.Round
+                                  )
+                             }
                         }
                     }
-                    
-                    RangeSlider(
-                        value = range,
-                        onValueChange = { range = it },
-                        valueRange = 0f..durationMs.toFloat(),
-                        steps = 0
-                    )
+                } else {
+                     Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                         Text("Laen helilainet...", color = Color.Gray)
+                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                RangeSlider(
+                    value = range,
+                    onValueChange = { range = it },
+                    valueRange = 0f..durationMs.toFloat(),
+                    steps = 0
+                )
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(formatDuration(range.start.toLong()))
