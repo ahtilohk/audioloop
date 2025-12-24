@@ -1180,13 +1180,19 @@ fun AudioLoopApp(
     }
 
     if (showTrimDialog && itemToModify != null) {
-        val cached = waveformCache[itemToModify!!.file.absolutePath]
+        val file = itemToModify!!.file
+        LaunchedEffect(file) {
+             if (waveformCache[file.absolutePath] == null) {
+                 precomputeWaveformAsync(scope, file)
+             }
+        }
+        val cached = waveformCache[file.absolutePath]
         TrimDialog(
-            file = itemToModify!!.file,
+            file = file,
             durationMs = itemToModify!!.durationMillis,
             waveform = cached,
             onDismiss = { showTrimDialog = false },
-            onConfirm = { start, end, replace -> onTrimFile(itemToModify!!.file, start, end, replace) }
+            onConfirm = { start, end, replace -> onTrimFile(file, start, end, replace) }
         )
     }
 
@@ -1236,14 +1242,21 @@ fun AudioLoopApp(
     }
 
     if (recordingToTrim != null) {
-        val cached = waveformCache[recordingToTrim!!.file.absolutePath]
+        val file = recordingToTrim!!.file
+        LaunchedEffect(file) {
+            if (waveformCache[file.absolutePath] == null) {
+                precomputeWaveformAsync(scope, file)
+            }
+        }
+        val cached = waveformCache[file.absolutePath]
+        
         TrimDialog(
-           file = recordingToTrim!!.file,
-           durationMs = recordingToTrim!!.durationMillis, // Fix here
+           file = file,
+           durationMs = recordingToTrim!!.durationMillis,
            waveform = cached,
            onConfirm = { start, end, replace ->
                // Delegate to onTrimFile
-               onTrimFile(recordingToTrim!!.file, start, end, replace)
+               onTrimFile(file, start, end, replace)
                recordingToTrim = null
            },
            onDismiss = { recordingToTrim = null }
