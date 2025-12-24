@@ -420,6 +420,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 FileOutputStream(targetFile).use { output -> input.copyTo(output) }
             }
             Toast.makeText(this, "Imporditud: $safeName", Toast.LENGTH_SHORT).show()
+            
+            // Start waveform computation immediately
+            precomputeWaveformAsync(this, targetFile)
+            
+            // Note: UI needs to refresh separately if observing file system, 
+            // or user navigates back/forth.
         } catch (e: Exception) { Toast.makeText(this, "Viga importimisel", Toast.LENGTH_SHORT).show() }
     }
 

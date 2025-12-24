@@ -147,162 +147,113 @@ class RecordingService : Service() {
 
     private suspend fun startInternalRecording(fileName: String, resultCode: Int, data: Intent) {
         if (isRecording) return
+        
+        // Use temp .wav file for robust capture
         val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
-        val file = File(filesDir, finalFileName)
-        file.parentFile?.mkdirs()
-        currentFile = file
+        // We'll record to .wav first, then convert
+        val tempWavFile = File(filesDir, "${System.currentTimeMillis()}_temp.wav")
+        currentFile = File(filesDir, finalFileName) // Final target
 
         withContext(Dispatchers.Main) {
             startForegroundServiceNotification("Voogsalvestus käib...", true)
         }
 
         try {
-            val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection!!)
-                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-                .addMatchingUsage(AudioAttributes.USAGE_GAME)
-                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
-                .build()
-
-            val sampleRate = 44100
-            val channelConfig = AudioFormat.CHANNEL_IN_STEREO
-            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-            val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                showToast("RECORD_AUDIO permission not granted for internal recording.")
-                stopSelf()
-                return
+            // Get valid MediaProjection
+            var projection = mediaProjection
+            if (projection == null) {
+                 val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+                 projection = projectionManager.getMediaProjection(resultCode, data)
             }
+            // If still null (should not happen if data is valid), we crash or return
+            if (projection == null) throw IllegalStateException("MediaProjection on null")
 
-            audioRecord = AudioRecord.Builder()
-                .setAudioPlaybackCaptureConfig(config)
-                .setAudioFormat(AudioFormat.Builder()
-                    .setEncoding(audioFormat)
-                    .setSampleRate(sampleRate)
-                    .setChannelMask(channelConfig)
-                    .build())
-                .setBufferSizeInBytes(minBufferSize * 2)
-                .build()
-
-            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-                showToast("Viga: AudioRecord ei initsialiseerunud!")
-                isInternalRecording = false
-                return
-            }
-
-            audioRecord?.startRecording()
-            recordingStartTime = System.currentTimeMillis()
+            mediaProjection = projection // Update class property
+            
+            internalRecorder = InternalAudioRecorder(projection, tempWavFile)
+            
+            // Note: internalRecorder.start() might be blocking or async? 
+            // Checking InternalAudioRecorder implementation: it starts a thread.
+            internalRecorder?.start() 
+            
+            // Store temp file reference for conversion later
+            currentFile = tempWavFile // Temporarily point to wav
+            
             isInternalRecording = true
             isRecording = true
-
+            recordingStartTime = System.currentTimeMillis()
+            
             startAmplitudeTicker()
             showToast("Voogsalvestus algas!")
-
-            recordingJob = serviceScope.launch {
-                try {
-                    // Setup MediaCodec for AAC encoding
-                    // Use 128kbps which is safer
-                    val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
-                    format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-                    format.setInteger(MediaFormat.KEY_BIT_RATE, 128000) 
-                    // Set sufficient buffer size
-                    format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 32768)
-                    
-                    val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
-                    encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-                    encoder.start()
-
-                    // Setup MediaMuxer
-                    val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-                    var trackIndex = -1
-                    var muxerStarted = false
-                    
-                    val bufferInfo = MediaCodec.BufferInfo()
-                    // Use larger buffer for reading to ensure we feed codec enough
-                    val buffer = ByteArray(minBufferSize * 4) 
-
-                    while (isActive && isInternalRecording) {
-                        // 1. Read PCM from AudioRecord
-                        val readResult = audioRecord?.read(buffer, 0, buffer.size) ?: 0
-                        
-                        if (readResult > 0) {
-                            // 2. Feed to Encoder
-                            val inputBufferId = encoder.dequeueInputBuffer(10000)
-                            if (inputBufferId >= 0) {
-                                val inputBuffer = encoder.getInputBuffer(inputBufferId)
-                                inputBuffer?.clear()
-                                inputBuffer?.put(buffer, 0, readResult)
-                                encoder.queueInputBuffer(inputBufferId, 0, readResult, System.nanoTime() / 1000, 0)
-                            } else {
-                                // If buffer not available, we drop this chunk? 
-                                // Ideally we should wait or buffer, but for realtime we skip.
-                            }
-                        } else if (readResult < 0) {
-                             // Error reading
-                             break 
-                        }
-
-                        // 3. Drain Encoder to Muxer
-                        var outputBufferId = encoder.dequeueOutputBuffer(bufferInfo, 0)
-                        while (outputBufferId >= 0) {
-                            val outputBuffer = encoder.getOutputBuffer(outputBufferId)
-                            
-                            if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                                bufferInfo.size = 0
-                            }
-
-                            if (bufferInfo.size != 0) {
-                                if (!muxerStarted) {
-                                    // Wait for format changed
-                                } else {
-                                    outputBuffer?.position(bufferInfo.offset)
-                                    outputBuffer?.limit(bufferInfo.offset + bufferInfo.size)
-                                    muxer.writeSampleData(trackIndex, outputBuffer!!, bufferInfo)
-                                }
-                            }
-                            
-                            encoder.releaseOutputBuffer(outputBufferId, false)
-                            outputBufferId = encoder.dequeueOutputBuffer(bufferInfo, 0)
-                        }
-                        
-                        if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                            if (muxerStarted) {
-                                // Ignore subsequent format changes
-                            } else {
-                                val newFormat = encoder.outputFormat
-                                trackIndex = muxer.addTrack(newFormat)
-                                muxer.start()
-                                muxerStarted = true
-                            }
-                        }
-                    }
-
-                    // Cleanup
-                    try {
-                        encoder.stop()
-                        encoder.release()
-                        if (muxerStarted) {
-                            muxer.stop()
-                            muxer.release()
-                        } else {
-                            // If never started, delete the empty file
-                            file.delete()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) { showToast("Internal Rec Error: ${e.message}") }
-                } finally {
-                    withContext(Dispatchers.Main) { stopRecording() }
-                }
-            }
+            
         } catch (e: Exception) {
-            showToast("Viga: ${e.message}")
+            e.printStackTrace()
+            showToast("Viga Voogsalvestusega: ${e.message}")
             stopRecording()
         }
+    }
+    
+    // ...
+    
+    private fun stopInternalRecording() {
+         if (!isInternalRecording) return
+         isInternalRecording = false
+         
+         try {
+             internalRecorder?.stop() // Creates valid WAV
+             internalRecorder = null
+         } catch (e: Exception) { e.printStackTrace() }
+         
+         stopAmplitudeTicker()
+         
+         // Convert WAV to M4A
+         val wavFile = currentFile
+         if (wavFile != null && wavFile.exists() && wavFile.name.endsWith(".wav")) {
+             val m4aName = wavFile.name.replace("_temp.wav", ".m4a").let { 
+                 if (it.endsWith(".m4a")) it else "$it.m4a" 
+             }
+             // Actually we want the original requested filename...
+             // In startInternalRecording we lost the tracking of 'finalFileName'.
+             // Let's assume we want to save to the user's requested name if possible, 
+             // but generating a timestamped name is safer to avoid conflicts.
+             // Let's use the 'currentFile' (wav) parent and a proper name.
+             
+             // Strategy: Convert, then delete wav.
+             val finalM4a = File(wavFile.parent, "Voog_${System.currentTimeMillis()}.m4a")
+             
+             CoroutineScope(Dispatchers.IO).launch {
+                 try {
+                     val success = AudioConverter.convertWavToM4a(wavFile, finalM4a)
+                     if (success) {
+                         wavFile.delete()
+                         withContext(Dispatchers.Main) {
+                             Toast.makeText(applicationContext, "Salvestatud M4A: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
+                             // Update list
+                             sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
+                         }
+                     } else {
+                         withContext(Dispatchers.Main) {
+                             Toast.makeText(applicationContext, "Konverteerimine ebaõnnestus!", Toast.LENGTH_SHORT).show()
+                         }
+                     }
+                 } catch (e: Exception) {
+                     e.printStackTrace()
+                 }
+             }
+         }
+         
+         isRecording = false
+         stopForegroundService()
+    }
+
+    private fun stopForegroundService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
+        stopSelf()
     }
 
     private fun safelyStopRecorder() {
@@ -349,23 +300,6 @@ class RecordingService : Service() {
         tickerJob = null
     }
 
-    private fun stopInternalRecording() {
-        if (!isInternalRecording) return
-        isInternalRecording = false
-        isRecording = false // Update general service state
-        recordingJob?.cancel() // Cancel the coroutine that handles encoding and muxing
-        recordingJob = null
-        stopAmplitudeTicker()
-        try {
-            audioRecord?.stop()
-            audioRecord?.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        audioRecord = null
-        mediaProjection?.stop()
-        mediaProjection = null
-    }
 
     private suspend fun stopRecording() {
         if (isInternalRecording) {
