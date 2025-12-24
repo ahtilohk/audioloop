@@ -184,21 +184,29 @@ class RecordingService : Service() {
                 .setBufferSizeInBytes(minBufferSize * 2)
                 .build()
 
+            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+                showToast("Viga: AudioRecord ei initsialiseerunud!")
+                isInternalRecording = false
+                return
+            }
+
             audioRecord?.startRecording()
             recordingStartTime = System.currentTimeMillis()
             isInternalRecording = true
-            isRecording = true // Mark as recording for general service state
+            isRecording = true
 
-            startAmplitudeTicker() // Start timer updates
+            startAmplitudeTicker()
             showToast("Voogsalvestus algas!")
 
             recordingJob = serviceScope.launch {
                 try {
                     // Setup MediaCodec for AAC encoding
+                    // Use 128kbps which is safer
                     val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
                     format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-                    format.setInteger(MediaFormat.KEY_BIT_RATE, 192000)
-                    format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, minBufferSize * 2)
+                    format.setInteger(MediaFormat.KEY_BIT_RATE, 128000) 
+                    // Set sufficient buffer size
+                    format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 32768)
                     
                     val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
                     encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
@@ -210,7 +218,8 @@ class RecordingService : Service() {
                     var muxerStarted = false
                     
                     val bufferInfo = MediaCodec.BufferInfo()
-                    val buffer = ByteArray(minBufferSize)
+                    // Use larger buffer for reading to ensure we feed codec enough
+                    val buffer = ByteArray(minBufferSize * 4) 
 
                     while (isActive && isInternalRecording) {
                         // 1. Read PCM from AudioRecord
@@ -224,7 +233,13 @@ class RecordingService : Service() {
                                 inputBuffer?.clear()
                                 inputBuffer?.put(buffer, 0, readResult)
                                 encoder.queueInputBuffer(inputBufferId, 0, readResult, System.nanoTime() / 1000, 0)
+                            } else {
+                                // If buffer not available, we drop this chunk? 
+                                // Ideally we should wait or buffer, but for realtime we skip.
                             }
+                        } else if (readResult < 0) {
+                             // Error reading
+                             break 
                         }
 
                         // 3. Drain Encoder to Muxer
@@ -238,8 +253,7 @@ class RecordingService : Service() {
 
                             if (bufferInfo.size != 0) {
                                 if (!muxerStarted) {
-                                    // Should have raised OUTPUT_FORMAT_CHANGED by now, but sometimes it comes here?
-                                    // Usually configure happens on FORMAT_CHANGED
+                                    // Wait for format changed
                                 } else {
                                     outputBuffer?.position(bufferInfo.offset)
                                     outputBuffer?.limit(bufferInfo.offset + bufferInfo.size)
@@ -252,11 +266,14 @@ class RecordingService : Service() {
                         }
                         
                         if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                            if (muxerStarted) throw RuntimeException("Format changed twice")
-                            val newFormat = encoder.outputFormat
-                            trackIndex = muxer.addTrack(newFormat)
-                            muxer.start()
-                            muxerStarted = true
+                            if (muxerStarted) {
+                                // Ignore subsequent format changes
+                            } else {
+                                val newFormat = encoder.outputFormat
+                                trackIndex = muxer.addTrack(newFormat)
+                                muxer.start()
+                                muxerStarted = true
+                            }
                         }
                     }
 
@@ -267,6 +284,9 @@ class RecordingService : Service() {
                         if (muxerStarted) {
                             muxer.stop()
                             muxer.release()
+                        } else {
+                            // If never started, delete the empty file
+                            file.delete()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -274,9 +294,9 @@ class RecordingService : Service() {
 
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    withContext(Dispatchers.Main) { showToast("Internal recording error: ${e.message}") }
+                    withContext(Dispatchers.Main) { showToast("Internal Rec Error: ${e.message}") }
                 } finally {
-                    withContext(Dispatchers.Main) { stopRecording() } // Stop the service if recording job ends
+                    withContext(Dispatchers.Main) { stopRecording() }
                 }
             }
         } catch (e: Exception) {
