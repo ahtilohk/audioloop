@@ -94,7 +94,7 @@ private fun saveWaveformToDisk(audioFile: java.io.File, waveform: List<Int>) {
 private fun loadWaveformFromDisk(audioFile: java.io.File): List<Int>? {
     return try {
         val waveFile = getWaveformFile(audioFile)
-        if (!waveFile.exists() || waveFile.lastModified() < audioFile.lastModified()) return null
+        if (!waveFile.exists()) return null
         val content = waveFile.readText()
         if (content.isBlank()) return null
         content.split(",").map { it.toInt() }
