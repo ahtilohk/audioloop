@@ -56,6 +56,11 @@ object WaveformGenerator {
                 return emptyList()
             }
 
+            // Calculate skip factor: Target processing < 1 second.
+            // approx 40 frames per second of audio.
+            // 4 min = 240s = 10000 frames. skip 10 -> 1000 frames -> acceptable.
+            val safeSkip = (durationUs / 1000000 / 10).toInt().coerceIn(0, 100)
+
             val bufferInfo = MediaCodec.BufferInfo()
             var isEOS = false
             
@@ -78,7 +83,12 @@ object WaveformGenerator {
                             } else {
                                 val time = extractor.sampleTime
                                 codec.queueInputBuffer(inputIndex, 0, sampleSize, time, 0)
-                                extractor.advance()
+                                // Skip frames optimization
+                                var skipped = 0
+                                while (skipped < safeSkip && extractor.advance()) {
+                                    skipped++
+                                }
+                                if (skipped == 0) extractor.advance() // Always advance at least once if skip is 0, wait, logic below logic below handles advance
                             }
                         }
                     }
