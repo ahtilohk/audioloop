@@ -219,30 +219,33 @@ class RecordingService : Service() {
              
              CoroutineScope(Dispatchers.IO).launch {
                  try {
-                     // Convert PCM -> M4A + Generate Waveform
-                     // Now returns List<Int>? instead of Boolean
-                     var waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
+                     // Convert PCM -> M4A
+                     // We ignore the internal waveform calc because users report issues.
+                     // We rely on the PROVEN WaveformGenerator (which is fast now).
+                     val conversionSuccess = AudioConverter.convertPcmToM4a(pcmFile, finalM4a) != null
                      
-                     // Fallback: If in-flight generation failed, use the M4A file directly
-                     // We just optimized WaveformGenerator, so this is fast!
-                     if (waveform == null || waveform.isEmpty()) {
-                         waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
-                     }
-                     
-                     if (waveform.isNotEmpty()) {
-                         // Save Waveform immediately
-                         // CRITICAL: Write this file AFTER M4A is closed
-                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
-                         try { 
-                             waveFile.writeText(waveform.joinToString(",")) 
-                             waveFile.setLastModified(System.currentTimeMillis() + 500)
-                         } catch(e: Exception) { e.printStackTrace() }
+                     if (conversionSuccess) {
+                         // Small delay to ensure OS flushes file
+                         delay(500)
+                         
+                         // Generate using the optimized extractor (same as Import)
+                         val waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
+                         
+                         if (waveform.isNotEmpty()) {
+                             // Save Waveform immediately
+                             val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
+                             try { 
+                                 waveFile.writeText(waveform.joinToString(",")) 
+                                 waveFile.setLastModified(System.currentTimeMillis() + 1000)
+                             } catch(e: Exception) { e.printStackTrace() }
+                         }
                          
                          pcmFile.delete() // Clean up raw
                          internalTempFile = null
                          
                          withContext(Dispatchers.Main) {
-                             Toast.makeText(applicationContext, "Salvestatud: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
+                             val msg = if (waveform.isNotEmpty()) "Salvestatud" else "Salvestatud (pilt puud)"
+                             Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
                              sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
                          }
                      } else {

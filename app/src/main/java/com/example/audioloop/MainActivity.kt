@@ -835,6 +835,45 @@ fun TrimDialog(
                     valueRange = 0f..durationMs.toFloat(),
                     steps = 0
                 )
+                
+                // Fine-tuning buttons
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    // Start controls
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            onClick = { val n = (range.start - 100).coerceAtLeast(0f); range = n..range.endInclusive },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) { Text("<") }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Algus")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        OutlinedButton(
+                            onClick = { val n = (range.start + 100).coerceAtMost(range.endInclusive - 100); range = n..range.endInclusive },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) { Text(">") }
+                    }
+
+                    // End controls
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            onClick = { val n = (range.endInclusive - 100).coerceAtLeast(range.start + 100); range = range.start..n },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) { Text("<") }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Lõpp")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        OutlinedButton(
+                            onClick = { val n = (range.endInclusive + 100).coerceAtMost(durationMs.toFloat()); range = range.start..n },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) { Text(">") }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(formatDuration(range.start.toLong()))
