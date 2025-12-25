@@ -148,36 +148,36 @@ class RecordingService : Service() {
     private suspend fun startInternalRecording(fileName: String, resultCode: Int, data: Intent) {
         if (isRecording) return
         
-        // Use temp .wav file for robust capture
+        // Use temp .pcm file (RAW audio)
         val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
-        // We'll record to .wav first, then convert
-        val tempWavFile = File(filesDir, "${System.currentTimeMillis()}_temp.wav")
-        currentFile = File(filesDir, finalFileName) // Final target
+        val tempPcmFile = File(filesDir, "${System.currentTimeMillis()}_temp.pcm")
+        // NOTE: We do NOT create the final file object here to avoid it showing up as 00:00 in the UI
+        // until it is actually ready. We just store the TARGET NAME/PATH.
+        val finalFile = File(filesDir, finalFileName)
+        currentFile = finalFile 
 
         withContext(Dispatchers.Main) {
             startForegroundServiceNotification("Voogsalvestus käib...", true)
         }
 
         try {
-            // Get valid MediaProjection
             var projection = mediaProjection
             if (projection == null) {
                  val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
                  projection = projectionManager.getMediaProjection(resultCode, data)
             }
-            // If still null (should not happen if data is valid), we crash or return
             if (projection == null) throw IllegalStateException("MediaProjection on null")
+            mediaProjection = projection
 
-            mediaProjection = projection // Update class property
-            
-            internalRecorder = InternalAudioRecorder(projection, tempWavFile)
-            
-            // Note: internalRecorder.start() might be blocking or async? 
-            // Checking InternalAudioRecorder implementation: it starts a thread.
+            // Initialize Recorder with TEMP PCM file
+            internalRecorder = InternalAudioRecorder(projection, tempPcmFile)
             internalRecorder?.start() 
             
-            // Store temp file reference for conversion later
-            currentFile = tempWavFile // Temporarily point to wav
+            // We track the temp file for later conversion
+            // hack: stick it in a class var or just rely on 'currentFile' being the target and 'tempPcmFile' being local?
+            // Problem: stopInternalRecording needs to know tempPcmFile.
+            // Let's use a new variable 'internalTempFile'
+            internalTempFile = tempPcmFile
             
             isInternalRecording = true
             isRecording = true
@@ -193,48 +193,52 @@ class RecordingService : Service() {
         }
     }
     
+    // Add this property to class
+    private var internalTempFile: File? = null
+
     // ...
-    
+
     private fun stopInternalRecording() {
          if (!isInternalRecording) return
          isInternalRecording = false
          
          try {
-             internalRecorder?.stop() // Creates valid WAV
+             internalRecorder?.stop()
              internalRecorder = null
          } catch (e: Exception) { e.printStackTrace() }
          
          stopAmplitudeTicker()
          
-         // Convert WAV to M4A
-         val wavFile = currentFile
-         if (wavFile != null && wavFile.exists() && wavFile.name.endsWith(".wav")) {
-             val m4aName = wavFile.name.replace("_temp.wav", ".m4a").let { 
-                 if (it.endsWith(".m4a")) it else "$it.m4a" 
-             }
-             // Actually we want the original requested filename...
-             // In startInternalRecording we lost the tracking of 'finalFileName'.
-             // Let's assume we want to save to the user's requested name if possible, 
-             // but generating a timestamped name is safer to avoid conflicts.
-             // Let's use the 'currentFile' (wav) parent and a proper name.
+         val pcmFile = internalTempFile
+         val targetFile = currentFile
+         
+         if (pcmFile != null && pcmFile.exists() && targetFile != null) {
+             val finalM4a = targetFile
              
-             // Strategy: Convert, then delete wav.
-             val finalM4a = File(wavFile.parent, "Voog_${System.currentTimeMillis()}.m4a")
+             showToast("Töötlen salvestust...")
              
              CoroutineScope(Dispatchers.IO).launch {
                  try {
-                     val success = AudioConverter.convertWavToM4a(wavFile, finalM4a)
+                     // Convert PCM -> M4A + Generate Waveform
+                     val success = AudioConverter.convertPcmToM4a(pcmFile, finalM4a) { waveform ->
+                         // Save Waveform immediately
+                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
+                         try { waveFile.writeText(waveform.joinToString(",")) } catch(e: Exception) {}
+                     }
+                     
                      if (success) {
-                         wavFile.delete()
+                         pcmFile.delete() // Clean up raw
+                         internalTempFile = null
+                         
                          withContext(Dispatchers.Main) {
-                             Toast.makeText(applicationContext, "Salvestatud M4A: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
-                             // Update list
+                             Toast.makeText(applicationContext, "Salvestatud: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
                              sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
                          }
                      } else {
                          withContext(Dispatchers.Main) {
-                             Toast.makeText(applicationContext, "Konverteerimine ebaõnnestus!", Toast.LENGTH_SHORT).show()
+                             Toast.makeText(applicationContext, "Viga konverteerimisel!", Toast.LENGTH_SHORT).show()
                          }
+                         pcmFile.delete()
                      }
                  } catch (e: Exception) {
                      e.printStackTrace()
