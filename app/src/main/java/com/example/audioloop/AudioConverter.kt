@@ -14,14 +14,13 @@ object AudioConverter {
 
     /**
      * Converts RAW PCM file (16-bit, 44100Hz, Stereo) to M4A (AAC).
-     * Also computes waveform data in the same pass.
+     * Returns waveform data if successful, null otherwise.
      */
     fun convertPcmToM4a(
         pcmFile: File, 
-        outputM4a: File, 
-        onWaveformReady: (List<Int>) -> Unit
-    ): Boolean {
-        if (!pcmFile.exists()) return false
+        outputM4a: File
+    ): List<Int>? {
+        if (!pcmFile.exists()) return null
 
         val sampleRate = 44100
         val channelCount = 2
@@ -31,10 +30,11 @@ object AudioConverter {
         val waveform = ArrayList<Int>()
         var sumSamples = 0.0
         var sampleCount = 0
-        // We want ~100 bars for the file. 
-        // File size / (2 bytes * 2 channels) = total samples
         val totalSamples = pcmFile.length() / 4
-        val samplesPerBar = (totalSamples / 100).toInt().coerceAtLeast(100)
+        // Calculate samples per bar to get exactly 100 bars approximately
+        // Prevent division by zero if file is empty
+        val targetBars = 100
+        val samplesPerBar = if (totalSamples > 0) (totalSamples / targetBars).toInt().coerceAtLeast(1) else 1
 
         // --- Encoder Setup ---
         val outputFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount)
@@ -55,13 +55,13 @@ object AudioConverter {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to setup encoder/muxer", e)
             inputStream.close()
-            return false
+            return null
         }
 
         val bufferInfo = MediaCodec.BufferInfo()
         var muxerAudioTrackIndex = -1
         var muxerStarted = false
-        val buffer = ByteArray(4096) // Read chunk
+        val buffer = ByteArray(4096) 
         var isEOS = false
         
         try {
@@ -77,9 +77,8 @@ object AudioConverter {
                             isEOS = true
                         } else {
                             // --- Waveform Process ---
-                            for (i in 0 until read step 4) { // 16-bit stereo = 4 bytes per frame
+                            for (i in 0 until read step 4) {
                                 if (i + 1 < read) {
-                                    // Just take left channel for visualization (Little Endian)
                                     val low = buffer[i].toInt() and 0xFF
                                     val high = buffer[i+1].toInt() shl 8
                                     val sample = (high or low).toShort()
@@ -127,17 +126,15 @@ object AudioConverter {
                 }
             }
             
-            // Finalize waveform
-            onWaveformReady(waveform)
+            return waveform
             
         } catch (e: Exception) {
             Log.e(TAG, "Conversion failed", e)
-            return false
+            return null
         } finally {
             inputStream.close()
             try { encoder.stop(); encoder.release() } catch (e: Exception) {}
             try { if (muxerStarted) muxer.stop(); muxer.release() } catch (e: Exception) {}
         }
-        return true
     }
 }

@@ -220,13 +220,20 @@ class RecordingService : Service() {
              CoroutineScope(Dispatchers.IO).launch {
                  try {
                      // Convert PCM -> M4A + Generate Waveform
-                     val success = AudioConverter.convertPcmToM4a(pcmFile, finalM4a) { waveform ->
-                         // Save Waveform immediately
-                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
-                         try { waveFile.writeText(waveform.joinToString(",")) } catch(e: Exception) {}
-                     }
+                     // Now returns List<Int>? instead of Boolean
+                     val waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
                      
-                     if (success) {
+                     if (waveform != null) {
+                         // Save Waveform immediately
+                         // CRITICAL: Write this file AFTER M4A is closed (which happens in convertPcmToM4a finally block)
+                         // This ensures .wave lastModified > .m4a lastModified, so UI doesn't ignore it.
+                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
+                         try { 
+                             waveFile.writeText(waveform.joinToString(",")) 
+                             // Just in case filesystems are fast/concurrent: explicitly set lastModified to now+1sec
+                             waveFile.setLastModified(System.currentTimeMillis() + 500)
+                         } catch(e: Exception) { e.printStackTrace() }
+                         
                          pcmFile.delete() // Clean up raw
                          internalTempFile = null
                          
