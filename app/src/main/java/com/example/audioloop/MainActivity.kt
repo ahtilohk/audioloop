@@ -795,21 +795,26 @@ fun TrimDialog(
                         val step = waveform.size / totalBars.toFloat()
                         
                         val orangeColor = Color(0xFFFF5722)
+                        val dimmedColor = orangeColor.copy(alpha = 0.3f)
                         
                         for (i in 0 until totalBars) {
                              val index = (i * step).toInt()
                              if (index < waveform.size) {
-                                  val amp = waveform[index]
-                                  // Normalize locally to fill height, but respect minimums
-                                  val fraction = (amp * normFactor).coerceIn(0.05f, 1f)
-                                  val barHeight = fraction * size.height
-                                  val x = i * (barWidth + gap)
-                                  val yStart = (size.height - barHeight) / 2f
+                                  val amplitude = waveform[index]
+                                  // Normalize height relative to maxAmp (avoid flat lines for quiet files)
+                                  val barHeight = (amplitude * normFactor * size.height).coerceAtMost(size.height)
+                                  
+                                  // Calculate time for this bar
+                                  val barTime = (i.toFloat() / totalBars) * durationMs
+                                  
+                                  // Check if inside selected range
+                                  val isSelected = barTime >= range.start && barTime <= range.endInclusive
+                                  val color = if (isSelected) orangeColor else dimmedColor
                                   
                                   drawLine(
-                                      color = orangeColor,
-                                      start = Offset(x, yStart),
-                                      end = Offset(x, yStart + barHeight),
+                                      color = color,
+                                      start = Offset(x = i * (barWidth + gap), y = size.height / 2 - barHeight / 2),
+                                      end = Offset(x = i * (barWidth + gap), y = size.height / 2 + barHeight / 2),
                                       strokeWidth = barWidth,
                                       cap = StrokeCap.Round
                                   )

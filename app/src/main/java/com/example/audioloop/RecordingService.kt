@@ -221,16 +221,20 @@ class RecordingService : Service() {
                  try {
                      // Convert PCM -> M4A + Generate Waveform
                      // Now returns List<Int>? instead of Boolean
-                     val waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
+                     var waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
                      
-                     if (waveform != null) {
+                     // Fallback: If in-flight generation failed, use the M4A file directly
+                     // We just optimized WaveformGenerator, so this is fast!
+                     if (waveform == null || waveform.isEmpty()) {
+                         waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
+                     }
+                     
+                     if (waveform.isNotEmpty()) {
                          // Save Waveform immediately
-                         // CRITICAL: Write this file AFTER M4A is closed (which happens in convertPcmToM4a finally block)
-                         // This ensures .wave lastModified > .m4a lastModified, so UI doesn't ignore it.
+                         // CRITICAL: Write this file AFTER M4A is closed
                          val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
                          try { 
                              waveFile.writeText(waveform.joinToString(",")) 
-                             // Just in case filesystems are fast/concurrent: explicitly set lastModified to now+1sec
                              waveFile.setLastModified(System.currentTimeMillis() + 500)
                          } catch(e: Exception) { e.printStackTrace() }
                          
