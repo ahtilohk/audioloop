@@ -63,6 +63,7 @@ object AudioConverter {
         var muxerStarted = false
         val buffer = ByteArray(4096) 
         var isEOS = false
+        var totalBytesRead = 0L
         
         try {
             while (true) {
@@ -95,7 +96,22 @@ object AudioConverter {
                             // --- Encoding Process ---
                             inputBuffer?.clear()
                             inputBuffer?.put(buffer, 0, read)
-                            encoder.queueInputBuffer(inputBufferId, 0, read, System.nanoTime() / 1000, 0)
+                            
+                            // Calculate PTS based on samples processed for zero-based, monotonic time
+                            // 16-bit stereo = 4 bytes per sample frame
+                            // read bytes / 4 = sample frames
+                            val currentPtsUs = (totalBytesRead * 1000000L) / (sampleRate * 2 * 2) // *2 bytes * 2 channels? No.
+                            // 44100Hz Stereo 16-bit.
+                            // 1 sec = 44100 frames.
+                            // 1 frame = 4 bytes (2 channels * 2 bytes).
+                            // So bytes / 4 = frames.
+                            // pts = (frames * 1000000) / 44100.
+                            
+                            val processedFrames = totalBytesRead / 4 
+                            val ptsUs = (processedFrames * 1000000L) / sampleRate
+                            
+                            encoder.queueInputBuffer(inputBufferId, 0, read, ptsUs, 0)
+                            totalBytesRead += read
                         }
                     }
                 }

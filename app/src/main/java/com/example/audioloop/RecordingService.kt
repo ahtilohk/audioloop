@@ -220,50 +220,37 @@ class RecordingService : Service() {
              CoroutineScope(Dispatchers.IO).launch {
                  try {
                      // Convert PCM -> M4A
-                     // Use Copy-Generate strategy to avoid file lock issues on fresh files
-                     val conversionSuccess = AudioConverter.convertPcmToM4a(pcmFile, finalM4a) != null
+                     // Timestamps are now fixed (0-based), so file is standard.
+                     // Priority 1: Use in-memory waveform.
+                     var waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
                      
-                     if (conversionSuccess) {
-                         // Force media scan to ensure OS indexes the file
-                         android.media.MediaScannerConnection.scanFile(
-                             applicationContext,
-                             arrayOf(finalM4a.absolutePath),
-                             null, null
-                         )
-                         
-                         // Generate Waveform from a COPY to strictly avoid read/write contention
-                         val tempCopy = File(cacheDir, "wave_gen_temp_${System.currentTimeMillis()}.m4a")
-                         try {
-                              finalM4a.copyTo(tempCopy, overwrite = true)
-                              val waveform = WaveformGenerator.extractWaveform(tempCopy, 100)
-                              
-                              if (waveform.isNotEmpty()) {
-                                  val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
-                                  waveFile.writeText(waveform.joinToString(","))
-                                  // Future timestamp to beat any cache
-                                  waveFile.setLastModified(System.currentTimeMillis() + 2000)
-                              }
-                         } catch (e: Exception) {
-                              e.printStackTrace()
-                         } finally {
-                              tempCopy.delete()
-                         }
-                         
-                         pcmFile.delete() // Clean up raw
-                         internalTempFile = null
-                         
-                         withContext(Dispatchers.Main) {
-                             Toast.makeText(applicationContext, "Salvestatud: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
-                             sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
-                         }
-                     } else {
-                         withContext(Dispatchers.Main) {
-                             Toast.makeText(applicationContext, "Viga konverteerimisel!", Toast.LENGTH_SHORT).show()
-                         }
-                         pcmFile.delete()
+                     // Priority 2: Fallback to Generator
+                     if (waveform == null || waveform.isEmpty()) {
+                         delay(500)
+                         waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
+                     }
+                     
+                     if (waveform != null && waveform.isNotEmpty()) {
+                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
+                         try { 
+                             waveFile.writeText(waveform.joinToString(",")) 
+                             waveFile.setLastModified(System.currentTimeMillis() + 1000)
+                         } catch(e: Exception) { e.printStackTrace() }
+                     }
+                     
+                     pcmFile.delete() // Clean up raw
+                     internalTempFile = null
+
+                     withContext(Dispatchers.Main) {
+                         // Notify user
+                         Toast.makeText(applicationContext, "Salvestatud: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
+                         sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
                      }
                  } catch (e: Exception) {
                      e.printStackTrace()
+                     withContext(Dispatchers.Main) {
+                         Toast.makeText(applicationContext, "Viga salvestamisel!", Toast.LENGTH_SHORT).show()
+                     }
                  }
              }
          }
