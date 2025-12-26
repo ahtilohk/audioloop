@@ -222,10 +222,7 @@ class RecordingService : Service() {
                      // 1. Generate Waveform directly from PCM (Instant & Reliable)
                      val waveform = WaveformGenerator.generateFromPcm(pcmFile)
                      
-                     // 2. Convert to M4A
-                     AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
-                     
-                     // 3. Save Waveform
+                     // 2. Save Waveform IMMEDIATELY (Before M4A conversion potentially blocks)
                      if (waveform.isNotEmpty()) {
                          val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
                          try { 
@@ -234,6 +231,9 @@ class RecordingService : Service() {
                              waveFile.setLastModified(System.currentTimeMillis() + 1000)
                          } catch(e: Exception) { e.printStackTrace() }
                      }
+
+                     // 3. Convert to M4A (This might take time, but Waveform is already safe)
+                     AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
                      
                      pcmFile.delete() // Clean up raw
                      internalTempFile = null

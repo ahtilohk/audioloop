@@ -928,16 +928,25 @@ fun TrimDialog(
                         drawCustomHandle(endX)
                     }
                 }
-                    // Start controls
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Unified Control Row (Algus ... Lõpp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Start Group
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
                             onClick = { val n = (range.start - 1000).coerceAtLeast(0f); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(40.dp) // Larger touch target
+                            modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Algus")
-                        Spacer(modifier = Modifier.width(4.dp))
+                        
+                        Text("Algus", modifier = Modifier.padding(horizontal = 8.dp))
+                        
                         OutlinedButton(
                             onClick = { val n = (range.start + 1000).coerceAtMost(range.endInclusive - 1000); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
@@ -945,21 +954,22 @@ fun TrimDialog(
                         ) { Text(">", fontSize = 18.sp) }
                     }
 
-                    // End controls
+                    // End Group
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
                             onClick = { val n = (range.endInclusive - 1000).coerceAtLeast(range.start + 1000); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Lõpp")
-                        Spacer(modifier = Modifier.width(4.dp))
+                        
+                        Text("Lõpp", modifier = Modifier.padding(horizontal = 8.dp))
+                        
                         OutlinedButton(
                             onClick = { val n = (range.endInclusive + 1000).coerceAtMost(durationMs.toFloat()); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text(">", fontSize = 18.sp) }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
