@@ -219,21 +219,18 @@ class RecordingService : Service() {
              
              CoroutineScope(Dispatchers.IO).launch {
                  try {
-                     // Convert PCM -> M4A
-                     // Timestamps are now fixed (0-based), so file is standard.
-                     // Priority 1: Use in-memory waveform.
-                     var waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
+                     // 1. Generate Waveform directly from PCM (Instant & Reliable)
+                     val waveform = WaveformGenerator.generateFromPcm(pcmFile)
                      
-                     // Priority 2: Fallback to Generator
-                     if (waveform == null || waveform.isEmpty()) {
-                         delay(500)
-                         waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
-                     }
+                     // 2. Convert to M4A
+                     AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
                      
-                     if (waveform != null && waveform.isNotEmpty()) {
+                     // 3. Save Waveform
+                     if (waveform.isNotEmpty()) {
                          val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
                          try { 
-                             waveFile.writeText(waveform.joinToString(",")) 
+                             waveFile.writeText(waveform.joinToString(","))
+                             // Ensure timestamp is fresh
                              waveFile.setLastModified(System.currentTimeMillis() + 1000)
                          } catch(e: Exception) { e.printStackTrace() }
                      }

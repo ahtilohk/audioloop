@@ -187,4 +187,59 @@ object WaveformGenerator {
         }
         return result
     }
+    fun generateFromPcm(pcmFile: File): List<Int> {
+        if (!pcmFile.exists() || pcmFile.length() == 0L) return emptyList()
+        
+        val waveform = ArrayList<Int>()
+        val totalBytes = pcmFile.length()
+        // 16-bit sample = 2 bytes.
+        // Total samples = bytes / 2
+        val totalSamples = totalBytes / 2
+        val targetPoints = 100
+        val samplesPerPoint = (totalSamples / targetPoints).toInt().coerceAtLeast(1)
+        
+        var maxAmp = 0
+        var sampleCount = 0
+        
+        // Use a buffered input stream for speed
+        val stream = java.io.BufferedInputStream(java.io.FileInputStream(pcmFile))
+        val buffer = ByteArray(4096)
+        
+        try {
+            while (true) {
+                val read = stream.read(buffer)
+                if (read == -1) break
+                
+                for (i in 0 until read step 2) {
+                    if (i + 1 < read) {
+                        val low = buffer[i].toInt() and 0xFF
+                        val high = buffer[i+1].toInt() shl 8
+                        val sample = (high or low).toShort()
+                        val absSample = kotlin.math.abs(sample.toInt())
+                        
+                        if (absSample > maxAmp) {
+                            maxAmp = absSample
+                        }
+                        sampleCount++
+                        
+                        if (sampleCount >= samplesPerPoint) {
+                            waveform.add(maxAmp)
+                            maxAmp = 0
+                            sampleCount = 0
+                        }
+                    }
+                }
+            }
+            // Add last point
+            if (sampleCount > 0) {
+                waveform.add(maxAmp)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            stream.close()
+        }
+        
+        return waveform
+    }
 }

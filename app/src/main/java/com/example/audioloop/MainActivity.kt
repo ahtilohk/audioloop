@@ -842,13 +842,92 @@ fun TrimDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // --- SLIDER CONTROLS ---
-                // Standard slider below waveform
-                RangeSlider(
-                    value = range,
-                    onValueChange = { range = it },
-                    valueRange = 0f..durationMs.toFloat(),
-                    steps = 0
-                )
+                // Custom implementation for large touch targets
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp) // Generous height for touch
+                        .padding(horizontal = 12.dp)
+                ) {
+                    val width = constraints.maxWidth.toFloat()
+                    val height = constraints.maxHeight.toFloat()
+                    
+                    val startX = (range.start / durationMs) * width
+                    val endX = (range.endInclusive / durationMs) * width
+                    
+                    var isDraggingStart by remember { mutableStateOf(false) }
+                    var isDraggingEnd by remember { mutableStateOf(false) }
+                    
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        // Massive hit targets (60dp wide)
+                                        val hitThreshold = 60.dp.toPx()
+                                        if (kotlin.math.abs(offset.x - startX) < hitThreshold) {
+                                            isDraggingStart = true
+                                        } else if (kotlin.math.abs(offset.x - endX) < hitThreshold) {
+                                            isDraggingEnd = true
+                                        }
+                                    },
+                                    onDragEnd = { isDraggingStart = false; isDraggingEnd = false },
+                                    onDragCancel = { isDraggingStart = false; isDraggingEnd = false },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        val dx = dragAmount.x
+                                        val timeDelta = (dx / width) * durationMs
+                                        
+                                        if (isDraggingStart) {
+                                            val newStart = (range.start + timeDelta).coerceIn(0f, range.endInclusive - 1000f)
+                                            range = newStart..range.endInclusive
+                                        } else if (isDraggingEnd) {
+                                            val newEnd = (range.endInclusive + timeDelta).coerceIn(range.start + 1000f, durationMs.toFloat())
+                                            range = range.start..newEnd
+                                        }
+                                    }
+                                )
+                            }
+                    ) {
+                        // Track Base
+                        drawLine(
+                            color = Color.Gray.copy(alpha=0.5f),
+                            start = Offset(0f, size.height/2),
+                            end = Offset(size.width, size.height/2),
+                            strokeWidth = 4.dp.toPx(),
+                            cap = StrokeCap.Round
+                        )
+                        
+                        // Active Track
+                        drawLine(
+                            color = Color(0xFFFF5722),
+                            start = Offset(startX, size.height/2),
+                            end = Offset(endX, size.height/2),
+                            strokeWidth = 4.dp.toPx(),
+                            cap = StrokeCap.Round
+                        )
+                        
+                        // Handles
+                        fun drawCustomHandle(x: Float) {
+                            drawCircle(
+                                color = Color.White,
+                                radius = 16.dp.toPx(), // Visual size 32dp
+                                center = Offset(x, size.height/2),
+                                style = Fill
+                            )
+                            drawCircle(
+                                color = Color(0xFFFF5722),
+                                radius = 16.dp.toPx(),
+                                center = Offset(x, size.height/2),
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                        }
+                        
+                        drawCustomHandle(startX)
+                        drawCustomHandle(endX)
+                    }
+                }
                     // Start controls
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
