@@ -786,12 +786,29 @@ fun TrimAudioDialog(
     // Preview Player State
     var previewPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPreviewing by remember { mutableStateOf(false) }
+    var currentPos by remember { mutableLongStateOf(0L) } // Track playback position
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
         onDispose {
             previewPlayer?.release()
             previewPlayer = null
+        }
+    }
+    
+    // Progress Timer
+    LaunchedEffect(isPreviewing) {
+        if (isPreviewing) {
+            while(isPreviewing && previewPlayer != null) {
+                try {
+                    if (previewPlayer!!.isPlaying) {
+                        currentPos = previewPlayer!!.currentPosition.toLong()
+                    }
+                } catch(e:Exception){}
+                delay(50) // 20fps update
+            }
+        } else {
+            currentPos = range.start.toLong() // Reset to start when stopped
         }
     }
 
@@ -811,19 +828,19 @@ fun TrimAudioDialog(
                 }
                 previewPlayer = mp
                 isPreviewing = true
+                currentPos = range.start.toLong()
                 
                 // Stop automatically at end of range
                 val playDuration = (range.endInclusive - range.start).toLong()
                 scope.launch {
-                    delay(playDuration)
-                    if (isPreviewing && previewPlayer == mp) {
-                        try {
-                            if (mp.isPlaying) {
-                                mp.pause()
-                                mp.seekTo(range.start.toInt())
-                            }
-                        } catch(e:Exception){}
-                        isPreviewing = false
+                    val endTime = System.currentTimeMillis() + playDuration
+                    while (isPreviewing && previewPlayer == mp) {
+                        if (System.currentTimeMillis() > endTime || (previewPlayer?.currentPosition ?: 0) >= range.endInclusive) {
+                             try { if (mp.isPlaying) mp.pause(); mp.seekTo(range.start.toInt()) } catch(e:Exception){}
+                             isPreviewing = false
+                             break
+                        }
+                        delay(100)
                     }
                 }
                 
@@ -843,7 +860,6 @@ fun TrimAudioDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text("Lõika helindit")
-                // Preview Button in Header
                 IconButton(onClick = { togglePreview() }) {
                     Icon(
                         if (isPreviewing) Icons.Default.Stop else Icons.Default.PlayArrow,
@@ -855,39 +871,46 @@ fun TrimAudioDialog(
         },
         text = {
             Column {
-                if (durationMs > 0) {
-                    val progress = (range.start / durationMs)
-                    // ... Visualization Code ...
-                }
-                
+                // Info text (Live Progress)
+                val displayTime = if (isPreviewing) currentPos else range.start.toLong()
+                Text(
+                    text = "Hetkel: ${formatDuration(displayTime)} / ${formatDuration(durationMs)}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.End)
+                )
+
                 // Waveform Visualization
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
                     .background(Color.Black.copy(alpha = 0.05f))
                 ) {
-                    val points = remember { waveformCache[file.name] ?: emptyList() }
+                    // Start Loading / Caching
+                    val points = remember { waveformCache[file.absolutePath] ?: emptyList() }
                     
                     if (points.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Laen helilainet...", fontSize = 12.sp, color = Color.Gray)
                         }
                         LaunchedEffect(file) {
-                            val w = withContext(Dispatchers.IO) {
-                                WaveformGenerator.extractWaveform(file, 100)
+                            // Check cache again with absolute path
+                            if (waveformCache[file.absolutePath] == null) {
+                                val w = withContext(Dispatchers.IO) {
+                                    WaveformGenerator.extractWaveform(file, 100)
+                                }
+                                if (w.isNotEmpty()) waveformCache[file.absolutePath] = w
                             }
-                            if (w.isNotEmpty()) waveformCache[file.name] = w
                         }
                     } else {
                          Canvas(modifier = Modifier.fillMaxSize()) {
                             val barWidth = size.width / points.size
                             val maxAmp = 100f // Normalization
                             
-                            // Visualize Selection Dimming
                             val startX = (range.start / durationMs) * size.width
                             val endX = (range.endInclusive / durationMs) * size.width
                             
-                            // Draw Dimmed Background for unselected areas
+                            // Dimming
                             drawRect(
                                 color = Color(0xFFFF5722).copy(alpha = 0.1f),
                                 topLeft = Offset(0f, 0f),
@@ -899,7 +922,7 @@ fun TrimAudioDialog(
                                 size = androidx.compose.ui.geometry.Size(size.width - endX, size.height)
                             )
 
-                            // Draw Waveform Bars
+                            // Bars
                             points.forEachIndexed { index, amp ->
                                 val x = index * barWidth
                                 val height = (amp / maxAmp) * size.height
@@ -915,6 +938,17 @@ fun TrimAudioDialog(
                                     end = Offset(centerX, y + height),
                                     strokeWidth = barWidth * 0.8f,
                                     cap = StrokeCap.Round
+                                )
+                            }
+                            
+                            // Playback Progress Line
+                            if (isPreviewing) {
+                                val progressX = (currentPos.toFloat() / durationMs) * size.width
+                                drawLine(
+                                    color = Color.Red,
+                                    start = Offset(progressX, 0f),
+                                    end = Offset(progressX, size.height),
+                                    strokeWidth = 2.dp.toPx()
                                 )
                             }
                         }

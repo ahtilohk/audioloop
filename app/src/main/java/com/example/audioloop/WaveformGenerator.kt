@@ -20,6 +20,18 @@ object WaveformGenerator {
      * @return A list of amplitudes (scaled 0-100) or an empty list on failure.
      */
     fun extractWaveform(file: File, numBars: Int = 60): List<Int> {
+        // 1. Check for pre-calculated .wave file
+        val waveFile = File(file.parent, "${file.name}.wave")
+        if (waveFile.exists()) {
+             try {
+                 val content = waveFile.readText()
+                 if (content.isNotEmpty()) {
+                     val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
+                     if (list.isNotEmpty()) return list
+                 }
+             } catch (e: Exception) { e.printStackTrace() }
+        }
+
         if (!file.exists() || file.length() < 100) return emptyList()
 
         val extractor = MediaExtractor()
