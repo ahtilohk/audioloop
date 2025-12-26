@@ -771,76 +771,158 @@ fun LiveWaveformCard(
 
 // --- DIALOOGID JA KOMPONENDID --- //
 
+// --- HELIFUNKTSIOONID SIIN ---
+
 @Composable
-fun TrimDialog(
+fun TrimAudioDialog(
     file: File,
     durationMs: Long,
-    waveform: List<Int>?,
     onConfirm: (Long, Long, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
+    val context = LocalContext.current
     
+    // Preview Player State
+    var previewPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var isPreviewing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            previewPlayer?.release()
+            previewPlayer = null
+        }
+    }
+
+    fun togglePreview() {
+        if (isPreviewing) {
+            previewPlayer?.stop()
+            previewPlayer?.release()
+            previewPlayer = null
+            isPreviewing = false
+        } else {
+            try {
+                val mp = MediaPlayer().apply {
+                    setDataSource(file.absolutePath)
+                    prepare()
+                    seekTo(range.start.toInt())
+                    start()
+                }
+                previewPlayer = mp
+                isPreviewing = true
+                
+                // Stop automatically at end of range
+                val playDuration = (range.endInclusive - range.start).toLong()
+                scope.launch {
+                    delay(playDuration)
+                    if (isPreviewing && previewPlayer == mp) {
+                        try {
+                            if (mp.isPlaying) {
+                                mp.pause()
+                                mp.seekTo(range.start.toInt())
+                            }
+                        } catch(e:Exception){}
+                        isPreviewing = false
+                    }
+                }
+                
+                mp.setOnCompletionListener { 
+                    isPreviewing = false
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "Viga eelkuulamisel", Toast.LENGTH_SHORT).show()
+                isPreviewing = false
+            }
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Lõika ja Salvesta") },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("Lõika helindit")
+                // Preview Button in Header
+                IconButton(onClick = { togglePreview() }) {
+                    Icon(
+                        if (isPreviewing) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        contentDescription = "Eelkuulamine",
+                        tint = if (isPreviewing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        },
         text = {
             Column {
-                Text("Vali vahemik:")
-                Spacer(modifier = Modifier.height(16.dp))
+                if (durationMs > 0) {
+                    val progress = (range.start / durationMs)
+                    // ... Visualization Code ...
+                }
                 
-                // --- WAVEFORM VISUALIZATION ---
-                // Separate from slider for clarity
-                
-                if (waveform != null && waveform.isNotEmpty()) {
-                    val maxAmp = waveform.maxOrNull() ?: 1
-                    val normFactor = if (maxAmp > 0) 1f / maxAmp else 1f / 10000f
+                // Waveform Visualization
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .background(Color.Black.copy(alpha = 0.05f))
+                ) {
+                    val points = remember { waveformCache[file.name] ?: emptyList() }
                     
-                    Canvas(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .padding(vertical = 8.dp)
-                        .background(Color(0xFF222222), RoundedCornerShape(8.dp)) // Dark background context
-                        .padding(4.dp)
-                    ) {
-                        val barWidth = 4.dp.toPx()
-                        val gap = 2.dp.toPx()
-                        val totalBars = (size.width / (barWidth + gap)).toInt()
-                        val step = waveform.size / totalBars.toFloat()
-                        
-                        val orangeColor = Color(0xFFFF5722)
-                        val dimmedColor = orangeColor.copy(alpha = 0.3f)
-                        
-                        for (i in 0 until totalBars) {
-                             val index = (i * step).toInt()
-                             if (index < waveform.size) {
-                                  val amplitude = waveform[index]
-                                  val barHeight = (amplitude * normFactor * size.height).coerceAtMost(size.height)
-                                  
-                                  val barTime = (i.toFloat() / totalBars) * durationMs
-                                  
-                                  // Color logic: Orange if selected, Dimmed if not
-                                  val isSelected = barTime >= range.start && barTime <= range.endInclusive
-                                  val color = if (isSelected) orangeColor else dimmedColor
-                                  
-                                  drawLine(
-                                      color = color,
-                                      start = Offset(x = i * (barWidth + gap), y = size.height / 2 - barHeight / 2),
-                                      end = Offset(x = i * (barWidth + gap), y = size.height / 2 + barHeight / 2),
-                                      strokeWidth = barWidth,
-                                      cap = StrokeCap.Round
-                                  )
-                             }
+                    if (points.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Laen helilainet...", fontSize = 12.sp, color = Color.Gray)
+                        }
+                        LaunchedEffect(file) {
+                            val w = withContext(Dispatchers.IO) {
+                                WaveformGenerator.extractWaveform(file, 100)
+                            }
+                            if (w.isNotEmpty()) waveformCache[file.name] = w
+                        }
+                    } else {
+                         Canvas(modifier = Modifier.fillMaxSize()) {
+                            val barWidth = size.width / points.size
+                            val maxAmp = 100f // Normalization
+                            
+                            // Visualize Selection Dimming
+                            val startX = (range.start / durationMs) * size.width
+                            val endX = (range.endInclusive / durationMs) * size.width
+                            
+                            // Draw Dimmed Background for unselected areas
+                            drawRect(
+                                color = Color(0xFFFF5722).copy(alpha = 0.1f),
+                                topLeft = Offset(0f, 0f),
+                                size = androidx.compose.ui.geometry.Size(startX, size.height)
+                            )
+                            drawRect(
+                                color = Color(0xFFFF5722).copy(alpha = 0.1f),
+                                topLeft = Offset(endX, 0f),
+                                size = androidx.compose.ui.geometry.Size(size.width - endX, size.height)
+                            )
+
+                            // Draw Waveform Bars
+                            points.forEachIndexed { index, amp ->
+                                val x = index * barWidth
+                                val height = (amp / maxAmp) * size.height
+                                val y = (size.height - height) / 2
+                                val centerX = x + barWidth / 2
+                                
+                                val isSelected = centerX >= startX && centerX <= endX
+                                val color = if (isSelected) Color(0xFFFF5722) else Color(0xFFFF5722).copy(alpha = 0.3f)
+                                
+                                drawLine(
+                                    color = color,
+                                    start = Offset(centerX, y),
+                                    end = Offset(centerX, y + height),
+                                    strokeWidth = barWidth * 0.8f,
+                                    cap = StrokeCap.Round
+                                )
+                            }
                         }
                     }
-                } else {
-                     Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                         Text("Laen helilainet...", color = Color.Gray)
-                     }
                 }
-
+                
                 Spacer(modifier = Modifier.height(16.dp))
-
+                
                 // --- SLIDER CONTROLS ---
                 // Custom implementation for large touch targets
                 BoxWithConstraints(
@@ -857,7 +939,7 @@ fun TrimDialog(
                     val currentWidth by rememberUpdatedState(width)
                     val currentDuration by rememberUpdatedState(durationMs)
                     
-                    // Visual positions (still needed for drawing)
+                    // Visual positions
                     val startX = (range.start / durationMs) * width
                     val endX = (range.endInclusive / durationMs) * width
                     
@@ -867,6 +949,7 @@ fun TrimDialog(
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
+                            // KEY FIX: Use keys to restart detector if geometry changes radically
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = { offset ->
@@ -884,7 +967,6 @@ fun TrimDialog(
                                         val distEnd = kotlin.math.abs(offset.x - eX)
                                         
                                         if (distStart < hitThreshold && distEnd < hitThreshold) {
-                                            // Both in range? Pick closest.
                                             if (distStart <= distEnd) isDraggingStart = true else isDraggingEnd = true
                                         } else if (distStart < hitThreshold) {
                                             isDraggingStart = true
@@ -907,7 +989,7 @@ fun TrimDialog(
                                             val newStart = (curR.start + timeDelta).coerceIn(0f, curR.endInclusive - 1000f)
                                             range = newStart..curR.endInclusive
                                         } else if (isDraggingEnd) {
-                                            val newEnd = (curR.endInclusive + timeDelta).coerceIn(curR.start + 1000f, curDur)
+                                            val newEnd = (curR.endInclusive + timeDelta).coerceIn(curR.start + 1000f, curDur.toFloat())
                                             range = curR.start..newEnd
                                         }
                                     }
@@ -951,7 +1033,7 @@ fun TrimDialog(
                         drawCustomHandle(startX)
                         drawCustomHandle(endX)
                     }
-                }
+                } // End BoxWithConstraints
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -1367,16 +1449,10 @@ fun AudioLoopApp(
 
     if (showTrimDialog && itemToModify != null) {
         val file = itemToModify!!.file
-        LaunchedEffect(file) {
-             if (waveformCache[file.absolutePath] == null) {
-                 precomputeWaveformAsync(scope, file)
-             }
-        }
-        val cached = waveformCache[file.absolutePath]
-        TrimDialog(
+        
+        TrimAudioDialog(
             file = file,
             durationMs = itemToModify!!.durationMillis,
-            waveform = cached,
             onDismiss = { showTrimDialog = false },
             onConfirm = { start, end, replace -> onTrimFile(file, start, end, replace) }
         )
@@ -1429,17 +1505,10 @@ fun AudioLoopApp(
 
     if (recordingToTrim != null) {
         val file = recordingToTrim!!.file
-        LaunchedEffect(file) {
-            if (waveformCache[file.absolutePath] == null) {
-                precomputeWaveformAsync(scope, file)
-            }
-        }
-        val cached = waveformCache[file.absolutePath]
         
-        TrimDialog(
+        TrimAudioDialog(
            file = file,
            durationMs = recordingToTrim!!.durationMillis,
-           waveform = cached,
            onConfirm = { start, end, replace ->
                // Delegate to onTrimFile
                onTrimFile(file, start, end, replace)
