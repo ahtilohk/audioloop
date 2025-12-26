@@ -852,6 +852,12 @@ fun TrimDialog(
                     val width = constraints.maxWidth.toFloat()
                     val height = constraints.maxHeight.toFloat()
                     
+                    // Capture latest values for the closure
+                    val currentRange by rememberUpdatedState(range)
+                    val currentWidth by rememberUpdatedState(width)
+                    val currentDuration by rememberUpdatedState(durationMs)
+                    
+                    // Visual positions (still needed for drawing)
                     val startX = (range.start / durationMs) * width
                     val endX = (range.endInclusive / durationMs) * width
                     
@@ -864,11 +870,25 @@ fun TrimDialog(
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = { offset ->
-                                        // Massive hit targets (60dp wide)
+                                        // 1. Re-calculate positions using LATEST state
+                                        val curW = currentWidth
+                                        val curDur = currentDuration.toFloat()
+                                        val curR = currentRange
+                                        
+                                        val sX = (curR.start / curDur) * curW
+                                        val eX = (curR.endInclusive / curDur) * curW
+                                        
+                                        // 2. Find Closest Handle
                                         val hitThreshold = 60.dp.toPx()
-                                        if (kotlin.math.abs(offset.x - startX) < hitThreshold) {
+                                        val distStart = kotlin.math.abs(offset.x - sX)
+                                        val distEnd = kotlin.math.abs(offset.x - eX)
+                                        
+                                        if (distStart < hitThreshold && distEnd < hitThreshold) {
+                                            // Both in range? Pick closest.
+                                            if (distStart <= distEnd) isDraggingStart = true else isDraggingEnd = true
+                                        } else if (distStart < hitThreshold) {
                                             isDraggingStart = true
-                                        } else if (kotlin.math.abs(offset.x - endX) < hitThreshold) {
+                                        } else if (distEnd < hitThreshold) {
                                             isDraggingEnd = true
                                         }
                                     },
@@ -877,14 +897,18 @@ fun TrimDialog(
                                     onDrag = { change, dragAmount ->
                                         change.consume()
                                         val dx = dragAmount.x
-                                        val timeDelta = (dx / width) * durationMs
+                                        val curW = currentWidth
+                                        val curDur = currentDuration.toFloat()
+                                        val curR = currentRange
+                                        
+                                        val timeDelta = (dx / curW) * curDur
                                         
                                         if (isDraggingStart) {
-                                            val newStart = (range.start + timeDelta).coerceIn(0f, range.endInclusive - 1000f)
-                                            range = newStart..range.endInclusive
+                                            val newStart = (curR.start + timeDelta).coerceIn(0f, curR.endInclusive - 1000f)
+                                            range = newStart..curR.endInclusive
                                         } else if (isDraggingEnd) {
-                                            val newEnd = (range.endInclusive + timeDelta).coerceIn(range.start + 1000f, durationMs.toFloat())
-                                            range = range.start..newEnd
+                                            val newEnd = (curR.endInclusive + timeDelta).coerceIn(curR.start + 1000f, curDur)
+                                            range = curR.start..newEnd
                                         }
                                     }
                                 )
