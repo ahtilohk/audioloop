@@ -805,10 +805,10 @@ fun TrimAudioDialog(
                         currentPos = previewPlayer!!.currentPosition.toLong()
                     }
                 } catch(e:Exception){}
-                delay(50) // 20fps update
+                delay(50) 
             }
         } else {
-            currentPos = range.start.toLong() // Reset to start when stopped
+            currentPos = range.start.toLong() // Reset
         }
     }
 
@@ -819,6 +819,11 @@ fun TrimAudioDialog(
             previewPlayer = null
             isPreviewing = false
         } else {
+            // Check file validity
+            if (!file.exists() || file.length() < 10) {
+                Toast.makeText(context, "Fail pole veel valmis, oota hetk...", Toast.LENGTH_SHORT).show()
+                return
+            }
             try {
                 val mp = MediaPlayer().apply {
                     setDataSource(file.absolutePath)
@@ -849,7 +854,7 @@ fun TrimAudioDialog(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Viga eelkuulamisel", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Viga eelkuulamisel: ${e.message}", Toast.LENGTH_SHORT).show()
                 isPreviewing = false
             }
         }
@@ -871,14 +876,17 @@ fun TrimAudioDialog(
         },
         text = {
             Column {
-                // Info text (Live Progress)
-                val displayTime = if (isPreviewing) currentPos else range.start.toLong()
-                Text(
-                    text = "Hetkel: ${formatDuration(displayTime)} / ${formatDuration(durationMs)}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                // Info text (Live Progress) - Only if Playing
+                if (isPreviewing) {
+                    Text(
+                        text = "Mängib: ${formatDuration(currentPos)}",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.align(Alignment.End)
+                    )
+                } else {
+                     Spacer(modifier = Modifier.height(16.dp)) 
+                }
 
                 // Waveform Visualization
                 Box(modifier = Modifier
@@ -905,7 +913,10 @@ fun TrimAudioDialog(
                     } else {
                          Canvas(modifier = Modifier.fillMaxSize()) {
                             val barWidth = size.width / points.size
-                            val maxAmp = 100f // Normalization
+                            
+                            // Dynamic Normalization
+                            val rawMax = points.maxOfOrNull { kotlin.math.abs(it) } ?: 1
+                            val maxAmp = if (rawMax > 100) rawMax.toFloat() else 100f
                             
                             val startX = (range.start / durationMs) * size.width
                             val endX = (range.endInclusive / durationMs) * size.width
@@ -925,7 +936,7 @@ fun TrimAudioDialog(
                             // Bars
                             points.forEachIndexed { index, amp ->
                                 val x = index * barWidth
-                                val height = (amp / maxAmp) * size.height
+                                val height = (kotlin.math.abs(amp) / maxAmp) * size.height
                                 val y = (size.height - height) / 2
                                 val centerX = x + barWidth / 2
                                 
@@ -983,8 +994,8 @@ fun TrimAudioDialog(
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
-                            // KEY FIX: Use keys to restart detector if geometry changes radically
-                            .pointerInput(Unit) {
+                            // CRITICAL Slider Fix: Use `width` as key to reset pointerInput when layout changes
+                            .pointerInput(width) {
                                 detectDragGestures(
                                     onDragStart = { offset ->
                                         // 1. Re-calculate positions using LATEST state
@@ -992,20 +1003,23 @@ fun TrimAudioDialog(
                                         val curDur = currentDuration.toFloat()
                                         val curR = currentRange
                                         
-                                        val sX = (curR.start / curDur) * curW
-                                        val eX = (curR.endInclusive / curDur) * curW
-                                        
-                                        // 2. Find Closest Handle
-                                        val hitThreshold = 60.dp.toPx()
-                                        val distStart = kotlin.math.abs(offset.x - sX)
-                                        val distEnd = kotlin.math.abs(offset.x - eX)
-                                        
-                                        if (distStart < hitThreshold && distEnd < hitThreshold) {
-                                            if (distStart <= distEnd) isDraggingStart = true else isDraggingEnd = true
-                                        } else if (distStart < hitThreshold) {
-                                            isDraggingStart = true
-                                        } else if (distEnd < hitThreshold) {
-                                            isDraggingEnd = true
+                                        // If width is valid
+                                        if (curW > 0) {
+                                            val sX = (curR.start / curDur) * curW
+                                            val eX = (curR.endInclusive / curDur) * curW
+                                            
+                                            // 2. Find Closest Handle
+                                            val hitThreshold = 60.dp.toPx()
+                                            val distStart = kotlin.math.abs(offset.x - sX)
+                                            val distEnd = kotlin.math.abs(offset.x - eX)
+                                            
+                                            if (distStart < hitThreshold && distEnd < hitThreshold) {
+                                                if (distStart <= distEnd) isDraggingStart = true else isDraggingEnd = true
+                                            } else if (distStart < hitThreshold) {
+                                                isDraggingStart = true
+                                            } else if (distEnd < hitThreshold) {
+                                                isDraggingEnd = true
+                                            }
                                         }
                                     },
                                     onDragEnd = { isDraggingStart = false; isDraggingEnd = false },
@@ -1017,14 +1031,16 @@ fun TrimAudioDialog(
                                         val curDur = currentDuration.toFloat()
                                         val curR = currentRange
                                         
-                                        val timeDelta = (dx / curW) * curDur
-                                        
-                                        if (isDraggingStart) {
-                                            val newStart = (curR.start + timeDelta).coerceIn(0f, curR.endInclusive - 1000f)
-                                            range = newStart..curR.endInclusive
-                                        } else if (isDraggingEnd) {
-                                            val newEnd = (curR.endInclusive + timeDelta).coerceIn(curR.start + 1000f, curDur.toFloat())
-                                            range = curR.start..newEnd
+                                        if (curW > 0) {
+                                            val timeDelta = (dx / curW) * curDur
+                                            
+                                            if (isDraggingStart) {
+                                                val newStart = (curR.start + timeDelta).coerceIn(0f, curR.endInclusive - 1000f)
+                                                range = newStart..curR.endInclusive
+                                            } else if (isDraggingEnd) {
+                                                val newEnd = (curR.endInclusive + timeDelta).coerceIn(curR.start + 1000f, curDur.toFloat())
+                                                range = curR.start..newEnd
+                                            }
                                         }
                                     }
                                 )
@@ -1068,6 +1084,7 @@ fun TrimAudioDialog(
                         drawCustomHandle(endX)
                     }
                 } // End BoxWithConstraints
+                
 
                 Spacer(modifier = Modifier.height(16.dp))
 
