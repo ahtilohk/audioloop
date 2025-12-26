@@ -38,6 +38,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -783,93 +789,171 @@ fun TrimDialog(
                 Text("Vali vahemik:")
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Waveform Area
-                if (waveform != null && waveform.isNotEmpty()) {
-                    val maxAmp = waveform.maxOrNull() ?: 1
-                    val normFactor = if (maxAmp > 0) 1f / maxAmp else 1f / 10000f
-                    
-                    Canvas(modifier = Modifier.fillMaxWidth().height(100.dp).padding(vertical = 8.dp)) {
-                        val barWidth = 4.dp.toPx()
-                        val gap = 2.dp.toPx()
-                        val totalBars = (size.width / (barWidth + gap)).toInt()
-                        val step = waveform.size / totalBars.toFloat()
-                        
-                        val orangeColor = Color(0xFFFF5722)
-                        val dimmedColor = orangeColor.copy(alpha = 0.3f)
-                        
-                        for (i in 0 until totalBars) {
-                             val index = (i * step).toInt()
-                             if (index < waveform.size) {
-                                  val amplitude = waveform[index]
-                                  // Normalize height relative to maxAmp (avoid flat lines for quiet files)
-                                  val barHeight = (amplitude * normFactor * size.height).coerceAtMost(size.height)
-                                  
-                                  // Calculate time for this bar
-                                  val barTime = (i.toFloat() / totalBars) * durationMs
-                                  
-                                  // Check if inside selected range
-                                  val isSelected = barTime >= range.start && barTime <= range.endInclusive
-                                  val color = if (isSelected) orangeColor else dimmedColor
-                                  
-                                  drawLine(
-                                      color = color,
-                                      start = Offset(x = i * (barWidth + gap), y = size.height / 2 - barHeight / 2),
-                                      end = Offset(x = i * (barWidth + gap), y = size.height / 2 + barHeight / 2),
-                                      strokeWidth = barWidth,
-                                      cap = StrokeCap.Round
-                                  )
-                             }
-                        }
-                    }
-                } else {
-                     Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                         Text("Laen helilainet...", color = Color.Gray)
-                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                RangeSlider(
-                    value = range,
-                    onValueChange = { range = it },
-                    valueRange = 0f..durationMs.toFloat(),
-                    steps = 0
-                )
+                // --- CUSTOM WAVEFORM SLIDER ---
+                // Replaces separate Canvas and RangeSlider for unified design
                 
-                // Fine-tuning buttons
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp) // Taller for handles
+                        .padding(vertical = 8.dp)
+                ) {
+                    val width = constraints.maxWidth.toFloat()
+                    val height = constraints.maxHeight.toFloat()
+                    
+                    // Convert range (time) to X coordinates
+                    val startX = (range.start / durationMs) * width
+                    val endX = (range.endInclusive / durationMs) * width
+                    
+                    // Touch targets
+                    var isDraggingStart by remember { mutableStateOf(false) }
+                    var isDraggingEnd by remember { mutableStateOf(false) }
+                    
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        // Detect which handle is touched (with generous hit area +/- 40dp)
+                                        val hitThreshold = 40.dp.toPx()
+                                        if (kotlin.math.abs(offset.x - startX) < hitThreshold) {
+                                            isDraggingStart = true
+                                        } else if (kotlin.math.abs(offset.x - endX) < hitThreshold) {
+                                            isDraggingEnd = true
+                                        } else {
+                                             // If touched in middle, maybe move selection? Not requested but standard.
+                                             // For now, strict handle dragging.
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        isDraggingStart = false
+                                        isDraggingEnd = false
+                                    },
+                                    onDragCancel = {
+                                        isDraggingStart = false
+                                        isDraggingEnd = false
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        val dx = dragAmount.x
+                                        val timeDelta = (dx / width) * durationMs
+                                        
+                                        if (isDraggingStart) {
+                                            val newStart = (range.start + timeDelta).coerceIn(0f, range.endInclusive - 1000f) // Keep 1s min gap
+                                            range = newStart..range.endInclusive
+                                        } else if (isDraggingEnd) {
+                                            val newEnd = (range.endInclusive + timeDelta).coerceIn(range.start + 1000f, durationMs.toFloat())
+                                            range = range.start..newEnd
+                                        }
+                                    }
+                                )
+                            }
+                    ) {
+                        // 1. Draw Waveform
+                        if (waveform != null && waveform.isNotEmpty()) {
+                            val barWidth = 4.dp.toPx()
+                            val gap = 2.dp.toPx()
+                            val totalBars = (size.width / (barWidth + gap)).toInt()
+                            val step = waveform.size / totalBars.toFloat()
+                            
+                            val orangeColor = Color(0xFFFF5722)
+                            val dimmedColor = orangeColor.copy(alpha = 0.3f)
+                            val maxAmp = waveform.maxOrNull() ?: 1
+                            val normFactor = if (maxAmp > 0) 1f / maxAmp else 1f / 10000f
+                            
+                            for (i in 0 until totalBars) {
+                                val index = (i * step).toInt()
+                                if (index < waveform.size) {
+                                    val amp = waveform[index]
+                                    val barHeight = (amp * normFactor * size.height * 0.8f).coerceAtMost(size.height * 0.8f) // 80% height to leave room for handles
+                                    val x = i * (barWidth + gap)
+                                    val yStart = (size.height - barHeight) / 2f
+                                    val barTime = (i.toFloat() / totalBars) * durationMs
+                                    
+                                    val isSelected = barTime >= range.start && barTime <= range.endInclusive
+                                    val color = if (isSelected) orangeColor else dimmedColor
+                                    
+                                    drawLine(
+                                        color = color,
+                                        start = Offset(x, yStart),
+                                        end = Offset(x, yStart + barHeight),
+                                        strokeWidth = barWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                }
+                            }
+                        } else {
+                            // Empty state
+                             drawContext.canvas.nativeCanvas.drawText("Helilaine...", size.width/2, size.height/2, android.graphics.Paint().apply { textSize=40f })
+                        }
+                        
+                        // 2. Draw Handles (Circle + Line)
+                        val handleColor = Color(0xFFFF5722)
+                        
+                        // Helper to draw handle
+                        fun drawHandle(x: Float) {
+                            // Vertical Line
+                            drawLine(
+                                color = handleColor,
+                                start = Offset(x, 0f),
+                                end = Offset(x, size.height),
+                                strokeWidth = 3.dp.toPx()
+                            )
+                            // Circle
+                            drawCircle(
+                                color = Color.White,
+                                radius = 12.dp.toPx(),
+                                center = Offset(x, size.height / 2),
+                                style = Fill
+                            )
+                            drawCircle(
+                                color = handleColor,
+                                radius = 12.dp.toPx(),
+                                center = Offset(x, size.height / 2),
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                        }
+                        
+                        drawHandle(startX)
+                        drawHandle(endX)
+                    }
+                }
+                
+                // Fine-tuning buttons (1 second precision)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     // Start controls
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
-                            onClick = { val n = (range.start - 100).coerceAtLeast(0f); range = n..range.endInclusive },
+                            onClick = { val n = (range.start - 1000).coerceAtLeast(0f); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) { Text("<") }
+                            modifier = Modifier.size(40.dp) // Larger touch target
+                        ) { Text("<", fontSize = 18.sp) }
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Algus")
                         Spacer(modifier = Modifier.width(4.dp))
                         OutlinedButton(
-                            onClick = { val n = (range.start + 100).coerceAtMost(range.endInclusive - 100); range = n..range.endInclusive },
+                            onClick = { val n = (range.start + 1000).coerceAtMost(range.endInclusive - 1000); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) { Text(">") }
+                            modifier = Modifier.size(40.dp)
+                        ) { Text(">", fontSize = 18.sp) }
                     }
 
                     // End controls
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
-                            onClick = { val n = (range.endInclusive - 100).coerceAtLeast(range.start + 100); range = range.start..n },
+                            onClick = { val n = (range.endInclusive - 1000).coerceAtLeast(range.start + 1000); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) { Text("<") }
+                            modifier = Modifier.size(40.dp)
+                        ) { Text("<", fontSize = 18.sp) }
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Lõpp")
                         Spacer(modifier = Modifier.width(4.dp))
                         OutlinedButton(
-                            onClick = { val n = (range.endInclusive + 100).coerceAtMost(durationMs.toFloat()); range = range.start..n },
+                            onClick = { val n = (range.endInclusive + 1000).coerceAtMost(durationMs.toFloat()); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) { Text(">") }
+                            modifier = Modifier.size(40.dp)
+                        ) { Text(">", fontSize = 18.sp) }
                     }
                 }
                 
