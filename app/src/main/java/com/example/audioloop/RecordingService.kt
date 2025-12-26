@@ -220,24 +220,34 @@ class RecordingService : Service() {
              CoroutineScope(Dispatchers.IO).launch {
                  try {
                      // Convert PCM -> M4A
-                     // Priority 1: Use the in-memory waveform calculated during encoding (Fastest, avoids file locks)
-                     var waveform = AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
+                     // Use Copy-Generate strategy to avoid file lock issues on fresh files
+                     val conversionSuccess = AudioConverter.convertPcmToM4a(pcmFile, finalM4a) != null
                      
-                     // Priority 2: Fallback to Extractor if in-memory calc failed (e.g. empty)
-                     if (waveform == null || waveform.isEmpty()) {
-                         // Small delay to ensure OS flushes file before we try to read it
-                         delay(500)
-                         waveform = WaveformGenerator.extractWaveform(finalM4a, 100)
-                     }
-                     
-                     if (waveform != null && waveform.isNotEmpty()) {
-                         // Save Waveform immediately
-                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
-                         try { 
-                             waveFile.writeText(waveform.joinToString(",")) 
-                             // Force timestamp to be slightly in the future to ensure UI cache picks it up
-                             waveFile.setLastModified(System.currentTimeMillis() + 1000)
-                         } catch(e: Exception) { e.printStackTrace() }
+                     if (conversionSuccess) {
+                         // Force media scan to ensure OS indexes the file
+                         android.media.MediaScannerConnection.scanFile(
+                             applicationContext,
+                             arrayOf(finalM4a.absolutePath),
+                             null, null
+                         )
+                         
+                         // Generate Waveform from a COPY to strictly avoid read/write contention
+                         val tempCopy = File(cacheDir, "wave_gen_temp_${System.currentTimeMillis()}.m4a")
+                         try {
+                              finalM4a.copyTo(tempCopy, overwrite = true)
+                              val waveform = WaveformGenerator.extractWaveform(tempCopy, 100)
+                              
+                              if (waveform.isNotEmpty()) {
+                                  val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
+                                  waveFile.writeText(waveform.joinToString(","))
+                                  // Future timestamp to beat any cache
+                                  waveFile.setLastModified(System.currentTimeMillis() + 2000)
+                              }
+                         } catch (e: Exception) {
+                              e.printStackTrace()
+                         } finally {
+                              tempCopy.delete()
+                         }
                          
                          pcmFile.delete() // Clean up raw
                          internalTempFile = null

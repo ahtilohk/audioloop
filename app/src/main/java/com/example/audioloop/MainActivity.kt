@@ -890,29 +890,38 @@ fun TrimDialog(
                         
                         // 2. Draw Handles (Circle + Line)
                         val handleColor = Color(0xFFFF5722)
+                        val handleRadius = 20.dp.toPx() // Same size as buttons (40dp diameter)
                         
                         // Helper to draw handle
                         fun drawHandle(x: Float) {
-                            // Vertical Line
+                            // Vertical Line (Top to Bottom)
                             drawLine(
                                 color = handleColor,
                                 start = Offset(x, 0f),
-                                end = Offset(x, size.height),
-                                strokeWidth = 3.dp.toPx()
+                                end = Offset(x, size.height), // Line goes through the circle
+                                strokeWidth = 2.dp.toPx()
                             )
-                            // Circle
+                            // Circle at bottom endpoint
+                            // Center Y is size.height - radius (so it sits on bottom edge)
+                            // Or strictly at bottom tip? "alumises otspunktis".
+                            // Let's reset center to be slightly up so it's fully visible.
+                            val circleCenterY = size.height - handleRadius
+                            
                             drawCircle(
                                 color = Color.White,
-                                radius = 12.dp.toPx(),
-                                center = Offset(x, size.height / 2),
+                                radius = handleRadius,
+                                center = Offset(x, circleCenterY),
                                 style = Fill
                             )
                             drawCircle(
                                 color = handleColor,
-                                radius = 12.dp.toPx(),
-                                center = Offset(x, size.height / 2),
-                                style = Stroke(width = 3.dp.toPx())
+                                radius = handleRadius,
+                                center = Offset(x, circleCenterY),
+                                style = Stroke(width = 2.dp.toPx())
                             )
+                            
+                            // Vertical Line inside circle? "vertikaalne kriips läbi ringi tsentri"
+                            // The main line already goes through it.
                         }
                         
                         drawHandle(startX)
