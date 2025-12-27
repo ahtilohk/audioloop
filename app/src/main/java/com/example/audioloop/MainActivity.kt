@@ -213,12 +213,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 val context = LocalContext.current
                 var currentLanguage by remember { mutableStateOf(getSavedLanguage(context)) }
                 
-                // Force update on language change
-                key(currentLanguage) {
-                     val localeContext = remember(currentLanguage) {
-                         setLocale(context, currentLanguage)
-                     }
-                     CompositionLocalProvider(LocalContext provides localeContext) {
+                // Force update on language change can be handled by recreation, avoiding Context wrapper issues.
+                // key(currentLanguage) {
+                     // CompositionLocalProvider causes issues on API 34+ with Dialogs/Surface
+                     // So we use standard context.
                         // All UI content here
                         // ...
 
@@ -372,8 +370,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
             }
         }
-    }
-    }
     }
 
 
