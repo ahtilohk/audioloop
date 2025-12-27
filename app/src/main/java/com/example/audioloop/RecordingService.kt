@@ -8,16 +8,24 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.media.*
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioPlaybackCaptureConfiguration
+import android.media.AudioRecord
+import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaFormat
+import android.media.MediaMuxer
+import android.media.MediaRecorder
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
+import android.annotation.SuppressLint
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.app.ActivityCompat
-import android.content.pm.PackageManager
-import android.Manifest
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -28,30 +36,35 @@ class RecordingService : Service() {
         const val ACTION_START_INTERNAL = "ACTION_START_INTERNAL"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_RECORDING_SAVED = "com.example.audioloop.RECORDING_SAVED"
-        const val ACTION_AMPLITUDE_UPDATE = "com.example.audioloop.AMPLITUDE_UPDATE" // NEW
+        const val ACTION_AMPLITUDE_UPDATE = "com.example.audioloop.AMPLITUDE_UPDATE"
 
         const val EXTRA_FILENAME = "EXTRA_FILENAME"
         const val EXTRA_AUDIO_SOURCE = "EXTRA_AUDIO_SOURCE"
         const val EXTRA_RESULT_CODE = "EXTRA_RESULT_CODE"
         const val EXTRA_DATA = "EXTRA_DATA"
-        const val EXTRA_AMPLITUDE = "EXTRA_AMPLITUDE" // NEW
-        const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS" // NEW
+        const val EXTRA_AMPLITUDE = "EXTRA_AMPLITUDE"
+        const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS"
 
         private const val CHANNEL_ID = "recording_channel"
         private const val NOTIFICATION_ID = 1
     }
 
     private var mediaRecorder: MediaRecorder? = null
-    private var internalRecorder: InternalAudioRecorder? = null
     private var isRecording = false
     private var currentFile: File? = null
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     
-    // New properties for AAC Internal Recording
+    // --- REAL-TIME AAC ENCODING PROPERTIES ---
     private var mediaProjection: android.media.projection.MediaProjection? = null
     private var isInternalRecording = false
-    private var audioRecord: android.media.AudioRecord? = null
-    private var recordingJob: Job? = null
+    private var audioRecord: AudioRecord? = null
+    private var aacEncoder: MediaCodec? = null
+    private var aacMuxer: MediaMuxer? = null
+    private var encodingJob: Job? = null
+    private var isEncoderStarted = false
+    private var muxerTrackIndex = -1
+    private var isMuxerStarted = false
+    private var currentMaxAmplitude = 0
     
     // Live Waveform Ticker
     private var tickerJob: Job? = null
@@ -134,6 +147,7 @@ class RecordingService : Service() {
                 start()
             }
             isRecording = true
+            isInternalRecording = false
             recordingStartTime = System.currentTimeMillis()
             startAmplitudeTicker()
             showToast("Salvestan: ${file.name}")
@@ -145,20 +159,15 @@ class RecordingService : Service() {
         }
     }
 
-    private suspend fun startInternalRecording(fileName: String, resultCode: Int, data: Intent) {
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun startInternalRecording(fileName: String, resultCode: Int, data: Intent) {
         if (isRecording) return
-        
-        // Use temp .pcm file (RAW audio)
-        val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
-        val tempPcmFile = File(filesDir, "${System.currentTimeMillis()}_temp.pcm")
-        // NOTE: We do NOT create the final file object here to avoid it showing up as 00:00 in the UI
-        // until it is actually ready. We just store the TARGET NAME/PATH.
-        val finalFile = File(filesDir, finalFileName)
-        currentFile = finalFile 
 
-        withContext(Dispatchers.Main) {
-            startForegroundServiceNotification("Voogsalvestus käib...", true)
-        }
+        val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
+        val file = File(filesDir, finalFileName)
+        currentFile = file
+        
+        startForegroundServiceNotification("Voogsalvestus käib...", true)
 
         try {
             var projection = mediaProjection
@@ -169,113 +178,193 @@ class RecordingService : Service() {
             if (projection == null) throw IllegalStateException("MediaProjection on null")
             mediaProjection = projection
 
-            // Initialize Recorder with TEMP PCM file
-            internalRecorder = InternalAudioRecorder(projection, tempPcmFile)
-            internalRecorder?.start() 
+            // 1. Setup AudioRecord (Input)
+            val sampleRate = 44100
+            val channelConfig = AudioFormat.CHANNEL_IN_STEREO
+            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             
-            // We track the temp file for later conversion
-            // hack: stick it in a class var or just rely on 'currentFile' being the target and 'tempPcmFile' being local?
-            // Problem: stopInternalRecording needs to know tempPcmFile.
-            // Let's use a new variable 'internalTempFile'
-            internalTempFile = tempPcmFile
+            val config = AudioPlaybackCaptureConfiguration.Builder(projection)
+                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                .build()
+
+            val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+            val bufferSize = minBufferSize * 2
+
+            val recordFormat = AudioFormat.Builder()
+                .setEncoding(audioFormat)
+                .setSampleRate(sampleRate)
+                .setChannelMask(channelConfig)
+                .build()
+
+            @SuppressLint("MissingPermission")
+            val record = AudioRecord.Builder()
+                .setAudioFormat(recordFormat)
+                .setBufferSizeInBytes(bufferSize)
+                .setAudioPlaybackCaptureConfig(config)
+                .build()
+            audioRecord = record
+
+            if (record.state != AudioRecord.STATE_INITIALIZED) throw IllegalStateException("AudioRecord init failed")
             
-            isInternalRecording = true
+            // 2. Setup MediaCodec (Encoder)
+            val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
+            val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
+            format.setInteger(MediaFormat.KEY_BIT_RATE, 192000)
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, bufferSize) 
+            
+            encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            aacEncoder = encoder
+            
+            // 3. Setup MediaMuxer (Output)
+            aacMuxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            isMuxerStarted = false
+            muxerTrackIndex = -1
+
+            // 4. Start Loop
+            record.startRecording()
+            encoder.start()
+            isEncoderStarted = true
             isRecording = true
+            isInternalRecording = true
             recordingStartTime = System.currentTimeMillis()
             
-            startAmplitudeTicker()
-            showToast("Voogsalvestus algas!")
+            startEncodingLoop(record, encoder, bufferSize)
             
+            startAmplitudeTicker() 
+            showToast("Voogsalvestus (Real-Time) algas!")
+
         } catch (e: Exception) {
             e.printStackTrace()
-            showToast("Viga Voogsalvestusega: ${e.message}")
-            stopRecording()
+            showToast("Viga: ${e.message}")
+            safelyStopRecorder()
         }
     }
-    
-    // Add this property to class
-    private var internalTempFile: File? = null
 
-    // ...
+    private fun startEncodingLoop(record: AudioRecord, encoder: MediaCodec, bufferSize: Int) {
+        encodingJob = serviceScope.launch(Dispatchers.Default) {
+            val buffer = ByteArray(bufferSize)
+            val bufferInfo = MediaCodec.BufferInfo()
+            
+            try {
+                while (isActive && isRecording) {
+                    // 1. Read PCM
+                    val read = record.read(buffer, 0, bufferSize)
+                    if (read < 0) {
+                        Log.e("AudioLoop", "AudioRecord error: $read")
+                        break 
+                    }
+                    
+                    // Live Amplitude Calculation
+                    if (read > 0) {
+                        var sum = 0.0
+                        // Sample every 100th byte (approx)
+                        for (i in 0 until read step 100) {
+                            sum += kotlin.math.abs(buffer[i].toInt())
+                        }
+                        currentMaxAmplitude = (sum / (read/100 + 1)).toInt() * 10 // Adjusted scaling
+                    }
 
-    private fun stopInternalRecording() {
-         if (!isInternalRecording) return
-         isInternalRecording = false
-         
-         try {
-             internalRecorder?.stop()
-             internalRecorder = null
-         } catch (e: Exception) { e.printStackTrace() }
-         
-         stopAmplitudeTicker()
-         
-         val pcmFile = internalTempFile
-         val targetFile = currentFile
-         
-         if (pcmFile != null && pcmFile.exists() && targetFile != null) {
-             val finalM4a = targetFile
-             
-             showToast("Töötlen salvestust...")
-             
-             CoroutineScope(Dispatchers.IO).launch {
-                 try {
-                     // 1. Generate Waveform directly from PCM (Instant & Reliable)
-                     val waveform = WaveformGenerator.generateFromPcm(pcmFile)
-                     
-                     // 2. Save Waveform IMMEDIATELY (Before M4A conversion potentially blocks)
-                     if (waveform.isNotEmpty()) {
-                         val waveFile = File(finalM4a.parent, "${finalM4a.name}.wave")
-                         try { 
-                             waveFile.writeText(waveform.joinToString(","))
-                             // Ensure timestamp is fresh
-                             waveFile.setLastModified(System.currentTimeMillis() + 1000)
-                         } catch(e: Exception) { e.printStackTrace() }
-                     }
+                    // 2. Feed Encoder
+                    val inputIndex = encoder.dequeueInputBuffer(2000)
+                    if (inputIndex >= 0) {
+                        val inputBuffer = encoder.getInputBuffer(inputIndex)
+                        if (inputBuffer != null) {
+                            inputBuffer.clear()
+                            inputBuffer.put(buffer, 0, read)
+                            encoder.queueInputBuffer(inputIndex, 0, read, System.nanoTime() / 1000, 0)
+                        }
+                    }
 
-                     // 3. Convert to M4A (This might take time, but Waveform is already safe)
-                     AudioConverter.convertPcmToM4a(pcmFile, finalM4a)
-                     
-                     pcmFile.delete() // Clean up raw
-                     internalTempFile = null
+                    // 3. Pull Encoded Data & Mux
+                    var outputIndex = encoder.dequeueOutputBuffer(bufferInfo, 0)
+                    while (outputIndex >= 0) {
+                        val outputBuffer = encoder.getOutputBuffer(outputIndex) ?: break
+                        
+                        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                            bufferInfo.size = 0
+                        }
 
-                     withContext(Dispatchers.Main) {
-                         // Notify user
-                         Toast.makeText(applicationContext, "Salvestatud: ${finalM4a.name}", Toast.LENGTH_SHORT).show()
-                         sendBroadcast(Intent(ACTION_RECORDING_SAVED).setPackage(packageName))
-                     }
-                 } catch (e: Exception) {
-                     e.printStackTrace()
-                     withContext(Dispatchers.Main) {
-                         Toast.makeText(applicationContext, "Viga salvestamisel!", Toast.LENGTH_SHORT).show()
-                     }
-                 }
-             }
-         }
-         
-         isRecording = false
-         stopForegroundService()
-    }
+                        if (bufferInfo.size != 0) {
+                            if (!isMuxerStarted) {
+                                muxerTrackIndex = aacMuxer?.addTrack(encoder.outputFormat) ?: -1
+                                aacMuxer?.start()
+                                isMuxerStarted = true
+                            }
+                            
+                            outputBuffer.position(bufferInfo.offset)
+                            outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
+                            aacMuxer?.writeSampleData(muxerTrackIndex, outputBuffer, bufferInfo)
+                        }
 
-    private fun stopForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
+                        encoder.releaseOutputBuffer(outputIndex, false)
+                        outputIndex = encoder.dequeueOutputBuffer(bufferInfo, 0)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AudioLoop", "Encoding Loop Error", e)
+            }
         }
-        stopSelf()
     }
 
     private fun safelyStopRecorder() {
         if (!isRecording) return
         try {
-            mediaRecorder?.stop()
+            isRecording = false
+            startForegroundServiceNotification("Salvestamine peatatud...", false)
+            stopForegroundService()
+            
+            tickerJob?.cancel()
+            runBlocking {
+                encodingJob?.cancelAndJoin()
+            }
+            
+            // AAC Components
+            try {
+                if (isEncoderStarted) {
+                    aacEncoder?.stop()
+                    aacEncoder?.release()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+            
+            try {
+                if (isMuxerStarted) {
+                    aacMuxer?.stop() 
+                    aacMuxer?.release()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+            
+            try {
+                audioRecord?.stop()
+                audioRecord?.release()
+            } catch (e: Exception) { e.printStackTrace() }
+
+            // Mic Recorder
+            try {
+                mediaRecorder?.stop()
+                mediaRecorder?.release()
+            } catch (e: Exception) { 
+                 currentFile?.delete()
+            }
+            mediaRecorder = null
+            
+            // Reset
+            aacEncoder = null
+            aacMuxer = null
+            audioRecord = null
+            isMuxerStarted = false
+            isEncoderStarted = false
+            
+            // Notify UI
+             val intent = Intent(ACTION_RECORDING_SAVED)
+             intent.setPackage(packageName)
+             sendBroadcast(intent)
+             showToast("Salvestatud!")
+
         } catch (e: Exception) {
-            // Kui stop() viskab vea (nt fail on liiga lühike või tühi), siis kustutame katkise faili
-            currentFile?.delete()
-        } finally {
-            cleanupMicRecorder()
-            stopAmplitudeTicker()
+            e.printStackTrace()
         }
     }
 
@@ -285,10 +374,7 @@ class RecordingService : Service() {
             while (isActive && isRecording) {
                 try {
                     val maxAmp = if (isInternalRecording) {
-                        // For internal recording, we don't have maxAmplitude directly from AudioRecord
-                        // Could implement a custom amplitude calculation from PCM buffer if needed
-                        // For now, return 0 or a placeholder
-                        0
+                        currentMaxAmplitude
                     } else {
                         mediaRecorder?.maxAmplitude ?: 0
                     }
@@ -299,8 +385,8 @@ class RecordingService : Service() {
                         setPackage(packageName)
                     }
                     sendBroadcast(intent)
-                } catch (e: Exception) { /* Ignore exceptions during amplitude polling */ }
-                delay(50) // 20 korda sekundis sujuva liikumise jaoks
+                } catch (e: Exception) { /* Ignore */ }
+                delay(50)
             }
         }
     }
@@ -310,29 +396,8 @@ class RecordingService : Service() {
         tickerJob = null
     }
 
-
     private suspend fun stopRecording() {
-        if (isInternalRecording) {
-            stopInternalRecording()
-        } else {
-            safelyStopRecorder()
-        }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
-        stopSelf()
-
-        val broadcastIntent = Intent(ACTION_RECORDING_SAVED)
-        broadcastIntent.setPackage(packageName)
-        sendBroadcast(broadcastIntent)
-
-        withContext(Dispatchers.Main) {
-            Toast.makeText(applicationContext, "Salvestatud!", Toast.LENGTH_SHORT).show()
-        }
+        safelyStopRecorder()
     }
 
     private fun cleanupMicRecorder() {
@@ -376,5 +441,14 @@ class RecordingService : Service() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
+    }
+    
+    private fun stopForegroundService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+             @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
     }
 }

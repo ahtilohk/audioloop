@@ -157,9 +157,15 @@ object WaveformGenerator {
         val step = 100 // Võtame iga 100-nda sample-i (umbes 440 samplet sekundis @ 44.1kHz)
         
         for (i in 0 until limit step step) {
-            val sample = shortBuffer.get(i)
-            val amplitude = abs(sample.toInt())
-            sum += amplitude
+            var sample = shortBuffer.get(i).toInt()
+            
+            // NOISE GATE: Kui signaal on väga nõrk (taustamüra), loeme selle nulliks (vaikus)
+            // See teeb joone sirgeks nagu "Voog" salvestuse puhul
+            if (kotlin.math.abs(sample) < 150) {
+                sample = 0
+            }
+            
+            sum += kotlin.math.abs(sample)
             count++
         }
         

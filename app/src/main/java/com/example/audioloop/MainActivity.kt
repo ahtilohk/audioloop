@@ -33,9 +33,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -160,6 +162,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         else Toast.makeText(this, "Luba puudub", Toast.LENGTH_SHORT).show()
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
@@ -1850,16 +1853,24 @@ fun AudioLoopApp(
                     colors = CardDefaults.cardColors(containerColor = cardColor),
                     border = borderStroke,
                     elevation = CardDefaults.cardElevation(defaultElevation = if(isThisPlaying) 6.dp else 1.dp),
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        if (isSelectionMode) {
-                            if (selectedFiles.contains(item.file)) selectedFiles.remove(item.file) else selectedFiles.add(item.file)
-                        } else if (!isThisPlaying) {
-                            if (playingFileName.isNotEmpty()) onStopPlay()
-                            onPlayingFileNameChange(item.name)
-                            isPaused = false
-                            onStartPlaylist(listOf(item.file), selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
+                    modifier = Modifier.fillMaxWidth().combinedClickable(
+                        onLongClick = {
+                            if (!isSelectionMode) {
+                                itemToModify = item
+                                showFileManageDialog = true
+                            }
+                        },
+                        onClick = {
+                            if (isSelectionMode) {
+                                if (selectedFiles.contains(item.file)) selectedFiles.remove(item.file) else selectedFiles.add(item.file)
+                            } else if (!isThisPlaying) {
+                                if (playingFileName.isNotEmpty()) onStopPlay()
+                                onPlayingFileNameChange(item.name)
+                                isPaused = false
+                                onStartPlaylist(listOf(item.file), selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
+                            }
                         }
-                    }
+                    )
                 ) {
                     Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         if (isSelectionMode) {
