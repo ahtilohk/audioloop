@@ -836,16 +836,24 @@ fun TrimAudioDialog(
                 currentPos = range.start.toLong()
                 
                 // Stop automatically at end of range
-                val playDuration = (range.endInclusive - range.start).toLong()
+                // Use dynamic check loop to allow changing end time while playing
                 scope.launch {
-                    val endTime = System.currentTimeMillis() + playDuration
-                    while (isPreviewing && previewPlayer == mp) {
-                        if (System.currentTimeMillis() > endTime || (previewPlayer?.currentPosition ?: 0) >= range.endInclusive) {
-                             try { if (mp.isPlaying) mp.pause(); mp.seekTo(range.start.toInt()) } catch(e:Exception){}
-                             isPreviewing = false
-                             break
-                        }
-                        delay(100)
+                   while (isPreviewing && previewPlayer == mp) {
+                        try {
+                           // Check dynamic range
+                           val end = range.endInclusive.toInt()
+                           val current = mp.currentPosition
+                           
+                           if (current >= end) {
+                               if (mp.isPlaying) {
+                                   mp.pause()
+                                   mp.seekTo(range.start.toInt())
+                               }
+                               isPreviewing = false
+                               break
+                           }
+                        } catch(e:Exception){}
+                        delay(50)
                     }
                 }
                 
@@ -876,16 +884,16 @@ fun TrimAudioDialog(
         },
         text = {
             Column {
-                // Info text (Live Progress) - Only if Playing
+                // Info text (Live Progress)
                 if (isPreviewing) {
                     Text(
                         text = "Mängib: ${formatDuration(currentPos)}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier.align(Alignment.End).padding(bottom = 8.dp)
                     )
                 } else {
-                     Spacer(modifier = Modifier.height(16.dp)) 
+                     Spacer(modifier = Modifier.height(24.dp)) 
                 }
 
                 // Waveform Visualization
