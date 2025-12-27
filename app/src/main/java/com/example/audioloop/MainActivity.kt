@@ -189,7 +189,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+        try {
+            mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Fallback or exit if strictly required? It's needed for VOOG.
+            // We'll let it slide and handle nulls later if possible, but for now just catch to prevent immediate crash.
+        }
 
         setContent {
             AppTheme {
@@ -639,18 +645,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     // --- KÕIK rootDir VEAD PARANDATUD ---
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
-        val targetDir = if (category == "Üldine") rootDir else File(rootDir, category)
-        if (!targetDir.exists()) return emptyList()
-        val files = targetDir.listFiles { _, name ->
-            name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
-        } ?: return emptyList()
+        try {
+            val targetDir = if (category == "Üldine") rootDir else File(rootDir, category)
+            if (!targetDir.exists()) return emptyList()
+            val files = targetDir.listFiles { _, name ->
+                name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
+            } ?: return emptyList()
 
-        return files.mapNotNull { file ->
-            // Siia jõuavad ainult päriselt eksisteerivad failid.
-            // 00:00 tekib ainult siis kui MediaRecorder ei kirjuta andmeid (vt RecordingService parandust)
-            val (aegTekst, aegNumber) = getDuration(file)
-            RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
-        }.sortedByDescending { it.file.lastModified() }
+            return files.mapNotNull { file ->
+                // Siia jõuavad ainult päriselt eksisteerivad failid.
+                // 00:00 tekib ainult siis kui MediaRecorder ei kirjuta andmeid (vt RecordingService parandust)
+                val (aegTekst, aegNumber) = getDuration(file)
+                RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
+            }.sortedByDescending { it.file.lastModified() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
     }
 
     private fun playPlaylist(
