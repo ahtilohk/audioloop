@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">AudioLoop</string>
+    <string name="title_general">Generale</string>
+    <string name="btn_cancel">Annulla</string>
+    <string name="btn_save">Salva</string>
+    <string name="btn_delete">Elimina</string>
+    <string name="btn_play_selected">Riproduci %d</string>
+    <string name="btn_add_file">Importa</string>
+    <string name="btn_record_new">REGISTRA NUOVO</string>
+    <string name="label_recording">Registrazione...</string>
+    <string name="label_empty_title">È tutto tranquillo...</string>
+    <string name="label_empty_subtitle">Registra la tua prima clip!</string>
+    <string name="menu_rename">Rinomina</string>
+    <string name="menu_trim">Taglia</string>
+    <string name="menu_move">Sposta</string>
+    <string name="menu_share">Condividi</string>
+    <string name="menu_download">Scarica</string>
+    <string name="dialog_rename_title">Rinomina file</string>
+    <string name="dialog_create_category">Nuova categoria</string>
+    <string name="dialog_delete_confirm">Sei sicuro?</string>
+    <string name="mode_speech">Voce (Mic)</string>
+    <string name="mode_stream">Stream (App/YT)</string>
+    <string name="toast_saved">Salvato</string>
+    <string name="toast_error">Errore</string>
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Velocità</string>
+</resources>

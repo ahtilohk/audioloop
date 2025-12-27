@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">AudioLoop</string>
+    <string name="title_general">General</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_play_selected">Play %d selected</string>
+    <string name="btn_add_file">Import File</string>
+    <string name="btn_record_new">RECORD NEW</string>
+    <string name="label_recording">Recording...</string>
+    <string name="label_empty_title">It\'s quiet here...</string>
+    <string name="label_empty_subtitle">Start recording your first clip!</string>
+    <string name="menu_rename">Rename</string>
+    <string name="menu_trim">Trim / Cut</string>
+    <string name="menu_move">Move Category</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_download">Download</string>
+    <string name="dialog_rename_title">Rename File</string>
+    <string name="dialog_create_category">New Category</string>
+    <string name="dialog_delete_confirm">Are you sure?</string>
+    <string name="mode_speech">Speech (Mic)</string>
+    <string name="mode_stream">Stream (App/YT)</string>
+    <string name="toast_saved">Saved</string>
+    <string name="toast_error">Error</string>
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Speed</string>
 </resources>

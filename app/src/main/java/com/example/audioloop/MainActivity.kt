@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -139,6 +140,25 @@ fun sanitizeName(name: String): String {
         return WaveformGenerator.extractWaveform(file, numBars)
     }
 
+    // --- LOCALE HELPERS ---
+    fun setLocale(context: Context, languageCode: String): Context {
+        val locale = java.util.Locale(languageCode)
+        java.util.Locale.setDefault(locale)
+        val config = android.content.res.Configuration()
+        config.setLocale(locale)
+        return context.createConfigurationContext(config)
+    }
+    
+    fun saveLanguage(context: Context, lang: String) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("app_lang", lang).apply()
+    }
+    
+    fun getSavedLanguage(context: Context): String {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("app_lang", "et") ?: "et" // Default to Estonian
+    }
+
 data class RecordingItem(val file: File, val name: String, val durationString: String, val durationMillis: Long)
 
 // --- MAIN ACTIVITY ---
@@ -177,6 +197,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
 
                 val context = LocalContext.current
+                var currentLanguage by remember { mutableStateOf(getSavedLanguage(context)) }
+                
+                // Force update on language change
+                key(currentLanguage) {
+                     val localeContext = remember(currentLanguage) {
+                         setLocale(context, currentLanguage)
+                     }
+                     CompositionLocalProvider(LocalContext provides localeContext) {
+                        // All UI content here
+                        // ...
 
                 // BROADCAST RECEIVER
                 DisposableEffect(Unit) {
@@ -246,7 +276,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         },
                         onDeleteCategory = { catName ->
                             deleteCategory(catName)
-                            uiCategory = "Üldine"
+                            uiCategory = getString(R.string.title_general)
                         },
                         onReorderCategory = { _, _ -> },
                         onMoveFile = { item, targetCat ->
@@ -309,15 +339,22 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
                                 }
                             }
+                        },
+                        currentLanguage = currentLanguage,
+                        onLanguageChange = { lang ->
+                            saveLanguage(context, lang)
+                            currentLanguage = lang
                         }
                     )
                 }
             }
         }
     }
+    }
+    }
 
     private fun getCategories(): List<String> {
-        val categoryList = mutableListOf("Üldine")
+        val categoryList = mutableListOf(getString(R.string.title_general))
         filesDir.listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { categoryList.add(it.name) }
         return categoryList
     }
@@ -588,6 +625,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 
+
+
     // --- KÕIK rootDir VEAD PARANDATUD ---
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
         val targetDir = if (category == "Üldine") rootDir else File(rootDir, category)
@@ -656,11 +695,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun stopPlaying() { mediaPlayer?.release(); mediaPlayer = null }
-    private fun pausePlaying() { mediaPlayer?.pause() }
-    private fun resumePlaying() { mediaPlayer?.start() }
-    private fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
-    private fun setPlaybackSpeed(speed: Float) {
+    fun stopPlaying() { mediaPlayer?.release(); mediaPlayer = null }
+    fun pausePlaying() { mediaPlayer?.pause() }
+    fun resumePlaying() { mediaPlayer?.start() }
+    fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
+    fun setPlaybackSpeed(speed: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed) }
         }
@@ -1518,7 +1557,9 @@ fun AudioLoopApp(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean) -> Unit
+    onTrimFile: (File, Long, Long, Boolean) -> Unit,
+    currentLanguage: String,
+    onLanguageChange: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1602,9 +1643,11 @@ fun AudioLoopApp(
         onDispose { context.unregisterReceiver(receiver) }
     }
 
+    val modeStream = stringResource(R.string.mode_stream)
+    val modeSpeech = stringResource(R.string.mode_speech)
     LaunchedEffect(isRawMode) {
         while (true) {
-            val prefix = if (isRawMode) "Voog" else "Kõne"
+            val prefix = if (isRawMode) modeStream else modeSpeech
             liveTimeName = generateTimeName(prefix)
             delay(1000)
         }
@@ -1688,12 +1731,43 @@ fun AudioLoopApp(
     Column(modifier = Modifier.fillMaxSize().padding(top = 50.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("AUDIOLOOP", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.app_name), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                // Language Selector
+                var showLangMenu by remember { mutableStateOf(false) }
+                Box {
+                    Text(
+                        text = currentLanguage.uppercase(), 
+                        fontSize = 12.sp, 
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                            .clickable { showLangMenu = true }
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    )
+                    DropdownMenu(expanded = showLangMenu, onDismissRequest = { showLangMenu = false }) {
+                        val langs = listOf("et" to "Eesti", "en" to "English", "es" to "Español", "it" to "Italiano", "ru" to "Русский")
+                        langs.forEach { (code, name) ->
+                            DropdownMenuItem(
+                                text = { Text(name) },
+                                onClick = { 
+                                    onLanguageChange(code)
+                                    showLangMenu = false 
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            
             TextButton(onClick = {
                 if (isSelectionMode) { isSelectionMode = false; selectedFiles.clear(); if (playingFileName.isNotEmpty()) { onStopPlay(); onPlayingFileNameChange("") } }
                 else { isSelectionMode = true }
             }) {
-                if (isSelectionMode) Text("TÜHISTA PLAYLIST", fontSize = 12.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                if (isSelectionMode) Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 else Text("VALI PLAYLIST", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
@@ -1743,7 +1817,7 @@ fun AudioLoopApp(
             OutlinedTextField(
                 value = recordingName,
                 onValueChange = { recordingName = it },
-                label = { Text("Faili nimi") },
+                label = { Text(stringResource(R.string.menu_rename)) },
                 supportingText = {
                     if (recordingName.isBlank()) {
                         Text(text = "Vaikimisi: $liveTimeName", color = MaterialTheme.colorScheme.primary)
@@ -1759,35 +1833,56 @@ fun AudioLoopApp(
             )
             Spacer(modifier = Modifier.height(4.dp))
  
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                FilterChip(
-                    selected = !isRawMode,
-                    onClick = { isRawMode = false },
-                    label = { Text("Kõne (Mic)") },
-                    leadingIcon = { if (!isRawMode) Icon(Icons.Default.Person, null, modifier = Modifier.size(18.dp)) }
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                FilterChip(
-                    selected = isRawMode,
-                    onClick = { isRawMode = true },
-                    label = { Text("Voog (YT, Msg)") },
-                    leadingIcon = { if (isRawMode) Icon(Icons.Default.Star, null, modifier = Modifier.size(18.dp)) }
-                )
-            }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    FilterChip(
+                        selected = !isRawMode,
+                        onClick = { isRawMode = false },
+                        label = { Text(stringResource(R.string.mode_speech)) },
+                        leadingIcon = { if (!isRawMode) Icon(Icons.Default.Person, null, modifier = Modifier.size(18.dp)) }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    FilterChip(
+                        selected = isRawMode,
+                        onClick = { isRawMode = true },
+                        label = { Text(stringResource(R.string.mode_stream)) },
+                        leadingIcon = { if (isRawMode) Icon(Icons.Default.Star, null, modifier = Modifier.size(18.dp)) }
+                    )
+                }
             Spacer(modifier = Modifier.height(8.dp))
  
-            Button(
-                onClick = {
-                    val finalName = if (recordingName.isBlank()) liveTimeName else recordingName
-                    if (onStartRecord(finalName, isRawMode)) {
-                        isRecording = true
-                        liveAmplitudes.clear()
-                        liveDurationMs = 0L
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                modifier = Modifier.fillMaxWidth().height(50.dp)
-            ) { Text("SALVESTA UUS") }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable {
+                        val finalName = if (recordingName.isBlank()) liveTimeName else recordingName
+                        if (onStartRecord(finalName, isRawMode)) {
+                            isRecording = true
+                            liveAmplitudes.clear()
+                            liveDurationMs = 0L
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(Color.Red, CircleShape) 
+                            .border(1.dp, Color.White, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.btn_record_new), 
+                        color = MaterialTheme.colorScheme.onPrimary, 
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        letterSpacing = 1.sp
+                    )
+                }
+            }
  
             Spacer(modifier = Modifier.height(15.dp))
         }
@@ -1838,6 +1933,34 @@ fun AudioLoopApp(
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp), contentPadding = PaddingValues(bottom = 150.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (recordingItems.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.fillParentMaxSize().padding(top = 100.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GraphicEq,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.size(120.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Siin on veel vaikne...",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Alusta uue klipi salvestamist!",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
             items(recordingItems) { item ->
                 val isThisPlaying = (playingFileName == item.name)
                 val isSelected = selectedFiles.contains(item.file)
@@ -1915,12 +2038,61 @@ fun AudioLoopApp(
                                 )
                                 if (!isSelectionMode && !isThisPlaying) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.AutoMirrored.Filled.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.Edit, "Muuda", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showFileManageDialog = true }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.ArrowDownward, "Lae alla", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { saveToDownloads(context, item.file) }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.Share, "Jaga", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { onShareFile(item) }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.ContentCut, "Lõika", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { recordingToTrim = item }.padding(6.dp).size(20.dp))
-                                        Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { recordingToDelete = item }.padding(6.dp).size(20.dp))
+                                        // 1. Download (Keep Quick Access)
+                                        Icon(
+                                            Icons.Default.ArrowDownward, 
+                                            contentDescription = "Lae alla",
+                                            tint = MaterialTheme.colorScheme.primary, 
+                                            modifier = Modifier
+                                                .clickable { saveToDownloads(context, item.file) }
+                                                .padding(8.dp)
+                                                .size(24.dp)
+                                        )
+
+                                        // 2. More Options Menu
+                                        var showMenu by remember { mutableStateOf(false) }
+                                        Box {
+                                            Icon(
+                                                Icons.Default.MoreVert,
+                                                contentDescription = "Valikud",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier
+                                                    .clickable { showMenu = true }
+                                                    .padding(8.dp)
+                                                    .size(24.dp)
+                                            )
+                                            DropdownMenu(
+                                                expanded = showMenu,
+                                                onDismissRequest = { showMenu = false }
+                                            ) {
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.menu_rename)) },
+                                                    leadingIcon = { Icon(Icons.Default.Edit, null) },
+                                                    onClick = { showMenu = false; itemToModify = item; showFileManageDialog = true }
+                                                )
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.menu_trim)) },
+                                                    leadingIcon = { Icon(Icons.Default.ContentCut, null) },
+                                                    onClick = { showMenu = false; recordingToTrim = item }
+                                                )
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.menu_move)) },
+                                                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
+                                                    onClick = { showMenu = false; itemToModify = item; showMoveFileDialog = true }
+                                                )
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.menu_share)) },
+                                                    leadingIcon = { Icon(Icons.Default.Share, null) },
+                                                    onClick = { showMenu = false; onShareFile(item) }
+                                                )
+                                                HorizontalDivider()
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.btn_delete), color = MaterialTheme.colorScheme.error) },
+                                                    leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
+                                                    onClick = { showMenu = false; recordingToDelete = item }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1984,3 +2156,4 @@ fun SpeedOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text, fontSize = 11.sp)
     }
 }
+

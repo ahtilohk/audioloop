@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">AudioLoop</string>
+    <string name="title_general">Общее</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="btn_delete">Удалить</string>
+    <string name="btn_play_selected">Воспроизвести %d</string>
+    <string name="btn_add_file">Импорт</string>
+    <string name="btn_record_new">ЗАПИСАТЬ</string>
+    <string name="label_recording">Запись...</string>
+    <string name="label_empty_title">Здесь тихо...</string>
+    <string name="label_empty_subtitle">Запишите свой первый клип!</string>
+    <string name="menu_rename">Переименовать</string>
+    <string name="menu_trim">Обрезать</string>
+    <string name="menu_move">Переместить</string>
+    <string name="menu_share">Поделиться</string>
+    <string name="menu_download">Скачать</string>
+    <string name="dialog_rename_title">Переименовать</string>
+    <string name="dialog_create_category">Новая категория</string>
+    <string name="dialog_delete_confirm">Вы уверены?</string>
+    <string name="mode_speech">Речь (микрофон)</string>
+    <string name="mode_stream">Поток (прилож.)</string>
+    <string name="toast_saved">Сохранено</string>
+    <string name="toast_error">Ошибка</string>
+    <string name="settings_loop">Повторы</string>
+    <string name="settings_speed">Скорость</string>
+</resources>
