@@ -115,14 +115,18 @@ private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, f
     val key = file.absolutePath
     if (waveformCache.containsKey(key)) return
     scope.launch(Dispatchers.IO) {
-        val cached = loadWaveformFromDisk(file)
-        if (cached != null && cached.isNotEmpty()) {
-            withContext(Dispatchers.Main) { waveformCache[key] = cached }
-            return@launch
+        try {
+            val cached = loadWaveformFromDisk(file)
+            if (cached != null && cached.isNotEmpty()) {
+                withContext(Dispatchers.Main) { waveformCache[key] = cached }
+                return@launch
+            }
+            val waveform = generateWaveform(file, numBars = fullBars)
+            saveWaveformToDisk(file, waveform)
+            withContext(Dispatchers.Main) { waveformCache[key] = waveform }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        val waveform = generateWaveform(file, numBars = fullBars)
-        saveWaveformToDisk(file, waveform)
-        withContext(Dispatchers.Main) { waveformCache[key] = waveform }
     }
 }
 
@@ -215,12 +219,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         override fun onReceive(context: Context?, intent: Intent?) {
                             if (intent?.action == RecordingService.ACTION_RECORDING_SAVED) {
                                 coroutineScope.launch(Dispatchers.IO) {
-                                    val firstTry = getSavedRecordings(uiCategory, context!!.filesDir)
-                                    withContext(Dispatchers.Main) { savedItems = firstTry }
-                                    delay(500)
-                                    val secondTry = getSavedRecordings(uiCategory, context.filesDir)
-                                    secondTry.firstOrNull()?.let { precomputeWaveformAsync(this, it.file) }
-                                    withContext(Dispatchers.Main) { savedItems = secondTry }
+                                    try {
+                                        val ctx = context ?: return@launch
+                                        val firstTry = getSavedRecordings(uiCategory, ctx.filesDir)
+                                        withContext(Dispatchers.Main) { savedItems = firstTry }
+                                        delay(500)
+                                        val secondTry = getSavedRecordings(uiCategory, ctx.filesDir)
+                                        secondTry.firstOrNull()?.let { precomputeWaveformAsync(this, it.file) }
+                                        withContext(Dispatchers.Main) { savedItems = secondTry }
+                                    } catch (e: Exception) { e.printStackTrace() }
                                 }
                             }
                         }
