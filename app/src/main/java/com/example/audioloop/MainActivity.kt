@@ -1376,8 +1376,7 @@ fun FileManageDialog(
     itemName: String,
     onDismiss: () -> Unit,
     onRename: (String) -> Unit,
-    onTrim: () -> Unit,
-    onDownload: () -> Unit
+    onTrim: () -> Unit
 ) {
     var textState by remember { mutableStateOf(TextFieldValue(text = itemName, selection = TextRange(itemName.length))) }
     val focusRequester = remember { FocusRequester() }
@@ -1406,17 +1405,6 @@ fun FileManageDialog(
                     Text("✂", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Lõika (Trim)")
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                OutlinedButton(
-                    onClick = onDownload,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Lae alla (Downloads)")
                 }
             }
         },
@@ -1626,11 +1614,7 @@ fun AudioLoopApp(
             itemName = itemToModify!!.name,
             onDismiss = { showFileManageDialog = false },
             onRename = { newName -> onRenameFile(itemToModify!!, newName); showFileManageDialog = false },
-            onTrim = { showFileManageDialog = false; showTrimDialog = true },
-            onDownload = {
-                saveToDownloads(context, itemToModify!!.file)
-                showFileManageDialog = false
-            }
+            onTrim = { showFileManageDialog = false; showTrimDialog = true }
         )
     }
 
@@ -1917,6 +1901,7 @@ fun AudioLoopApp(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.AutoMirrored.Filled.ArrowForward, "Liiguta", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showMoveFileDialog = true }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Edit, "Muuda", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { itemToModify = item; showFileManageDialog = true }.padding(6.dp).size(20.dp))
+                                        Icon(Icons.Default.ArrowDownward, "Lae alla", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { saveToDownloads(context, item.file) }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Share, "Jaga", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { onShareFile(item) }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.ContentCut, "Lõika", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clickable { recordingToTrim = item }.padding(6.dp).size(20.dp))
                                         Icon(Icons.Default.Delete, "Kustuta", tint = MaterialTheme.colorScheme.error, modifier = Modifier.clickable { recordingToDelete = item }.padding(6.dp).size(20.dp))
