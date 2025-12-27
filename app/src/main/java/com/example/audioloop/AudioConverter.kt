@@ -148,9 +148,19 @@ object AudioConverter {
             Log.e(TAG, "Conversion failed", e)
             return null
         } finally {
-            inputStream.close()
-            try { encoder.stop(); encoder.release() } catch (e: Exception) {}
-            try { if (muxerStarted) muxer.stop(); muxer.release() } catch (e: Exception) {}
+            try {
+                inputStream.close()
+            } catch (e: Exception) {}
+            try { 
+                encoder?.stop()
+                encoder?.release() 
+            } catch (e: Exception) {}
+            try { 
+                if (muxerStarted) {
+                    muxer?.stop()
+                }
+                muxer?.release() 
+            } catch (e: Exception) {}
         }
     }
 }

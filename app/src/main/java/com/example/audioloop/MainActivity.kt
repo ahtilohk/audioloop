@@ -825,13 +825,17 @@ fun TrimAudioDialog(
                 return
             }
             try {
+                // Copy to temp file to avoid lock/access issues
+                val tempPreview = File(context.cacheDir, "preview_temp.m4a")
+                file.copyTo(tempPreview, overwrite = true)
+                
                 // Use Uri for better compatibility
-                val uri = android.net.Uri.fromFile(file)
+                val uri = android.net.Uri.fromFile(tempPreview)
                 
                 val mp = MediaPlayer().apply {
                     reset()
                     setDataSource(context, uri)
-                    prepare() // Synchronous is fine for local file usually, but catch errors
+                    prepare()
                     seekTo(range.start.toInt())
                     start()
                 }
@@ -878,7 +882,7 @@ fun TrimAudioDialog(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Viga eelkuulamisel: ${e.message}", Toast.LENGTH_LONG).show() // Long toast to read error
+                Toast.makeText(context, "Viga eelkuulamisel: ${e.message} (Size: ${file.length()})", Toast.LENGTH_LONG).show()
                 isPreviewing = false
             }
         }
