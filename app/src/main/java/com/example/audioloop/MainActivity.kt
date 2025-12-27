@@ -191,6 +191,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             AppTheme {
                 val coroutineScope = rememberCoroutineScope()
                 var uiCategory by remember { mutableStateOf("Üldine") }
+                var categories by remember { mutableStateOf(listOf("Üldine")) }
                 var playingFileName by remember { mutableStateOf("") }
                 var currentProgress by remember { mutableFloatStateOf(0f) }
                 var currentTimeString by remember { mutableStateOf("00:00") }
@@ -231,6 +232,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
+                        // Update categories
+                        val catList = mutableListOf(getString(R.string.title_general))
+                        filesDir.listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { catList.add(it.name) }
+                        withContext(Dispatchers.Main) { categories = catList }
+
+                        // Update items
                         val items = getSavedRecordings(uiCategory, filesDir)
                         items.forEach { precomputeWaveformAsync(this, it.file) }
                         withContext(Dispatchers.Main) { savedItems = items }
@@ -257,7 +264,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AudioLoopApp(
                         recordingItems = savedItems,
-                        categories = getCategories(),
+                        categories = categories,
                         currentCategory = uiCategory,
                         currentProgress = currentProgress,
                         currentTimeString = currentTimeString,
@@ -353,11 +360,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
     }
 
-    private fun getCategories(): List<String> {
-        val categoryList = mutableListOf(getString(R.string.title_general))
-        filesDir.listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { categoryList.add(it.name) }
-        return categoryList
-    }
+
 
     // --- FIX: getDuration mis kasutab MediaPlayerit kui Metadata ebaõnnestub ---
     private fun getDuration(file: File): Pair<String, Long> {
