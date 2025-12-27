@@ -12,6 +12,9 @@ import kotlinx.coroutines.withContext
 import android.media.MediaMetadataRetriever
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.unit.IntSize
 import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -1104,13 +1107,20 @@ fun TrimAudioDialog(
                 
                 // --- SLIDER CONTROLS ---
                 // Custom implementation for large touch targets
-                BoxWithConstraints(
+                // --- SLIDER CONTROLS ---
+                // Custom implementation for large touch targets
+                var sliderWidth by remember { mutableFloatStateOf(1f) }
+                
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp) // Generous height for touch
-                        // Removed padding here to capture edge touches
+                        .height(60.dp)
+                        .onGloballyPositioned { coordinates ->
+                            val s = coordinates.size
+                            sliderWidth = s.width.toFloat()
+                        }
                 ) {
-                    val width = constraints.maxWidth.toFloat()
+                    val width = sliderWidth
                     val density = LocalDensity.current
                     
                     // Internal padding to ensure handles at 0/100% are fully reachable and not clipped
@@ -1120,7 +1130,6 @@ fun TrimAudioDialog(
                     
                     // Capture latest values for the closure
                     val currentRange by rememberUpdatedState(range)
-                    val currentWidth by rememberUpdatedState(width)
                     val currentDuration by rememberUpdatedState(durationMs)
                     val currentSidePadding by rememberUpdatedState(sidePadding)
                     val currentAvailableWidth by rememberUpdatedState(availableWidth)
