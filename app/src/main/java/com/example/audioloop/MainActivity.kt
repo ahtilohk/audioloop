@@ -1594,28 +1594,28 @@ fun AudioLoopApp(
     val scope = rememberCoroutineScope()
 
     fun saveToDownloads(context: Context, file: File) {
-        val resolver = context.contentResolver
-        val values = android.content.ContentValues().apply {
-            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, file.name)
-            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
-            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
-        }
-        try {
-            val uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            if (uri != null) {
-                resolver.openOutputStream(uri)?.use { out ->
-                    file.inputStream().use { input ->
-                        input.copyTo(out)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = android.content.ContentValues()
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
+            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+            val resolver = context.contentResolver
+            try {
+                val uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                if (uri != null) {
+                    resolver.openOutputStream(uri)?.use { output ->
+                        file.inputStream().use { input -> input.copyTo(output) }
                     }
+                    Toast.makeText(context, "Salvestatud: Downloads/${file.name}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Viga: Ei saanud faili luua", Toast.LENGTH_SHORT).show()
                 }
-                Toast.makeText(context, "Salvestatud: Downloads/${file.name}", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Viga: Ei saanud faili luua", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "Viga salvestamisel: ${e.message}", Toast.LENGTH_LONG).show()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            // Fallback for older Androids or specific errors
-            Toast.makeText(context, "Viga salvestamisel: ${e.message}", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(context, "Toetatud ainult Android 10+", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -2123,8 +2123,8 @@ fun AudioLoopApp(
             }
         }
     }
-}
 
+}
 @Composable
 fun LoopOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
@@ -2159,4 +2159,6 @@ fun SpeedOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text, fontSize = 11.sp)
     }
 }
+
+
 
