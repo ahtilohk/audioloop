@@ -825,9 +825,13 @@ fun TrimAudioDialog(
                 return
             }
             try {
+                // Use Uri for better compatibility
+                val uri = android.net.Uri.fromFile(file)
+                
                 val mp = MediaPlayer().apply {
-                    setDataSource(file.absolutePath)
-                    prepare()
+                    reset()
+                    setDataSource(context, uri)
+                    prepare() // Synchronous is fine for local file usually, but catch errors
                     seekTo(range.start.toInt())
                     start()
                 }
@@ -840,6 +844,10 @@ fun TrimAudioDialog(
                 scope.launch {
                    while (isPreviewing && previewPlayer == mp) {
                         try {
+                           if (mp.isPlaying) {
+                               currentPos = mp.currentPosition.toLong()
+                           }
+                           
                            // Check dynamic range
                            val end = range.endInclusive.toInt()
                            val current = mp.currentPosition
@@ -852,7 +860,10 @@ fun TrimAudioDialog(
                                isPreviewing = false
                                break
                            }
-                        } catch(e:Exception){}
+                        } catch(e:Exception){
+                            e.printStackTrace()
+                            break
+                        }
                         delay(50)
                     }
                 }
@@ -860,9 +871,14 @@ fun TrimAudioDialog(
                 mp.setOnCompletionListener { 
                     isPreviewing = false
                 }
+                mp.setOnErrorListener { _, what, extra ->
+                    Toast.makeText(context, "Meediapleieri viga: $what, $extra", Toast.LENGTH_SHORT).show()
+                    isPreviewing = false
+                    true
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Viga eelkuulamisel: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Viga eelkuulamisel: ${e.message}", Toast.LENGTH_LONG).show() // Long toast to read error
                 isPreviewing = false
             }
         }
@@ -871,13 +887,35 @@ fun TrimAudioDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("Lõika helindit")
+            Row(
+                verticalAlignment = Alignment.CenterVertically, 
+                horizontalArrangement = Arrangement.Start, 
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 IconButton(onClick = { togglePreview() }) {
                     Icon(
                         if (isPreviewing) Icons.Default.Stop else Icons.Default.PlayArrow,
                         contentDescription = "Eelkuulamine",
-                        tint = if (isPreviewing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        tint = if (isPreviewing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                Column {
+                    Text(
+                        text = if (isPreviewing) "Mängib..." else "Eelkuulamine", 
+                        fontSize = 12.sp, 
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = if (isPreviewing) 
+                            "${formatDuration(currentPos)} / ${formatDuration(range.endInclusive.toLong())}"
+                        else 
+                            "${formatDuration(range.start.toLong())} - ${formatDuration(range.endInclusive.toLong())}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -885,14 +923,7 @@ fun TrimAudioDialog(
         text = {
             Column {
                 // Info text (Live Progress)
-                if (isPreviewing) {
-                    Text(
-                        text = "Mängib: ${formatDuration(currentPos)}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.End).padding(bottom = 8.dp)
-                    )
-                } else {
+                if (!isPreviewing) {
                      Spacer(modifier = Modifier.height(24.dp)) 
                 }
 
