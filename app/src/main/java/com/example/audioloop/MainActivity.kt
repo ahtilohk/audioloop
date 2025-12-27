@@ -554,9 +554,25 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             Toast.makeText(this@MainActivity, "Ei saanud algset faili asendada!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        // Jäta temp uue nimena (nt fail_trim_123.m4a)
-                        val newName = "${file.nameWithoutExtension}_trim_${System.currentTimeMillis()}.$ext"
-                        val newFile = File(file.parent, newName)
+                        // Incremental naming: File_trim_1.m4a, File_trim_2.m4a...
+                        val originalName = file.nameWithoutExtension
+                        // Strip existing "_trim_X" if present to avoid "Song_trim_1_trim_2"
+                        val baseName = if (originalName.contains("_trim_")) {
+                             originalName.substringBeforeLast("_trim_")
+                        } else {
+                             originalName
+                        }
+                        
+                        var counter = 1
+                        var newName = "${baseName}_trim_$counter.$ext"
+                        var newFile = File(file.parent, newName)
+                        
+                        while (newFile.exists()) {
+                            counter++
+                            newName = "${baseName}_trim_$counter.$ext"
+                            newFile = File(file.parent, newName)
+                        }
+
                         if (tempFile.renameTo(newFile)) {
                             onSuccess()
                             Toast.makeText(this@MainActivity, "Salvestatud: $newName", Toast.LENGTH_SHORT).show()
