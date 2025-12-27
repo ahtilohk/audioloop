@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -1028,19 +1029,27 @@ fun TrimAudioDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp) // Generous height for touch
-                        .padding(horizontal = 12.dp)
+                        // Removed padding here to capture edge touches
                 ) {
                     val width = constraints.maxWidth.toFloat()
-                    val height = constraints.maxHeight.toFloat()
+                    val density = LocalDensity.current
+                    
+                    // Internal padding to ensure handles at 0/100% are fully reachable and not clipped
+                    val sidePadding = with(density) { 24.dp.toPx() }
+                    val hitThreshold = with(density) { 60.dp.toPx() }
+                    val availableWidth = width - (sidePadding * 2)
                     
                     // Capture latest values for the closure
                     val currentRange by rememberUpdatedState(range)
                     val currentWidth by rememberUpdatedState(width)
                     val currentDuration by rememberUpdatedState(durationMs)
+                    val currentSidePadding by rememberUpdatedState(sidePadding)
+                    val currentAvailableWidth by rememberUpdatedState(availableWidth)
+                    val currentHitThreshold by rememberUpdatedState(hitThreshold)
                     
                     // Visual positions
-                    val startX = (range.start / durationMs) * width
-                    val endX = (range.endInclusive / durationMs) * width
+                    val startX = sidePadding + (range.start / durationMs) * availableWidth
+                    val endX = sidePadding + (range.endInclusive / durationMs) * availableWidth
                     
                     var isDraggingStart by remember { mutableStateOf(false) }
                     var isDraggingEnd by remember { mutableStateOf(false) }
@@ -1053,25 +1062,28 @@ fun TrimAudioDialog(
                                 detectDragGestures(
                                     onDragStart = { offset ->
                                         // 1. Re-calculate positions using LATEST state
-                                        val curW = currentWidth
+                                        val pad = currentSidePadding
+                                        val avW = currentAvailableWidth
                                         val curDur = currentDuration.toFloat()
                                         val curR = currentRange
+                                        val thresh = currentHitThreshold
                                         
                                         // If width is valid
-                                        if (curW > 0) {
-                                            val sX = (curR.start / curDur) * curW
-                                            val eX = (curR.endInclusive / curDur) * curW
+                                        val curAvW: Float = avW
+                                        if (curAvW > 0.1f) {
+                                            val sX = pad + (curR.start / curDur) * avW
+                                            val eX = pad + (curR.endInclusive / curDur) * avW
                                             
                                             // 2. Find Closest Handle
-                                            val hitThreshold = 60.dp.toPx()
                                             val distStart = kotlin.math.abs(offset.x - sX)
                                             val distEnd = kotlin.math.abs(offset.x - eX)
                                             
-                                            if (distStart < hitThreshold && distEnd < hitThreshold) {
+                                            // Prioritize dragging the handle if we are close enough
+                                            if (distStart < thresh && distEnd < thresh) {
                                                 if (distStart <= distEnd) isDraggingStart = true else isDraggingEnd = true
-                                            } else if (distStart < hitThreshold) {
+                                            } else if (distStart < thresh) {
                                                 isDraggingStart = true
-                                            } else if (distEnd < hitThreshold) {
+                                            } else if (distEnd < thresh) {
                                                 isDraggingEnd = true
                                             }
                                         }
@@ -1081,12 +1093,17 @@ fun TrimAudioDialog(
                                     onDrag = { change, dragAmount ->
                                         change.consume()
                                         val dx = dragAmount.x
-                                        val curW = currentWidth
+                                        val pad = currentSidePadding
+                                        val avW = currentAvailableWidth
                                         val curDur = currentDuration.toFloat()
                                         val curR = currentRange
                                         
-                                        if (curW > 0) {
-                                            val timeDelta = (dx / curW) * curDur
+                                        // Revert math: timeDelta = (dx / availableWidth) * duration
+                                        val curAvW: Float = currentAvailableWidth
+                                        if (curAvW > 0.1f) {
+                                            val dxF: Float = dx
+                                            val curDurF: Float = currentDuration.toFloat()
+                                            val timeDelta: Float = (dxF / curAvW) * curDurF
                                             
                                             if (isDraggingStart) {
                                                 val newStart = (curR.start + timeDelta).coerceIn(0f, curR.endInclusive - 1000f)
@@ -1103,8 +1120,8 @@ fun TrimAudioDialog(
                         // Track Base
                         drawLine(
                             color = Color.Gray.copy(alpha=0.5f),
-                            start = Offset(0f, size.height/2),
-                            end = Offset(size.width, size.height/2),
+                            start = Offset(sidePadding, size.height/2),
+                            end = Offset(size.width - sidePadding, size.height/2),
                             strokeWidth = 4.dp.toPx(),
                             cap = StrokeCap.Round
                         )
@@ -1356,7 +1373,8 @@ fun FileManageDialog(
     itemName: String,
     onDismiss: () -> Unit,
     onRename: (String) -> Unit,
-    onTrim: () -> Unit
+    onTrim: () -> Unit,
+    onDownload: () -> Unit
 ) {
     var textState by remember { mutableStateOf(TextFieldValue(text = itemName, selection = TextRange(itemName.length))) }
     val focusRequester = remember { FocusRequester() }
@@ -1385,6 +1403,17 @@ fun FileManageDialog(
                     Text("✂", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Lõika (Trim)")
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                OutlinedButton(
+                    onClick = onDownload,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Lae alla (Downloads)")
                 }
             }
         },
@@ -1513,6 +1542,32 @@ fun AudioLoopApp(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    fun saveToDownloads(context: Context, file: File) {
+        val resolver = context.contentResolver
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+        }
+        try {
+            val uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            if (uri != null) {
+                resolver.openOutputStream(uri)?.use { out ->
+                    file.inputStream().use { input ->
+                        input.copyTo(out)
+                    }
+                }
+                Toast.makeText(context, "Salvestatud: Downloads/${file.name}", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Viga: Ei saanud faili luua", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Fallback for older Androids or specific errors
+            Toast.makeText(context, "Viga salvestamisel: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     var liveTimeName by remember { mutableStateOf("") }
     fun generateTimeName(prefix: String): String {
         val sdf = java.text.SimpleDateFormat("dd.MM.yy HH:mm:ss", java.util.Locale.getDefault())
@@ -1568,7 +1623,11 @@ fun AudioLoopApp(
             itemName = itemToModify!!.name,
             onDismiss = { showFileManageDialog = false },
             onRename = { newName -> onRenameFile(itemToModify!!, newName); showFileManageDialog = false },
-            onTrim = { showFileManageDialog = false; showTrimDialog = true }
+            onTrim = { showFileManageDialog = false; showTrimDialog = true },
+            onDownload = {
+                saveToDownloads(context, itemToModify!!.file)
+                showFileManageDialog = false
+            }
         )
     }
 
