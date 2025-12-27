@@ -932,14 +932,25 @@ fun TrimAudioDialog(
                 }
 
                 // Waveform Visualization
+                // Start Loading / Caching - Hoisted for Step Calculation
+                val points = remember { waveformCache[file.absolutePath] ?: emptyList() }
+                
+                // Dynamic Step Calculation
+                // Rule: If bar duration < 1s, use bar duration. Else use 1s.
+                val stepSize = remember(points, durationMs) {
+                    if (points.isNotEmpty()) {
+                        val barDuration = durationMs.toDouble() / points.size
+                        if (barDuration < 1000.0) barDuration.toLong().coerceAtLeast(10L) else 1000L
+                    } else {
+                        1000L
+                    }
+                }
+
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
                     .background(Color.Black.copy(alpha = 0.05f))
                 ) {
-                    // Start Loading / Caching
-                    val points = remember { waveformCache[file.absolutePath] ?: emptyList() }
-                    
                     if (points.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Laen helilainet...", fontSize = 12.sp, color = Color.Gray)
@@ -1140,7 +1151,7 @@ fun TrimAudioDialog(
                     // Start Group
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
-                            onClick = { val n = (range.start - 1000).coerceAtLeast(0f); range = n..range.endInclusive },
+                            onClick = { val n = (range.start - stepSize).coerceAtLeast(0f); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
@@ -1148,7 +1159,7 @@ fun TrimAudioDialog(
                         Text("Algus", modifier = Modifier.padding(horizontal = 8.dp))
                         
                         OutlinedButton(
-                            onClick = { val n = (range.start + 1000).coerceAtMost(range.endInclusive - 1000); range = n..range.endInclusive },
+                            onClick = { val n = (range.start + stepSize).coerceAtMost(range.endInclusive - stepSize); range = n..range.endInclusive },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text(">", fontSize = 18.sp) }
@@ -1157,7 +1168,7 @@ fun TrimAudioDialog(
                     // End Group
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
-                            onClick = { val n = (range.endInclusive - 1000).coerceAtLeast(range.start + 1000); range = range.start..n },
+                            onClick = { val n = (range.endInclusive - stepSize).coerceAtLeast(range.start + stepSize); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
@@ -1165,7 +1176,7 @@ fun TrimAudioDialog(
                         Text("Lõpp", modifier = Modifier.padding(horizontal = 8.dp))
                         
                         OutlinedButton(
-                            onClick = { val n = (range.endInclusive + 1000).coerceAtMost(durationMs.toFloat()); range = range.start..n },
+                            onClick = { val n = (range.endInclusive + stepSize).coerceAtMost(durationMs.toFloat()); range = range.start..n },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(40.dp)
                         ) { Text(">", fontSize = 18.sp) }
