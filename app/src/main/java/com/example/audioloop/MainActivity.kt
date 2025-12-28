@@ -1886,7 +1886,7 @@ fun AudioLoopApp(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LoopOptionButton("1x", selectedLoopCount == 1) { selectedLoopCount = 1; onLoopCountChange(1) }
             LoopOptionButton("5x", selectedLoopCount == 5) { selectedLoopCount = 5; onLoopCountChange(5) }
-            LoopOptionButton("âˆž", selectedLoopCount == -1) { selectedLoopCount = -1; onLoopCountChange(-1) }
+            LoopOptionButton("\u221E", selectedLoopCount == -1) { selectedLoopCount = -1; onLoopCountChange(-1) }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
