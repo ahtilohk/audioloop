@@ -1798,9 +1798,9 @@ fun AudioLoopApp(
                     Box(modifier = Modifier.background(bgColor, RoundedCornerShape(16.dp)).clickable { if (!isSelected) { isSelectionMode = false; selectedFiles.clear(); onCategoryChange(category) } }.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(category, color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                            if (isSelected && category != "Ãœldine") {
+                            if (isSelected && category != "General") {
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Icon(imageVector = Icons.Default.Edit, contentDescription = "Halda", tint = textColor, modifier = Modifier.size(16.dp).clickable { categoryToManage = category; showCategoryManageDialog = true })
+                                Icon(imageVector = Icons.Default.Edit, contentDescription = "Manage", tint = textColor, modifier = Modifier.size(16.dp).clickable { categoryToManage = category; showCategoryManageDialog = true })
                             }
                         }
                     }
