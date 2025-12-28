@@ -785,12 +785,30 @@ fun LiveWaveformCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(), 
+                horizontalArrangement = Arrangement.SpaceBetween, 
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text("Recording...", color = orangeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFFBF360C)) // Deep Orange for visibility
+                    Text(
+                        text = currentFileName, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 16.sp, 
+                        color = Color(0xFFBF360C),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-                Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = orangeColor)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = durationText, 
+                    fontSize = 24.sp, 
+                    fontWeight = FontWeight.Bold, 
+                    color = orangeColor,
+                    modifier = Modifier.wrapContentWidth(Alignment.End)
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))

@@ -19,7 +19,7 @@
     <string name="dialog_create_category">New Category</string>
     <string name="dialog_delete_confirm">Are you sure?</string>
     <string name="mode_speech">Speech (Mic)</string>
-    <string name="mode_stream">Stream (YT/Msg)</string>
+    <string name="mode_stream">Stream</string>
     <string name="toast_saved">Saved</string>
     <string name="toast_error">Error</string>
     <string name="settings_loop">Loop</string>

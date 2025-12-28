@@ -226,7 +226,11 @@ class RecordingService : Service() {
             muxerTrackIndex = -1
 
             // 4. Start Loop
-            record.startRecording()
+            try {
+                record.startRecording()
+            } catch (e: IllegalStateException) {
+                throw IllegalStateException("AudioRecord start failed: ${e.message}")
+            }
             encoder.start()
             isEncoderStarted = true
             isRecording = true
@@ -307,6 +311,10 @@ class RecordingService : Service() {
                 }
             } catch (e: Exception) {
                 Log.e("AudioLoop", "Encoding Loop Error", e)
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(applicationContext, "Internal recording stopped: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                safelyStopRecorder()
             }
         }
     }
