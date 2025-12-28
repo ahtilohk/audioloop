@@ -179,14 +179,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         if (result.resultCode == RESULT_OK && result.data != null) {
             startInternalAudioService(result.resultCode, result.data!!)
         } else {
-            Toast.makeText(this, "Salvestamiseks on vaja luba", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Permission required for recording", Toast.LENGTH_SHORT).show()
         }
     }
 
     private var mediaPlayer: MediaPlayer? = null
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) Toast.makeText(this, "Luba antud", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(this, "Luba puudub", Toast.LENGTH_SHORT).show()
+        if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
     }
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -203,8 +203,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         setContent {
             AppTheme {
                 val coroutineScope = rememberCoroutineScope()
-                var uiCategory by remember { mutableStateOf("Ãœldine") }
-                var categories by remember { mutableStateOf(listOf("Ãœldine")) }
+                var uiCategory by remember { mutableStateOf("General") }
+                var categories by remember { mutableStateOf(listOf("General")) }
                 var playingFileName by remember { mutableStateOf("") }
                 var currentProgress by remember { mutableFloatStateOf(0f) }
                 var currentTimeString by remember { mutableStateOf("00:00") }
@@ -248,7 +248,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
                         // Update categories
-                        val catList = mutableListOf(getString(R.string.title_general))
+                        val catList = mutableListOf("General")
                         filesDir.listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { catList.add(it.name) }
                         withContext(Dispatchers.Main) { categories = catList }
 
@@ -298,7 +298,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         },
                         onDeleteCategory = { catName ->
                             deleteCategory(catName)
-                            uiCategory = getString(R.string.title_general)
+                            uiCategory = "General"
                         },
                         onReorderCategory = { _, _ -> },
                         onMoveFile = { item, targetCat ->
@@ -422,7 +422,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
-        val finalName = if (category == "Ãœldine") fileName else {
+        val finalName = if (category == "General") fileName else {
             val folder = File(filesDir, category)
             if (!folder.exists()) folder.mkdirs()
             "$category/$fileName"
@@ -444,7 +444,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun startInternalAudioService(resultCode: Int, data: Intent) {
-        val finalName = if (pendingCategory == "Ãœldine") pendingRecordingName else {
+        val finalName = if (pendingCategory == "General") pendingRecordingName else {
             val folder = File(filesDir, pendingCategory)
             if (!folder.exists()) folder.mkdirs()
             "$pendingCategory/$pendingRecordingName"
@@ -470,21 +470,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             val extension = fileName.substringAfterLast('.', "")
             val nameWithoutExt = if (extension.isNotEmpty()) fileName.substringBeforeLast('.') else fileName
             var safeName = sanitizeName(nameWithoutExt)
-            if (safeName.isBlank()) safeName = "nimetu_audio"
+            if (safeName.isBlank()) safeName = "untitled_audio"
             val finalFileName = if (extension.isNotEmpty()) "$safeName.$extension" else "$safeName.m4a"
-            val folder = if (category == "Ãœldine") filesDir else File(filesDir, category).apply { mkdirs() }
+            val folder = if (category == "General") filesDir else File(filesDir, category).apply { mkdirs() }
             val targetFile = File(folder, finalFileName)
             contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(targetFile).use { output -> input.copyTo(output) }
             }
-            Toast.makeText(this, "Imporditud: $safeName", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Imported: $safeName", Toast.LENGTH_SHORT).show()
             
             // Start waveform computation immediately
             precomputeWaveformAsync(this, targetFile)
             
             // Note: UI needs to refresh separately if observing file system, 
             // or user navigates back/forth.
-        } catch (e: Exception) { Toast.makeText(this, "Viga importimisel", Toast.LENGTH_SHORT).show() }
+        } catch (e: Exception) { Toast.makeText(this, "Error importing", Toast.LENGTH_SHORT).show() }
     }
 
     private fun reorderFile(file: File, direction: Int) {
@@ -501,7 +501,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         fun stripPrefix(name: String): String = name.replace(Regex("^\\d{3}_"), "")
         val needsNormalization = files.any { !hasPrefix(it) }
         if (needsNormalization) {
-            Toast.makeText(this, "Lisan failidele numbrid...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Adding numbers to files...", Toast.LENGTH_SHORT).show()
             val tempFiles = files.mapIndexed { i, f ->
                 val pureName = stripPrefix(f.name)
                 val tempFile = File(parent, "tmp_${System.currentTimeMillis()}_$i.tmp")
@@ -528,17 +528,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun moveFileToCategory(file: File, targetCategory: String) {
-        val targetDir = if (targetCategory == "Ãœldine") filesDir else File(filesDir, targetCategory)
+        val targetDir = if (targetCategory == "General") filesDir else File(filesDir, targetCategory)
         if (!targetDir.exists()) targetDir.mkdirs()
         val targetFile = File(targetDir, file.name)
         if (file.renameTo(targetFile)) {
-            Toast.makeText(this, "Liigutatud", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
         } else {
             try {
                 file.inputStream().use { input -> targetFile.outputStream().use { output -> input.copyTo(output) } }
                 file.delete()
-                Toast.makeText(this, "Liigutatud", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) { Toast.makeText(this, "Viga liigutamisel", Toast.LENGTH_SHORT).show() }
+                Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) { Toast.makeText(this, "Error moving", Toast.LENGTH_SHORT).show() }
         }
     }
 
@@ -559,17 +559,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 clipData = android.content.ClipData.newRawUri(null, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, "Jaga faili"))
+            startActivity(Intent.createChooser(intent, "Share file"))
         } catch (e: Exception) { }
     }
 
     private fun deleteCategory(catName: String) {
-        if (catName == "Ãœldine") return
+        if (catName == "General") return
         File(filesDir, catName).deleteRecursively()
     }
 
     private fun renameCategory(oldName: String, newName: String) {
-        if (oldName == "Ãœldine") return
+        if (oldName == "General") return
         val oldDir = File(filesDir, oldName)
         val newDir = File(filesDir, sanitizeName(newName))
         oldDir.renameTo(newDir)
@@ -599,7 +599,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             onSuccess()
                         } else {
                             tempFile.delete()
-                            Toast.makeText(this@MainActivity, "Ei saanud algset faili asendada!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "Could not replace original file!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         // Incremental naming: File_trim_1.m4a, File_trim_2.m4a...
@@ -623,14 +623,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                         if (tempFile.renameTo(newFile)) {
                             onSuccess()
-                            Toast.makeText(this@MainActivity, "Salvestatud: $newName", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "Saved: $newName", Toast.LENGTH_SHORT).show()
                         } else {
                             tempFile.delete()
                         }
                     }
                 } else {
                     tempFile.delete()
-                    Toast.makeText(this@MainActivity, "Viga lÃµikamisel (vale formaat?)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Error trimming (invalid format?)", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -638,10 +638,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
 
 
-    // --- KÃ•IK rootDir VEAD PARANDATUD ---
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
         try {
-            val targetDir = if (category == "Ãœldine") rootDir else File(rootDir, category)
+            val targetDir = if (category == "General") rootDir else File(rootDir, category)
             if (!targetDir.exists()) return emptyList()
             val files = targetDir.listFiles { _, name ->
                 name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
@@ -700,14 +699,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
                 setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete) }
                 setOnErrorListener { _, what, extra ->
-                    Toast.makeText(this@MainActivity, "Viga mÃ¤ngimisel: $what / $extra", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
                     playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Viga faili avamisel: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
             playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
         }
     }
@@ -788,7 +787,7 @@ fun LiveWaveformCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
-                    Text("Salvestan...", color = orangeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("Recording...", color = orangeColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Text(currentFileName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFFBF360C)) // Deep Orange for visibility
                 }
                 Text(durationText, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = orangeColor)
@@ -839,7 +838,7 @@ fun LiveWaveformCard(
                 colors = ButtonDefaults.buttonColors(containerColor = orangeColor), 
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("LÃ•PETA SALVESTUS")
+                Text("STOP RECORDING")
             }
         }
     }
@@ -897,7 +896,7 @@ fun TrimAudioDialog(
         } else {
             // Check file validity
             if (!file.exists() || file.length() < 10) {
-                Toast.makeText(context, "Fail pole veel valmis, oota hetk...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "File not ready, wait a moment...", Toast.LENGTH_SHORT).show()
                 return
             }
             try {
@@ -952,13 +951,13 @@ fun TrimAudioDialog(
                     isPreviewing = false
                 }
                 mp.setOnErrorListener { _, what, extra ->
-                    Toast.makeText(context, "Meediapleieri viga: $what, $extra", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Media player error: $what, $extra", Toast.LENGTH_SHORT).show()
                     isPreviewing = false
                     true
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Viga eelkuulamisel: ${e.message} (Size: ${file.length()})", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Error previewing: ${e.message} (Size: ${file.length()})", Toast.LENGTH_LONG).show()
                 isPreviewing = false
             }
         }
@@ -985,7 +984,7 @@ fun TrimAudioDialog(
                 
                 Column {
                     Text(
-                        text = if (isPreviewing) "MÃ¤ngib..." else "Eelkuulamine", 
+                        text = if (isPreviewing) "Playing..." else "Preview", 
                         fontSize = 12.sp, 
                         color = Color.Gray
                     )
@@ -1029,7 +1028,7 @@ fun TrimAudioDialog(
                 ) {
                     if (points.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Laen helilainet...", fontSize = 12.sp, color = Color.Gray)
+                            Text("Loading waveform...", fontSize = 12.sp, color = Color.Gray)
                         }
                         LaunchedEffect(file) {
                             // Check cache again with absolute path
@@ -1254,7 +1253,7 @@ fun TrimAudioDialog(
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
                         
-                        Text("Algus", modifier = Modifier.padding(horizontal = 8.dp))
+                        Text("Start", modifier = Modifier.padding(horizontal = 8.dp))
                         
                         OutlinedButton(
                             onClick = { val n = (range.start + stepSize).coerceAtMost(range.endInclusive - stepSize); range = n..range.endInclusive },
@@ -1271,7 +1270,7 @@ fun TrimAudioDialog(
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
                         
-                        Text("LÃµpp", modifier = Modifier.padding(horizontal = 8.dp))
+                        Text("End", modifier = Modifier.padding(horizontal = 8.dp))
                         
                         OutlinedButton(
                             onClick = { val n = (range.endInclusive + stepSize).coerceAtMost(durationMs.toFloat()); range = range.start..n },
@@ -1287,24 +1286,24 @@ fun TrimAudioDialog(
                     Text(formatDuration(range.start.toLong()))
                     Text(formatDuration(range.endInclusive.toLong()))
                 }
-                Text("Kestus: ${formatDuration((range.endInclusive - range.start).toLong())}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                Text("Duration: ${formatDuration((range.endInclusive - range.start).toLong())}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
             }
         },
         confirmButton = {
             Column(horizontalAlignment = Alignment.End) {
                 Button(
                     onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }
-                ) { Text("Salvesta Uus Fail") }
+                ) { Text("Save New File") }
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 OutlinedButton(
                     onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }
-                ) { Text("Asenda Originaal") }
+                ) { Text("Replace Original") }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Loobu") }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }
@@ -1322,12 +1321,12 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
     val focusRequester = remember { FocusRequester() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Muuda nime") },
+        title = { Text("Rename") },
         text = {
             OutlinedTextField(
                 value = textState,
                 onValueChange = { textState = it },
-                label = { Text("Uus nimi") },
+                label = { Text("New name") },
                 singleLine = true,
                 modifier = Modifier.focusRequester(focusRequester),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done)
@@ -1337,8 +1336,8 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
         confirmButton = { Button(onClick = {
             val safeText = sanitizeName(textState.text)
             onConfirm(safeText)
-        }) { Text("Salvesta") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        }) { Text("Save") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -1348,8 +1347,8 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(text) },
-        confirmButton = { Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Kustuta") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        confirmButton = { Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Delete") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -1376,13 +1375,13 @@ fun CategoryManageDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Halda kategooriat") },
+        title = { Text("Manage Category") },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 OutlinedTextField(
                     value = textState,
                     onValueChange = { textState = it },
-                    label = { Text("Nimi") },
+                    label = { Text("Name") },
                     singleLine = true,
                     modifier = Modifier.focusRequester(focusRequester),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done)
@@ -1390,7 +1389,7 @@ fun CategoryManageDialog(
                 LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Asukoht nimekirjas:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Position in list:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyRow(
@@ -1418,34 +1417,34 @@ fun CategoryManageDialog(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Muuda jÃ¤rjekorda:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Change order:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     Button(
                         onClick = onMoveLeft,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) > 1
-                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Vasakule") }
+                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left") }
 
                     Button(
                         onClick = onMoveRight,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) < allCategories.size - 1
-                    ) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Paremale") }
+                    ) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Right") }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Delete, contentDescription = null); Spacer(modifier = Modifier.width(8.dp)); Text("Kustuta kategooria")
+                    Icon(Icons.Default.Delete, contentDescription = null); Spacer(modifier = Modifier.width(8.dp)); Text("Delete category")
                 }
             }
         },
         confirmButton = { Button(onClick = {
             val safeText = sanitizeName(textState.text)
             onRename(safeText)
-        }) { Text("Salvesta") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        }) { Text("Save") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -1461,13 +1460,13 @@ fun FileManageDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Halda faili") },
+        title = { Text("Manage file") },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 OutlinedTextField(
                     value = textState,
                     onValueChange = { textState = it },
-                    label = { Text("Nimi") },
+                    label = { Text("Name") },
                     singleLine = true,
                     modifier = Modifier.focusRequester(focusRequester),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done)
@@ -1482,7 +1481,7 @@ fun FileManageDialog(
                 ) {
                     Text("âœ‚", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("LÃµika (Trim)")
+                    Text("Trim")
                 }
             }
         },
@@ -1490,9 +1489,9 @@ fun FileManageDialog(
             Button(onClick = {
                 val safeText = sanitizeName(textState.text)
                 onRename(safeText)
-            }) { Text("Salvesta") }
+            }) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -1500,7 +1499,7 @@ fun FileManageDialog(
 fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (String) -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Vali uus kategooria") },
+        title = { Text("Select new category") },
         text = {
             Column(modifier = Modifier.heightIn(max = 300.dp)) {
                 LazyColumn {
@@ -1516,7 +1515,7 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Loobu") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
@@ -1633,7 +1632,7 @@ fun AudioLoopApp(
                 Toast.makeText(context, "Viga salvestamisel: ${e.message}", Toast.LENGTH_LONG).show()
             }
         } else {
-            Toast.makeText(context, "Toetatud ainult Android 10+", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Supported only on Android 10+", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1716,7 +1715,7 @@ fun AudioLoopApp(
         )
     }
     if (showDeleteConfirmDialog) {
-        DeleteConfirmDialog(title = "Kustuta kategooria?", text = "Kustutad kausta '$categoryToManage' ja kÃµik selle failid.", onDismiss = { showDeleteConfirmDialog = false }, onConfirm = { onDeleteCategory(categoryToManage); showDeleteConfirmDialog = false })
+        DeleteConfirmDialog(title = "Delete category?", text = "This will delete folder '$categoryToManage' and all its files.", onDismiss = { showDeleteConfirmDialog = false }, onConfirm = { onDeleteCategory(categoryToManage); showDeleteConfirmDialog = false })
     }
     if (showMoveFileDialog && itemToModify != null) {
         MoveFileDialog(categories = categories, onDismiss = { showMoveFileDialog = false }, onSelect = { targetCat -> onMoveFile(itemToModify!!, targetCat); showMoveFileDialog = false })
@@ -1724,8 +1723,8 @@ fun AudioLoopApp(
     // Delete Confirmation Dialog
     if (recordingToDelete != null) {
         DeleteConfirmDialog(
-            title = "Kustuta fail?",
-            text = "Kas oled kindel, et soovid kustutada faili '${recordingToDelete!!.file.name}'?",
+            title = "Delete file?",
+            text = "Are you sure you want to delete file '${recordingToDelete!!.file.name}'?",
             onConfirm = {
                 onDeleteFile(recordingToDelete!!)
                 recordingToDelete = null
@@ -1763,7 +1762,7 @@ fun AudioLoopApp(
                 else { isSelectionMode = true }
             }) {
                 if (isSelectionMode) Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
-                else Text("VALI PLAYLIST", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                else Text("SELECT PLAYLIST", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -1789,7 +1788,7 @@ fun AudioLoopApp(
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = { showAddCategoryDialog = true }, modifier = Modifier.size(30.dp).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(50))) {
-                Icon(Icons.Default.Add, contentDescription = "Lisa", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
             }
         }
 
@@ -1815,14 +1814,14 @@ fun AudioLoopApp(
                 label = { Text(stringResource(R.string.menu_rename)) },
                 supportingText = {
                     if (recordingName.isBlank()) {
-                        Text(text = "Vaikimisi: $liveTimeName", color = MaterialTheme.colorScheme.primary)
+                        Text(text = "Default: $liveTimeName", color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 trailingIcon = {
                     if (recordingName.isNotEmpty()) {
-                        IconButton(onClick = { recordingName = "" }) { Icon(Icons.Default.Clear, contentDescription = "TÃ¼hjenda") }
+                        IconButton(onClick = { recordingName = "" }) { Icon(Icons.Default.Clear, contentDescription = "Clear") }
                     }
                 }
             )
@@ -1882,7 +1881,7 @@ fun AudioLoopApp(
             Spacer(modifier = Modifier.height(15.dp))
         }
 
-        Text("Kordused:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LoopOptionButton("1x", selectedLoopCount == 1) { selectedLoopCount = 1; onLoopCountChange(1) }
@@ -1891,7 +1890,7 @@ fun AudioLoopApp(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Kiirus:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { selectedSpeed = 0.5f; onSpeedChange(0.5f) }
@@ -1907,8 +1906,8 @@ fun AudioLoopApp(
             if (isSelectionMode && selectedFiles.isNotEmpty()) {
                 if (playingFileName.isNotEmpty()) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(modifier = Modifier.weight(1f), onClick = { if (isPaused) { onResumePlay(); isPaused = false } else { onPausePlay(); isPaused = true } }) { Text(if (isPaused) "JÃ„TKA" else "PAUS") }
-                        Button(modifier = Modifier.weight(1f), onClick = { onStopPlay(); onPlayingFileNameChange(""); isPaused = false }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("KATKESTA") }
+                        Button(modifier = Modifier.weight(1f), onClick = { if (isPaused) { onResumePlay(); isPaused = false } else { onPausePlay(); isPaused = true } }) { Text(if (isPaused) "RESUME" else "PAUSE") }
+                        Button(modifier = Modifier.weight(1f), onClick = { onStopPlay(); onPlayingFileNameChange(""); isPaused = false }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("CANCEL") }
                     }
                 } else {
                     Button(onClick = {
@@ -1917,12 +1916,12 @@ fun AudioLoopApp(
                         onPlayingFileNameChange(fullFileName)
                         isPaused = false
                         onStartPlaylist(orderedPlaylist, selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
-                    }, modifier = Modifier.fillMaxWidth()) { Text("MÃ„NGI ${selectedFiles.size} VALITUT") }
+                    }, modifier = Modifier.fillMaxWidth()) { Text("PLAY ${selectedFiles.size} SELECTED") }
                 }
             } else {
-                Text("Failid ($currentCategory):", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Files ($currentCategory):", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 if (!isSelectionMode) {
-                    Button(onClick = { filePickerLauncher.launch("audio/*") }, modifier = Modifier.height(35.dp)) { Text("+ Lisa fail") }
+                    Button(onClick = { filePickerLauncher.launch("audio/*") }, modifier = Modifier.height(35.dp)) { Text("+ Add file") }
                 }
             }
         }
@@ -1942,14 +1941,14 @@ fun AudioLoopApp(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Siin on veel vaikne...",
+                            text = "It's quiet here...",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Alusta uue klipi salvestamist!",
+                            text = "Start recording a new clip!",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1998,16 +1997,16 @@ fun AudioLoopApp(
                             IconButton(onClick = { onStopPlay(); onPlayingFileNameChange("") }) { StopIcon() }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Icon(Icons.Default.KeyboardArrowUp, "Ãœles", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, -1) }.padding(2.dp))
+                                Icon(Icons.Default.KeyboardArrowUp, "Up", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, -1) }.padding(2.dp))
                                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp).clickable {
                                     if (playingFileName.isNotEmpty()) onStopPlay()
                                     onPlayingFileNameChange(item.name)
                                     isPaused = false
                                     onStartPlaylist(listOf(item.file), selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
                                 }) {
-                                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.PlayArrow, "MÃ¤ngi", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp)) }
+                                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.PlayArrow, "Play", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp)) }
                                 }
-                                Icon(Icons.Default.KeyboardArrowDown, "Alla", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, 1) }.padding(2.dp))
+                                Icon(Icons.Default.KeyboardArrowDown, "Down", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, 1) }.padding(2.dp))
                             }
                         }
 
@@ -2027,7 +2026,7 @@ fun AudioLoopApp(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = if (isThisPlaying) { if (isPaused) "PAUS" else currentTimeString } else { item.durationString },
+                                    text = if (isThisPlaying) { if (isPaused) "PAUSE" else currentTimeString } else { item.durationString },
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -2036,7 +2035,7 @@ fun AudioLoopApp(
                                         // 1. Download (Keep Quick Access)
                                         Icon(
                                             Icons.Default.ArrowDownward, 
-                                            contentDescription = "Lae alla",
+                                            contentDescription = "Download",
                                             tint = MaterialTheme.colorScheme.primary, 
                                             modifier = Modifier
                                                 .clickable { saveToDownloads(context, item.file) }
@@ -2049,7 +2048,7 @@ fun AudioLoopApp(
                                         Box {
                                             Icon(
                                                 Icons.Default.MoreVert,
-                                                contentDescription = "Valikud",
+                                                contentDescription = "Options",
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier
                                                     .clickable { showMenu = true }
