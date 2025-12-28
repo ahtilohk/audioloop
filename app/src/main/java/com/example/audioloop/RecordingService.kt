@@ -206,7 +206,9 @@ class RecordingService : Service() {
                 .build()
             audioRecord = record
 
-            if (record.state != AudioRecord.STATE_INITIALIZED) throw IllegalStateException("AudioRecord init failed")
+            if (record.state != AudioRecord.STATE_INITIALIZED) {
+                throw IllegalStateException("AudioRecord init failed state=${record.state}")
+            }
             
             // 2. Setup MediaCodec (Encoder)
             val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
@@ -236,9 +238,9 @@ class RecordingService : Service() {
             startAmplitudeTicker() 
             showToast("Voogsalvestus (Real-Time) algas!")
 
-        } catch (e: Exception) {
+        } catch (e: Throwable) { // Catch Throwable to handle NoClassDefFoundError etc
             e.printStackTrace()
-            showToast("Viga: ${e.message}")
+            showToast("Viga Voogsalvestusel: ${e.message}")
             safelyStopRecorder()
         }
     }
@@ -409,7 +411,11 @@ class RecordingService : Service() {
         val notification = createNotification(contentText)
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val type = if (isMediaProjection) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION else ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                val type = if (isMediaProjection) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                } else {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                }
                 startForeground(NOTIFICATION_ID, notification, type)
             } else {
                 startForeground(NOTIFICATION_ID, notification)

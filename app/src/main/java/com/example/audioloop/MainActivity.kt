@@ -1,4 +1,4 @@
-package com.example.audioloop
+﻿package com.example.audioloop
 
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -90,7 +90,7 @@ import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.rememberCoroutineScope
 
-// --- ABIFUNKTSIOONID JA VAHEMÄLU ---
+// --- ABIFUNKTSIOONID JA VAHEMÃ„LU ---
 private val waveformCache = mutableStateMapOf<String, List<Int>>()
 
 private fun getWaveformFile(audioFile: java.io.File): java.io.File {
@@ -137,7 +137,7 @@ fun sanitizeName(name: String): String {
     val sb = StringBuilder()
     for (c in name) {
         if (c == '/' || c == '\\' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') continue
-        if (c == ':') sb.append('꞉') else sb.append(c)
+        if (c == ':') sb.append('_') else sb.append(c)
     }
     return sb.toString().trim()
 }
@@ -203,15 +203,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         setContent {
             AppTheme {
                 val coroutineScope = rememberCoroutineScope()
-                var uiCategory by remember { mutableStateOf("Üldine") }
-                var categories by remember { mutableStateOf(listOf("Üldine")) }
+                var uiCategory by remember { mutableStateOf("Ãœldine") }
+                var categories by remember { mutableStateOf(listOf("Ãœldine")) }
                 var playingFileName by remember { mutableStateOf("") }
                 var currentProgress by remember { mutableFloatStateOf(0f) }
                 var currentTimeString by remember { mutableStateOf("00:00") }
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
 
                 val context = LocalContext.current
-                var currentLanguage by remember { mutableStateOf(getSavedLanguage(context)) }
+                // Force English always as per user request
+                val currentLanguage = "en" 
                 
                 // Force update on language change can be handled by recreation, avoiding Context wrapper issues.
                 // key(currentLanguage) {
@@ -356,25 +357,20 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 else {
                                     // Uus fail tekkis, leiame selle
                                     val files = getSavedRecordings(uiCategory, filesDir)
-                                    val newFile = files.firstOrNull()?.file // Eeldame et sorteeritud kuupäeva järgi (uusim ees)
+                                    val newFile = files.firstOrNull()?.file // Eeldame et sorteeritud kuupÃ¤eva jÃ¤rgi (uusim ees)
                                     if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
                                 }
                             }
-                        },
-                        currentLanguage = currentLanguage,
-                        onLanguageChange = { lang ->
-                            saveLanguage(context, lang)
-                            currentLanguage = lang
                         }
                     )
                 }
-            }
         }
     }
 
+    }
 
 
-    // --- FIX: getDuration mis kasutab MediaPlayerit kui Metadata ebaõnnestub ---
+    // --- FIX: getDuration mis kasutab MediaPlayerit kui Metadata ebaÃµnnestub ---
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
         var millis = 0L
@@ -396,7 +392,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 mp.release()
             } catch (e: Exception) { }
         }
-        // Varuplaan 2: MediaExtractor (Kõige madalam tase, töötab ka siis kui metaandmed puuduvad)
+        // Varuplaan 2: MediaExtractor (KÃµige madalam tase, tÃ¶Ã¶tab ka siis kui metaandmed puuduvad)
         if (millis == 0L) {
             try {
                 val extractor = MediaExtractor()
@@ -426,7 +422,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
-        val finalName = if (category == "Üldine") fileName else {
+        val finalName = if (category == "Ãœldine") fileName else {
             val folder = File(filesDir, category)
             if (!folder.exists()) folder.mkdirs()
             "$category/$fileName"
@@ -448,7 +444,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun startInternalAudioService(resultCode: Int, data: Intent) {
-        val finalName = if (pendingCategory == "Üldine") pendingRecordingName else {
+        val finalName = if (pendingCategory == "Ãœldine") pendingRecordingName else {
             val folder = File(filesDir, pendingCategory)
             if (!folder.exists()) folder.mkdirs()
             "$pendingCategory/$pendingRecordingName"
@@ -476,7 +472,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             var safeName = sanitizeName(nameWithoutExt)
             if (safeName.isBlank()) safeName = "nimetu_audio"
             val finalFileName = if (extension.isNotEmpty()) "$safeName.$extension" else "$safeName.m4a"
-            val folder = if (category == "Üldine") filesDir else File(filesDir, category).apply { mkdirs() }
+            val folder = if (category == "Ãœldine") filesDir else File(filesDir, category).apply { mkdirs() }
             val targetFile = File(folder, finalFileName)
             contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(targetFile).use { output -> input.copyTo(output) }
@@ -532,7 +528,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun moveFileToCategory(file: File, targetCategory: String) {
-        val targetDir = if (targetCategory == "Üldine") filesDir else File(filesDir, targetCategory)
+        val targetDir = if (targetCategory == "Ãœldine") filesDir else File(filesDir, targetCategory)
         if (!targetDir.exists()) targetDir.mkdirs()
         val targetFile = File(targetDir, file.name)
         if (file.renameTo(targetFile)) {
@@ -568,12 +564,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun deleteCategory(catName: String) {
-        if (catName == "Üldine") return
+        if (catName == "Ãœldine") return
         File(filesDir, catName).deleteRecursively()
     }
 
     private fun renameCategory(oldName: String, newName: String) {
-        if (oldName == "Üldine") return
+        if (oldName == "Ãœldine") return
         val oldDir = File(filesDir, oldName)
         val newDir = File(filesDir, sanitizeName(newName))
         oldDir.renameTo(newDir)
@@ -595,7 +591,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             withContext(Dispatchers.Main) {
                 if (success) {
                     if (replace) {
-                        // Kustuta algne, nimeta temp ümber
+                        // Kustuta algne, nimeta temp Ã¼mber
                         if (file.delete()) {
                             tempFile.renameTo(file)
                             waveformCache.remove(file.absolutePath)
@@ -634,7 +630,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     }
                 } else {
                     tempFile.delete()
-                    Toast.makeText(this@MainActivity, "Viga lõikamisel (vale formaat?)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Viga lÃµikamisel (vale formaat?)", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -642,17 +638,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
 
 
-    // --- KÕIK rootDir VEAD PARANDATUD ---
+    // --- KÃ•IK rootDir VEAD PARANDATUD ---
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
         try {
-            val targetDir = if (category == "Üldine") rootDir else File(rootDir, category)
+            val targetDir = if (category == "Ãœldine") rootDir else File(rootDir, category)
             if (!targetDir.exists()) return emptyList()
             val files = targetDir.listFiles { _, name ->
                 name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
             } ?: return emptyList()
 
             return files.mapNotNull { file ->
-                // Siia jõuavad ainult päriselt eksisteerivad failid.
+                // Siia jÃµuavad ainult pÃ¤riselt eksisteerivad failid.
                 // 00:00 tekib ainult siis kui MediaRecorder ei kirjuta andmeid (vt RecordingService parandust)
                 val (aegTekst, aegNumber) = getDuration(file)
                 RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
@@ -662,6 +658,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             return emptyList()
         }
     }
+
 
     private fun playPlaylist(
         allFiles: List<File>,
@@ -703,7 +700,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
                 setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete) }
                 setOnErrorListener { _, what, extra ->
-                    Toast.makeText(this@MainActivity, "Viga mängimisel: $what / $extra", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Viga mÃ¤ngimisel: $what / $extra", Toast.LENGTH_SHORT).show()
                     playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
                     true
                 }
@@ -726,8 +723,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 }
 
-// ... KUI SUL ON SIIN VEEL UI KOOD (AppTheme, AudioLoopApp jt), SIIS JÄTA SEE ALLES! ...
-// Kui kustutasid kogemata ära, siis anna teada – saadan UI osa eraldi.
+// ... KUI SUL ON SIIN VEEL UI KOOD (AppTheme, AudioLoopApp jt), SIIS JÃ„TA SEE ALLES! ...
+// Kui kustutasid kogemata Ã¤ra, siis anna teada â€“ saadan UI osa eraldi.
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
@@ -812,12 +809,12 @@ fun LiveWaveformCard(
                     val gap = 2.dp.toPx()
                     val totalBars = (size.width / (barWidth + gap)).toInt()
                     
-                    // Võtame tagantpoolt 'totalBars' arvu
+                    // VÃµtame tagantpoolt 'totalBars' arvu
                     val visibleAmplitudes = amplitudes.takeLast(totalBars)
                     
                     visibleAmplitudes.forEachIndexed { index, amp ->
-                        // Normaalime (maxAmp on nt 32767, aga tavaline kõne on ~5000-15000)
-                        // Võimendame visuaalselt
+                        // Normaalime (maxAmp on nt 32767, aga tavaline kÃµne on ~5000-15000)
+                        // VÃµimendame visuaalselt
                         val normalizedHeight = (amp / 10000f).coerceIn(0.1f, 1f) * size.height
                         
                         // Joonistame paremalt vasakule
@@ -842,7 +839,7 @@ fun LiveWaveformCard(
                 colors = ButtonDefaults.buttonColors(containerColor = orangeColor), 
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("LÕPETA SALVESTUS")
+                Text("LÃ•PETA SALVESTUS")
             }
         }
     }
@@ -988,7 +985,7 @@ fun TrimAudioDialog(
                 
                 Column {
                     Text(
-                        text = if (isPreviewing) "Mängib..." else "Eelkuulamine", 
+                        text = if (isPreviewing) "MÃ¤ngib..." else "Eelkuulamine", 
                         fontSize = 12.sp, 
                         color = Color.Gray
                     )
@@ -1243,7 +1240,7 @@ fun TrimAudioDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Unified Control Row (Algus ... Lõpp)
+                // Unified Control Row (Algus ... LÃµpp)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1274,7 +1271,7 @@ fun TrimAudioDialog(
                             modifier = Modifier.size(40.dp)
                         ) { Text("<", fontSize = 18.sp) }
                         
-                        Text("Lõpp", modifier = Modifier.padding(horizontal = 8.dp))
+                        Text("LÃµpp", modifier = Modifier.padding(horizontal = 8.dp))
                         
                         OutlinedButton(
                             onClick = { val n = (range.endInclusive + stepSize).coerceAtMost(durationMs.toFloat()); range = range.start..n },
@@ -1414,14 +1411,14 @@ fun CategoryManageDialog(
                             }
                             if (index < allCategories.lastIndex) {
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("›", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
+                                Text("â€º", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
                             }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Muuda järjekorda:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Muuda jÃ¤rjekorda:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     Button(
                         onClick = onMoveLeft,
@@ -1483,9 +1480,9 @@ fun FileManageDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("✂", fontSize = 18.sp)
+                    Text("âœ‚", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Lõika (Trim)")
+                    Text("LÃµika (Trim)")
                 }
             }
         },
@@ -1583,9 +1580,7 @@ fun AudioLoopApp(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean) -> Unit,
-    currentLanguage: String,
-    onLanguageChange: (String) -> Unit
+    onTrimFile: (File, Long, Long, Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1721,7 +1716,7 @@ fun AudioLoopApp(
         )
     }
     if (showDeleteConfirmDialog) {
-        DeleteConfirmDialog(title = "Kustuta kategooria?", text = "Kustutad kausta '$categoryToManage' ja kõik selle failid.", onDismiss = { showDeleteConfirmDialog = false }, onConfirm = { onDeleteCategory(categoryToManage); showDeleteConfirmDialog = false })
+        DeleteConfirmDialog(title = "Kustuta kategooria?", text = "Kustutad kausta '$categoryToManage' ja kÃµik selle failid.", onDismiss = { showDeleteConfirmDialog = false }, onConfirm = { onDeleteCategory(categoryToManage); showDeleteConfirmDialog = false })
     }
     if (showMoveFileDialog && itemToModify != null) {
         MoveFileDialog(categories = categories, onDismiss = { showMoveFileDialog = false }, onSelect = { targetCat -> onMoveFile(itemToModify!!, targetCat); showMoveFileDialog = false })
@@ -1761,32 +1756,6 @@ fun AudioLoopApp(
                 Text(stringResource(R.string.app_name), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.width(8.dp))
                 
-                // Language Selector
-                var showLangMenu by remember { mutableStateOf(false) }
-                Box {
-                    Text(
-                        text = currentLanguage.uppercase(), 
-                        fontSize = 12.sp, 
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
-                            .clickable { showLangMenu = true }
-                            .padding(horizontal = 4.dp, vertical = 2.dp)
-                    )
-                    DropdownMenu(expanded = showLangMenu, onDismissRequest = { showLangMenu = false }) {
-                        val langs = listOf("et" to "Eesti", "en" to "English", "es" to "Español", "it" to "Italiano", "ru" to "Русский")
-                        langs.forEach { (code, name) ->
-                            DropdownMenuItem(
-                                text = { Text(name) },
-                                onClick = { 
-                                    onLanguageChange(code)
-                                    showLangMenu = false 
-                                }
-                            )
-                        }
-                    }
-                }
             }
             
             TextButton(onClick = {
@@ -1810,7 +1779,7 @@ fun AudioLoopApp(
                     Box(modifier = Modifier.background(bgColor, RoundedCornerShape(16.dp)).clickable { if (!isSelected) { isSelectionMode = false; selectedFiles.clear(); onCategoryChange(category) } }.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(category, color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                            if (isSelected && category != "Üldine") {
+                            if (isSelected && category != "Ãœldine") {
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(imageVector = Icons.Default.Edit, contentDescription = "Halda", tint = textColor, modifier = Modifier.size(16.dp).clickable { categoryToManage = category; showCategoryManageDialog = true })
                             }
@@ -1853,7 +1822,7 @@ fun AudioLoopApp(
                 singleLine = true,
                 trailingIcon = {
                     if (recordingName.isNotEmpty()) {
-                        IconButton(onClick = { recordingName = "" }) { Icon(Icons.Default.Clear, contentDescription = "Tühjenda") }
+                        IconButton(onClick = { recordingName = "" }) { Icon(Icons.Default.Clear, contentDescription = "TÃ¼hjenda") }
                     }
                 }
             )
@@ -1918,7 +1887,7 @@ fun AudioLoopApp(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LoopOptionButton("1x", selectedLoopCount == 1) { selectedLoopCount = 1; onLoopCountChange(1) }
             LoopOptionButton("5x", selectedLoopCount == 5) { selectedLoopCount = 5; onLoopCountChange(5) }
-            LoopOptionButton("∞", selectedLoopCount == -1) { selectedLoopCount = -1; onLoopCountChange(-1) }
+            LoopOptionButton("âˆž", selectedLoopCount == -1) { selectedLoopCount = -1; onLoopCountChange(-1) }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -1938,7 +1907,7 @@ fun AudioLoopApp(
             if (isSelectionMode && selectedFiles.isNotEmpty()) {
                 if (playingFileName.isNotEmpty()) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(modifier = Modifier.weight(1f), onClick = { if (isPaused) { onResumePlay(); isPaused = false } else { onPausePlay(); isPaused = true } }) { Text(if (isPaused) "JÄTKA" else "PAUS") }
+                        Button(modifier = Modifier.weight(1f), onClick = { if (isPaused) { onResumePlay(); isPaused = false } else { onPausePlay(); isPaused = true } }) { Text(if (isPaused) "JÃ„TKA" else "PAUS") }
                         Button(modifier = Modifier.weight(1f), onClick = { onStopPlay(); onPlayingFileNameChange(""); isPaused = false }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("KATKESTA") }
                     }
                 } else {
@@ -1948,7 +1917,7 @@ fun AudioLoopApp(
                         onPlayingFileNameChange(fullFileName)
                         isPaused = false
                         onStartPlaylist(orderedPlaylist, selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
-                    }, modifier = Modifier.fillMaxWidth()) { Text("MÄNGI ${selectedFiles.size} VALITUT") }
+                    }, modifier = Modifier.fillMaxWidth()) { Text("MÃ„NGI ${selectedFiles.size} VALITUT") }
                 }
             } else {
                 Text("Failid ($currentCategory):", fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -2029,14 +1998,14 @@ fun AudioLoopApp(
                             IconButton(onClick = { onStopPlay(); onPlayingFileNameChange("") }) { StopIcon() }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Icon(Icons.Default.KeyboardArrowUp, "Üles", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, -1) }.padding(2.dp))
+                                Icon(Icons.Default.KeyboardArrowUp, "Ãœles", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, -1) }.padding(2.dp))
                                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp).clickable {
                                     if (playingFileName.isNotEmpty()) onStopPlay()
                                     onPlayingFileNameChange(item.name)
                                     isPaused = false
                                     onStartPlaylist(listOf(item.file), selectedLoopCount, selectedSpeed) { onPlayingFileNameChange(""); isPaused = false }
                                 }) {
-                                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.PlayArrow, "Mängi", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp)) }
+                                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.PlayArrow, "MÃ¤ngi", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp)) }
                                 }
                                 Icon(Icons.Default.KeyboardArrowDown, "Alla", modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onReorderFile(item.file, 1) }.padding(2.dp))
                             }
@@ -2182,6 +2151,3 @@ fun SpeedOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text, fontSize = 11.sp)
     }
 }
-
-
-
