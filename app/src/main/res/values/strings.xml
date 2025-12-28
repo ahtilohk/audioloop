@@ -18,7 +18,7 @@
     <string name="dialog_rename_title">Rename File</string>
     <string name="dialog_create_category">New Category</string>
     <string name="dialog_delete_confirm">Are you sure?</string>
-    <string name="mode_speech">Speech (Mic)</string>
+    <string name="mode_speech">Speech</string>
     <string name="mode_stream">Stream</string>
     <string name="toast_saved">Saved</string>
     <string name="toast_error">Error</string>
