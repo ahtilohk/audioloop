@@ -1428,7 +1428,7 @@ fun CategoryManageDialog(
                             }
                             if (index < allCategories.lastIndex) {
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("â€º", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
+                                Text(">", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
                             }
                         }
                     }
@@ -1450,11 +1450,13 @@ fun CategoryManageDialog(
                     ) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Right") }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Delete, contentDescription = null); Spacer(modifier = Modifier.width(8.dp)); Text("Delete category")
+                if (categoryName != "General") {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = onDelete, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Delete, contentDescription = null); Spacer(modifier = Modifier.width(8.dp)); Text("Delete category")
+                    }
                 }
             }
         },
