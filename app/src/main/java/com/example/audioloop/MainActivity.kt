@@ -1497,7 +1497,7 @@ fun FileManageDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("âœ‚", fontSize = 18.sp)
+                    Text("\u2702", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Trim")
                 }
