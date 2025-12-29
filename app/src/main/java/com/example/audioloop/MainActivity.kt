@@ -306,6 +306,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         playingFileName = playingFileName,
                         onPlayingFileNameChange = { playingFileName = it },
                         onCategoryChange = { newCat -> uiCategory = newCat },
+                        onAddCategory = { catName ->
+                            val dir = File(filesDir, catName)
                             if (!dir.exists()) dir.mkdirs()
                             
                             // Add to list and save
@@ -317,6 +319,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                             uiCategory = catName
                         },
+                        onRenameCategory = { oldName, newName ->
+                            renameCategory(oldName, newName)
                             if (uiCategory == oldName) uiCategory = newName
                             
                             // Update order list
@@ -330,6 +334,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
+                        onDeleteCategory = { catName ->
                             deleteCategory(catName)
                             // Update list
                             val newCats = categories.toMutableList()
