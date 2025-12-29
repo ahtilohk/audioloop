@@ -248,9 +248,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
                         // Update categories
-                        val catList = mutableListOf("General")
-                        filesDir.listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { catList.add(it.name) }
-                        withContext(Dispatchers.Main) { categories = catList }
+                        val realDirs = filesDir.listFiles()?.filter { it.isDirectory }?.map { it.name } ?: emptyList()
+                        val savedOrder = loadCategoryOrder()
+                        
+                        val newOrder = ArrayList<String>()
+                        // 1. Add known ones in order
+                        savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
+                        // 2. Add new ones
+                        realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
+                        // 3. Ensure General exists and is first if list empty (or fallback)
+                        if (!newOrder.contains("General")) newOrder.add(0, "General") 
+                        
+                        // Move General to top if it's not (Optional, but good practice for "Default")
+                        // But user might want to reorder it. Let's strictly follow saved logic BUT ensure it exists.
+                        
+                        withContext(Dispatchers.Main) { categories = newOrder }
 
                         // Update items
                         val items = getSavedRecordings(uiCategory, filesDir)
@@ -286,21 +298,51 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         playingFileName = playingFileName,
                         onPlayingFileNameChange = { playingFileName = it },
                         onCategoryChange = { newCat -> uiCategory = newCat },
-                        onAddCategory = { catName ->
-                            val dir = File(filesDir, catName)
                             if (!dir.exists()) dir.mkdirs()
+                            
+                            // Add to list and save
+                            val newCats = categories.toMutableList()
+                            if (!newCats.contains(catName)) {
+                                newCats.add(catName)
+                                categories = newCats
+                                saveCategoryOrder(newCats)
+                            }
                             uiCategory = catName
                         },
-                        onRenameCategory = { oldName, newName ->
-                            renameCategory(oldName, newName)
                             if (uiCategory == oldName) uiCategory = newName
+                            
+                            // Update order list
+                            val newCats = categories.toMutableList()
+                            val idx = newCats.indexOf(oldName)
+                            if (idx != -1) {
+                                newCats[idx] = newName
+                                categories = newCats
+                                saveCategoryOrder(newCats)
+                            }
+                            
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
-                        onDeleteCategory = { catName ->
                             deleteCategory(catName)
+                            // Update list
+                            val newCats = categories.toMutableList()
+                            newCats.remove(catName)
+                            categories = newCats
+                            saveCategoryOrder(newCats)
+                            
                             uiCategory = "General"
                         },
-                        onReorderCategory = { _, _ -> },
+                        onReorderCategory = { cat, dir -> 
+                            val idx = categories.indexOf(cat)
+                            if (idx != -1) {
+                                val newIdx = idx + dir
+                                if (newIdx in 0 until categories.size) {
+                                    val mutable = categories.toMutableList()
+                                    Collections.swap(mutable, idx, newIdx)
+                                    categories = mutable
+                                    saveCategoryOrder(mutable)
+                                }
+                            }
+                        },
                         onMoveFile = { item, targetCat ->
                             moveFileToCategory(item.file, targetCat)
                             savedItems = getSavedRecordings(uiCategory, filesDir)
@@ -540,6 +582,33 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) { Toast.makeText(this, "Error moving", Toast.LENGTH_SHORT).show() }
         }
+    }
+    
+    // -- Category Order Helpers --
+    private fun getCategoryOrderFile(): File {
+        return File(filesDir, "category_order.json") // Simple JSON array
+    }
+    
+    private fun saveCategoryOrder(categories: List<String>) {
+        try {
+            val jsonArray = org.json.JSONArray()
+            categories.forEach { jsonArray.put(it) }
+            getCategoryOrderFile().writeText(jsonArray.toString())
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+    
+    private fun loadCategoryOrder(): List<String> {
+        val list = mutableListOf<String>()
+        try {
+            val file = getCategoryOrderFile()
+            if (file.exists()) {
+                val array = org.json.JSONArray(file.readText())
+                for (i in 0 until array.length()) {
+                    list.add(array.getString(i))
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        return list
     }
 
     private fun renameFile(item: RecordingItem, newName: String) {
