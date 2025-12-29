@@ -350,7 +350,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 val newIdx = idx + dir
                                 if (newIdx in 0 until categories.size) {
                                     val mutable = categories.toMutableList()
-                                    Collections.swap(mutable, idx, newIdx)
+                                    java.util.Collections.swap(mutable, idx, newIdx)
                                     categories = mutable
                                     saveCategoryOrder(mutable)
                                 }
