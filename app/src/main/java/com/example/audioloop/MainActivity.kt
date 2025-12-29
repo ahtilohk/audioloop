@@ -236,11 +236,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                         val newFile = secondTry.firstOrNull()?.file
                                         if (newFile != null) {
                                             precomputeWaveformAsync(this, newFile)
-                                            // Auto-Export Logic
-                                            exportFileToMusic(newFile, uiCategory)
-                                            withContext(Dispatchers.Main) {
-                                                Toast.makeText(ctx, "Saved & Copied to Music/AudioLoop", Toast.LENGTH_SHORT).show()
-                                            }
+                                            // Auto-Export Logic (DISABLED to fix System UI ANR)
+                                            // exportFileToMusic(newFile, uiCategory)
+                                            // withContext(Dispatchers.Main) {
+                                            //    Toast.makeText(ctx, "Saved & Copied to Music/AudioLoop", Toast.LENGTH_SHORT).show()
+                                            // }
                                         }
                                         withContext(Dispatchers.Main) { savedItems = secondTry }
                                     } catch (e: Exception) { e.printStackTrace() }
@@ -609,10 +609,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val list = mutableListOf<String>()
         try {
             val file = getCategoryOrderFile()
-            if (file.exists()) {
-                val array = org.json.JSONArray(file.readText())
-                for (i in 0 until array.length()) {
-                    list.add(array.getString(i))
+            if (file.exists() && file.length() > 0) {
+                val content = file.readText()
+                if (content.isNotBlank()) {
+                    val array = org.json.JSONArray(content)
+                    for (i in 0 until array.length()) {
+                        list.add(array.getString(i))
+                    }
                 }
             }
         } catch (e: Exception) { e.printStackTrace() }
