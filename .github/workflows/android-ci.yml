@@ -35,8 +35,8 @@ jobs:
 
       - name: Build (clean + assembleDebug)
         env:
-          GRADLE_OPTS: -Xmx4096m -XX:MaxMetaspaceSize=1024m
-        run: ./gradlew clean assembleDebug --no-daemon --stacktrace
+          _JAVA_OPTIONS: -Xmx4096m -XX:MaxMetaspaceSize=1024m
+        run: ./gradlew clean assembleDebug -Dorg.gradle.jvmargs="-Xmx4096m -XX:MaxMetaspaceSize=1024m" --stacktrace
 
       - name: Upload APK artifact
         if: success()
