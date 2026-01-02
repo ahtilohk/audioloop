@@ -1110,6 +1110,7 @@ fun TrimAudioDialog(
                 
                 mp.setOnCompletionListener { 
                     isPreviewing = false
+                    currentPos = range.start.toLong()
                 }
                 mp.setOnErrorListener { _, what, extra ->
                     Toast.makeText(context, "Media player error: $what, $extra", Toast.LENGTH_SHORT).show()
