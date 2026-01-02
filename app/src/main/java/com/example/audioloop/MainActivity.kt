@@ -1021,9 +1021,11 @@ fun TrimAudioDialog(
     var previewPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPreviewing by remember { mutableStateOf(false) }
     var currentPos by remember { mutableLongStateOf(0L) } // Track playback position
+    var isSeeking by remember { mutableStateOf(false) } // Track user interaction
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
+        currentPos = range.start.toLong() // Initial position
         onDispose {
             previewPlayer?.release()
             previewPlayer = null
@@ -1031,8 +1033,8 @@ fun TrimAudioDialog(
     }
     
     // Progress Timer
-    LaunchedEffect(isPreviewing) {
-        if (isPreviewing) {
+    LaunchedEffect(isPreviewing, isSeeking) {
+        if (isPreviewing && !isSeeking) {
             while(isPreviewing && previewPlayer != null) {
                 try {
                     if (previewPlayer!!.isPlaying) {
@@ -1041,8 +1043,6 @@ fun TrimAudioDialog(
                 } catch(e:Exception){}
                 delay(50) 
             }
-        } else {
-            currentPos = range.start.toLong() // Reset
         }
     }
 
@@ -1070,37 +1070,34 @@ fun TrimAudioDialog(
                     reset()
                     setDataSource(context, uri)
                     prepare()
-                    seekTo(range.start.toInt())
+                    // Seek to currentPos (clamped) instead of range.start
+                    val startPos = currentPos.coerceIn(range.start.toLong(), range.endInclusive.toLong()).toInt()
+                    seekTo(startPos)
                     start()
                 }
                 previewPlayer = mp
                 isPreviewing = true
-                currentPos = range.start.toLong()
                 
                 // Stop automatically at end of range
-                // Use dynamic check loop to allow changing end time while playing
                 scope.launch {
                    while (isPreviewing && previewPlayer == mp) {
-                        try {
-                           if (mp.isPlaying) {
-                               currentPos = mp.currentPosition.toLong()
-                           }
-                           
-                           // Check dynamic range
-                           val end = range.endInclusive.toInt()
-                           val current = mp.currentPosition
-                           
-                           if (current >= end) {
-                               if (mp.isPlaying) {
-                                   mp.pause()
-                                   mp.seekTo(range.start.toInt())
+                        if (!isSeeking) { // Only auto-stop if not seeking
+                            try {
+                               val end = range.endInclusive.toInt()
+                               val current = mp.currentPosition
+                               
+                               if (current >= end) {
+                                   if (mp.isPlaying) {
+                                       mp.pause()
+                                       mp.seekTo(range.start.toInt())
+                                       currentPos = range.start.toLong() // Reset to start on finish
+                                   }
+                                   isPreviewing = false
+                                   break
                                }
-                               isPreviewing = false
-                               break
-                           }
-                        } catch(e:Exception){
-                            e.printStackTrace()
-                            break
+                            } catch(e:Exception){
+                                break
+                            }
                         }
                         delay(50)
                     }
@@ -1184,6 +1181,46 @@ fun TrimAudioDialog(
                     .fillMaxWidth()
                     .height(100.dp)
                     .background(Color.Black.copy(alpha = 0.05f))
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            val x = offset.x
+                            val width = size.width
+                            val time = (x / width) * durationMs
+                            currentPos = time.toLong()
+                            
+                            // Seek player if running
+                            previewPlayer?.let { mp ->
+                                try {
+                                    if (mp.isPlaying || isPreviewing) {
+                                        mp.seekTo(currentPos.toInt())
+                                    }
+                                } catch(e: Exception) {}
+                            }
+                        }
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = { isSeeking = true },
+                            onDragEnd = { isSeeking = false },
+                            onDragCancel = { isSeeking = false },
+                            onDrag = { change, _ ->
+                                change.consume()
+                                val x = change.position.x.coerceIn(0f, size.width.toFloat())
+                                val width = size.width
+                                val time = (x / width) * durationMs
+                                currentPos = time.toLong()
+                                
+                                // Live seek (might allow slight stutter, but responsive)
+                                previewPlayer?.let { mp ->
+                                    try {
+                                        if (mp.isPlaying || isPreviewing) {
+                                            mp.seekTo(currentPos.toInt())
+                                        }
+                                    } catch(e: Exception) {}
+                                }
+                            }
+                        )
+                    }
                 ) {
                     if (points.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
