@@ -211,6 +211,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 var currentProgress by remember { mutableFloatStateOf(0f) }
                 var currentTimeString by remember { mutableStateOf("00:00") }
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
+                var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
+                var loopMode by remember { mutableIntStateOf(-1) }
 
                 val context = LocalContext.current
                 // Force English always as per user request
@@ -385,11 +387,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         },
                         onStopRecord = { stopRecording() },
                         onStartPlaylist = { files, loop, speed, onComplete ->
-                            playPlaylist(files, 0, loop, speed, { playingFileName = it }, onComplete)
+                           // Use providers to access fresh state
+                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { playingFileName = it }, onComplete)
                         },
                         onPlaylistUpdate = { },
-                        onSpeedChange = { speed -> setPlaybackSpeed(speed) },
-                        onLoopCountChange = { },
+                        onSpeedChange = { speed -> playbackSpeed = speed; setPlaybackSpeed(speed) },
+                        onLoopCountChange = { loops -> loopMode = loops },
                         onSeekTo = { pos -> seekTo(pos) },
                         onPausePlay = { pausePlaying() },
                         onResumePlay = { resumePlaying() },
@@ -418,7 +421,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
                                 }
                             }
-                        }
+                        },
+                        selectedSpeed = playbackSpeed,
+                        selectedLoopCount = loopMode
                     )
                 }
         }
@@ -792,14 +797,20 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private fun playPlaylist(
         allFiles: List<File>,
         currentIndex: Int,
-        loopCount: Int,
-        speed: Float,
+        loopCountProvider: () -> Int,
+        speedProvider: () -> Float,
         onNext: (String) -> Unit,
         onComplete: () -> Unit
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
+        
+        // Dynamically fetch current settings
+        val loopCount = loopCountProvider()
+        val speed = speedProvider()
+
         if (currentIndex >= allFiles.size) {
-            if (loopCount == -1) playPlaylist(allFiles, 0, loopCount, speed, onNext, onComplete)
+            // Loop check
+            if (loopCount == -1) playPlaylist(allFiles, 0, loopCountProvider, speedProvider, onNext, onComplete)
             else onComplete()
             return
         }
@@ -827,17 +838,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     mp.isLooping = false
                     mp.start()
                 }
-                setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete) }
+                setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete) }
                 setOnErrorListener { _, what, extra ->
                     Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
+                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete)
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCount, speed, onNext, onComplete)
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete)
         }
     }
 
@@ -1570,7 +1581,7 @@ fun CategoryManageDialog(
                     Button(
                         onClick = onMoveLeft,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                        enabled = allCategories.indexOf(categoryName) > 1
+                        enabled = allCategories.indexOf(categoryName) > 0
                     ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left") }
 
                     Button(
@@ -1729,7 +1740,10 @@ fun AudioLoopApp(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean) -> Unit
+    onTrimFile: (File, Long, Long, Boolean) -> Unit,
+    // Hoisted State
+    selectedSpeed: Float,
+    selectedLoopCount: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1742,8 +1756,9 @@ fun AudioLoopApp(
     var recordingName by remember { mutableStateOf("") }
     var isRawMode by remember { mutableStateOf(false) }
 
-    var selectedLoopCount by remember { mutableIntStateOf(-1) }
-    var selectedSpeed by remember { mutableFloatStateOf(1.0f) }
+    // State hoisted to MainActivity
+    // var selectedLoopCount by remember { mutableIntStateOf(-1) }
+    // var selectedSpeed by remember { mutableFloatStateOf(1.0f) }
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
@@ -2034,19 +2049,19 @@ fun AudioLoopApp(
         Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            LoopOptionButton("1x", selectedLoopCount == 1) { selectedLoopCount = 1; onLoopCountChange(1) }
-            LoopOptionButton("5x", selectedLoopCount == 5) { selectedLoopCount = 5; onLoopCountChange(5) }
-            LoopOptionButton("\u221E", selectedLoopCount == -1) { selectedLoopCount = -1; onLoopCountChange(-1) }
+            LoopOptionButton("1x", selectedLoopCount == 1) { onLoopCountChange(1) }
+            LoopOptionButton("5x", selectedLoopCount == 5) { onLoopCountChange(5) }
+            LoopOptionButton("\u221E", selectedLoopCount == -1) { onLoopCountChange(-1) }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { selectedSpeed = 0.5f; onSpeedChange(0.5f) }
-            SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { selectedSpeed = 1.0f; onSpeedChange(1.0f) }
-            SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { selectedSpeed = 1.5f; onSpeedChange(1.5f) }
-            SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { selectedSpeed = 2.0f; onSpeedChange(2.0f) }
+            SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { onSpeedChange(0.5f) }
+            SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { onSpeedChange(1.0f) }
+            SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { onSpeedChange(1.5f) }
+            SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { onSpeedChange(2.0f) }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
