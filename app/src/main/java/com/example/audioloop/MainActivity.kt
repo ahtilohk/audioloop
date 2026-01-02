@@ -1160,7 +1160,14 @@ fun TrimAudioDialog(
             Column {
                 // Info text (Live Progress)
                 if (!isPreviewing) {
-                     Spacer(modifier = Modifier.height(24.dp)) 
+                     Text(
+                        text = "Tap waveform to seek", 
+                        fontSize = 12.sp, 
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                     )
+                } else {
+                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
                 // Waveform Visualization
@@ -1278,24 +1285,29 @@ fun TrimAudioDialog(
                                 )
                             }
                             
-                            // Playback Progress Line
-                            if (isPreviewing) {
-                                val progressX = (currentPos.toFloat() / durationMs) * size.width
-                                drawLine(
-                                    color = Color.Red,
-                                    start = Offset(progressX, 0f),
-                                    end = Offset(progressX, size.height),
-                                    strokeWidth = 2.dp.toPx()
-                                )
-                            }
+                            // Playback Progress Line / Cursor (ALWAYS VISIBLE)
+                            val progressX = (currentPos.toFloat() / durationMs) * size.width
+                            val cursorColor = if (isPreviewing) Color.Red else Color.Red.copy(alpha = 0.8f) 
+                            
+                            drawLine(
+                                color = cursorColor,
+                                start = Offset(progressX, 0f),
+                                end = Offset(progressX, size.height),
+                                strokeWidth = 2.dp.toPx()
+                            )
+                            
+                            // Handle top circle for visibility
+                            drawCircle(
+                                color = cursorColor,
+                                radius = 4.dp.toPx(),
+                                center = Offset(progressX, 0f)
+                            )
                         }
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // --- SLIDER CONTROLS ---
-                // Custom implementation for large touch targets
                 // --- SLIDER CONTROLS ---
                 // Custom implementation for large touch targets
                 var sliderWidth by remember { mutableFloatStateOf(1f) }
