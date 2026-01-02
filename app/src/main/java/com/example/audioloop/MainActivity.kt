@@ -52,6 +52,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import com.linc.audiowaveform.AudioWaveform
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -1835,6 +1836,22 @@ fun AudioLoopApp(
     // var selectedLoopCount by remember { mutableIntStateOf(-1) }
     // var selectedSpeed by remember { mutableFloatStateOf(1.0f) }
 
+    // Waveform state
+    var playingWaveform by remember { mutableStateOf<List<Int>>(emptyList()) }
+    LaunchedEffect(playingFileName) {
+        if (playingFileName.isNotEmpty()) {
+            val file = recordingItems.find { it.name == playingFileName }?.file
+            if (file != null && file.exists()) {
+                 kotlinx.coroutines.withContext(Dispatchers.IO) {
+                     val waveform = WaveformGenerator.extractWaveform(file, numBars = 100)
+                     playingWaveform = waveform 
+                 }
+            }
+        } else {
+            playingWaveform = emptyList()
+        }
+    }
+
     var showRenameDialog by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var showMoveFileDialog by remember { mutableStateOf(false) }
@@ -2338,12 +2355,26 @@ fun AudioLoopApp(
 
                     if (isThisPlaying) {
                         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                            Slider(
-                                value = currentProgress,
-                                onValueChange = { onSeekTo(it) },
-                                modifier = Modifier.height(20.dp),
-                                colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary, activeTrackColor = MaterialTheme.colorScheme.primary)
-                            )
+                            if (playingWaveform.isNotEmpty()) {
+                                AudioWaveform(
+                                    amplitudes = playingWaveform,
+                                    progress = currentProgress,
+                                    onProgressChange = { onSeekTo(it) },
+                                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                                    waveformBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                                    progressBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
+                                    spikeWidth = 4.dp, 
+                                    spikePadding = 2.dp,
+                                    spikeRadius = 4.dp
+                                )
+                            } else {
+                                Slider(
+                                    value = currentProgress,
+                                    onValueChange = { onSeekTo(it) },
+                                    modifier = Modifier.height(20.dp),
+                                    colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary, activeTrackColor = MaterialTheme.colorScheme.primary)
+                                )
+                            }
                             Text(
                                 text = "$currentTimeString / ${item.durationString}",
                                 fontSize = 12.sp,
