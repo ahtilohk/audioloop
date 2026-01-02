@@ -1581,7 +1581,7 @@ fun CategoryManageDialog(
                     Button(
                         onClick = onMoveLeft,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                        enabled = allCategories.indexOf(categoryName) > 0
+                        enabled = allCategories.indexOf(categoryName) > 1
                     ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left") }
 
                     Button(
@@ -1926,8 +1926,8 @@ fun AudioLoopApp(
                 if (isSelectionMode) { isSelectionMode = false; selectedFiles.clear(); if (playingFileName.isNotEmpty()) { onStopPlay(); onPlayingFileNameChange("") } }
                 else { isSelectionMode = true }
             }) {
-                if (isSelectionMode) Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
-                else Text("SELECT PLAYLIST", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                if (isSelectionMode) Text("CANCEL", fontSize = 14.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                else Text("SELECT PLAYLIST", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -2059,6 +2059,7 @@ fun AudioLoopApp(
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { onSpeedChange(0.5f) }
+            SpeedOptionButton("0.75x", selectedSpeed == 0.75f) { onSpeedChange(0.75f) }
             SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { onSpeedChange(1.0f) }
             SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { onSpeedChange(1.5f) }
             SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { onSpeedChange(2.0f) }
