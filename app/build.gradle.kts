@@ -37,6 +37,9 @@ android {
     buildFeatures {
         compose = true
     }
+    dexOptions {
+        javaMaxHeapSize = "4g"
+    }
 }
 dependencies {
     implementation(libs.androidx.core.ktx)
