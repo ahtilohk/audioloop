@@ -1321,11 +1321,11 @@ fun TrimAudioDialog(
                                 strokeWidth = 2.dp.toPx()
                             )
                             
-                            // Handle top circle for visibility
+                            // Handle centered circle for better touch target
                             drawCircle(
                                 color = cursorColor,
-                                radius = 4.dp.toPx(),
-                                center = Offset(progressX, 0f)
+                                radius = 6.dp.toPx(),
+                                center = Offset(progressX, size.height / 2)
                             )
                         }
                     }
