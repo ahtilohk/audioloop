@@ -34,6 +34,8 @@ jobs:
             gradle-cache-${{ runner.os }}-
 
       - name: Build (clean + assembleDebug)
+        env:
+          GRADLE_OPTS: -Xmx4096m -XX:MaxMetaspaceSize=1024m
         run: ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK artifact
