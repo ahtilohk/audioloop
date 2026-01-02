@@ -1189,25 +1189,29 @@ fun TrimAudioDialog(
                     }
                 }
 
+                // Pointer Input with keys to ensure re-initialization on data change
+                val density = LocalDensity.current
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
                     .background(Color.Black.copy(alpha = 0.05f))
-                    .pointerInput(Unit) {
+                    .pointerInput(durationMs) {
                         awaitEachGesture {
-                            val down = awaitFirstDown()
+                            val down = awaitFirstDown(requireUnconsumed = false)
                             // Action on First Touch (TAP / START DRAG)
                             isSeeking = true
                             var x = down.position.x.coerceIn(0f, size.width.toFloat())
                             var width = size.width.toFloat()
-                            if (width > 0) {
+                            if (width > 1f) {
                                 val time = (x / width) * durationMs
                                 currentPos = time.toLong()
                                 
-                                // Seek player if running
+                                // Seek player logic
                                 previewPlayer?.let { mp ->
                                     try {
-                                        if (mp.isPlaying || isPreviewing) {
+                                        // Only seek if we have a valid player state
+                                        // Note: mp.isPlaying might throw if released
+                                        if (isPreviewing) {
                                             mp.seekTo(currentPos.toInt())
                                         }
                                     } catch(e: Exception) {}
@@ -1225,21 +1229,23 @@ fun TrimAudioDialog(
                                     break
                                 }
                                 
-                                if (change.positionChanged()) {
-                                    x = change.position.x.coerceIn(0f, size.width.toFloat())
-                                    width = size.width.toFloat()
-                                    if (width > 0) {
-                                        val time = (x / width) * durationMs
-                                        currentPos = time.toLong()
-                                        
-                                        // Live seek
-                                        previewPlayer?.let { mp ->
-                                            try {
-                                                if (mp.isPlaying || isPreviewing) {
-                                                    mp.seekTo(currentPos.toInt())
-                                                }
-                                            } catch(e: Exception) {}
-                                        }
+                                // Reset isSeeking to true just in case
+                                isSeeking = true
+                                
+                                val newX = change.position.x.coerceIn(0f, size.width.toFloat())
+                                width = size.width.toFloat()
+                                if (width > 1f && (change.positionChanged() || newX != x)) {
+                                    x = newX
+                                    val time = (x / width) * durationMs
+                                    currentPos = time.toLong()
+                                    
+                                    // Live seek
+                                    previewPlayer?.let { mp ->
+                                        try {
+                                            if (isPreviewing) {
+                                                mp.seekTo(currentPos.toInt())
+                                            }
+                                        } catch(e: Exception) {}
                                     }
                                     change.consume()
                                 }
