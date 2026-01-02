@@ -2121,24 +2121,31 @@ fun AudioLoopApp(
             Spacer(modifier = Modifier.height(15.dp))
         }
 
-        Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            LoopOptionButton("1x", selectedLoopCount == 1) { onLoopCountChange(1) }
-            LoopOptionButton("5x", selectedLoopCount == 5) { onLoopCountChange(5) }
-            LoopOptionButton("\u221E", selectedLoopCount == -1) { onLoopCountChange(-1) }
-        }
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            
+             Text("Playback Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+             Spacer(modifier = Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { onSpeedChange(0.5f) }
-            SpeedOptionButton("0.75x", selectedSpeed == 0.75f) { onSpeedChange(0.75f) }
-            SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { onSpeedChange(1.0f) }
-            SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { onSpeedChange(1.5f) }
-            SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { onSpeedChange(2.0f) }
-        }
+            Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                LoopOptionButton("1x", selectedLoopCount == 1) { onLoopCountChange(1) }
+                LoopOptionButton("5x", selectedLoopCount == 5) { onLoopCountChange(5) }
+                LoopOptionButton("\u221E", selectedLoopCount == -1) { onLoopCountChange(-1) }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { onSpeedChange(0.5f) }
+                SpeedOptionButton("0.75x", selectedSpeed == 0.75f) { onSpeedChange(0.75f) }
+                SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { onSpeedChange(1.0f) }
+                SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { onSpeedChange(1.5f) }
+                SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { onSpeedChange(2.0f) }
+            }
 
         Spacer(modifier = Modifier.height(10.dp))
         HorizontalDivider()
@@ -2182,14 +2189,14 @@ fun AudioLoopApp(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "It's quiet here...",
+                            text = stringResource(R.string.label_empty_title),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Start recording a new clip!",
+                            text = stringResource(R.string.label_empty_subtitle),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -2273,18 +2280,7 @@ fun AudioLoopApp(
                                 )
                                 if (!isSelectionMode && !isThisPlaying) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        // 1. Download (Keep Quick Access)
-                                        Icon(
-                                            Icons.Default.ArrowDownward, 
-                                            contentDescription = "Download",
-                                            tint = MaterialTheme.colorScheme.primary, 
-                                            modifier = Modifier
-                                                .clickable { saveToDownloads(context, item.file) }
-                                                .padding(8.dp)
-                                                .size(24.dp)
-                                        )
-
-                                        // 2. More Options Menu
+                                        // More Options Menu
                                         var showMenu by remember { mutableStateOf(false) }
                                         Box {
                                             Icon(
@@ -2319,6 +2315,12 @@ fun AudioLoopApp(
                                                     text = { Text(stringResource(R.string.menu_share)) },
                                                     leadingIcon = { Icon(Icons.Default.Share, null) },
                                                     onClick = { showMenu = false; onShareFile(item) }
+                                                )
+                                                // Download moved here
+                                                DropdownMenuItem(
+                                                    text = { Text(stringResource(R.string.menu_download)) },
+                                                    leadingIcon = { Icon(Icons.Default.ArrowDownward, null) },
+                                                    onClick = { showMenu = false; saveToDownloads(context, item.file) }
                                                 )
                                                 HorizontalDivider()
                                                 DropdownMenuItem(

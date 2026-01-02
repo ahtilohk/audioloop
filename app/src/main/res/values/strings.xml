@@ -8,8 +8,8 @@
     <string name="btn_add_file">Import File</string>
     <string name="btn_record_new">RECORD NEW</string>
     <string name="label_recording">Recording...</string>
-    <string name="label_empty_title">It\'s quiet here...</string>
-    <string name="label_empty_subtitle">Start recording your first clip!</string>
+    <string name="label_empty_title">No recordings yet</string>
+    <string name="label_empty_subtitle">Tap \'RECORD NEW\' to start!</string>
     <string name="menu_rename">Rename</string>
     <string name="menu_trim">Trim / Cut</string>
     <string name="menu_move">Move to Category</string>
