@@ -219,6 +219,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
                 var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
                 var loopMode by remember { mutableIntStateOf(-1) }
+                var isShadowingMode by remember { mutableStateOf(false) }
 
                 val context = LocalContext.current
                 // Force English always as per user request
@@ -394,7 +395,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onStopRecord = { stopRecording() },
                         onStartPlaylist = { files, loop, speed, onComplete ->
                            // Use providers to access fresh state
-                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { playingFileName = it }, onComplete)
+                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it }, onComplete)
                         },
                         onPlaylistUpdate = { },
                         onSpeedChange = { speed -> playbackSpeed = speed; setPlaybackSpeed(speed) },
@@ -429,7 +430,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         selectedSpeed = playbackSpeed,
-                        selectedLoopCount = loopMode
+                        selectedLoopCount = loopMode,
+                        isShadowing = isShadowingMode,
+                        onShadowingChange = { isShadowingMode = it }
                     )
                 }
         }
@@ -805,6 +808,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         currentIndex: Int,
         loopCountProvider: () -> Int,
         speedProvider: () -> Float,
+        shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
         onComplete: () -> Unit
     ) {
@@ -813,10 +817,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         // Dynamically fetch current settings
         val loopCount = loopCountProvider()
         val speed = speedProvider()
+        val isShadowing = shadowingProvider()
 
         if (currentIndex >= allFiles.size) {
             // Loop check
-            if (loopCount == -1) playPlaylist(allFiles, 0, loopCountProvider, speedProvider, onNext, onComplete)
+            if (loopCount == -1) playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
             else onComplete()
             return
         }
@@ -844,22 +849,52 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     mp.isLooping = false
                     mp.start()
                 }
-                setOnCompletionListener { playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete) }
+                setOnCompletionListener { 
+                    if (isShadowing) {
+                       // Shadowing Logic: Pause -> Repeat Same
+                       val duration = it.duration.toLong()
+                       val pauseDuration = if (duration < 15000L) duration else 5000L
+                       
+                       // Launch coroutine for delay
+                       shadowingJob = launch(Dispatchers.Main) {
+                           onNext("Pausing for repeat...") // Visual cue? Or keep filename? Let's keep filename but maybe logs.
+                           delay(pauseDuration)
+                           if (isActive) {
+                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+                           }
+                       }
+                    } else {
+                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+                    }
+                }
                 setOnErrorListener { _, what, extra ->
                     Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete)
+                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, onNext, onComplete)
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
         }
     }
 
-    fun stopPlaying() { mediaPlayer?.release(); mediaPlayer = null }
-    fun pausePlaying() { mediaPlayer?.pause() }
+    private var shadowingJob: kotlinx.coroutines.Job? = null
+
+    private fun stopPlaying() {
+        shadowingJob?.cancel()
+        shadowingJob = null
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    private fun pausePlaying() {
+        shadowingJob?.cancel() // Cancel wait if pending
+        shadowingJob = null
+        mediaPlayer?.pause()
+    }
     fun resumePlaying() { mediaPlayer?.start() }
     fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
     fun setPlaybackSpeed(speed: Float) {
@@ -1819,7 +1854,9 @@ fun AudioLoopApp(
     onTrimFile: (File, Long, Long, Boolean) -> Unit,
     // Hoisted State
     selectedSpeed: Float,
-    selectedLoopCount: Int
+    selectedLoopCount: Int,
+    isShadowing: Boolean,
+    onShadowingChange: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -2151,6 +2188,22 @@ fun AudioLoopApp(
                 LoopOptionButton("1x", selectedLoopCount == 1) { onLoopCountChange(1) }
                 LoopOptionButton("5x", selectedLoopCount == 5) { onLoopCountChange(5) }
                 LoopOptionButton("\u221E", selectedLoopCount == -1) { onLoopCountChange(-1) }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Shadowing Mode", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Smart pause & auto-repeat", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                }
+                Switch(
+                    checked = isShadowing,
+                    onCheckedChange = onShadowingChange,
+                    thumbContent = { if (isShadowing) Icon(Icons.Default.Check, null, modifier = Modifier.size(12.dp)) }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
