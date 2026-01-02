@@ -47,6 +47,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -1190,35 +1193,17 @@ fun TrimAudioDialog(
                     .height(100.dp)
                     .background(Color.Black.copy(alpha = 0.05f))
                     .pointerInput(Unit) {
-                        detectTapGestures { offset ->
-                            val x = offset.x
-                            val width = size.width
-                            val time = (x / width) * durationMs
-                            currentPos = time.toLong()
-                            
-                            // Seek player if running
-                            previewPlayer?.let { mp ->
-                                try {
-                                    if (mp.isPlaying || isPreviewing) {
-                                        mp.seekTo(currentPos.toInt())
-                                    }
-                                } catch(e: Exception) {}
-                            }
-                        }
-                    }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = { isSeeking = true },
-                            onDragEnd = { isSeeking = false },
-                            onDragCancel = { isSeeking = false },
-                            onDrag = { change, _ ->
-                                change.consume()
-                                val x = change.position.x.coerceIn(0f, size.width.toFloat())
-                                val width = size.width
+                        awaitEachGesture {
+                            val down = awaitFirstDown()
+                            // Action on First Touch (TAP / START DRAG)
+                            isSeeking = true
+                            var x = down.position.x.coerceIn(0f, size.width.toFloat())
+                            var width = size.width.toFloat()
+                            if (width > 0) {
                                 val time = (x / width) * durationMs
                                 currentPos = time.toLong()
                                 
-                                // Live seek (might allow slight stutter, but responsive)
+                                // Seek player if running
                                 previewPlayer?.let { mp ->
                                     try {
                                         if (mp.isPlaying || isPreviewing) {
@@ -1227,9 +1212,41 @@ fun TrimAudioDialog(
                                     } catch(e: Exception) {}
                                 }
                             }
-                        )
+                            down.consume()
+
+                            // Drag Loop
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id }
+                                
+                                if (change == null || !change.pressed) {
+                                    isSeeking = false
+                                    break
+                                }
+                                
+                                if (change.positionChanged()) {
+                                    x = change.position.x.coerceIn(0f, size.width.toFloat())
+                                    width = size.width.toFloat()
+                                    if (width > 0) {
+                                        val time = (x / width) * durationMs
+                                        currentPos = time.toLong()
+                                        
+                                        // Live seek
+                                        previewPlayer?.let { mp ->
+                                            try {
+                                                if (mp.isPlaying || isPreviewing) {
+                                                    mp.seekTo(currentPos.toInt())
+                                                }
+                                            } catch(e: Exception) {}
+                                        }
+                                    }
+                                    change.consume()
+                                }
+                            }
+                        }
                     }
                 ) {
+
                     if (points.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Loading waveform...", fontSize = 12.sp, color = Color.Gray)
