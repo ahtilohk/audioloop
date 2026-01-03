@@ -2389,7 +2389,7 @@ fun AudioLoopApp(
                                                 // Download moved here
                                                 DropdownMenuItem(
                                                     text = { Text(stringResource(R.string.menu_download)) },
-                                                    leadingIcon = { Icon(Icons.Default.ArrowDownward, null) },
+                                                    leadingIcon = { Icon(AppIcons.ArrowDownward, null) },
                                                     onClick = { showMenu = false; saveToDownloads(context, item.file) }
                                                 )
                                                 HorizontalDivider()
