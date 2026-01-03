@@ -67,8 +67,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -1172,7 +1171,7 @@ fun TrimAudioDialog(
             ) {
                 IconButton(onClick = { togglePreview() }) {
                     Icon(
-                        if (isPreviewing) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        if (isPreviewing) AppIcons.Stop else Icons.Default.PlayArrow,
                         contentDescription = "Eelkuulamine",
                         tint = if (isPreviewing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
@@ -1694,13 +1693,13 @@ fun CategoryManageDialog(
                         onClick = onMoveLeft,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) > 1
-                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left") }
+                    ) { Icon(AppIcons.ArrowBack, contentDescription = "Left") }
 
                     Button(
                         onClick = onMoveRight,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         enabled = allCategories.indexOf(categoryName) < allCategories.size - 1
-                    ) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Right") }
+                    ) { Icon(AppIcons.ArrowForward, contentDescription = "Right") }
                 }
 
                 if (categoryName != "General") {
@@ -2253,7 +2252,7 @@ fun AudioLoopApp(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.GraphicEq,
+                            imageVector = AppIcons.GraphicEq,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.size(120.dp)
@@ -2374,12 +2373,12 @@ fun AudioLoopApp(
                                                 )
                                                 DropdownMenuItem(
                                                     text = { Text(stringResource(R.string.menu_trim)) },
-                                                    leadingIcon = { Icon(Icons.Default.ContentCut, null) },
+                                                    leadingIcon = { Icon(AppIcons.ContentCut, null) },
                                                     onClick = { showMenu = false; recordingToTrim = item }
                                                 )
                                                 DropdownMenuItem(
                                                     text = { Text(stringResource(R.string.menu_move)) },
-                                                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
+                                                    leadingIcon = { Icon(AppIcons.ArrowForward, null) },
                                                     onClick = { showMenu = false; itemToModify = item; showMoveFileDialog = true }
                                                 )
                                                 DropdownMenuItem(
