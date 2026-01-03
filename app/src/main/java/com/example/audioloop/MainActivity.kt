@@ -67,6 +67,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowDropDown
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -2182,18 +2183,81 @@ fun AudioLoopApp(
              Text("Playback Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
              Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                LoopOptionButton("1x", selectedLoopCount == 1) { onLoopCountChange(1) }
-                LoopOptionButton("5x", selectedLoopCount == 5) { onLoopCountChange(5) }
-                LoopOptionButton("\u221E", selectedLoopCount == -1) { onLoopCountChange(-1) }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
+            
+            // Compact Settings Row: Repeats & Speed
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Repeats Dropdown
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Repeats:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box {
+                        var expanded by remember { mutableStateOf(false) }
+                        val label = when (selectedLoopCount) {
+                            -1 -> "\u221E"
+                            1 -> "1x"
+                            else -> "${selectedLoopCount}x"
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(label)
+                            Icon(Icons.Default.ArrowDropDown, null)
+                        }
+                        
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            listOf(1, 5, -1).forEach { count ->
+                                val text = if (count == -1) "\u221E" else "${count}x"
+                                DropdownMenuItem(
+                                    text = { Text(text) },
+                                    onClick = { onLoopCountChange(count); expanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Speed Dropdown
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box {
+                        var expanded by remember { mutableStateOf(false) }
+                        
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text("${selectedSpeed}x")
+                            Icon(Icons.Default.ArrowDropDown, null)
+                        }
+                        
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            listOf(0.5f, 0.75f, 1.0f, 1.5f, 2.0f).forEach { speed ->
+                                DropdownMenuItem(
+                                    text = { Text("${speed}x") },
+                                    onClick = { onSpeedChange(speed); expanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Shadowing Mode Row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Shadowing Mode", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -2205,18 +2269,6 @@ fun AudioLoopApp(
                     thumbContent = { if (isShadowing) Icon(Icons.Default.Check, null, modifier = Modifier.size(12.dp)) }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Speed:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SpeedOptionButton("0.5x", selectedSpeed == 0.5f) { onSpeedChange(0.5f) }
-                SpeedOptionButton("0.75x", selectedSpeed == 0.75f) { onSpeedChange(0.75f) }
-                SpeedOptionButton("1.0x", selectedSpeed == 1.0f) { onSpeedChange(1.0f) }
-                SpeedOptionButton("1.5x", selectedSpeed == 1.5f) { onSpeedChange(1.5f) }
-                SpeedOptionButton("2.0x", selectedSpeed == 2.0f) { onSpeedChange(2.0f) }
-            }
-
         Spacer(modifier = Modifier.height(10.dp))
         HorizontalDivider()
 
@@ -2443,37 +2495,4 @@ fun AudioLoopApp(
     }
 
 }
-@Composable
-fun LoopOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
-    val border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
 
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = contentColor),
-        border = border,
-        shape = RoundedCornerShape(50),
-        modifier = Modifier.height(35.dp)
-    ) {
-        Text(text, fontSize = 12.sp)
-    }
-}
-
-@Composable
-fun SpeedOptionButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.secondary
-    val border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
-
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = contentColor),
-        border = border,
-        shape = RoundedCornerShape(20),
-        contentPadding = PaddingValues(horizontal = 8.dp),
-        modifier = Modifier.height(30.dp)
-    ) {
-        Text(text, fontSize = 11.sp)
-    }
-}
