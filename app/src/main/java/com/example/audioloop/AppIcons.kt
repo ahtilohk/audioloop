@@ -170,6 +170,8 @@ object AppIcons {
             }
             return _arrowDownward!!
         }
+    private var _arrowDownward: ImageVector? = null
+
     // Replacement for Icons.Default.Mic
     val Mic: ImageVector
         get() {
