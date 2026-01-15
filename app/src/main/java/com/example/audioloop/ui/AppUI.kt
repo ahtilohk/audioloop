@@ -799,8 +799,8 @@ fun AudioLoopMainScreen(
                                     onStopRecord()
                                     // isDragging = false, //
                                 } else {
-                                    // Generate name: 001_Record_yyyyMMdd_HHmm
-                                    val dateFormat = java.text.SimpleDateFormat("yyyyMMdd_HHmm", java.util.Locale.getDefault())
+                                    // Generate name: 001_Record_yyyy.MM.dd HH:mm
+                                    val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
                                     val dateStr = dateFormat.format(java.util.Date())
                                     
                                     // Find max index
