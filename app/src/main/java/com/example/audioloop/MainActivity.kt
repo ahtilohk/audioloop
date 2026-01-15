@@ -197,8 +197,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
         else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-        if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+
     }
 
     // State Variables
