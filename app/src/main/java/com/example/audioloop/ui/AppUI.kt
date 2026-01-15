@@ -56,6 +56,8 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.mutableFloatStateOf
 
 @Composable
 fun FileItem(
@@ -72,6 +74,10 @@ fun FileItem(
     onMove: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
+    currentProgress: Float = 0f,
+    currentTimeString: String = "00:00",
+    onSeek: (Float) -> Unit = {},
+    onReorder: (Int) -> Unit = {},
     isDragging: Boolean = false
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -114,6 +120,32 @@ fun FileItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+        ) {
+            var accumulatedDrag by remember { mutableFloatStateOf(0f) }
+            Icon(
+                imageVector = AppIcons.GripVertical,
+                contentDescription = "Drag to reorder",
+                tint = Zinc600,
+                modifier = Modifier
+                    .size(20.dp)
+                    .pointerInput(Unit) {
+                         detectDragGestures(
+                             onDragEnd = { accumulatedDrag = 0f },
+                             onDragCancel = { accumulatedDrag = 0f }
+                         ) { change, dragAmount ->
+                             change.consume()
+                             accumulatedDrag += dragAmount.y
+                             if (accumulatedDrag > 150f) {
+                                 onReorder(1)
+                                 accumulatedDrag = 0f
+                             } else if (accumulatedDrag < -150f) {
+                                 onReorder(-1)
+                                 accumulatedDrag = 0f
+                             }
+                         }
+                    }
+            )
+
             if (isSelectionMode) {
                 Box(
                     modifier = Modifier
@@ -142,13 +174,13 @@ fun FileItem(
             } else if (isPlaying) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(Brush.linearGradient(listOf(Red500, Red600)))
                         .clickable { onStop() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.size(12.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                    Box(modifier = Modifier.size(16.dp).background(Color.White, RoundedCornerShape(4.dp)))
                 }
             } else {
                 Box(
@@ -268,22 +300,50 @@ fun FileItem(
                         .padding(8.dp)
                     // Waveform placeholder logic retained...
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(32.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        repeat(30) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 0.5.dp)
-                                    .fillMaxHeight(0.3f + (Math.random() * 0.7f).toFloat())
-                                    .background(Cyan400, CircleShape)
-                            )
-                        }
+                    Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                         // Waveform visual
+                         Row(
+                             modifier = Modifier
+                                 .fillMaxWidth()
+                                 .height(24.dp),
+                             horizontalArrangement = Arrangement.SpaceBetween,
+                             verticalAlignment = Alignment.Bottom
+                         ) {
+                             repeat(30) {
+                                 Box(
+                                     modifier = Modifier
+                                         .weight(1f)
+                                         .padding(horizontal = 0.5.dp)
+                                         .fillMaxHeight(0.3f + (Math.random() * 0.7f).toFloat())
+                                         .background(Cyan400, CircleShape)
+                                 )
+                             }
+                         }
+                         
+                         Spacer(modifier = Modifier.height(4.dp))
+                         
+                         // Slider & Time
+                         Row(
+                             modifier = Modifier.fillMaxWidth(),
+                             verticalAlignment = Alignment.CenterVertically,
+                             horizontalArrangement = Arrangement.spacedBy(8.dp)
+                         ) {
+                             Text(
+                                 text = "$currentTimeString / ${item.durationString}",
+                                 style = TextStyle(color = Cyan300, fontSize = 10.sp, fontWeight = FontWeight.Medium),
+                                 modifier = Modifier.width(80.dp)
+                             )
+                             Slider(
+                                 value = currentProgress,
+                                 onValueChange = onSeek,
+                                 colors = SliderDefaults.colors(
+                                     thumbColor = Cyan200,
+                                     activeTrackColor = Cyan500,
+                                     inactiveTrackColor = Zinc700.copy(alpha = 0.5f)
+                                 ),
+                                 modifier = Modifier.weight(1f).height(20.dp)
+                             )
+                         }
                     }
                 }
             }
@@ -596,7 +656,9 @@ fun AudioLoopMainScreen(
             .background(Zinc950)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
             // Header
             Row(
@@ -735,7 +797,7 @@ fun AudioLoopMainScreen(
                             .clickable {
                                 if (isRecording) {
                                     onStopRecord()
-                                    isRecording = false
+                                    // isDragging = false, // Drag logic pending - this line was malformed and removed
                                 } else {
                                     val name = "Record_${System.currentTimeMillis()}"
                                     val started = onStartRecord(name, mode == "Stream")
@@ -989,7 +1051,11 @@ fun AudioLoopMainScreen(
                             onTrim = { recordingToTrim = item; showTrimDialog = true },
                             onMove = { itemToModify = item; showMoveDialog = true },
                             onShare = { onShareFile(item) },
-                            onDelete = { recordingToDelete = item; showDeleteDialog = true }
+                            onDelete = { recordingToDelete = item; showDeleteDialog = true },
+                            currentProgress = if (isPlaying) currentProgress else 0f,
+                            currentTimeString = if (isPlaying) currentTimeString else "00:00",
+                            onSeek = onSeekTo,
+                            onReorder = { dir -> onReorderFile(item.file, dir) }
                         )
                    }
                    item { Spacer(modifier = Modifier.height(80.dp)) }

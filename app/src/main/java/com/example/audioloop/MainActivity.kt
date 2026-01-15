@@ -397,7 +397,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onStopRecord = { stopRecording() },
                         onStartPlaylist = { files, loop, speed, onComplete ->
                            // Use providers to access fresh state
-                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it }, onComplete)
+                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it }) {
+                                playingFileName = ""
+                                onComplete()
+                            }
                         },
                         onPlaylistUpdate = { },
                         onSpeedChange = { speed -> playbackSpeed = speed; setPlaybackSpeed(speed) },
@@ -405,7 +408,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onSeekTo = { pos -> seekTo(pos) },
                         onPausePlay = { pausePlaying() },
                         onResumePlay = { resumePlaying() },
-                        onStopPlay = { stopPlaying() },
+                        onStopPlay = { 
+                            stopPlaying()
+                            playingFileName = "" 
+                        },
                         onDeleteFile = { item ->
                             if (item.file.delete()) savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
