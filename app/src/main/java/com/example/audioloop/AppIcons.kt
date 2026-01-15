@@ -338,7 +338,7 @@ object AppIcons {
         get() {
             if (_radio != null) return _radio!!
             _radio = materialIcon(name = "Radio") {
-                materialPath {
+                materialPath(fillAlpha = 0.5f, strokeAlpha = 0.5f) {
                     moveTo(3.24f, 6.15f)
                     curveTo(2.51f, 6.43f, 2.0f, 7.17f, 2.0f, 8.0f)
                     verticalLineToRelative(12.0f)
@@ -360,8 +360,6 @@ object AppIcons {
                     close()
                     moveTo(18.0f, 10.0f)
                     curveToRelative(-1.1f, 0.0f, -2.0f, -0.9f, -2.0f, -2.0f)
-                    fillAlpha = 0.5f // Optional effect
-                    strokeAlpha = 0.5f
                     // Note: Simplified radio mostly
                 }
             }
