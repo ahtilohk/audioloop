@@ -345,7 +345,7 @@ fun CategoryManagementSheet(
             ) {
                 Text(
                     text = "Categories",
-                    style = TextStyle(colors = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 )
                 IconButton(
                     onClick = onClose,
@@ -1130,8 +1130,8 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Zinc900,
-        titleColor = Color.White,
-        textColor = Zinc300,
+        titleContentColor = Color.White,
+        textContentColor = Zinc300,
         title = { Text(title) },
         text = { Text(text) },
         confirmButton = { 
