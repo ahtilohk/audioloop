@@ -197,7 +197,18 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
         else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+        if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
     }
+
+    // State Variables
+    private var playingFileName by mutableStateOf("")
+    private var isPaused by mutableStateOf(false)
+    private var currentProgress by mutableFloatStateOf(0f)
+    private var currentTimeString by mutableStateOf("00:00")
+    private var playbackSpeed by mutableFloatStateOf(1.0f)
+    private var loopMode by mutableIntStateOf(0) // 0=off, 1=one, -1=inf
+    private var isShadowingMode by mutableStateOf(false)
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -215,14 +226,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 val coroutineScope = rememberCoroutineScope()
                 var uiCategory by remember { mutableStateOf("General") }
                 var categories by remember { mutableStateOf(listOf("General")) }
-                var playingFileName by remember { mutableStateOf("") }
-                var isPaused by remember { mutableStateOf(false) }
-                var currentProgress by remember { mutableFloatStateOf(0f) }
-                var currentTimeString by remember { mutableStateOf("00:00") }
+                
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
-                var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
-                var loopMode by remember { mutableIntStateOf(-1) }
-                var isShadowingMode by remember { mutableStateOf(false) }
 
                 val context = LocalContext.current
                 // Force English always as per user request
