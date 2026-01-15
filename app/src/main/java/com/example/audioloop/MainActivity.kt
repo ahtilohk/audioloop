@@ -216,6 +216,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 var uiCategory by remember { mutableStateOf("General") }
                 var categories by remember { mutableStateOf(listOf("General")) }
                 var playingFileName by remember { mutableStateOf("") }
+                var isPaused by remember { mutableStateOf(false) }
                 var currentProgress by remember { mutableFloatStateOf(0f) }
                 var currentTimeString by remember { mutableStateOf("00:00") }
                 var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
@@ -317,6 +318,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         currentProgress = currentProgress,
                         currentTimeString = currentTimeString,
                         playingFileName = playingFileName,
+                        isPaused = isPaused,
                         onPlayingFileNameChange = { playingFileName = it },
                         onCategoryChange = { newCat -> uiCategory = newCat },
                         onAddCategory = { catName ->
@@ -397,8 +399,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onStopRecord = { stopRecording() },
                         onStartPlaylist = { files, loop, speed, onComplete ->
                            // Use providers to access fresh state
-                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it }) {
+                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it; isPaused = false }) {
                                 playingFileName = ""
+                                isPaused = false
                                 onComplete()
                             }
                         },
@@ -444,8 +447,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     )
                 }
         }
-    }
-
     }
 
 
@@ -876,6 +877,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     }
                     mp.isLooping = false
                     mp.start()
+                    // Set isPaused to false when playback starts
+                    isPaused = false
                 }
                 setOnCompletionListener { 
                     if (isShadowing) {
@@ -916,14 +919,26 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        // Update isPaused state
+        isPaused = false
     }
 
     private fun pausePlaying() {
         shadowingJob?.cancel() // Cancel wait if pending
         shadowingJob = null
-        mediaPlayer?.pause()
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.pause()
+            // Update isPaused state
+            isPaused = true
+        }
     }
-    fun resumePlaying() { mediaPlayer?.start() }
+    fun resumePlaying() { 
+        if (mediaPlayer != null && !mediaPlayer!!.isPlaying) {
+            mediaPlayer?.start() 
+            // Update isPaused state
+            isPaused = false
+        }
+    }
     fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
     fun setPlaybackSpeed(speed: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -931,3 +946,4 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 }
+```

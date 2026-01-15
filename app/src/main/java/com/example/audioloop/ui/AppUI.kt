@@ -63,10 +63,13 @@ import androidx.compose.runtime.mutableFloatStateOf
 fun FileItem(
     item: RecordingItem,
     isPlaying: Boolean,
+    isPaused: Boolean,
     isSelectionMode: Boolean,
     isSelected: Boolean,
     selectionOrder: Int,
     onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onStop: () -> Unit,
     onToggleSelect: () -> Unit,
     onRename: () -> Unit,
@@ -172,15 +175,46 @@ fun FileItem(
                     }
                 }
             } else if (isPlaying) {
+                // If Playing -> Show Pause Button, If Paused -> Show Play Button
+                if (!isPaused) {
+                   Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Brush.linearGradient(listOf(Cyan500, Cyan600)))
+                            .clickable { onPause() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Pause Icon (Two vertical bars)
+                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Box(modifier = Modifier.size(width = 4.dp, height = 12.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            Box(modifier = Modifier.size(width = 4.dp, height = 12.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                        }
+                    }
+                } else {
+                    // Paused -> Show Play (Resume)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Brush.linearGradient(listOf(Cyan500, Cyan600)))
+                            .clickable { onResume() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(AppIcons.PlayArrow, contentDescription = "Resume", tint = Color.White, modifier = Modifier.size(24.dp))
+                    }
+                }
+            
+               // Separate Stop Button (Small, secondary)
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Brush.linearGradient(listOf(Red500, Red600)))
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Zinc800)
                         .clickable { onStop() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.size(16.dp).background(Color.White, RoundedCornerShape(4.dp)))
+                    Box(modifier = Modifier.size(12.dp).background(Red500, RoundedCornerShape(2.dp)))
                 }
             } else {
                 Box(
@@ -585,23 +619,30 @@ fun CategoryManagementSheet(
 @Composable
 fun AudioLoopMainScreen(
     recordingItems: List<RecordingItem>,
-    categories: List<String>,
+    categories: List<String>,    // State
     currentCategory: String,
     currentProgress: Float,
     currentTimeString: String,
     playingFileName: String,
+    isPaused: Boolean,
+    
+    // Callbacks
     onPlayingFileNameChange: (String) -> Unit,
     onCategoryChange: (String) -> Unit,
     onAddCategory: (String) -> Unit,
     onRenameCategory: (String, String) -> Unit,
     onDeleteCategory: (String) -> Unit,
-    onReorderCategory: (String, Int) -> Unit,
+    onReorderCategory: (String, Int) -> Unit, // -1 up, +1 down
+    
     onMoveFile: (RecordingItem, String) -> Unit,
     onReorderFile: (File, Int) -> Unit,
+    
     onStartRecord: (String, Boolean) -> Boolean,
     onStopRecord: () -> Unit,
-    onStartPlaylist: (List<File>, Boolean, Float, () -> Unit) -> Unit,
-    onPlaylistUpdate: (List<File>) -> Unit,
+    
+    onStartPlaylist: (List<File>, loop: Boolean, speed: Float, onComplete: () -> Unit) -> Unit,
+    onPlaylistUpdate: () -> Unit,
+    
     onSpeedChange: (Float) -> Unit,
     onLoopCountChange: (Int) -> Unit,
     onSeekTo: (Float) -> Unit,
@@ -1048,18 +1089,21 @@ fun AudioLoopMainScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                   items(recordingItems) { item ->
+                   items(recordingItems, key = { it.name }) { item ->
                         val isPlaying = item.file.name == playingFileName
                         val isSelected = selectedFiles.contains(item.name)
                         FileItem(
                             item = item,
                             isPlaying = isPlaying,
+                            isPaused = if (isPlaying) isPaused else false,
                             isSelectionMode = isSelectionMode,
                             isSelected = isSelected,
                             selectionOrder = selectedFiles.indexOf(item.name) + 1,
                             onPlay = { 
                                 onStartPlaylist(listOf(item.file), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
                             },
+                            onPause = onPausePlay,
+                            onResume = onResumePlay,
                             onStop = onStopPlay,
                             onToggleSelect = { toggleSelection(item.name) },
                             onRename = { itemToModify = item; showRenameDialog = true },
