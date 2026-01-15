@@ -120,7 +120,7 @@ fun FileItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-        ) {
+
             var accumulatedDrag by remember { mutableFloatStateOf(0f) }
             Icon(
                 imageVector = AppIcons.GripVertical,
