@@ -448,6 +448,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
         }
     }
+    }
 
 
     // --- FIX: getDuration mis kasutab MediaPlayerit kui Metadata ebaõnnestub ---
