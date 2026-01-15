@@ -135,10 +135,10 @@ fun FileItem(
                          ) { change, dragAmount ->
                              change.consume()
                              accumulatedDrag += dragAmount.y
-                             if (accumulatedDrag > 150f) {
+                             if (accumulatedDrag > 50f) {
                                  onReorder(1)
                                  accumulatedDrag = 0f
-                             } else if (accumulatedDrag < -150f) {
+                             } else if (accumulatedDrag < -50f) {
                                  onReorder(-1)
                                  accumulatedDrag = 0f
                              }
@@ -797,9 +797,24 @@ fun AudioLoopMainScreen(
                             .clickable {
                                 if (isRecording) {
                                     onStopRecord()
-                                    // isDragging = false, // Drag logic pending - this line was malformed and removed
+                                    // isDragging = false, //
                                 } else {
-                                    val name = "Record_${System.currentTimeMillis()}"
+                                    // Generate name: 001_Record_yyyyMMdd_HHmm
+                                    val dateFormat = java.text.SimpleDateFormat("yyyyMMdd_HHmm", java.util.Locale.getDefault())
+                                    val dateStr = dateFormat.format(java.util.Date())
+                                    
+                                    // Find max index
+                                    var maxIndex = 0
+                                    recordingItems.forEach { item ->
+                                        val match = Regex("^(\\d{3})_.*").find(item.name)
+                                        if (match != null) {
+                                            val idx = match.groupValues[1].toIntOrNull() ?: 0
+                                            if (idx > maxIndex) maxIndex = idx
+                                        }
+                                    }
+                                    val nextIndex = String.format("%03d", maxIndex + 1)
+                                    val name = "${nextIndex}_Record_$dateStr"
+                                    
                                     val started = onStartRecord(name, mode == "Stream")
                                     if (started) isRecording = true
                                 }

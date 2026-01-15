@@ -571,19 +571,28 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val files = parent.listFiles { _, name ->
             name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
         }?.sortedBy { it.name }?.toMutableList() ?: return
+        
         val index = files.indexOfFirst { it.name == file.name }
         val targetIndex = index + direction
         if (index == -1 || targetIndex < 0 || targetIndex >= files.size) return
+        
         val fileA = files[index]
         val fileB = files[targetIndex]
-        fun hasPrefix(f: File): Boolean = f.name.matches(Regex("^\\d{3}_.*"))
+        
+        fun getPrefix(name: String): String? {
+            val match = Regex("^(\\d{3})_").find(name)
+            return match?.groupValues?.get(1)
+        }
+        
         fun stripPrefix(name: String): String = name.replace(Regex("^\\d{3}_"), "")
-        val needsNormalization = files.any { !hasPrefix(it) }
+        
+        val needsNormalization = files.any { getPrefix(it.name) == null }
+        
         if (needsNormalization) {
-            Toast.makeText(this, "Adding numbers to files...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Normalizing file names...", Toast.LENGTH_SHORT).show()
             val tempFiles = files.mapIndexed { i, f ->
                 val pureName = stripPrefix(f.name)
-                val tempFile = File(parent, "tmp_${System.currentTimeMillis()}_$i.tmp")
+                val tempFile = File(parent, "tmp_renaming_${System.currentTimeMillis()}_$i.tmp")
                 f.renameTo(tempFile)
                 Pair(tempFile, pureName)
             }
@@ -594,16 +603,27 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
             return
         }
-        val nameA = stripPrefix(fileA.name)
-        val nameB = stripPrefix(fileB.name)
-        val prefixA = fileA.name.substringBefore("_")
-        val prefixB = fileB.name.substringBefore("_")
+
+        // Swap prefixes
+        val prefixA = getPrefix(fileA.name) ?: return
+        val prefixB = getPrefix(fileB.name) ?: return
+        val namePartA = stripPrefix(fileA.name)
+        val namePartB = stripPrefix(fileB.name)
+        
         val tempA = File(parent, "swap_temp_a.tmp")
         val tempB = File(parent, "swap_temp_b.tmp")
-        fileA.renameTo(tempA); fileB.renameTo(tempB)
-        val newFileA = File(parent, "${prefixB}_$nameA")
-        val newFileB = File(parent, "${prefixA}_$nameB")
-        tempA.renameTo(newFileA); tempB.renameTo(newFileB)
+        
+        if (fileA.renameTo(tempA) && fileB.renameTo(tempB)) {
+            val newFileA = File(parent, "${prefixB}_$namePartA") // A gets B's prefix (new position)
+            val newFileB = File(parent, "${prefixA}_$namePartB") // B gets A's prefix
+            
+            tempA.renameTo(newFileA)
+            tempB.renameTo(newFileB)
+            
+            // Clear cache for old paths if necessary (optional here, but good practice)
+            waveformCache.remove(fileA.absolutePath)
+            waveformCache.remove(fileB.absolutePath)
+        }
     }
 
     private fun moveFileToCategory(file: File, targetCategory: String) {
