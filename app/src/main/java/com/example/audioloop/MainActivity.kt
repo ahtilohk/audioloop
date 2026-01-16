@@ -185,24 +185,25 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
 
-    internal fun startInternalAudioService(resultCode: Int, data: Intent) {
-        val finalName = if (pendingCategory == "General") pendingRecordingName else {
-            val folder = File(filesDir, pendingCategory)
-            if (!folder.exists()) folder.mkdirs()
-            "$pendingCategory/$pendingRecordingName"
-        }
-        val serviceIntent = Intent(this, RecordingService::class.java).apply {
-            action = RecordingService.ACTION_START_INTERNAL
-            putExtra(RecordingService.EXTRA_FILENAME, finalName)
-            putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
-            putExtra(RecordingService.EXTRA_DATA, data)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
-    }
+
 
     private val screenCaptureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data != null) {
-            this@MainActivity.startInternalAudioService(result.resultCode, result.data!!)
+            val resultCode = result.resultCode
+            val data = result.data!!
+            
+            val finalName = if (pendingCategory == "General") pendingRecordingName else {
+                val folder = File(filesDir, pendingCategory)
+                if (!folder.exists()) folder.mkdirs()
+                "$pendingCategory/$pendingRecordingName"
+            }
+            val serviceIntent = Intent(this, RecordingService::class.java).apply {
+                action = RecordingService.ACTION_START_INTERNAL
+                putExtra(RecordingService.EXTRA_FILENAME, finalName)
+                putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
+                putExtra(RecordingService.EXTRA_DATA, data)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
         } else {
             Toast.makeText(this, "Permission required for recording", Toast.LENGTH_SHORT).show()
         }
