@@ -86,6 +86,7 @@ fun FileItem(
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
     onDragStart: () -> Unit = {},
+    onDrag: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {},
     isDragging: Boolean = false,
     isLandingTarget: Boolean = false,
@@ -140,7 +141,6 @@ fun FileItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                var accumulatedDrag by remember { mutableFloatStateOf(0f) }
                 Icon(
                     imageVector = AppIcons.GripVertical,
                     contentDescription = "Drag to reorder",
@@ -153,24 +153,16 @@ fun FileItem(
                                     onDragStart()
                                 },
                                 onDragEnd = {
-                                    accumulatedDrag = 0f
                                     onDragEnd()
                                 },
                                 onDragCancel = {
-                                    accumulatedDrag = 0f
                                     onDragEnd()
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    onDrag(dragAmount.y)
                                 }
-                            ) { change, dragAmount ->
-                                change.consume()
-                                accumulatedDrag += dragAmount.y
-                                if (accumulatedDrag > 50f) {
-                                    onReorder(1)
-                                    accumulatedDrag = 0f
-                                } else if (accumulatedDrag < -50f) {
-                                    onReorder(-1)
-                                    accumulatedDrag = 0f
-                                }
-                            }
+                            )
                         }
                 )
 
@@ -716,8 +708,13 @@ fun AudioLoopMainScreen(
     var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToTrim by remember { mutableStateOf<RecordingItem?>(null) }
     var draggingItemName by remember { mutableStateOf<String?>(null) }
+    var draggingItemIndex by remember { androidx.compose.runtime.mutableIntStateOf(-1) }
+    var dragOffsetPx by remember { mutableFloatStateOf(0f) }
     var landingTargetName by remember { mutableStateOf<String?>(null) }
-    var landingDirection by remember { mutableStateOf(0) }
+    var landingDirection by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    
+    val density = LocalDensity.current.density
+    val itemHeightPx = 72 * density // Approximate height of an item
 
 
     val filePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -1160,24 +1157,50 @@ fun AudioLoopMainScreen(
                             currentTimeString = if (isPlaying) currentTimeString else "00:00",
                             onSeek = onSeekTo,
                             onReorder = { dir ->
+                                // Legacy single-step callback if needed, but we use drag now
                                 val targetIndex = index + dir
                                 if (targetIndex in recordingItems.indices) {
-                                    landingTargetName = recordingItems[targetIndex].name
-                                    landingDirection = dir
+                                    onReorderFile(item.file, dir)
                                 }
-                                onReorderFile(item.file, dir)
                             },
                             onDragStart = {
                                 draggingItemName = item.name
+                                draggingItemIndex = index
+                                dragOffsetPx = 0f
                                 landingTargetName = null
                                 landingDirection = 0
                             },
-                            onDragEnd = {
-                                if (draggingItemName == item.name) {
-                                    draggingItemName = null
+                            onDrag = { delta ->
+                                dragOffsetPx += delta
+                                val slotsMoved = (dragOffsetPx / itemHeightPx).let { 
+                                    if (it > 0) kotlin.math.floor(it + 0.5f).toInt() else kotlin.math.ceil(it - 0.5f).toInt()
                                 }
+                                val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, recordingItems.lastIndex)
+                                
+                                if (targetIndex != draggingItemIndex) {
+                                    landingTargetName = recordingItems[targetIndex].name
+                                    landingDirection = if (targetIndex > draggingItemIndex) 1 else -1
+                                } else {
+                                    landingTargetName = null
+                                    landingDirection = 0
+                                }
+                            },
+                            onDragEnd = {
+                                if (landingTargetName != null && draggingItemName != null) {
+                                    // Calculate final direction/offset and execute
+                                    val targetIndex = recordingItems.indexOfFirst { it.name == landingTargetName }
+                                    if (targetIndex != -1) {
+                                        val diff = targetIndex - draggingItemIndex
+                                        if (diff != 0) {
+                                             onReorderFile(item.file, diff)
+                                        }
+                                    }
+                                }
+                                draggingItemName = null
+                                draggingItemIndex = -1
                                 landingTargetName = null
                                 landingDirection = 0
+                                dragOffsetPx = 0f
                             },
                             isDragging = draggingItemName == item.name,
                             isLandingTarget = landingTargetName == item.name,
