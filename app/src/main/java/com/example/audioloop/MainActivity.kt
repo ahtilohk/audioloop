@@ -222,8 +222,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var currentProgress by mutableFloatStateOf(0f)
     private var currentTimeString by mutableStateOf("00:00")
     private var playbackSpeed by mutableFloatStateOf(1.0f)
-    private var loopMode by mutableIntStateOf(0) // 0=off, 1=one, -1=inf
+    private var loopMode by mutableIntStateOf(1) // 0=off, 1=one, -1=inf
     private var isShadowingMode by mutableStateOf(false)
+    private var uiCategory by mutableStateOf("General")
+    private var categories by mutableStateOf(listOf("General"))
+    private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -239,10 +242,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         setContent {
             AudioLoopTheme {
                 val coroutineScope = rememberCoroutineScope()
-                var uiCategory by remember { mutableStateOf("General") }
-                var categories by remember { mutableStateOf(listOf("General")) }
-                
-                var savedItems by remember { mutableStateOf<List<RecordingItem>>(emptyList()) }
+
 
                 val context = LocalContext.current
                 // Force English always as per user request
@@ -469,6 +469,43 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
             }
         }
+        handleIncomingIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
+        val uris = extractUrisFromIntent(intent)
+        if (uris.isEmpty()) return
+        val targetCategory = if (uiCategory.isBlank()) "General" else uiCategory
+        uris.forEach { uri -> importFileFromUri(uri, targetCategory) }
+        savedItems = getSavedRecordings(targetCategory, filesDir)
+        savedItems.forEach { item -> precomputeWaveformAsync(this, item.file) }
+    }
+
+    private fun extractUrisFromIntent(intent: Intent): List<Uri> {
+        val results = LinkedHashSet<Uri>()
+        when (intent.action) {
+            Intent.ACTION_SEND -> {
+                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.add(it) }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.addAll(it) }
+            }
+            Intent.ACTION_VIEW -> {
+                intent.data?.let { results.add(it) }
+            }
+        }
+        intent.clipData?.let { clip ->
+            for (i in 0 until clip.itemCount) {
+                clip.getItemAt(i).uri?.let { results.add(it) }
+            }
+        }
+        return results.toList()
     }
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
