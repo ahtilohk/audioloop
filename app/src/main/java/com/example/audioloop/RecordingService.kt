@@ -321,61 +321,78 @@ class RecordingService : Service() {
 
     private fun safelyStopRecorder() {
         if (!isRecording) return
-        try {
-            isRecording = false
-            startForegroundServiceNotification("Salvestamine peatatud...", false)
-            stopForegroundService()
-            
-            tickerJob?.cancel()
-            runBlocking {
-                encodingJob?.cancelAndJoin()
-            }
-            
-            // AAC Components
-            try {
-                if (isEncoderStarted) {
-                    aacEncoder?.stop()
-                    aacEncoder?.release()
-                }
-            } catch (e: Exception) { e.printStackTrace() }
-            
-            try {
-                if (isMuxerStarted) {
-                    aacMuxer?.stop() 
-                    aacMuxer?.release()
-                }
-            } catch (e: Exception) { e.printStackTrace() }
-            
-            try {
-                audioRecord?.stop()
-                audioRecord?.release()
-            } catch (e: Exception) { e.printStackTrace() }
+        
+        // 1. Mark state immediately to prevent re-entry
+        isRecording = false
+        
+        // 2. UI Feedback immediately (Main Thread safe)
+        startForegroundServiceNotification("Salvestamine peatatud...", false)
+        stopForegroundService()
+        tickerJob?.cancel()
 
-            // Mic Recorder
-            try {
-                mediaRecorder?.stop()
-                mediaRecorder?.release()
-            } catch (e: Exception) { 
-                 currentFile?.delete()
-            }
-            mediaRecorder = null
-            
-            // Reset
-            aacEncoder = null
-            aacMuxer = null
-            audioRecord = null
-            isMuxerStarted = false
-            isEncoderStarted = false
-            
-            // Notify UI
-             val intent = Intent(ACTION_RECORDING_SAVED)
-             intent.setPackage(packageName)
-             sendBroadcast(intent)
-             showToast("Salvestatud!")
+        // 3. Launch Async Cleanup (Avoids blocking Main Thread & Deadlocks)
+        // We use NonCancellable to ensure cleanup finishes even if Service is destroyed/scope cancelled.
+        serviceScope.launch(Dispatchers.IO) {
+            withContext(NonCancellable) {
+                try {
+                    // Cancel encoding job. 
+                    // Since we are in a separate coroutine, we can safely join (wait) for it,
+                    // even if safelyStopRecorder was called FROM encodingJob (because that call returns immediately).
+                    encodingJob?.cancelAndJoin()
+                } catch (e: Exception) { e.printStackTrace() }
 
-        } catch (e: Exception) {
-            e.printStackTrace()
+                // 4. Deterministic Resource Release
+                releaseResources()
+
+                // 5. Notify Completion
+                val intent = Intent(ACTION_RECORDING_SAVED)
+                intent.setPackage(packageName)
+                sendBroadcast(intent)
+                
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(applicationContext, "Salvestatud!", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
+    }
+
+    private fun releaseResources() {
+        // AAC Components (Encoder/Muxer)
+        try {
+            if (isEncoderStarted) {
+                aacEncoder?.stop()
+                aacEncoder?.release()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        
+        try {
+            if (isMuxerStarted) {
+                aacMuxer?.stop() 
+                aacMuxer?.release()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        
+        try {
+            audioRecord?.stop()
+            audioRecord?.release()
+        } catch (e: Exception) { e.printStackTrace() }
+
+        // Mic Recorder
+        try {
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+        } catch (e: Exception) { 
+             currentFile?.delete()
+        }
+        
+        // Reset State Variables (Idempotency)
+        mediaRecorder = null
+        aacEncoder = null
+        aacMuxer = null
+        audioRecord = null
+        isMuxerStarted = false
+        isEncoderStarted = false
+        // isRecording is already false
     }
 
     private fun startAmplitudeTicker() {
