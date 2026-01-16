@@ -618,6 +618,7 @@ fun CategoryManagementSheet(
 
 @Composable
 fun AudioLoopMainScreen(
+    context: android.content.Context,
     recordingItems: List<RecordingItem>,
     categories: List<String>,    // State
     currentCategory: String,
@@ -680,7 +681,7 @@ fun AudioLoopMainScreen(
         if (uri != null) onImportFile(uri)
     }
     
-    val context = LocalContext.current
+    // val context = LocalContext.current // Using parameter instead
 
     // Helper to toggle selection
     fun toggleSelection(name: String) {

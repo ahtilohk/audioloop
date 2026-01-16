@@ -332,6 +332,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     com.example.audioloop.ui.AudioLoopMainScreen(
+                        context = this,
                         recordingItems = savedItems,
                         categories = categories,
                         currentCategory = uiCategory,
