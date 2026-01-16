@@ -203,7 +203,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
                 putExtra(RecordingService.EXTRA_DATA, data)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
+            startInternalAudioService(serviceIntent)
         } else {
             Toast.makeText(this, "Permission required for recording", Toast.LENGTH_SHORT).show()
         }
@@ -534,7 +534,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             } else { MediaRecorder.AudioSource.MIC }
             putExtra(RecordingService.EXTRA_AUDIO_SOURCE, source)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+    }
+
+    private fun startInternalAudioService(serviceIntent: Intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
     }
 
     private fun stopRecording() {
