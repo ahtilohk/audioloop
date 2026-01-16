@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
 
-    private fun startInternalAudioService(resultCode: Int, data: Intent) {
+    internal fun startInternalAudioService(resultCode: Int, data: Intent) {
         val finalName = if (pendingCategory == "General") pendingRecordingName else {
             val folder = File(filesDir, pendingCategory)
             if (!folder.exists()) folder.mkdirs()
@@ -202,7 +202,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     private val screenCaptureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data != null) {
-            startInternalAudioService(result.resultCode, result.data!!)
+            this@MainActivity.startInternalAudioService(result.resultCode, result.data!!)
         } else {
             Toast.makeText(this, "Permission required for recording", Toast.LENGTH_SHORT).show()
         }
