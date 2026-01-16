@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.animateItemPlacement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -56,11 +57,17 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun FileItem(
+    modifier: Modifier = Modifier,
     item: RecordingItem,
     isPlaying: Boolean,
     isPaused: Boolean,
@@ -81,7 +88,11 @@ fun FileItem(
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
-    isDragging: Boolean = false
+    onDragStart: () -> Unit = {},
+    onDragEnd: () -> Unit = {},
+    isDragging: Boolean = false,
+    isLandingTarget: Boolean = false,
+    landingDirection: Int = 0
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -100,54 +111,71 @@ fun FileItem(
     }
 
     val scale by animateFloatAsState(targetValue = if (isDragging) 1.02f else 1f, label = "scale")
+    val landingAlpha by animateFloatAsState(
+        targetValue = if (isLandingTarget) 1f else 0f,
+        label = "landingAlpha"
+    )
 
-    Column(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-            .clickable {
-                if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
-            }
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clip(RoundedCornerShape(12.dp))
+                .background(backgroundColor)
+                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                .clickable {
+                    if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
+                }
         ) {
-
-            var accumulatedDrag by remember { mutableFloatStateOf(0f) }
-            Icon(
-                imageVector = AppIcons.GripVertical,
-                contentDescription = "Drag to reorder",
-                tint = Zinc600,
+            Row(
                 modifier = Modifier
-                    .size(20.dp)
-                    .pointerInput(Unit) {
-                         detectDragGestures(
-                             onDragEnd = { accumulatedDrag = 0f },
-                             onDragCancel = { accumulatedDrag = 0f }
-                         ) { change, dragAmount ->
-                             change.consume()
-                             accumulatedDrag += dragAmount.y
-                             if (accumulatedDrag > 50f) {
-                                 onReorder(1)
-                                 accumulatedDrag = 0f
-                             } else if (accumulatedDrag < -50f) {
-                                 onReorder(-1)
-                                 accumulatedDrag = 0f
-                             }
-                         }
-                    }
-            )
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                var accumulatedDrag by remember { mutableFloatStateOf(0f) }
+                Icon(
+                    imageVector = AppIcons.GripVertical,
+                    contentDescription = "Drag to reorder",
+                    tint = Zinc600,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    onDragStart()
+                                },
+                                onDragEnd = {
+                                    accumulatedDrag = 0f
+                                    onDragEnd()
+                                },
+                                onDragCancel = {
+                                    accumulatedDrag = 0f
+                                    onDragEnd()
+                                }
+                            ) { change, dragAmount ->
+                                change.consume()
+                                accumulatedDrag += dragAmount.y
+                                if (accumulatedDrag > 50f) {
+                                    onReorder(1)
+                                    accumulatedDrag = 0f
+                                } else if (accumulatedDrag < -50f) {
+                                    onReorder(-1)
+                                    accumulatedDrag = 0f
+                                }
+                            }
+                        }
+                )
 
             if (isSelectionMode) {
                 Box(
@@ -676,6 +704,10 @@ fun AudioLoopMainScreen(
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToTrim by remember { mutableStateOf<RecordingItem?>(null) }
+    var draggingItemName by remember { mutableStateOf<String?>(null) }
+    var landingTargetName by remember { mutableStateOf<String?>(null) }
+    var landingDirection by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
 
     val filePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) onImportFile(uri)
@@ -1090,10 +1122,11 @@ fun AudioLoopMainScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                   items(recordingItems, key = { it.name }) { item ->
+                   itemsIndexed(recordingItems, key = { _, item -> item.name }) { index, item ->
                         val isPlaying = item.file.name == playingFileName
                         val isSelected = selectedFiles.contains(item.name)
                         FileItem(
+                            modifier = Modifier.animateItemPlacement(),
                             item = item,
                             isPlaying = isPlaying,
                             isPaused = if (isPlaying) isPaused else false,
@@ -1115,7 +1148,32 @@ fun AudioLoopMainScreen(
                             currentProgress = if (isPlaying) currentProgress else 0f,
                             currentTimeString = if (isPlaying) currentTimeString else "00:00",
                             onSeek = onSeekTo,
-                            onReorder = { dir -> onReorderFile(item.file, dir) }
+                            onReorder = { dir ->
+                                val targetIndex = index + dir
+                                if (targetIndex in recordingItems.indices) {
+                                    val targetName = recordingItems[targetIndex].name
+                                    landingTargetName = targetName
+                                    landingDirection = dir
+                                    scope.launch {
+                                        delay(650)
+                                        if (landingTargetName == targetName) {
+                                            landingTargetName = null
+                                        }
+                                    }
+                                }
+                                onReorderFile(item.file, dir)
+                            },
+                            onDragStart = {
+                                draggingItemName = item.name
+                            },
+                            onDragEnd = {
+                                if (draggingItemName == item.name) {
+                                    draggingItemName = null
+                                }
+                            },
+                            isDragging = draggingItemName == item.name,
+                            isLandingTarget = landingTargetName == item.name,
+                            landingDirection = landingDirection
                         )
                    }
                    item { Spacer(modifier = Modifier.height(80.dp)) }
