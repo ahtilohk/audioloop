@@ -960,4 +960,3 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 }
-```
