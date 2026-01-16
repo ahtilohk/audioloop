@@ -461,6 +461,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         selectedSpeed = playbackSpeed,
+                        selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it }
                     )
@@ -468,8 +469,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
         }
     }
-
-    } // End onCreate
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
         var millis = 0L
