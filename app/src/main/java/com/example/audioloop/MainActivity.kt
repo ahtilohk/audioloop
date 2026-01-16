@@ -185,6 +185,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
 
+    private fun startInternalAudioService(resultCode: Int, data: Intent) {
+        val finalName = if (pendingCategory == "General") pendingRecordingName else {
+            val folder = File(filesDir, pendingCategory)
+            if (!folder.exists()) folder.mkdirs()
+            "$pendingCategory/$pendingRecordingName"
+        }
+        val serviceIntent = Intent(this, RecordingService::class.java).apply {
+            action = RecordingService.ACTION_START_INTERNAL
+            putExtra(RecordingService.EXTRA_FILENAME, finalName)
+            putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
+            putExtra(RecordingService.EXTRA_DATA, data)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
+    }
+
     private val screenCaptureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data != null) {
             startInternalAudioService(result.resultCode, result.data!!)
@@ -445,13 +460,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         selectedSpeed = playbackSpeed,
-                        selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it }
                     )
-                } // End Surface
-            } // End AudioLoopTheme
-        } // End setContent
+                }
+            }
+        }
+    }
+
     } // End onCreate
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
@@ -525,20 +541,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         startService(intent)
     }
 
-    private fun startInternalAudioService(resultCode: Int, data: Intent) {
-        val finalName = if (pendingCategory == "General") pendingRecordingName else {
-            val folder = File(filesDir, pendingCategory)
-            if (!folder.exists()) folder.mkdirs()
-            "$pendingCategory/$pendingRecordingName"
-        }
-        val serviceIntent = Intent(this, RecordingService::class.java).apply {
-            action = RecordingService.ACTION_START_INTERNAL
-            putExtra(RecordingService.EXTRA_FILENAME, finalName)
-            putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
-            putExtra(RecordingService.EXTRA_DATA, data)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
-    }
+
 
     private fun importFileFromUri(uri: Uri, category: String) {
         try {
