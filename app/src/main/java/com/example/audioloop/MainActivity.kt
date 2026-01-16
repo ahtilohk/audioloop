@@ -427,7 +427,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         onPlaylistUpdate = { },
-                        onSpeedChange = { speed -> playbackSpeed = speed; setPlaybackSpeed(speed) },
+                        onSpeedChange = { speed -> playbackSpeed = speed; updatePlaybackSpeed(speed) },
                         onLoopCountChange = { loops -> loopMode = loops },
                         onSeekTo = { pos -> seekTo(pos) },
                         onPausePlay = { pausePlaying() },
@@ -954,7 +954,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
     fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
-    fun setPlaybackSpeed(speed: Float) {
+    fun updatePlaybackSpeed(speed: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed) }
         }
