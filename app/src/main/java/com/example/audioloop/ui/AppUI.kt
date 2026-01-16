@@ -410,6 +410,20 @@ fun FileItem(
                 }
             }
         }
+        }
+        if (isLandingTarget) {
+            val alignment = if (landingDirection < 0) Alignment.TopCenter else Alignment.BottomCenter
+            Box(
+                modifier = Modifier
+                    .align(alignment)
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .shadow(4.dp, RoundedCornerShape(2.dp))
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Cyan400.copy(alpha = 0.9f))
+                    .alpha(landingAlpha)
+            )
+        }
     }
 }
 
