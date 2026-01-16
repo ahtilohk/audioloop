@@ -60,9 +60,7 @@ import androidx.compose.ui.graphics.StrokeCap
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
 
 @Composable
 fun FileItem(
@@ -720,7 +718,7 @@ fun AudioLoopMainScreen(
     var draggingItemName by remember { mutableStateOf<String?>(null) }
     var landingTargetName by remember { mutableStateOf<String?>(null) }
     var landingDirection by remember { mutableStateOf(0) }
-    val scope = rememberCoroutineScope()
+
 
     val filePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) onImportFile(uri)
@@ -1164,25 +1162,22 @@ fun AudioLoopMainScreen(
                             onReorder = { dir ->
                                 val targetIndex = index + dir
                                 if (targetIndex in recordingItems.indices) {
-                                    val targetName = recordingItems[targetIndex].name
-                                    landingTargetName = targetName
+                                    landingTargetName = recordingItems[targetIndex].name
                                     landingDirection = dir
-                                    scope.launch {
-                                        delay(650)
-                                        if (landingTargetName == targetName) {
-                                            landingTargetName = null
-                                        }
-                                    }
                                 }
                                 onReorderFile(item.file, dir)
                             },
                             onDragStart = {
                                 draggingItemName = item.name
+                                landingTargetName = null
+                                landingDirection = 0
                             },
                             onDragEnd = {
                                 if (draggingItemName == item.name) {
                                     draggingItemName = null
                                 }
+                                landingTargetName = null
+                                landingDirection = 0
                             },
                             isDragging = draggingItemName == item.name,
                             isLandingTarget = landingTargetName == item.name,
