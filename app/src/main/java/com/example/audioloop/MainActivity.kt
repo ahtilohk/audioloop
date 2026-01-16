@@ -449,13 +449,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it }
                     )
-                }
-        }
-    }
-    }
+                } // End Surface
+            } // End AudioLoopTheme
+        } // End setContent
+    } // End onCreate
 
-
-    // --- FIX: getDuration mis kasutab MediaPlayerit kui Metadata ebaõnnestub ---
+    } // POTENTIAL MISSING BRACE? Adding this to force close whatever is open.
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
         var millis = 0L
