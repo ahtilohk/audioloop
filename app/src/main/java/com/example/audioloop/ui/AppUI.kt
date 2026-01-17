@@ -270,7 +270,7 @@ fun FileItem(
                     .padding(start = 4.dp)
             ) {
                 Text(
-                    text = item.name,
+                    text = item.name.substringBeforeLast("."),
                     style = TextStyle(
                         color = if (isPlaying) Color.White else Zinc200,
                         fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Normal,
@@ -892,24 +892,16 @@ fun AudioLoopMainScreen(
                                     isRecording = false
                                     // isDragging = false, //
                                 } else {
-                                    // Generate name: 001_Record_yyyy.MM.dd HH:mm
+                                    // Generate name: Speech_yyyy.MM.dd HH:mm or Stream_...
                                     val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
                                     val dateStr = dateFormat.format(java.util.Date())
                                     
-                                    // Find max index
-                                    var maxIndex = 0
-                                    recordingItems.forEach { item ->
-                                        val match = Regex("^(\\d{3})_.*").find(item.name)
-                                        if (match != null) {
-                                            val idx = match.groupValues[1].toIntOrNull() ?: 0
-                                            if (idx > maxIndex) maxIndex = idx
-                                        }
-                                    }
-                                    val nextIndex = String.format("%03d", maxIndex + 1)
-                                    val name = "${nextIndex}_Record_$dateStr"
+                                    val prefix = if (mode == "Speech") "Speech" else "Stream"
+                                    val name = "${prefix}_$dateStr"
                                     
-                                    val started = onStartRecord(name, mode == "Stream")
-                                    if (started) isRecording = true
+                                    // Start recording
+                                    val commenced = onStartRecord(name, mode == "Stream")
+                                    if (commenced) isRecording = true
                                 }
                             }
                     ) {

@@ -622,99 +622,93 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         } catch (e: Exception) { Toast.makeText(this, "Error importing", Toast.LENGTH_SHORT).show() }
     }
 
-    private fun updateFileOrder(orderedFiles: List<File>) {
-        if (orderedFiles.isEmpty()) return
-        val parent = orderedFiles.first().parentFile ?: return
-        
-        // 1. Rename all to temporary names to avoid collisions
-        val tempFiles = orderedFiles.mapIndexed { index, file ->
-            val ext = file.extension
-            val originalName = file.nameWithoutExtension.replace(Regex("^\\d{3}_"), "")
-            val tempFile = File(parent, "tmp_reorder_${System.currentTimeMillis()}_$index.$ext")
-            file.renameTo(tempFile)
-            Triple(tempFile, originalName, ext)
-        }
-        
-        // 2. Rename to final names with new indices
-        tempFiles.forEachIndexed { index, (tempFile, originalName, ext) ->
-            val prefix = String.format("%03d", index + 1)
-            val newName = "${prefix}_${originalName}.$ext"
-            val newFile = File(parent, newName)
-            tempFile.renameTo(newFile)
-            // Update cache key if necessary, though absolute path changes
-        }
+    // -- File Order Persistence --
+    private fun getOrderFile(category: String): File {
+        val dir = if (category == "General") filesDir else File(filesDir, category)
+        if (!dir.exists()) dir.mkdirs()
+        return File(dir, "ordering.json")
     }
 
-    private fun reorderFile(file: File, direction: Int) {
-        val parent = file.parentFile ?: return
-        val files = parent.listFiles { _, name ->
-            name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
-        }?.sortedBy { it.name }?.toMutableList() ?: return
-        
-        val index = files.indexOfFirst { it.name == file.name }
-        val targetIndex = index + direction
-        if (index == -1 || targetIndex < 0 || targetIndex >= files.size) return
-        
-        val fileA = files[index]
-        val fileB = files[targetIndex]
-        
-        fun getPrefix(name: String): String? {
-            val match = Regex("^(\\d{3})_").find(name)
-            return match?.groupValues?.get(1)
-        }
-        
-        fun stripPrefix(name: String): String = name.replace(Regex("^\\d{3}_"), "")
-        
-        val needsNormalization = files.any { getPrefix(it.name) == null }
-        
-        if (needsNormalization) {
-            Toast.makeText(this, "Normalizing file names...", Toast.LENGTH_SHORT).show()
-            val tempFiles = files.mapIndexed { i, f ->
-                val pureName = stripPrefix(f.name)
-                val tempFile = File(parent, "tmp_renaming_${System.currentTimeMillis()}_$i.tmp")
-                f.renameTo(tempFile)
-                Pair(tempFile, pureName)
-            }
-            tempFiles.forEachIndexed { i, (temp, originalName) ->
-                val prefix = String.format("%03d", i + 1)
-                val newFile = File(parent, "${prefix}_$originalName")
-                temp.renameTo(newFile)
-            }
-            return
-        }
+    private fun saveFileOrder(category: String, order: List<String>) {
+        try {
+            val file = getOrderFile(category)
+            val jsonArray = org.json.JSONArray()
+            order.forEach { jsonArray.put(it) }
+            file.writeText(jsonArray.toString())
+        } catch (e: Exception) { e.printStackTrace() }
+    }
 
-        // Swap prefixes
-        val prefixA = getPrefix(fileA.name) ?: return
-        val prefixB = getPrefix(fileB.name) ?: return
-        val namePartA = stripPrefix(fileA.name)
-        val namePartB = stripPrefix(fileB.name)
+    private fun loadFileOrder(category: String): List<String> {
+        val list = mutableListOf<String>()
+        try {
+            val file = getOrderFile(category)
+            if (file.exists()) {
+                val content = file.readText()
+                if (content.isNotBlank()) {
+                    val array = org.json.JSONArray(content)
+                    for (i in 0 until array.length()) {
+                        list.add(array.getString(i))
+                    }
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        return list
+    }
+
+    private fun updateFileOrder(orderedFiles: List<File>) {
+        // Just save the names in the new order
+        if (orderedFiles.isEmpty()) return
+        // Assuming all files are in the same category/directory
+        // We need to resolve the category from the file path or just use current uiCategory if strictly coupled?
+        // safer to deduce from parent dir, but 'uiCategory' is state.
+        // Let's rely on 'uiCategory' as this is called from UI for current list.
         
-        val tempA = File(parent, "swap_temp_a.tmp")
-        val tempB = File(parent, "swap_temp_b.tmp")
-        
-        if (fileA.renameTo(tempA) && fileB.renameTo(tempB)) {
-            val newFileA = File(parent, "${prefixB}_$namePartA") // A gets B's prefix (new position)
-            val newFileB = File(parent, "${prefixA}_$namePartB") // B gets A's prefix
-            
-            tempA.renameTo(newFileA)
-            tempB.renameTo(newFileB)
-            
-            // Clear cache for old paths if necessary (optional here, but good practice)
-            waveformCache.remove(fileA.absolutePath)
-            waveformCache.remove(fileB.absolutePath)
-        }
+        val names = orderedFiles.map { it.name }
+        saveFileOrder(uiCategory, names)
+    }
+
+    // Legacy support, kept empty to satisfy callback signature if needed, or remove usage
+    private fun reorderFile(file: File, direction: Int) {
+         // Moved to drag-and-drop 'updateFileOrder'
     }
 
     private fun moveFileToCategory(file: File, targetCategory: String) {
         val targetDir = if (targetCategory == "General") filesDir else File(filesDir, targetCategory)
         if (!targetDir.exists()) targetDir.mkdirs()
+        
+        // Ensure name conflict resolution if needed, but for now simple rename
         val targetFile = File(targetDir, file.name)
         if (file.renameTo(targetFile)) {
+             // Remove from old order
+             val oldOrder = loadFileOrder(uiCategory).toMutableList()
+             oldOrder.remove(file.name)
+             saveFileOrder(uiCategory, oldOrder)
+             
+             // Add to new order (top)
+             val newOrder = loadFileOrder(targetCategory).toMutableList()
+             if (!newOrder.contains(file.name)) {
+                 newOrder.add(0, file.name)
+                 saveFileOrder(targetCategory, newOrder)
+             }
+             
             Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
         } else {
+             // Fallback copy-delete
             try {
                 file.inputStream().use { input -> targetFile.outputStream().use { output -> input.copyTo(output) } }
                 file.delete()
+                
+                 // Update orders
+                 val oldOrder = loadFileOrder(uiCategory).toMutableList()
+                 oldOrder.remove(file.name)
+                 saveFileOrder(uiCategory, oldOrder)
+                 
+                 val newOrder = loadFileOrder(targetCategory).toMutableList()
+                 if (!newOrder.contains(file.name)) {
+                     newOrder.add(0, file.name)
+                     saveFileOrder(targetCategory, newOrder)
+                 }
+
                 Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) { Toast.makeText(this, "Error moving", Toast.LENGTH_SHORT).show() }
         }
@@ -897,12 +891,32 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
             } ?: return emptyList()
 
-            return files.mapNotNull { file ->
-                // Siia jõuavad ainult päriselt eksisteerivad failid.
-                // 00:00 tekib ainult siis kui MediaRecorder ei kirjuta andmeid (vt RecordingService parandust)
+            // Normalize names for comparison (just filename)
+            val fileMap = files.associateBy { it.name }
+            val order = loadFileOrder(category)
+            
+            val orderedFiles = mutableListOf<File>()
+            val visited = mutableSetOf<String>()
+            
+            // 1. Add files from order list if they exist
+            order.forEach { name ->
+                if (fileMap.containsKey(name)) {
+                    orderedFiles.add(fileMap[name]!!)
+                    visited.add(name)
+                }
+            }
+            
+            // 2. Add remaining files (new ones) at the TOP (or bottom? Implementation plan said top usually)
+            // Let's put new files at the TOP so user sees them immediately.
+            val newFiles = files.filter { !visited.contains(it.name) }.sortedByDescending { it.lastModified() }
+            
+            // Re-construct final list: New Files + Ordered Files
+            val finalFileList = newFiles + orderedFiles
+
+            return finalFileList.mapNotNull { file ->
                 val (aegTekst, aegNumber) = getDuration(file)
                 RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
-            }.sortedBy { it.name }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             return emptyList()
