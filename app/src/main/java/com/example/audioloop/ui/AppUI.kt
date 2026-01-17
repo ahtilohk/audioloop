@@ -141,30 +141,29 @@ fun FileItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                Icon(
-                    imageVector = AppIcons.GripVertical,
-                    contentDescription = "Drag to reorder",
-                    tint = Zinc600,
+                Box(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(48.dp) // Minimum touch target
                         .pointerInput(Unit) {
                             detectDragGestures(
-                                onDragStart = {
-                                    onDragStart()
-                                },
-                                onDragEnd = {
-                                    onDragEnd()
-                                },
-                                onDragCancel = {
-                                    onDragEnd()
-                                },
+                                onDragStart = { onDragStart() },
+                                onDragEnd = { onDragEnd() },
+                                onDragCancel = { onDragEnd() },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     onDrag(dragAmount.y)
                                 }
                             )
-                        }
-                )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = AppIcons.GripVertical,
+                        contentDescription = "Drag to reorder",
+                        tint = if (isDragging) Cyan400 else Zinc600, // Visual feedback
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
             if (isSelectionMode) {
                 Box(
@@ -879,6 +878,7 @@ fun AudioLoopMainScreen(
                             .clickable {
                                 if (isRecording) {
                                     onStopRecord()
+                                    isRecording = false
                                     // isDragging = false, //
                                 } else {
                                     // Generate name: 001_Record_yyyy.MM.dd HH:mm
