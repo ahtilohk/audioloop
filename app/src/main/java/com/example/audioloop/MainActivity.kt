@@ -902,7 +902,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 // 00:00 tekib ainult siis kui MediaRecorder ei kirjuta andmeid (vt RecordingService parandust)
                 val (aegTekst, aegNumber) = getDuration(file)
                 RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
-            }.sortedByDescending { it.file.lastModified() }
+            }.sortedBy { it.name }
         } catch (e: Exception) {
             e.printStackTrace()
             return emptyList()
