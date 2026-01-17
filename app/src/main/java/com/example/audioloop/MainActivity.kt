@@ -400,6 +400,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             reorderFile(file, direction)
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
+                        onReorderFinished = { OrderedFiles ->
+                            updateFileOrder(OrderedFiles)
+                            savedItems = getSavedRecordings(uiCategory, filesDir)
+                        },
                         onStartRecord = { name, useRaw ->
                             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                                 if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -616,6 +620,29 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             // Note: UI needs to refresh separately if observing file system, 
             // or user navigates back/forth.
         } catch (e: Exception) { Toast.makeText(this, "Error importing", Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun updateFileOrder(orderedFiles: List<File>) {
+        if (orderedFiles.isEmpty()) return
+        val parent = orderedFiles.first().parentFile ?: return
+        
+        // 1. Rename all to temporary names to avoid collisions
+        val tempFiles = orderedFiles.mapIndexed { index, file ->
+            val ext = file.extension
+            val originalName = file.nameWithoutExtension.replace(Regex("^\\d{3}_"), "")
+            val tempFile = File(parent, "tmp_reorder_${System.currentTimeMillis()}_$index.$ext")
+            file.renameTo(tempFile)
+            Triple(tempFile, originalName, ext)
+        }
+        
+        // 2. Rename to final names with new indices
+        tempFiles.forEachIndexed { index, (tempFile, originalName, ext) ->
+            val prefix = String.format("%03d", index + 1)
+            val newName = "${prefix}_${originalName}.$ext"
+            val newFile = File(parent, newName)
+            tempFile.renameTo(newFile)
+            // Update cache key if necessary, though absolute path changes
+        }
     }
 
     private fun reorderFile(file: File, direction: Int) {

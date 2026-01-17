@@ -667,6 +667,7 @@ fun AudioLoopMainScreen(
     
     onMoveFile: (RecordingItem, String) -> Unit,
     onReorderFile: (File, Int) -> Unit,
+    onReorderFinished: (List<File>) -> Unit,
     
     onStartRecord: (String, Boolean) -> Boolean,
     onStopRecord: () -> Unit,
@@ -697,6 +698,17 @@ fun AudioLoopMainScreen(
     var showCategorySheet by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
     
+    // Local source of truth for the list to allow live updates
+    val uiRecordingItems = remember { mutableStateListOf<RecordingItem>() }
+    // Sync when source changes (and not dragging)
+    LaunchedEffect(recordingItems) {
+         // Only update if we are not currently dragging to avoid jumpiness
+         // But usually if recordingItems changes, it means an external update or save finished.
+         // We should probably respect it.
+         uiRecordingItems.clear()
+         uiRecordingItems.addAll(recordingItems)
+    }
+
     // Dialog states
     var showRenameDialog by remember { mutableStateOf(false) }
     var showMoveDialog by remember { mutableStateOf(false) }
@@ -709,8 +721,6 @@ fun AudioLoopMainScreen(
     var draggingItemName by remember { mutableStateOf<String?>(null) }
     var draggingItemIndex by remember { androidx.compose.runtime.mutableIntStateOf(-1) }
     var dragOffsetPx by remember { mutableFloatStateOf(0f) }
-    var landingTargetName by remember { mutableStateOf<String?>(null) }
-    var landingDirection by remember { androidx.compose.runtime.mutableIntStateOf(0) }
     
     val density = LocalDensity.current.density
     val itemHeightPx = 72 * density // Approximate height of an item
@@ -1130,11 +1140,17 @@ fun AudioLoopMainScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                   itemsIndexed(recordingItems, key = { _, item -> item.name }) { index, item ->
+                   itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
                         val isPlaying = item.file.name == playingFileName
                         val isSelected = selectedFiles.contains(item.name)
+                        // Adjust translation for the dragging item to follow finger
+                        val translationY = if (draggingItemName == item.name) dragOffsetPx else 0f
+                        val zIndex = if (draggingItemName == item.name) 1f else 0f
+                        
                         FileItem(
-                            modifier = Modifier,
+                            modifier = Modifier
+                                .graphicsLayer { this.translationY = translationY }
+                                .zIndex(zIndex),
                             item = item,
                             isPlaying = isPlaying,
                             isPaused = if (isPlaying) isPaused else false,
@@ -1157,54 +1173,47 @@ fun AudioLoopMainScreen(
                             currentTimeString = if (isPlaying) currentTimeString else "00:00",
                             onSeek = onSeekTo,
                             onReorder = { dir ->
-                                // Legacy single-step callback if needed, but we use drag now
+                                // Legacy support
                                 val targetIndex = index + dir
-                                if (targetIndex in recordingItems.indices) {
-                                    onReorderFile(item.file, dir)
+                                if (targetIndex in uiRecordingItems.indices) {
+                                    val itemToMove = uiRecordingItems.removeAt(index)
+                                    uiRecordingItems.add(targetIndex, itemToMove)
+                                    onReorderFinished(uiRecordingItems.map { it.file })
                                 }
                             },
                             onDragStart = {
                                 draggingItemName = item.name
                                 draggingItemIndex = index
                                 dragOffsetPx = 0f
-                                landingTargetName = null
-                                landingDirection = 0
                             },
                             onDrag = { delta ->
                                 dragOffsetPx += delta
+                                
                                 val slotsMoved = (dragOffsetPx / itemHeightPx).let { 
                                     if (it > 0) kotlin.math.floor(it + 0.5f).toInt() else kotlin.math.ceil(it - 0.5f).toInt()
                                 }
-                                val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, recordingItems.lastIndex)
+                                val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, uiRecordingItems.lastIndex)
                                 
                                 if (targetIndex != draggingItemIndex) {
-                                    landingTargetName = recordingItems[targetIndex].name
-                                    landingDirection = if (targetIndex > draggingItemIndex) 1 else -1
-                                } else {
-                                    landingTargetName = null
-                                    landingDirection = 0
+                                    // Move item in UI list
+                                    val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
+                                    uiRecordingItems.add(targetIndex, itemToMove)
+                                    
+                                    draggingItemIndex = targetIndex
+                                    dragOffsetPx -= (slotsMoved * itemHeightPx)
                                 }
                             },
                             onDragEnd = {
-                                if (landingTargetName != null && draggingItemName != null) {
-                                    // Calculate final direction/offset and execute
-                                    val targetIndex = recordingItems.indexOfFirst { it.name == landingTargetName }
-                                    if (targetIndex != -1) {
-                                        val diff = targetIndex - draggingItemIndex
-                                        if (diff != 0) {
-                                             onReorderFile(item.file, diff)
-                                        }
-                                    }
+                                if (draggingItemName != null) {
+                                    onReorderFinished(uiRecordingItems.map { it.file })
                                 }
                                 draggingItemName = null
                                 draggingItemIndex = -1
-                                landingTargetName = null
-                                landingDirection = 0
                                 dragOffsetPx = 0f
                             },
                             isDragging = draggingItemName == item.name,
-                            isLandingTarget = landingTargetName == item.name,
-                            landingDirection = landingDirection
+                            isLandingTarget = false, // Removed legacy visual aid
+                            landingDirection = 0
                         )
                    }
                    item { Spacer(modifier = Modifier.height(80.dp)) }
