@@ -1136,6 +1136,73 @@ fun AudioLoopMainScreen(
                 }
                 val density = LocalDensity.current
                 val scrollState = rememberLazyListState()
+                val scope = rememberCoroutineScope()
+                
+                // Auto-scroll logic
+                var overscrollSpeed by remember { mutableFloatStateOf(0f) }
+                
+                // Reusable swap logic
+                fun checkForSwap() {
+                    val spacing = with(density) { 6.dp.toPx() }
+                    
+                    // Handle dragging down
+                    while (dragOffsetPx > 0) {
+                        val nextIndex = draggingItemIndex + 1
+                        if (nextIndex > uiRecordingItems.lastIndex) break
+                        
+                        val nextItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == nextIndex }
+                        val itemHeight = nextItemInfo?.size?.toFloat() 
+                            ?: scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat()
+                            ?: with(density) { 72.dp.toPx() }
+                        
+                        val stride = itemHeight + spacing
+                        
+                        if (dragOffsetPx > stride / 2) { 
+                            val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
+                            uiRecordingItems.add(nextIndex, itemToMove)
+                            draggingItemIndex = nextIndex
+                            dragOffsetPx -= stride
+                        } else {
+                            break
+                        }
+                    }
+                    
+                    // Handle dragging up
+                    while (dragOffsetPx < 0) {
+                        val prevIndex = draggingItemIndex - 1
+                        if (prevIndex < 0) break
+                        
+                        val prevItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == prevIndex }
+                        val itemHeight = prevItemInfo?.size?.toFloat() 
+                            ?: scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat()
+                            ?: with(density) { 72.dp.toPx() }
+                        
+                        val stride = itemHeight + spacing
+                        
+                        if (dragOffsetPx < -stride / 2) {
+                            val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
+                            uiRecordingItems.add(prevIndex, itemToMove)
+                            draggingItemIndex = prevIndex
+                            dragOffsetPx += stride
+                        } else {
+                            break
+                        }
+                    }
+                }
+
+                LaunchedEffect(overscrollSpeed) {
+                    if (overscrollSpeed != 0f) {
+                        while (true) {
+                            val scrolled = scrollState.scrollBy(overscrollSpeed)
+                            if (scrolled != 0f) {
+                                dragOffsetPx += scrolled
+                                checkForSwap()
+                            }
+                            kotlinx.coroutines.delay(10)
+                        }
+                    }
+                }
+
     
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -1193,68 +1260,36 @@ fun AudioLoopMainScreen(
                         onDrag = { delta ->
                             dragOffsetPx += delta
                             
-                            val spacing = with(density) { 6.dp.toPx() }
-                            
-                            // Handle dragging down
-                            while (dragOffsetPx > 0) {
-                                val nextIndex = draggingItemIndex + 1
-                                if (nextIndex > uiRecordingItems.lastIndex) break
+                            // Auto-scroll logic: Calculate finger Y relative to viewport
+                            val itemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }
+                            if (itemInfo != null) {
+                                val itemTop = itemInfo.offset
+                                val itemHeight = itemInfo.size
+                                // Finger is approx at the center of the drag handle? Or we simply assume item position.
+                                // The item *visual* position is itemTop + dragOffsetPx.
+                                // Let's use the visual center of the dragged item.
+                                val visualCenterY = itemTop + dragOffsetPx + (itemHeight / 2)
                                 
-                                // We need the height of the item we are swapping WITH (next item)
-                                // to calculate the layout shift correctly.
-                                val nextItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == nextIndex }
-                                val itemHeight = nextItemInfo?.size?.toFloat() 
-                                    ?: scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat()
-                                    ?: with(density) { 72.dp.toPx() } // Fallback
+                                val viewportHeight = scrollState.layoutInfo.viewportSize.height
+                                val threshold = with(density) { 60.dp.toPx() } // Activation zone
+                                val maxSpeed = with(density) { 20.dp.toPx() } // Per frame approx
                                 
-                                val stride = itemHeight + spacing
-                                
-                                // Swap when we've dragged past the threshold (e.g., half height)
-                                // But to maintain visual position, we must subtract the FULL stride once we swap.
-                                // Let's swap when we overlap significantly, say 50% of stride?
-                                // Actually, simpler logic for 1:1 finger tracking:
-                                // Check if we covered the distance. 
-                                // But real reorder UX usually swaps when centers cross.
-                                // Let's try simple accumulated threshold: 
-                                // If I moved 'stride' distance by finger, I should reside in next slot.
-                                
-                                if (dragOffsetPx > stride / 2) { 
-                                    // Make the swap
-                                    val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
-                                    uiRecordingItems.add(nextIndex, itemToMove)
-                                    
-                                    draggingItemIndex = nextIndex
-                                    dragOffsetPx -= stride
+                                if (visualCenterY < threshold) {
+                                    // Scroll Up
+                                    // Speed proportional to distance? Or fixed.
+                                    overscrollSpeed = -maxSpeed * ((threshold - visualCenterY) / threshold).coerceIn(0.1f, 1f)
+                                } else if (visualCenterY > viewportHeight - threshold) {
+                                    // Scroll Down
+                                    overscrollSpeed = maxSpeed * ((visualCenterY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
                                 } else {
-                                    break // Not enough movement yet
+                                    overscrollSpeed = 0f
                                 }
                             }
                             
-                            // Handle dragging up
-                            while (dragOffsetPx < 0) {
-                                val prevIndex = draggingItemIndex - 1
-                                if (prevIndex < 0) break
-                                
-                                // Height of prev item
-                                val prevItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == prevIndex }
-                                val itemHeight = prevItemInfo?.size?.toFloat() 
-                                    ?: scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat()
-                                    ?: with(density) { 72.dp.toPx() }
-                                
-                                val stride = itemHeight + spacing
-                                
-                                if (dragOffsetPx < -stride / 2) {
-                                    val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
-                                    uiRecordingItems.add(prevIndex, itemToMove)
-                                    
-                                    draggingItemIndex = prevIndex
-                                    dragOffsetPx += stride
-                                } else {
-                                    break
-                                }
-                            }
+                            checkForSwap()
                         },
                             onDragEnd = {
+                                overscrollSpeed = 0f
                                 if (draggingItemName != null) {
                                     onReorderFinished(uiRecordingItems.map { it.file })
                                 }
