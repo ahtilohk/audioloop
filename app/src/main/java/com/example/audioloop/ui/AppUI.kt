@@ -1132,74 +1132,89 @@ fun AudioLoopMainScreen(
                         }
                     }
                 }
-
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                   itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
-                        val isPlaying = item.file.name == playingFileName
-                        val isSelected = selectedFiles.contains(item.name)
-                        // Adjust translation for the dragging item to follow finger
-                        val translationY = if (draggingItemName == item.name) dragOffsetPx else 0f
-                        val zIndex = if (draggingItemName == item.name) 1f else 0f
-                        
-                        FileItem(
-                            modifier = Modifier
-                                .graphicsLayer { this.translationY = translationY }
-                                .zIndex(zIndex),
-                            item = item,
-                            isPlaying = isPlaying,
-                            isPaused = if (isPlaying) isPaused else false,
-                            isSelectionMode = isSelectionMode,
-                            isSelected = isSelected,
-                            selectionOrder = selectedFiles.indexOf(item.name) + 1,
-                            onPlay = { 
-                                onStartPlaylist(listOf(item.file), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
-                            },
-                            onPause = onPausePlay,
-                            onResume = onResumePlay,
-                            onStop = onStopPlay,
-                            onToggleSelect = { toggleSelection(item.name) },
-                            onRename = { itemToModify = item; showRenameDialog = true },
-                            onTrim = { recordingToTrim = item; showTrimDialog = true },
-                            onMove = { itemToModify = item; showMoveDialog = true },
-                            onShare = { onShareFile(item) },
-                            onDelete = { recordingToDelete = item; showDeleteDialog = true },
-                            currentProgress = if (isPlaying) currentProgress else 0f,
-                            currentTimeString = if (isPlaying) currentTimeString else "00:00",
-                            onSeek = onSeekTo,
-                            onReorder = { dir ->
-                                // Legacy support
-                                val targetIndex = index + dir
-                                if (targetIndex in uiRecordingItems.indices) {
-                                    val itemToMove = uiRecordingItems.removeAt(index)
-                                    uiRecordingItems.add(targetIndex, itemToMove)
-                                    onReorderFinished(uiRecordingItems.map { it.file })
+                 val density = LocalDensity.current.density
+    // Initial estimate 72dp + 6dp spacing = 78dp? No, let's start with 0 or approx.
+    // User drift suggests 72 was wrong. 
+    // We will measure card height and add 6dp spacing.
+    var currentItemHeightPx by remember { mutableFloatStateOf(72 * density) } 
+    // We can't use 0 because extended division will break.
+    
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+               itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
+                    val isPlaying = item.file.name == playingFileName
+                    val isSelected = selectedFiles.contains(item.name)
+                    // Adjust translation for the dragging item to follow finger
+                    val translationY = if (draggingItemName == item.name) dragOffsetPx else 0f
+                    val zIndex = if (draggingItemName == item.name) 1f else 0f
+                    
+                    val spacingPx = 6 * density
+                    
+                    FileItem(
+                        modifier = Modifier
+                            .graphicsLayer { this.translationY = translationY }
+                            .zIndex(zIndex)
+                            .onGloballyPositioned { coordinates ->
+                                // Only update if significantly different to avoid potential loops, though usually stable
+                                val h = coordinates.size.height.toFloat() + spacingPx
+                                if (kotlin.math.abs(currentItemHeightPx - h) > 1f) {
+                                    currentItemHeightPx = h
                                 }
                             },
-                            onDragStart = {
-                                draggingItemName = item.name
-                                draggingItemIndex = index
-                                dragOffsetPx = 0f
-                            },
-                            onDrag = { delta ->
-                                dragOffsetPx += delta
+                        item = item,
+                        isPlaying = isPlaying,
+                        isPaused = if (isPlaying) isPaused else false,
+                        isSelectionMode = isSelectionMode,
+                        isSelected = isSelected,
+                        selectionOrder = selectedFiles.indexOf(item.name) + 1,
+                        onPlay = { 
+                            onStartPlaylist(listOf(item.file), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
+                        },
+                        onPause = onPausePlay,
+                        onResume = onResumePlay,
+                        onStop = onStopPlay,
+                        onToggleSelect = { toggleSelection(item.name) },
+                        onRename = { itemToModify = item; showRenameDialog = true },
+                        onTrim = { recordingToTrim = item; showTrimDialog = true },
+                        onMove = { itemToModify = item; showMoveDialog = true },
+                        onShare = { onShareFile(item) },
+                        onDelete = { recordingToDelete = item; showDeleteDialog = true },
+                        currentProgress = if (isPlaying) currentProgress else 0f,
+                        currentTimeString = if (isPlaying) currentTimeString else "00:00",
+                        onSeek = onSeekTo,
+                        onReorder = { dir ->
+                            // Legacy support
+                            val targetIndex = index + dir
+                            if (targetIndex in uiRecordingItems.indices) {
+                                val itemToMove = uiRecordingItems.removeAt(index)
+                                uiRecordingItems.add(targetIndex, itemToMove)
+                                onReorderFinished(uiRecordingItems.map { it.file })
+                            }
+                        },
+                        onDragStart = {
+                            draggingItemName = item.name
+                            draggingItemIndex = index
+                            dragOffsetPx = 0f
+                        },
+                        onDrag = { delta ->
+                            dragOffsetPx += delta
+                            
+                            val slotsMoved = (dragOffsetPx / currentItemHeightPx).let { 
+                                if (it > 0) kotlin.math.floor(it + 0.5f).toInt() else kotlin.math.ceil(it - 0.5f).toInt()
+                            }
+                            val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, uiRecordingItems.lastIndex)
+                            
+                            if (targetIndex != draggingItemIndex) {
+                                // Move item in UI list
+                                val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
+                                uiRecordingItems.add(targetIndex, itemToMove)
                                 
-                                val slotsMoved = (dragOffsetPx / itemHeightPx).let { 
-                                    if (it > 0) kotlin.math.floor(it + 0.5f).toInt() else kotlin.math.ceil(it - 0.5f).toInt()
-                                }
-                                val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, uiRecordingItems.lastIndex)
-                                
-                                if (targetIndex != draggingItemIndex) {
-                                    // Move item in UI list
-                                    val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
-                                    uiRecordingItems.add(targetIndex, itemToMove)
-                                    
-                                    draggingItemIndex = targetIndex
-                                    dragOffsetPx -= (slotsMoved * itemHeightPx)
-                                }
-                            },
+                                draggingItemIndex = targetIndex
+                                dragOffsetPx -= (slotsMoved * currentItemHeightPx)
+                            }
+                        },
                             onDragEnd = {
                                 if (draggingItemName != null) {
                                     onReorderFinished(uiRecordingItems.map { it.file })
