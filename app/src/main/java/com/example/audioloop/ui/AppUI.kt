@@ -1210,8 +1210,8 @@ fun AudioLoopMainScreen(
                         while (true) {
                             val scrolled = scrollState.scrollBy(overscrollSpeed)
                             if (scrolled != 0f) {
-                                // dragOffsetPx += scrolled // REMOVED manual compensation
-                                updateDragOffset() // Recalculate based on new anchor
+                                dragOffsetPx += scrolled // Apply scroll compensation immediately
+                                updateDragOffset() // Correct it if visible
                                 checkForSwap()
                             }
                             kotlinx.coroutines.delay(10)
@@ -1278,6 +1278,7 @@ fun AudioLoopMainScreen(
                         },
                         onDrag = { delta ->
                             accumulatedDrag += delta
+                            dragOffsetPx += delta // Apply delta immediately for responsiveness, overwritten by absolute tracking if visible
                             updateDragOffset()
                             
                             // Auto-scroll logic: Calculate absolute finger Y
