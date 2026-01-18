@@ -1176,20 +1176,7 @@ fun AudioLoopMainScreen(
                             val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                             uiRecordingItems.add(nextIndex, itemToMove)
                             draggingItemIndex = nextIndex
-                            // Visual position logic handles the jump automatically via updateDragOffset!
-                            // But we might need to adjust 'accumulatedDrag' or 'startTopOffset'?
-                            // Wait. TargetTop is absolute Screen Y.
-                            // If we swap, NextIndex item moves to Index.
-                            // Its 'offset' moves.
-                            // 'dragOffsetPx' recalculates to keep TargetTop constant. 
-                            // So we DO NOT MANUALLY ADJUST dragOffsetPx here!
-                            // The 'updateDragOffset' call at the end of the loop (or next frame) handles it.
-                            // BUT 'checkForSwap' uses 'dragOffsetPx' for condition.
-                            // If we don't adjust it immediately, the loop might spin?
-                            // e.g. dragOffsetPx=100. Swap. dragOffsetPx (virtual) becomes -50.
-                            // So loop breaks.
-                            // So we MUST strictly recalculate dragOffsetPx immediately after swap if we loop.
-                             updateDragOffset()
+                            dragOffsetPx -= stride
                         } else {
                             break
                         }
@@ -1211,7 +1198,7 @@ fun AudioLoopMainScreen(
                             val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                             uiRecordingItems.add(prevIndex, itemToMove)
                             draggingItemIndex = prevIndex
-                            updateDragOffset()
+                            dragOffsetPx += stride
                         } else {
                             break
                         }
