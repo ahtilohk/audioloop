@@ -56,11 +56,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import java.io.File
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -1139,6 +1134,8 @@ fun AudioLoopMainScreen(
                             }
                         }
                     }
+                } // End of Category Row
+                
                 val density = LocalDensity.current
                 val scrollState = rememberLazyListState()
                 val scope = rememberCoroutineScope()
