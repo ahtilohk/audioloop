@@ -1165,6 +1165,13 @@ fun AudioLoopMainScreen(
                         val nextIndex = draggingItemIndex + 1
                         if (nextIndex > uiRecordingItems.lastIndex) break
                         
+                        // CRITICAL FIX: Only swap if the target is visible.
+                        // If we swap to an off-screen index, the component gets recycled and drag dies.
+                        // We must wait for auto-scroll to reveal the index.
+                        if (scrollState.layoutInfo.visibleItemsInfo.find { it.index == nextIndex } == null) {
+                            break
+                        }
+                        
                         val nextItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == nextIndex }
                         val itemHeight = nextItemInfo?.size?.toFloat() 
                             ?: scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat()
@@ -1186,6 +1193,11 @@ fun AudioLoopMainScreen(
                     while (dragOffsetPx < 0) {
                         val prevIndex = draggingItemIndex - 1
                         if (prevIndex < 0) break
+                        
+                        // CRITICAL FIX: Only swap if the target is visible.
+                        if (scrollState.layoutInfo.visibleItemsInfo.find { it.index == prevIndex } == null) {
+                            break
+                        }
                         
                         val prevItemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == prevIndex }
                         val itemHeight = prevItemInfo?.size?.toFloat() 
