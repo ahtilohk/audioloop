@@ -1134,7 +1134,7 @@ fun AudioLoopMainScreen(
                         }
                     }
                 }
-                val density = LocalDensity.current.density
+                val density = LocalDensity.current
                 val scrollState = rememberLazyListState()
     
             LazyColumn(
@@ -1200,7 +1200,7 @@ fun AudioLoopMainScreen(
                             } else {
                                 // Fallback to average if current not visible (rare)
                                 val avg = scrollState.layoutInfo.visibleItemsInfo.map { it.size }.average()
-                                if (avg > 0) avg + spacingPx else 78 * density
+                                if (avg > 0) avg + spacingPx else 78 * density.density
                             }.toFloat()
 
                             val slotsMoved = (dragOffsetPx / effectiveHeight).let { 
