@@ -115,6 +115,10 @@ fun FileItem(
         label = "landingAlpha"
     )
 
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+    val currentOnDrag by rememberUpdatedState(onDrag)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -147,12 +151,12 @@ fun FileItem(
                         .size(48.dp) // Minimum touch target
                         .pointerInput(Unit) {
                             detectDragGestures(
-                                onDragStart = { onDragStart() },
-                                onDragEnd = { onDragEnd() },
-                                onDragCancel = { onDragEnd() },
+                                onDragStart = { currentOnDragStart() },
+                                onDragEnd = { currentOnDragEnd() },
+                                onDragCancel = { currentOnDragEnd() },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
-                                    onDrag(dragAmount.y)
+                                    currentOnDrag(dragAmount.y)
                                 }
                             )
                         },
