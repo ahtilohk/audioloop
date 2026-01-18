@@ -1142,7 +1142,7 @@ fun AudioLoopMainScreen(
                 state = scrollState,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-               itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
+               itemsIndexed(uiRecordingItems, key = { _: Int, item: RecordingItem -> item.name }) { index, item ->
                     val isPlaying = item.file.name == playingFileName
                     val isSelected = selectedFiles.contains(item.name)
                     // Adjust translation for the dragging item to follow finger
