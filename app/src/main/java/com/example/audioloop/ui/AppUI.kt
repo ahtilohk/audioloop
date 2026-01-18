@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -1133,15 +1134,12 @@ fun AudioLoopMainScreen(
                         }
                     }
                 }
-                 val density = LocalDensity.current.density
-    // Initial estimate 72dp + 6dp spacing = 78dp? No, let's start with 0 or approx.
-    // User drift suggests 72 was wrong. 
-    // We will measure card height and add 6dp spacing.
-    var currentItemHeightPx by remember { mutableFloatStateOf(72 * density) } 
-    // We can't use 0 because extended division will break.
+                val density = LocalDensity.current.density
+                val scrollState = rememberLazyListState()
     
             LazyColumn(
                 modifier = Modifier.weight(1f),
+                state = scrollState,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
@@ -1151,19 +1149,12 @@ fun AudioLoopMainScreen(
                     val translationY = if (draggingItemName == item.name) dragOffsetPx else 0f
                     val zIndex = if (draggingItemName == item.name) 1f else 0f
                     
-                    val spacingPx = 6 * density
+                    val spacingPx = with(density) { 6.dp.toPx() }
                     
                     FileItem(
                         modifier = Modifier
                             .graphicsLayer { this.translationY = translationY }
-                            .zIndex(zIndex)
-                            .onGloballyPositioned { coordinates ->
-                                // Only update if significantly different to avoid potential loops, though usually stable
-                                val h = coordinates.size.height.toFloat() + spacingPx
-                                if (kotlin.math.abs(currentItemHeightPx - h) > 1f) {
-                                    currentItemHeightPx = h
-                                }
-                            },
+                            .zIndex(zIndex),
                         item = item,
                         isPlaying = isPlaying,
                         isPaused = if (isPlaying) isPaused else false,
@@ -1202,7 +1193,17 @@ fun AudioLoopMainScreen(
                         onDrag = { delta ->
                             dragOffsetPx += delta
                             
-                            val slotsMoved = (dragOffsetPx / currentItemHeightPx).let { 
+                            // Calculate item height dynamically from layout info
+                            val itemInfo = scrollState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == draggingItemIndex }
+                            val effectiveHeight = if (itemInfo != null) {
+                                itemInfo.size + spacingPx
+                            } else {
+                                // Fallback to average if current not visible (rare)
+                                val avg = scrollState.layoutInfo.visibleItemsInfo.map { it.size }.average()
+                                if (avg > 0) avg + spacingPx else 78 * density
+                            }.toFloat()
+
+                            val slotsMoved = (dragOffsetPx / effectiveHeight).let { 
                                 if (it > 0) kotlin.math.floor(it + 0.5f).toInt() else kotlin.math.ceil(it - 0.5f).toInt()
                             }
                             val targetIndex = (draggingItemIndex + slotsMoved).coerceIn(0, uiRecordingItems.lastIndex)
@@ -1213,7 +1214,7 @@ fun AudioLoopMainScreen(
                                 uiRecordingItems.add(targetIndex, itemToMove)
                                 
                                 draggingItemIndex = targetIndex
-                                dragOffsetPx -= (slotsMoved * currentItemHeightPx)
+                                dragOffsetPx -= (slotsMoved * effectiveHeight)
                             }
                         },
                             onDragEnd = {
