@@ -1134,13 +1134,25 @@ fun AudioLoopMainScreen(
                             }
                         }
                     }
-                }
                 val density = LocalDensity.current
                 val scrollState = rememberLazyListState()
                 val scope = rememberCoroutineScope()
                 
+                // Absolute tracking for robust drag
+                var startTopOffset by remember { mutableFloatStateOf(0f) }
+                var accumulatedDrag by remember { mutableFloatStateOf(0f) }
+                
                 // Auto-scroll logic
                 var overscrollSpeed by remember { mutableFloatStateOf(0f) }
+                
+                fun updateDragOffset() {
+                    val itemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }
+                    if (itemInfo != null) {
+                       val currentTop = itemInfo.offset.toFloat()
+                       val targetTop = startTopOffset + accumulatedDrag
+                       dragOffsetPx = targetTop - currentTop
+                    }
+                }
                 
                 // Reusable swap logic
                 fun checkForSwap() {
@@ -1162,7 +1174,20 @@ fun AudioLoopMainScreen(
                             val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                             uiRecordingItems.add(nextIndex, itemToMove)
                             draggingItemIndex = nextIndex
-                            dragOffsetPx -= stride
+                            // Visual position logic handles the jump automatically via updateDragOffset!
+                            // But we might need to adjust 'accumulatedDrag' or 'startTopOffset'?
+                            // Wait. TargetTop is absolute Screen Y.
+                            // If we swap, NextIndex item moves to Index.
+                            // Its 'offset' moves.
+                            // 'dragOffsetPx' recalculates to keep TargetTop constant. 
+                            // So we DO NOT MANUALLY ADJUST dragOffsetPx here!
+                            // The 'updateDragOffset' call at the end of the loop (or next frame) handles it.
+                            // BUT 'checkForSwap' uses 'dragOffsetPx' for condition.
+                            // If we don't adjust it immediately, the loop might spin?
+                            // e.g. dragOffsetPx=100. Swap. dragOffsetPx (virtual) becomes -50.
+                            // So loop breaks.
+                            // So we MUST strictly recalculate dragOffsetPx immediately after swap if we loop.
+                             updateDragOffset()
                         } else {
                             break
                         }
@@ -1184,7 +1209,7 @@ fun AudioLoopMainScreen(
                             val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                             uiRecordingItems.add(prevIndex, itemToMove)
                             draggingItemIndex = prevIndex
-                            dragOffsetPx += stride
+                            updateDragOffset()
                         } else {
                             break
                         }
@@ -1196,7 +1221,8 @@ fun AudioLoopMainScreen(
                         while (true) {
                             val scrolled = scrollState.scrollBy(overscrollSpeed)
                             if (scrolled != 0f) {
-                                dragOffsetPx += scrolled
+                                // dragOffsetPx += scrolled // REMOVED manual compensation
+                                updateDragOffset() // Recalculate based on new anchor
                                 checkForSwap()
                             }
                             kotlinx.coroutines.delay(10)
@@ -1256,48 +1282,47 @@ fun AudioLoopMainScreen(
                         onDragStart = {
                             draggingItemName = item.name
                             draggingItemIndex = index
+                            accumulatedDrag = 0f
+                            val info = scrollState.layoutInfo.visibleItemsInfo.find { it.index == index }
+                            startTopOffset = info?.offset?.toFloat() ?: 0f
                             dragOffsetPx = 0f
                         },
                         onDrag = { delta ->
-                            dragOffsetPx += delta
+                            accumulatedDrag += delta
+                            updateDragOffset()
                             
-                            // Auto-scroll logic: Calculate finger Y relative to viewport
-                            val itemInfo = scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }
-                            if (itemInfo != null) {
-                                val itemTop = itemInfo.offset
-                                val itemHeight = itemInfo.size
-                                // Finger is approx at the center of the drag handle? Or we simply assume item position.
-                                // The item *visual* position is itemTop + dragOffsetPx.
-                                // Let's use the visual center of the dragged item.
-                                val visualCenterY = itemTop + dragOffsetPx + (itemHeight / 2)
+                            // Auto-scroll logic: Calculate absolute finger Y
+                            val viewportHeight = scrollState.layoutInfo.viewportSize.height
+                            
+                            // Estimate item height for center calc
+                            val itemHeight = scrollState.layoutInfo.visibleItemsInfo.find { it.index == draggingItemIndex }?.size?.toFloat() 
+                                ?: with(density) { 72.dp.toPx() }
                                 
-                                val viewportHeight = scrollState.layoutInfo.viewportSize.height
-                                val threshold = with(density) { 60.dp.toPx() } // Activation zone
-                                val maxSpeed = with(density) { 20.dp.toPx() } // Per frame approx
-                                
-                                if (visualCenterY < threshold) {
-                                    // Scroll Up
-                                    // Speed proportional to distance? Or fixed.
-                                    overscrollSpeed = -maxSpeed * ((threshold - visualCenterY) / threshold).coerceIn(0.1f, 1f)
-                                } else if (visualCenterY > viewportHeight - threshold) {
-                                    // Scroll Down
-                                    overscrollSpeed = maxSpeed * ((visualCenterY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
-                                } else {
-                                    overscrollSpeed = 0f
-                                }
+                            val visualCenterY = startTopOffset + accumulatedDrag + (itemHeight / 2)
+                            
+                            val threshold = with(density) { 60.dp.toPx() } 
+                            val maxSpeed = with(density) { 20.dp.toPx() } 
+                            
+                            if (visualCenterY < threshold) {
+                                overscrollSpeed = -maxSpeed * ((threshold - visualCenterY) / threshold).coerceIn(0.1f, 1f)
+                            } else if (visualCenterY > viewportHeight - threshold) {
+                                overscrollSpeed = maxSpeed * ((visualCenterY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
+                            } else {
+                                overscrollSpeed = 0f
                             }
                             
                             checkForSwap()
                         },
-                            onDragEnd = {
-                                overscrollSpeed = 0f
-                                if (draggingItemName != null) {
-                                    onReorderFinished(uiRecordingItems.map { it.file })
-                                }
-                                draggingItemName = null
-                                draggingItemIndex = -1
-                                dragOffsetPx = 0f
-                            },
+                        onDragEnd = {
+                            overscrollSpeed = 0f
+                            if (draggingItemName != null) {
+                                onReorderFinished(uiRecordingItems.map { it.file })
+                            }
+                            draggingItemName = null
+                            draggingItemIndex = -1
+                            dragOffsetPx = 0f
+                            accumulatedDrag = 0f
+                        },
                             isDragging = draggingItemName == item.name,
                             isLandingTarget = false, // Removed legacy visual aid
                             landingDirection = 0
