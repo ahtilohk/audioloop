@@ -55,6 +55,7 @@ class RecordingService : Service() {
     private var isRecording = false
     private var currentFile: File? = null
     private var currentUri: android.net.Uri? = null // For MediaStore
+    private var recordingPfd: android.os.ParcelFileDescriptor? = null
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     
     // --- REAL-TIME AAC ENCODING PROPERTIES ---
@@ -410,6 +411,22 @@ class RecordingService : Service() {
 
                 // 4. Deterministic Resource Release
                 releaseResources()
+
+                // Close PFD
+                try {
+                    recordingPfd?.close()
+                    recordingPfd = null
+                } catch (e: Exception) { e.printStackTrace() }
+                
+                // Update Pending Status (Public Storage)
+                if (currentUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        val values = android.content.ContentValues().apply {
+                            put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0)
+                        }
+                        contentResolver.update(currentUri!!, values, null, null)
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
 
                 // 5. Notify Completion
                 val intent = Intent(ACTION_RECORDING_SAVED)

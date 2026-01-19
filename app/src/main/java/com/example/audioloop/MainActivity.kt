@@ -227,6 +227,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var uiCategory by mutableStateOf("General")
     private var categories by mutableStateOf(listOf("General"))
     private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
+    private var usePublicStorage by mutableStateOf(false)
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -235,9 +236,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
         } catch (e: Exception) {
             e.printStackTrace()
-            // Fallback or exit if strictly required? It's needed for VOOG.
-            // We'll let it slide and handle nulls later if possible, but for now just catch to prevent immediate crash.
         }
+        
+        usePublicStorage = getPublicStoragePref(this)
 
         setContent {
             AudioLoopTheme {
@@ -468,7 +469,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         selectedSpeed = playbackSpeed,
                         selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
-                        onShadowingChange = { isShadowingMode = it }
+                        onShadowingChange = { isShadowingMode = it },
+                        usePublicStorage = usePublicStorage,
+                        onPublicStorageChange = { 
+                            usePublicStorage = it
+                            savePublicStoragePref(this@MainActivity, it)
+                        }
                     )
                 }
             }
@@ -561,15 +567,30 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         return String.format("%02d:%02d", minutes, seconds)
     }
 
+    fun savePublicStoragePref(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("use_public_storage", enabled).apply()
+    }
+    
+    fun getPublicStoragePref(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("use_public_storage", false)
+    }
+
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
+        val usePublic = getPublicStoragePref(this)
         val finalName = if (category == "General") fileName else {
-            val folder = File(filesDir, category)
-            if (!folder.exists()) folder.mkdirs()
-            "$category/$fileName"
+            if (usePublic) fileName else {
+                 val folder = File(filesDir, category)
+                 if (!folder.exists()) folder.mkdirs()
+                 "$category/$fileName"
+            }
         }
         val intent = Intent(this, RecordingService::class.java).apply {
             action = RecordingService.ACTION_START
             putExtra(RecordingService.EXTRA_FILENAME, finalName)
+            putExtra(RecordingService.EXTRA_USE_PUBLIC_STORAGE, usePublic)
+            putExtra(RecordingService.EXTRA_CATEGORY, category)
             val source = if (useRawAudio && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 MediaRecorder.AudioSource.UNPROCESSED
             } else { MediaRecorder.AudioSource.MIC }
@@ -893,46 +914,93 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     )
 
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
+        val items = mutableListOf<RecordingItem>()
+        
+        // 1. Internal Storage
         try {
             val targetDir = if (category == "General") rootDir else File(rootDir, category)
-            if (!targetDir.exists()) return emptyList()
-            val files = targetDir.listFiles { _, name ->
-                name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
-            } ?: return emptyList()
-
-            // Normalize names for comparison (just filename)
-            val fileMap = files.associateBy { it.name }
-            val order = loadFileOrder(category)
-            
-            val orderedFiles = mutableListOf<File>()
-            val visited = mutableSetOf<String>()
-            
-            // 1. Add files from order list if they exist
-            order.forEach { name ->
-                if (fileMap.containsKey(name)) {
-                    orderedFiles.add(fileMap[name]!!)
-                    visited.add(name)
+            if (targetDir.exists()) {
+                val files = targetDir.listFiles { _, name ->
+                    name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
+                }
+                files?.forEach { file ->
+                    val (aegTekst, aegNumber) = getDuration(file)
+                    val uri = try {
+                        FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
+                    } catch (e: Exception) { Uri.EMPTY }
+                    items.add(RecordingItem(file, file.name, aegTekst, aegNumber, uri))
                 }
             }
-            
-            // 2. Add remaining files (new ones) at the TOP
-            val newFiles = files.filter { !visited.contains(it.name) }.sortedByDescending { it.lastModified() }
-            
-            // Re-construct final list: New Files + Ordered Files
-            val finalFileList = newFiles + orderedFiles
+        } catch (e: Exception) { e.printStackTrace() }
 
-            return finalFileList.mapNotNull { file ->
-                val (aegTekst, aegNumber) = getDuration(file)
-                val uri = try {
-                    FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
-                } catch (e: Exception) { Uri.EMPTY }
-                RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber, uri = uri)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return emptyList()
+        // 2. Public Storage (MediaStore)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Minimal support for feature
+            try {
+                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                val projection = arrayOf(
+                    MediaStore.Audio.Media._ID,
+                    MediaStore.Audio.Media.DISPLAY_NAME,
+                    MediaStore.Audio.Media.DURATION, // is ms
+                    MediaStore.Audio.Media.DATA, // Deprecated but useful for File object
+                    MediaStore.Audio.Media.RELATIVE_PATH
+                )
+                
+                // Construct selection
+                val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
+                val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?" // Matches exact start
+                val selectionArgs = arrayOf("$targetPath%")
+                
+                contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                     val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+                     val nameCol = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
+                     val durCol = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                     val dataCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+                     
+                     while (cursor.moveToNext()) {
+                         val id = cursor.getLong(idCol)
+                         val name = cursor.getString(nameCol)
+                         val durationMs = cursor.getLong(durCol)
+                         val path = cursor.getString(dataCol)
+                         // Avoid duplicates if saved both places?? Unlikely, different paths.
+                         
+                         // Skip if name matches existing (e.g. if we copied it manually? but path diff)
+                         // Let's filter by name?
+                         if (items.any { it.name == name }) continue 
+
+                         val file = File(path) // Might not be readable directly, but OK for metadata holder
+                         val uri = android.content.ContentUris.withAppendedId(collection, id)
+                         items.add(RecordingItem(file, name, formatTime(durationMs), durationMs, uri))
+                     }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
         }
+
+        // Sort and Organize
+        val fileMap = items.associateBy { it.name }
+        val order = loadFileOrder(category)
+        
+        val orderedItems = mutableListOf<RecordingItem>()
+        val visited = mutableSetOf<String>()
+        
+        // Add ordered
+        order.forEach { name ->
+            if (fileMap.containsKey(name)) {
+                orderedItems.add(fileMap[name]!!)
+                visited.add(name)
+            }
+        }
+        
+        // Add new (unvisited)
+        // Sort new items by date from file?
+        // Public file date might be modified time.
+        // RecordingItem needs 'date' or use file.lastModified()
+        // File(path).lastModified() works if we have permission. MediaStore has DATE_ADDED.
+        // For simplicity, let's use file.lastModified() fallback.
+        val newItems = items.filter { !visited.contains(it.name) }.sortedByDescending { it.file.lastModified() }
+        
+        return newItems + orderedItems
     }
+
 
 
     private fun playPlaylist(

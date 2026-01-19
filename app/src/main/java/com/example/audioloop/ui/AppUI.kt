@@ -667,7 +667,10 @@ fun AudioLoopMainScreen(
     selectedSpeed: Float,
     selectedLoopCount: Int,
     isShadowing: Boolean,
-    onShadowingChange: (Boolean) -> Unit
+    onShadowingChange: (Boolean) -> Unit,
+    
+    usePublicStorage: Boolean,
+    onPublicStorageChange: (Boolean) -> Unit
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf("Speech") }
@@ -1054,6 +1057,33 @@ fun AudioLoopMainScreen(
                                 }
                             }
                         }
+                        
+                        // Public Storage
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text("Avalik salvestus", style = TextStyle(color = Zinc300, fontSize = 14.sp))
+                                Text("Salvesta Music/AudioLoop kausta", style = TextStyle(color = Zinc600, fontSize = 10.sp))
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .width(44.dp)
+                                    .height(24.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (usePublicStorage) Cyan600 else Zinc700)
+                                    .clickable { onPublicStorageChange(!usePublicStorage) }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .offset(x = if (usePublicStorage) 22.dp else 2.dp, y = 2.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = Cyan600, modifier = Modifier.size(10.dp))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1074,7 +1104,7 @@ fun AudioLoopMainScreen(
                     if (isSelectionMode && selectedFiles.isNotEmpty()) {
                         Button(
                             onClick = {
-                                val filesToPlay = recordingItems.filter { selectedFiles.contains(it.name) }.map { it.file }
+                                val filesToPlay = recordingItems.filter { selectedFiles.contains(it.name) }
                                 if (filesToPlay.isNotEmpty()) {
                                     onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
                                     isSelectionMode = false
