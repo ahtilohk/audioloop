@@ -956,26 +956,36 @@ fun AudioLoopMainScreen(
                         Icon(AppIcons.Settings, contentDescription = null, tint = if (settingsOpen) Color.White else Zinc400, modifier = Modifier.size(16.dp))
                     }
                     
-                    Row(
+                    Column(
                         modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Text("Speed:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                        Text("${selectedSpeed}x", style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                        Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                        Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                        val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
-                        Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                        
-                        Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                        val storageText = if (usePublicStorage) "Public" else "Internal"
-                        Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                        Text(storageText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-
-                        if (isShadowing) {
+                        // Row 1: Speed & Repeat
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("Speed:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            Text("${selectedSpeed}x", style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                            Text("SHADOW", style = TextStyle(color = Cyan400, fontWeight = FontWeight.Bold, fontSize = 10.sp))
+                            Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
+                            Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                        }
+
+                        // Row 2: Storage & Shadowing
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val storageText = if (usePublicStorage) "Public" else "Internal"
+                            Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            Text(storageText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            
+                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
+                            Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            val shadowText = if (isShadowing) "Yes" else "No"
+                            Text(shadowText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
                     }
 
