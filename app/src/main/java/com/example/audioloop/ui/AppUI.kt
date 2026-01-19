@@ -1511,7 +1511,13 @@ fun TrimAudioDialog(
     onConfirm: (start: Long, end: Long, replace: Boolean) -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
-    val stepSize = durationMs / 50f
+    
+    // Waveform Loading
+    val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
+        value = withContext(Dispatchers.IO) {
+            com.example.audioloop.WaveformGenerator.extractWaveform(file, 60)
+        }
+    }
     
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -1523,15 +1529,16 @@ fun TrimAudioDialog(
                 Text("Trim Audio", style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold))
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Visual Trimmer
+                // Visual Trimmer with Waveform
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp)
                         .background(Zinc800, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 4.dp)
                 ) {
                     val widthPx = constraints.maxWidth.toFloat()
+                    val heightPx = constraints.maxHeight.toFloat()
                     val totalDuration = durationMs.toFloat()
                     
                     var startX by remember { mutableFloatStateOf(0f) }
@@ -1542,13 +1549,41 @@ fun TrimAudioDialog(
                         endX = (range.endInclusive / totalDuration) * widthPx
                     }
 
-                    val density = LocalDensity.current.density
+                    // Render Waveform
+                    if (waveform.value == null) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Cyan500, modifier = Modifier.size(24.dp))
+                        }
+                    } else {
+                        val bars = waveform.value!!
+                        val barWidth = widthPx / bars.size
+                        
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            bars.forEachIndexed { index, amplitude ->
+                                val x = index * barWidth
+                                val barHeight = (amplitude / 100f) * heightPx
+                                val isSelected = x >= startX && x <= endX
+                                
+                                drawLine(
+                                    color = if (isSelected) Cyan500 else Zinc600,
+                                    start = Offset(x + barWidth/2, (heightPx - barHeight) / 2),
+                                    end = Offset(x + barWidth/2, (heightPx + barHeight) / 2),
+                                    strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
+                                )
+                            }
+                        }
+                    }
                     
+                    // Touch/Drag Layer
                     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                         detectHorizontalDragGestures { change, dragAmount ->
                             val x = change.position.x
-                            // Determine if dragging start or end handle based on proximity
-                            if (androidx.compose.ui.geometry.Offset(startX, 0f).minus(change.position).getDistanceSquared() < androidx.compose.ui.geometry.Offset(endX, 0f).minus(change.position).getDistanceSquared()) {
+                            // Determine closest handle
+                            val distStart = kotlin.math.abs(x - startX)
+                            val distEnd = kotlin.math.abs(x - endX)
+                            
+                            // Prefer active handle if dragging? Simple distance check usually works.
+                            if (distStart < distEnd) {
                                 // Dragging start
                                 var newStart = (startX + dragAmount).coerceIn(0f, endX - 20)
                                 startX = newStart
@@ -1563,15 +1598,15 @@ fun TrimAudioDialog(
                             }
                         }
                     }) {
-                        // Draw timeline
-                        drawLine(Zinc600, Offset(0f, size.height/2), Offset(size.width, size.height/2), strokeWidth = 2.dp.toPx())
-                        
-                        // Draw selected range
-                        drawLine(Cyan500, Offset(startX, size.height/2), Offset(endX, size.height/2), strokeWidth = 4.dp.toPx())
+                        // Draw Selection Overlay / Handles
+                        // Dim unselected areas (optional, lets keep it clean)
                         
                         // Draw handles
-                        drawCircle(Cyan400, radius = 8.dp.toPx(), center = Offset(startX, size.height/2))
-                        drawCircle(Cyan400, radius = 8.dp.toPx(), center = Offset(endX, size.height/2))
+                        drawCircle(Color.White, radius = 9.dp.toPx(), center = Offset(startX, size.height/2))
+                        drawCircle(Cyan500, radius = 7.dp.toPx(), center = Offset(startX, size.height/2))
+                        
+                        drawCircle(Color.White, radius = 9.dp.toPx(), center = Offset(endX, size.height/2))
+                        drawCircle(Cyan500, radius = 7.dp.toPx(), center = Offset(endX, size.height/2))
                     }
                 }
                 
@@ -1587,8 +1622,18 @@ fun TrimAudioDialog(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, colors = ButtonDefaults.buttonColors(containerColor = Cyan600)) {
-                         Text("Save Copy")
+                    Button(
+                        onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
+                        colors = ButtonDefaults.buttonColors(containerColor = Zinc700)
+                    ) {
+                         Text("Save Copy", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
+                        colors = ButtonDefaults.buttonColors(containerColor = Cyan600)
+                    ) {
+                         Text("Replace Original")
                     }
                 }
             }
