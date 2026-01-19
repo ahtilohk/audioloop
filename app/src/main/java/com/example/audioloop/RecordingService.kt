@@ -130,7 +130,7 @@ class RecordingService : Service() {
         currentUri = null
 
         withContext(Dispatchers.Main) {
-            startForegroundServiceNotification("Mikrofon lindistab...", false)
+            startForegroundServiceNotification("Microphone recording...", false)
         }
 
         try {
@@ -190,7 +190,7 @@ class RecordingService : Service() {
                 }
                 
                 setOnErrorListener { _, _, _ ->
-                   showToast("Viga salvestamisel!")
+                   showToast("Error recording!")
                    safelyStopRecorder()
                 }
                 prepare()
@@ -200,7 +200,7 @@ class RecordingService : Service() {
             isInternalRecording = false
             recordingStartTime = System.currentTimeMillis()
             startAmplitudeTicker()
-            showToast("Salvestan: $finalFileName")
+            showToast("Recording: $finalFileName")
             
             // Keep PFD open? MediaRecorder might need it.
             // If we close PFD now, does MediaRecorder crash?
@@ -219,7 +219,7 @@ class RecordingService : Service() {
             
         } catch (e: Exception) {
             e.printStackTrace()
-            showToast("Viga mikrofoniga: ${e.message}")
+            showToast("Microphone error: ${e.message}")
             cleanupMicRecorder()
             currentFile?.delete()
             currentUri?.let { contentResolver.delete(it, null, null) }
@@ -235,7 +235,7 @@ class RecordingService : Service() {
         val file = File(filesDir, finalFileName)
         currentFile = file
         
-        startForegroundServiceNotification("Voogsalvestus käib...", true)
+        startForegroundServiceNotification("Stream recording active...", true)
 
         try {
             var projection = mediaProjection
@@ -308,11 +308,11 @@ class RecordingService : Service() {
             startEncodingLoop(record, encoder, bufferSize)
             
             startAmplitudeTicker() 
-            showToast("Voogsalvestus (Real-Time) algas!")
+            showToast("Stream Recording (Real-Time) started!")
 
         } catch (e: Throwable) { // Catch Throwable to handle NoClassDefFoundError etc
             e.printStackTrace()
-            showToast("Viga Voogsalvestusel: ${e.message}")
+            showToast("Stream Recording Error: ${e.message}")
             safelyStopRecorder()
         }
     }
@@ -394,7 +394,7 @@ class RecordingService : Service() {
         isRecording = false
         
         // 2. UI Feedback immediately (Main Thread safe)
-        startForegroundServiceNotification("Salvestamine peatatud...", false)
+        startForegroundServiceNotification("Recording stopped...", false)
         stopForegroundService()
         tickerJob?.cancel()
 
@@ -434,7 +434,7 @@ class RecordingService : Service() {
                 sendBroadcast(intent)
                 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(applicationContext, "Salvestatud!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Saved!", Toast.LENGTH_SHORT).show()
                 }
             }
         }

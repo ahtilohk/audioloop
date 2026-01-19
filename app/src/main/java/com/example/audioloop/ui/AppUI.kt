@@ -968,6 +968,11 @@ fun AudioLoopMainScreen(
                         val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
                         Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         
+                        Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
+                        val storageText = if (usePublicStorage) "Public" else "Internal"
+                        Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                        Text(storageText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+
                         if (isShadowing) {
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("SHADOW", style = TextStyle(color = Cyan400, fontWeight = FontWeight.Bold, fontSize = 10.sp))
@@ -1061,8 +1066,8 @@ fun AudioLoopMainScreen(
                         // Public Storage
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
-                                Text("Avalik salvestus", style = TextStyle(color = Zinc300, fontSize = 14.sp))
-                                Text("Salvesta Music/AudioLoop kausta", style = TextStyle(color = Zinc600, fontSize = 10.sp))
+                                Text("Public Storage", style = TextStyle(color = Zinc300, fontSize = 14.sp))
+                                Text("Save recordings to Music/AudioLoop", style = TextStyle(color = Zinc600, fontSize = 10.sp))
                             }
                             Box(
                                 modifier = Modifier
