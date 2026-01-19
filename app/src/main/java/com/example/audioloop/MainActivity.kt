@@ -176,7 +176,7 @@ fun sanitizeName(name: String): String {
         return prefs.getString("app_lang", "et") ?: "et" // Default to Estonian
     }
 
-data class RecordingItem(val file: File, val name: String, val durationString: String, val durationMillis: Long)
+data class RecordingItem(val file: File, val name: String, val durationString: String, val durationMillis: Long, val uri: Uri)
 
 // --- MAIN ACTIVITY ---
 class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
@@ -905,13 +905,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
 
 
-    data class RecordingItem(
-        val file: File, 
-        val name: String, 
-        val durationString: String, 
-        val durationMillis: Long,
-        val uri: Uri
-    )
+
 
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
         val items = mutableListOf<RecordingItem>()
