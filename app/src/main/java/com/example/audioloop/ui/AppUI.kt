@@ -47,6 +47,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.gestures.*
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
@@ -1281,6 +1286,18 @@ fun AudioLoopMainScreen(
                         selectionOrder = selectedFiles.indexOf(item.name) + 1,
                         currentProgress = if (item.file.name == playingFileName) currentProgress else 0f,
                         currentTimeString = if (item.file.name == playingFileName) currentTimeString else "00:00",
+                        onPlay = {},
+                        onPause = {},
+                        onResume = {},
+                        onStop = {},
+                        onToggleSelect = {},
+                        onRename = {},
+                        onTrim = {},
+                        onMove = {},
+                        onShare = {},
+                        onDelete = {},
+                        onSeek = {},
+                        onReorder = {},
                         isDragging = true
                     )
                 }
