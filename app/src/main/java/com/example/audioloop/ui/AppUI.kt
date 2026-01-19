@@ -1121,19 +1121,37 @@ fun AudioLoopMainScreen(
                 
                 fun checkForSwap() {
                     val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
+                    if (currentVisibleItems.isEmpty()) return
+                    
                     val overlayCenterY = overlayOffsetY + (with(density) { 36.dp.toPx() }) // Approx center
 
+                    var targetIndex = -1
+                    
+                    // 1. Try exact match (Hover)
                     val hoveredItem = currentVisibleItems.find { 
                         overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
                     }
                     
-                    if (hoveredItem != null && hoveredItem.index != draggingItemIndex) {
-                        val targetIndex = hoveredItem.index
+                    if (hoveredItem != null) {
+                        targetIndex = hoveredItem.index
+                    } else {
+                        // 2. Fallback: Check for out-of-bounds (Too high or Too low)
+                        // This handles fast drags where the overlay flies past the items
+                        val firstVisible = currentVisibleItems.first()
+                        val lastVisible = currentVisibleItems.last()
+                        
+                        if (overlayCenterY < firstVisible.offset) {
+                            targetIndex = firstVisible.index
+                        } else if (overlayCenterY > lastVisible.offset + lastVisible.size) {
+                            targetIndex = lastVisible.index
+                        }
+                    }
+                    
+                    if (targetIndex != -1 && targetIndex != draggingItemIndex) {
                         if (draggingItemIndex in uiRecordingItems.indices && targetIndex in uiRecordingItems.indices) {
                             val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                             uiRecordingItems.add(targetIndex, itemToMove)
                             draggingItemIndex = targetIndex
-                            // Note: We don't save to file on every swap to avoid IO lag, only on end.
                         }
                     }
                 }
