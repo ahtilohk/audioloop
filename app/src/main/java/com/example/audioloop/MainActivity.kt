@@ -789,46 +789,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun exportFileToMusic(file: File, category: String) {
-        val resolver = applicationContext.contentResolver
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp4") // m4a is mp4 container
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Ensure unique internal folder vs public folder
-                val relativePath = if (category == "General") "Music/AudioLoop" else "Music/AudioLoop/$category"
-                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
-        }
 
-        try {
-            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            } else {
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            }
-
-            val uri = resolver.insert(collection, contentValues)
-            if (uri != null) {
-                resolver.openOutputStream(uri)?.use { output ->
-                    file.inputStream().use { input -> input.copyTo(output) }
-                }
-                
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.clear()
-                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    resolver.update(uri, contentValues, null, null)
-                }
-                // Optional: Notify user or just stay silent? 
-                // User asked for "Auto export", so maybe a subtle indicator is enough.
-                // We already show "Saved" toast from Service. Let's add specific logic in Receiver to Toast "Saved & Exported"
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            // Don't disturb user if export fails, it's a secondary feature
-        }
-    }
 
     private fun deleteCategory(catName: String) {
         if (catName == "General") return
