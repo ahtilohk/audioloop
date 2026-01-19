@@ -650,7 +650,7 @@ fun AudioLoopMainScreen(
     onStartRecord: (String, Boolean) -> Boolean,
     onStopRecord: () -> Unit,
     
-    onStartPlaylist: (List<File>, loop: Boolean, speed: Float, onComplete: () -> Unit) -> Unit,
+    onStartPlaylist: (List<RecordingItem>, Boolean, Float, () -> Unit) -> Unit,
     onPlaylistUpdate: () -> Unit,
     
     onSpeedChange: (Float) -> Unit,
@@ -1256,7 +1256,7 @@ fun AudioLoopMainScreen(
                             isSelected = isSelected,
                             selectionOrder = selectedFiles.indexOf(item.name) + 1,
                             onPlay = { 
-                                onStartPlaylist(listOf(item.file), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
+                                onStartPlaylist(listOf(item), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
                             },
                             onPause = onPausePlay,
                             onResume = onResumePlay,

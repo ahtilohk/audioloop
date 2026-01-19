@@ -44,6 +44,8 @@ class RecordingService : Service() {
         const val EXTRA_DATA = "EXTRA_DATA"
         const val EXTRA_AMPLITUDE = "EXTRA_AMPLITUDE"
         const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS"
+        const val EXTRA_USE_PUBLIC_STORAGE = "EXTRA_USE_PUBLIC_STORAGE"
+        const val EXTRA_CATEGORY = "EXTRA_CATEGORY"
 
         private const val CHANNEL_ID = "recording_channel"
         private const val NOTIFICATION_ID = 1
@@ -52,6 +54,7 @@ class RecordingService : Service() {
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
     private var currentFile: File? = null
+    private var currentUri: android.net.Uri? = null // For MediaStore
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     
     // --- REAL-TIME AAC ENCODING PROPERTIES ---
@@ -88,7 +91,9 @@ class RecordingService : Service() {
             ACTION_START -> {
                 val fileName = intent.getStringExtra(EXTRA_FILENAME) ?: "recording"
                 val source = intent.getIntExtra(EXTRA_AUDIO_SOURCE, MediaRecorder.AudioSource.MIC)
-                serviceScope.launch { startMicRecording(fileName, source) }
+                val usePublic = intent.getBooleanExtra(EXTRA_USE_PUBLIC_STORAGE, false)
+                val category = intent.getStringExtra(EXTRA_CATEGORY) ?: "General"
+                serviceScope.launch { startMicRecording(fileName, source, usePublic, category) }
             }
             ACTION_START_INTERNAL -> {
                 val fileName = intent.getStringExtra(EXTRA_FILENAME) ?: "internal_rec"
@@ -112,33 +117,77 @@ class RecordingService : Service() {
         return START_NOT_STICKY
     }
 
-    private suspend fun startMicRecording(fileName: String, source: Int) {
+    private suspend fun startMicRecording(fileName: String, source: Int, usePublic: Boolean, category: String) {
         if (isRecording) return
 
         val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
-        val file = File(filesDir, finalFileName)
-        file.parentFile?.mkdirs()
-        currentFile = file
+        
+        var fileDescriptor: java.io.FileDescriptor? = null
+        var pfd: android.os.ParcelFileDescriptor? = null
+        
+        currentFile = null
+        currentUri = null
 
         withContext(Dispatchers.Main) {
             startForegroundServiceNotification("Mikrofon lindistab...", false)
         }
 
         try {
-            mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+             // 1. Prepare Output (File or MediaStore)
+             if (usePublic) {
+                 val values = android.content.ContentValues().apply {
+                     put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, finalFileName)
+                     put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
+                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                         val relativePath = if (category == "General") "Music/AudioLoop" else "Music/AudioLoop/$category"
+                         put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                         put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
+                     }
+                 }
+                 
+                 val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                     android.provider.MediaStore.Audio.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                 } else {
+                     android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                 }
+                 
+                 val uri = contentResolver.insert(collection, values)
+                 if (uri != null) {
+                     currentUri = uri
+                     pfd = contentResolver.openFileDescriptor(uri, "w")
+                     fileDescriptor = pfd?.fileDescriptor
+                 } else {
+                     throw java.io.IOException("Failed to create MediaStore entry")
+                 }
+             } else {
+                 val file = File(filesDir, if (category == "General") finalFileName else "$category/$finalFileName")
+                 file.parentFile?.mkdirs()
+                 currentFile = file
+             }
+
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(this)
             } else {
                 @Suppress("DEPRECATION")
                 MediaRecorder()
             }
+            mediaRecorder = recorder
 
-            mediaRecorder?.apply {
+            recorder.apply {
                 setAudioSource(source)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                 setAudioEncodingBitRate(128000)
                 setAudioSamplingRate(44100)
-                setOutputFile(file.absolutePath)
+                
+                if (usePublic && fileDescriptor != null) {
+                    setOutputFile(fileDescriptor)
+                } else if (currentFile != null) {
+                    setOutputFile(currentFile!!.absolutePath)
+                } else {
+                    throw java.io.IOException("No output target")
+                }
+                
                 setOnErrorListener { _, _, _ ->
                    showToast("Viga salvestamisel!")
                    safelyStopRecorder()
@@ -150,12 +199,30 @@ class RecordingService : Service() {
             isInternalRecording = false
             recordingStartTime = System.currentTimeMillis()
             startAmplitudeTicker()
-            showToast("Salvestan: ${file.name}")
+            showToast("Salvestan: $finalFileName")
+            
+            // Keep PFD open? MediaRecorder might need it.
+            // If we close PFD now, does MediaRecorder crash?
+            // Usually valid to close AFTER setOutputFile? No, it needs to write.
+            // We should keep pfd reference and close in stop.
+            // But we can't keep local pfd variable. Passing to class property?
+            // Actually, MediaRecorder dups the FD. But for ParcelFileDescriptor we should be careful.
+            // Let's close PFD after start()? Documentation says "The descriptor... must not be closed... until stop".
+            // So I need to keep pfd in class field?
+            // Or rely on MediaRecorder taking ownership? `setOutputFile(FileDescriptor)` usually doesn't take ownership.
+            // So I'll execute `pfd.close()` in `stopRecording` or keep it open.
+            // Actually, let's close it in `safelyStopRecorder` if I store it.
+            // Wait, I can't easily store it as local var. I'll add `private var recordingPfd: ParcelFileDescriptor?` to class.
+            
+            if (pfd != null) recordingPfd = pfd
+            
         } catch (e: Exception) {
             e.printStackTrace()
             showToast("Viga mikrofoniga: ${e.message}")
             cleanupMicRecorder()
-            file.delete()
+            currentFile?.delete()
+            currentUri?.let { contentResolver.delete(it, null, null) }
+            pfd?.close()
         }
     }
 

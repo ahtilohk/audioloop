@@ -443,7 +443,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onDeleteFile = { item ->
                             if (item.file.delete()) savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
-                        onShareFile = { item -> shareFile(item.file) },
+                        onShareFile = { item -> shareFile(item) },
                         onRenameFile = { item, newName ->
                             renameFile(item, newName)
                             savedItems = getSavedRecordings(uiCategory, filesDir)
@@ -752,9 +752,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         oldFile.renameTo(newFile)
     }
 
-    private fun shareFile(file: File) {
+    private fun shareFile(item: RecordingItem) {
         try {
-            val uri = FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
+            val uri = if (item.uri != Uri.EMPTY) item.uri else FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", item.file)
+            
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "audio/*"
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -883,6 +884,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
 
 
+    data class RecordingItem(
+        val file: File, 
+        val name: String, 
+        val durationString: String, 
+        val durationMillis: Long,
+        val uri: Uri
+    )
+
     private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
         try {
             val targetDir = if (category == "General") rootDir else File(rootDir, category)
@@ -906,8 +915,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
             }
             
-            // 2. Add remaining files (new ones) at the TOP (or bottom? Implementation plan said top usually)
-            // Let's put new files at the TOP so user sees them immediately.
+            // 2. Add remaining files (new ones) at the TOP
             val newFiles = files.filter { !visited.contains(it.name) }.sortedByDescending { it.lastModified() }
             
             // Re-construct final list: New Files + Ordered Files
@@ -915,7 +923,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
             return finalFileList.mapNotNull { file ->
                 val (aegTekst, aegNumber) = getDuration(file)
-                RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber)
+                val uri = try {
+                    FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
+                } catch (e: Exception) { Uri.EMPTY }
+                RecordingItem(file = file, name = file.name, durationString = aegTekst, durationMillis = aegNumber, uri = uri)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -925,7 +936,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
 
     private fun playPlaylist(
-        allFiles: List<File>,
+        allFiles: List<RecordingItem>,
         currentIndex: Int,
         loopCountProvider: () -> Int,
         speedProvider: () -> Float,
@@ -947,8 +958,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             return
         }
         stopPlaying()
-        val fileToPlay = allFiles[currentIndex]
-        onNext(fileToPlay.name)
+        val itemToPlay = allFiles[currentIndex]
+        onNext(itemToPlay.name)
 
         try {
             mediaPlayer = MediaPlayer().apply {
@@ -958,10 +969,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .build()
                 )
-                // Fallback FD logic
-                val fis = java.io.FileInputStream(fileToPlay)
-                setDataSource(fis.fd)
-                fis.close()
+                // Use URI logic
+                if (itemToPlay.uri != Uri.EMPTY) {
+                   setDataSource(applicationContext, itemToPlay.uri)
+                } else {
+                   // Fallback for file access if URI failed (e.g. invalid provider?)
+                   val fis = java.io.FileInputStream(itemToPlay.file)
+                   setDataSource(fis.fd)
+                   fis.close()
+                }
 
                 setOnPreparedListener { mp ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -980,7 +996,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                        
                        // Launch coroutine for delay
                        shadowingJob = launch(Dispatchers.Main) {
-                           onNext("Pausing for repeat...") // Visual cue? Or keep filename? Let's keep filename but maybe logs.
+                           onNext("Pausing for repeat...") // Visual cue?
                            delay(pauseDuration)
                            if (isActive) {
                                playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
