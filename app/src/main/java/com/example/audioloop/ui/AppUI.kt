@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.gestures.*
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
 import com.example.audioloop.AppIcons
@@ -389,19 +389,7 @@ fun FileItem(
             }
         }
         }
-        if (isLandingTarget) {
-            val alignment = if (landingDirection < 0) Alignment.TopCenter else Alignment.BottomCenter
-            Box(
-                modifier = Modifier
-                    .align(alignment)
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .shadow(4.dp, RoundedCornerShape(2.dp))
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(Cyan400.copy(alpha = 0.9f))
-                    .alpha(landingAlpha)
-            )
-        }
+
     }
 }
 
