@@ -1637,23 +1637,25 @@ fun TrimAudioDialog(
                 
                 // Actions: 2 equal buttons + Cancel below
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).height(50.dp)
+                            modifier = Modifier.weight(1f).height(50.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                             Text("Save Copy", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                             Text("Save Copy", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium))
                         }
                         
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).height(50.dp)
+                            modifier = Modifier.weight(1f).height(50.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                             Text("Replace Original", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                             Text("Replace Original", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium))
                         }
                     }
                     
