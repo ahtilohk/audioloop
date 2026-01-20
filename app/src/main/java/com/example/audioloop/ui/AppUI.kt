@@ -40,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.focus.FocusRequester
@@ -1634,21 +1635,32 @@ fun TrimAudioDialog(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
-                        colors = ButtonDefaults.buttonColors(containerColor = Zinc700)
-                    ) {
-                         Text("Save Copy", color = Color.White)
+                // Actions: 2 equal buttons + Cancel below
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button(
+                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(50.dp)
+                        ) {
+                             Text("Save Copy", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        
+                        Button(
+                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(50.dp)
+                        ) {
+                             Text("Replace Original", color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
-                        colors = ButtonDefaults.buttonColors(containerColor = Zinc700)
-                    ) {
-                         Text("Replace Original", color = Color.White)
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) { 
+                        Text("Cancel", color = Zinc400) 
                     }
                 }
             }
