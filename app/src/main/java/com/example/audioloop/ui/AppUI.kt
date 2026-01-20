@@ -1534,7 +1534,7 @@ fun TrimAudioDialog(
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
+                        .height(120.dp)
                         .background(Zinc800, RoundedCornerShape(8.dp))
                         .padding(horizontal = 4.dp)
                 ) {
@@ -1550,7 +1550,9 @@ fun TrimAudioDialog(
                         endX = (range.endInclusive / totalDuration) * widthPx
                     }
 
-                    // Render Waveform
+                    // Render Waveform and UI
+                    val density = LocalDensity.current.density
+                    
                     if (waveform.value == null) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = Cyan500, modifier = Modifier.size(24.dp))
@@ -1560,18 +1562,39 @@ fun TrimAudioDialog(
                         val barWidth = widthPx / bars.size
                         
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            // Dimensions
+                            val handleAreaHeight = 40.dp.toPx()
+                            val waveAreaHeight = size.height - handleAreaHeight
+                            val handleY = size.height - (handleAreaHeight / 2)
+                            
+                            // 1. Draw Waveform (Top area)
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
-                                val barHeight = (amplitude / 100f) * heightPx
+                                val barHeight = (amplitude / 100f) * waveAreaHeight
                                 val isSelected = x >= startX && x <= endX
                                 
                                 drawLine(
                                     color = if (isSelected) Cyan500 else Zinc600,
-                                    start = Offset(x + barWidth/2, (heightPx - barHeight) / 2),
-                                    end = Offset(x + barWidth/2, (heightPx + barHeight) / 2),
+                                    start = Offset(x + barWidth/2, (waveAreaHeight - barHeight) / 2),
+                                    end = Offset(x + barWidth/2, (waveAreaHeight + barHeight) / 2),
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
                                 )
                             }
+                            
+                            // 2. Draw Selection Indicators (Lines extending down)
+                            drawLine(Cyan500, Offset(startX, 0f), Offset(startX, waveAreaHeight), strokeWidth = 2.dp.toPx())
+                            drawLine(Cyan500, Offset(endX, 0f), Offset(endX, waveAreaHeight), strokeWidth = 2.dp.toPx())
+                            
+                            // 3. Draw Handle Track (Visual guide)
+                            drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
+                            drawLine(Cyan500, Offset(startX, handleY), Offset(endX, handleY), strokeWidth = 2.dp.toPx())
+
+                            // 4. Draw Handles (Bottom area)
+                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
+                            drawCircle(Cyan500, radius = 10.dp.toPx(), center = Offset(startX, handleY))
+                            
+                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(endX, handleY))
+                            drawCircle(Cyan500, radius = 10.dp.toPx(), center = Offset(endX, handleY))
                         }
                     }
                     
@@ -1583,7 +1606,6 @@ fun TrimAudioDialog(
                             val distStart = kotlin.math.abs(x - startX)
                             val distEnd = kotlin.math.abs(x - endX)
                             
-                            // Prefer active handle if dragging? Simple distance check usually works.
                             if (distStart < distEnd) {
                                 // Dragging start
                                 var newStart = (startX + dragAmount).coerceIn(0f, endX - 20)
@@ -1599,15 +1621,7 @@ fun TrimAudioDialog(
                             }
                         }
                     }) {
-                        // Draw Selection Overlay / Handles
-                        // Dim unselected areas (optional, lets keep it clean)
-                        
-                        // Draw handles
-                        drawCircle(Color.White, radius = 9.dp.toPx(), center = Offset(startX, size.height/2))
-                        drawCircle(Cyan500, radius = 7.dp.toPx(), center = Offset(startX, size.height/2))
-                        
-                        drawCircle(Color.White, radius = 9.dp.toPx(), center = Offset(endX, size.height/2))
-                        drawCircle(Cyan500, radius = 7.dp.toPx(), center = Offset(endX, size.height/2))
+                        // Invisible touch layer, visual handles are drawn above
                     }
                 }
                 
@@ -1632,9 +1646,9 @@ fun TrimAudioDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
-                        colors = ButtonDefaults.buttonColors(containerColor = Cyan600)
+                        colors = ButtonDefaults.buttonColors(containerColor = Zinc700)
                     ) {
-                         Text("Replace Original")
+                         Text("Replace Original", color = Color.White)
                     }
                 }
             }
