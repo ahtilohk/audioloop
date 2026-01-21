@@ -454,8 +454,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                             savedItems.forEach { item -> precomputeWaveformAsync(coroutineScope, item.file) }
                         },
-                        onTrimFile = { file, start, end, replace ->
-                            trimAudioFile(file, start, end, replace) {
+                        onTrimFile = { file, start, end, replace, removeSelection ->
+                            trimAudioFile(file, start, end, replace, removeSelection) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
                                 if (replace) precomputeWaveformAsync(coroutineScope, file)
                                 else {
@@ -803,7 +803,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         oldDir.renameTo(newDir)
     }
 
-    private fun trimAudioFile(file: File, start: Long, end: Long, replace: Boolean, onSuccess: () -> Unit) {
+    private fun trimAudioFile(
+        file: File,
+        start: Long,
+        end: Long,
+        replace: Boolean,
+        removeSelection: Boolean,
+        onSuccess: () -> Unit
+    ) {
         stopPlaying()
         val ext = file.extension
         val isWav = ext.equals("wav", ignoreCase = true)
@@ -811,9 +818,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         
         launch(Dispatchers.IO) {
             val success = if (isWav) {
-                WavAudioTrimmer.trimWav(file, tempFile, start, end)
+                if (removeSelection) {
+                    WavAudioTrimmer.removeSegmentWav(file, tempFile, start, end)
+                } else {
+                    WavAudioTrimmer.trimWav(file, tempFile, start, end)
+                }
             } else {
-                AudioTrimmer.trimAudio(file, tempFile, start, end)
+                if (removeSelection) {
+                    AudioTrimmer.removeSegmentAudio(file, tempFile, start, end)
+                } else {
+                    AudioTrimmer.trimAudio(file, tempFile, start, end)
+                }
             }
             
             withContext(Dispatchers.Main) {

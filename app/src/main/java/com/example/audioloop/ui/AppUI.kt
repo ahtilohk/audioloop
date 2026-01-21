@@ -670,7 +670,7 @@ fun AudioLoopMainScreen(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean) -> Unit,
+    onTrimFile: (File, Long, Long, Boolean, Boolean) -> Unit,
     selectedSpeed: Float,
     selectedLoopCount: Int,
     isShadowing: Boolean,
@@ -1405,7 +1405,10 @@ fun AudioLoopMainScreen(
                 file = recordingToTrim!!.file,
                 durationMs = recordingToTrim!!.durationMillis,
                 onDismiss = { showTrimDialog = false },
-                onConfirm = { start, end, replace -> onTrimFile(recordingToTrim!!.file, start, end, replace); showTrimDialog = false }
+                onConfirm = { start, end, replace, removeSelection ->
+                    onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection)
+                    showTrimDialog = false
+                }
              )
         }
     }
@@ -1516,18 +1519,24 @@ private enum class TrimDragTarget {
     Playhead
 }
 
+private enum class TrimMode {
+    Keep,
+    Remove
+}
+
 @Composable
 fun TrimAudioDialog(
     file: File,
     durationMs: Long,
     onDismiss: () -> Unit,
-    onConfirm: (start: Long, end: Long, replace: Boolean) -> Unit
+    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current
     val previewPlayer = remember(file) { MediaPlayer() }
     var isPreviewPlaying by remember { mutableStateOf(false) }
     var previewPositionMs by remember { mutableLongStateOf(0L) }
+    var trimMode by remember { mutableStateOf(TrimMode.Keep) }
     
     // Waveform Loading
     val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
@@ -1569,9 +1578,43 @@ fun TrimAudioDialog(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "The highlighted range is what you keep. To trim from the middle, move both handles inward.",
+                    "Choose Keep to save the highlighted range, or Remove to cut it out from the middle.",
                     style = TextStyle(color = Zinc500, fontSize = 11.sp)
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Trim mode", color = Zinc400, fontSize = 11.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        val keepSelected = trimMode == TrimMode.Keep
+                        val removeSelected = trimMode == TrimMode.Remove
+                        Button(
+                            onClick = { trimMode = TrimMode.Keep },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (keepSelected) Cyan700 else Zinc800
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("Keep", color = Color.White, fontSize = 12.sp)
+                        }
+                        OutlinedButton(
+                            onClick = { trimMode = TrimMode.Remove },
+                            border = BorderStroke(1.dp, if (removeSelected) Cyan400 else Zinc700),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                "Remove",
+                                color = if (removeSelected) Color.White else Zinc300,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(18.dp))
                 
                 // Visual Trimmer with Waveform
@@ -1590,9 +1633,13 @@ fun TrimAudioDialog(
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
                     val handleHitRadius = with(LocalDensity.current) { 32.dp.toPx() }
+                    val handleLineHitWidth = with(LocalDensity.current) { 12.dp.toPx() }
                     val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
+                    val labelAreaHeight = with(LocalDensity.current) { 26.dp.toPx() }
                     val handleAreaHeight = with(LocalDensity.current) { 40.dp.toPx() }
                     val handleY = heightPx - (handleAreaHeight / 2)
+                    val waveTop = labelAreaHeight
+                    val waveBottom = heightPx - handleAreaHeight
                     
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
@@ -1683,19 +1730,20 @@ fun TrimAudioDialog(
                         
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                             // Dimensions
-                            val labelAreaHeight = 26.dp.toPx()
                             val waveAreaHeight = size.height - handleAreaHeight - labelAreaHeight
-                            val waveTop = labelAreaHeight
-                            val waveBottom = waveTop + waveAreaHeight
-                            
+
                             // 1. Draw Waveform (Top area)
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
                                 val barHeight = (amplitude / 100f) * waveAreaHeight
                                 val isSelected = x >= selectionStartX && x <= selectionEndX
-                                
+                                val barColor = if (trimMode == TrimMode.Keep) {
+                                    if (isSelected) selectionColor else remainingColor
+                                } else {
+                                    if (isSelected) Zinc600 else selectionColor
+                                }
                                 drawLine(
-                                    color = if (isSelected) selectionColor else remainingColor,
+                                    color = barColor,
                                     start = Offset(x + barWidth / 2, waveTop + (waveAreaHeight - barHeight) / 2),
                                     end = Offset(x + barWidth / 2, waveTop + (waveAreaHeight + barHeight) / 2),
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
@@ -1706,16 +1754,24 @@ fun TrimAudioDialog(
                             drawLine(startHandleColor, Offset(startX, waveTop), Offset(startX, waveBottom), strokeWidth = 2.dp.toPx())
                             drawLine(endHandleColor, Offset(endX, waveTop), Offset(endX, waveBottom), strokeWidth = 2.dp.toPx())
 
-                            drawRect(
-                                color = Zinc900.copy(alpha = 0.35f),
-                                topLeft = Offset(0f, waveTop),
-                                size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
-                            )
-                            drawRect(
-                                color = Zinc900.copy(alpha = 0.35f),
-                                topLeft = Offset(selectionEndX, waveTop),
-                                size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
-                            )
+                            if (trimMode == TrimMode.Keep) {
+                                drawRect(
+                                    color = Zinc900.copy(alpha = 0.35f),
+                                    topLeft = Offset(0f, waveTop),
+                                    size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
+                                )
+                                drawRect(
+                                    color = Zinc900.copy(alpha = 0.35f),
+                                    topLeft = Offset(selectionEndX, waveTop),
+                                    size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
+                                )
+                            } else {
+                                drawRect(
+                                    color = Zinc900.copy(alpha = 0.35f),
+                                    topLeft = Offset(selectionStartX, waveTop),
+                                    size = androidx.compose.ui.geometry.Size(selectionEndX - selectionStartX, waveAreaHeight)
+                                )
+                            }
                             
                             // 3. Draw Handle Track (Visual guide)
                             drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
@@ -1831,10 +1887,14 @@ fun TrimAudioDialog(
                                     val endDy = down.position.y - handleY
                                     val isNearStartHandle = (startDx * startDx) + (startDy * startDy) <= (handleHitRadius * handleHitRadius)
                                     val isNearEndHandle = (endDx * endDx) + (endDy * endDy) <= (handleHitRadius * handleHitRadius)
+                                    val isNearStartLine = kotlin.math.abs(down.position.x - startX) <= handleLineHitWidth &&
+                                        down.position.y in waveTop..waveBottom
+                                    val isNearEndLine = kotlin.math.abs(down.position.x - endX) <= handleLineHitWidth &&
+                                        down.position.y in waveTop..waveBottom
                                     val isNearPlayhead = kotlin.math.abs(down.position.x - playheadX) <= playheadHitRadius
                                     val dragTarget = when {
-                                        isNearStartHandle -> TrimDragTarget.Start
-                                        isNearEndHandle -> TrimDragTarget.End
+                                        isNearStartHandle || isNearStartLine -> TrimDragTarget.Start
+                                        isNearEndHandle || isNearEndLine -> TrimDragTarget.End
                                         isNearPlayhead -> TrimDragTarget.Playhead
                                         else -> TrimDragTarget.Playhead
                                     }
@@ -2018,7 +2078,7 @@ fun TrimAudioDialog(
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
-                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
+                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false, trimMode == TrimMode.Remove) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
                             shape = RoundedCornerShape(14.dp),
                             border = BorderStroke(1.dp, Zinc600),
@@ -2029,7 +2089,7 @@ fun TrimAudioDialog(
                         }
                         
                         Button(
-                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
+                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true, trimMode == TrimMode.Remove) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Cyan700),
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier.weight(1f).height(50.dp),

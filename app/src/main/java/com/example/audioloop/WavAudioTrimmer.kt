@@ -101,4 +101,100 @@ object WavAudioTrimmer {
             return@withContext false
         }
     }
+
+    suspend fun removeSegmentWav(inputFile: File, outputFile: File, startMs: Long, endMs: Long): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val rafVal = RandomAccessFile(inputFile, "r")
+            rafVal.use { raf ->
+                raf.seek(22)
+                val channels = raf.readShort().toInt().and(0xFFFF)
+
+                raf.seek(24)
+                val sampleRate = raf.readInt().let { Integer.reverseBytes(it) }
+
+                raf.seek(34)
+                val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
+
+                raf.seek(12)
+                val chunkHeader = ByteArray(4)
+                while (raf.read(chunkHeader) != -1) {
+                    val chunkId = String(chunkHeader)
+                    val chunkSize = raf.readInt().let { Integer.reverseBytes(it) }
+
+                    if (chunkId == "data") {
+                        val dataStartPos = raf.filePointer
+                        val bytesPerSecond = sampleRate * channels * (bitsPerSample / 8)
+                        val blockAlign = channels * (bitsPerSample / 8)
+
+                        val startByte = (startMs / 1000.0 * bytesPerSecond).toLong()
+                        val endByte = (endMs / 1000.0 * bytesPerSecond).toLong()
+                        val startByteAligned = (startByte - (startByte % blockAlign)).coerceIn(0, chunkSize.toLong())
+                        val endByteAligned = (endByte - (endByte % blockAlign)).coerceIn(0, chunkSize.toLong())
+
+                        if (endByteAligned <= startByteAligned) {
+                            return@withContext false
+                        }
+
+                        val keepBytes = startByteAligned + (chunkSize.toLong() - endByteAligned)
+                        if (keepBytes <= 0) return@withContext false
+
+                        outputFile.outputStream().use { fos ->
+                            val header = ByteBuffer.allocate(44)
+                            header.order(ByteOrder.LITTLE_ENDIAN)
+
+                            val totalDataLen = keepBytes
+                            val totalFileLen = totalDataLen + 36
+
+                            header.put("RIFF".toByteArray())
+                            header.putInt(totalFileLen.toInt())
+                            header.put("WAVE".toByteArray())
+                            header.put("fmt ".toByteArray())
+                            header.putInt(16)
+                            header.putShort(1)
+                            header.putShort(channels.toShort())
+                            header.putInt(sampleRate)
+                            header.putInt(sampleRate * channels * (bitsPerSample / 8))
+                            header.putShort(blockAlign.toShort())
+                            header.putShort(bitsPerSample.toShort())
+                            header.put("data".toByteArray())
+                            header.putInt(totalDataLen.toInt())
+
+                            fos.write(header.array())
+
+                            val buffer = ByteArray(4096)
+                            var totalWritten = 0L
+
+                            raf.seek(dataStartPos)
+                            while (totalWritten < startByteAligned) {
+                                val toRead = minOf(buffer.size.toLong(), startByteAligned - totalWritten).toInt()
+                                val bytesRead = raf.read(buffer, 0, toRead)
+                                if (bytesRead == -1) break
+                                fos.write(buffer, 0, bytesRead)
+                                totalWritten += bytesRead
+                            }
+
+                            raf.seek(dataStartPos + endByteAligned)
+                            var secondWritten = 0L
+                            val secondLength = chunkSize.toLong() - endByteAligned
+                            while (secondWritten < secondLength) {
+                                val toRead = minOf(buffer.size.toLong(), secondLength - secondWritten).toInt()
+                                val bytesRead = raf.read(buffer, 0, toRead)
+                                if (bytesRead == -1) break
+                                fos.write(buffer, 0, bytesRead)
+                                secondWritten += bytesRead
+                            }
+                        }
+                        return@withContext true
+                    } else {
+                        raf.skipBytes(chunkSize)
+                    }
+                }
+            }
+            return@withContext false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            outputFile.delete()
+            return@withContext false
+        }
+    }
 }
