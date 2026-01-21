@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.IntOffset
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import android.media.MediaPlayer
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
@@ -71,6 +72,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import android.graphics.Paint
 
 import androidx.compose.runtime.mutableFloatStateOf
@@ -1536,12 +1538,30 @@ fun TrimAudioDialog(
     onConfirm: (start: Long, end: Long, replace: Boolean) -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
+    val context = LocalContext.current
+    val previewPlayer = remember(file) { MediaPlayer() }
+    var isPreviewPlaying by remember { mutableStateOf(false) }
+    var previewPositionMs by remember { mutableLongStateOf(0L) }
     
     // Waveform Loading
     val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
         value = withContext(Dispatchers.IO) {
             com.example.audioloop.WaveformGenerator.extractWaveform(file, 60)
         }
+    }
+
+    DisposableEffect(file) {
+        previewPlayer.reset()
+        previewPlayer.setDataSource(context, Uri.fromFile(file))
+        previewPlayer.prepare()
+        onDispose {
+            previewPlayer.release()
+        }
+    }
+
+    LaunchedEffect(file) {
+        isPreviewPlaying = false
+        previewPositionMs = 0L
     }
     
     Dialog(onDismissRequest = onDismiss) {
@@ -1571,6 +1591,9 @@ fun TrimAudioDialog(
                     val selectionStartX = min(startX, endX)
                     val selectionEndX = max(startX, endX)
                     val handleTextSize = with(LocalDensity.current) { 12.sp.toPx() }
+                    val labelTextSize = with(LocalDensity.current) { 12.sp.toPx() }
+                    val labelPadding = with(LocalDensity.current) { 6.dp.toPx() }
+                    val labelTop = with(LocalDensity.current) { 6.dp.toPx() }
                     val handleTextPaint = remember {
                         Paint().apply {
                             isAntiAlias = true
@@ -1581,6 +1604,18 @@ fun TrimAudioDialog(
                     val endHandleColor = Red500
                     val selectionColor = Cyan400
                     val remainingColor = Zinc700
+                    val labelBackgroundColor = Zinc900.copy(alpha = 0.85f)
+                    val labelTextColor = Color.White
+                    val startHandleMs = if (widthPx > 0f) {
+                        ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                    } else {
+                        0f
+                    }
+                    val endHandleMs = if (widthPx > 0f) {
+                        ((endX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                    } else {
+                        totalDuration
+                    }
                     val selectionStartMs = if (widthPx > 0f) {
                         ((selectionStartX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
@@ -1596,6 +1631,31 @@ fun TrimAudioDialog(
                         startX = startX.coerceIn(0f, widthPx)
                         endX = endX.coerceIn(0f, widthPx)
                         range = selectionStartMs..selectionEndMs
+                    }
+
+                    LaunchedEffect(selectionStartMs, selectionEndMs) {
+                        if (isPreviewPlaying) {
+                            previewPlayer.pause()
+                            previewPlayer.seekTo(selectionStartMs.toInt())
+                            isPreviewPlaying = false
+                        }
+                        previewPositionMs = selectionStartMs.toLong()
+                    }
+
+                    LaunchedEffect(isPreviewPlaying, selectionStartMs, selectionEndMs) {
+                        if (isPreviewPlaying) {
+                            while (isActive && previewPlayer.isPlaying) {
+                                val current = previewPlayer.currentPosition.toLong()
+                                previewPositionMs = current
+                                if (current >= selectionEndMs.toLong()) {
+                                    previewPlayer.pause()
+                                    previewPlayer.seekTo(selectionStartMs.toInt())
+                                    isPreviewPlaying = false
+                                    break
+                                }
+                                delay(50)
+                            }
+                        }
                     }
 
                     // Render Waveform and UI
@@ -1649,6 +1709,44 @@ fun TrimAudioDialog(
                                 val textYOffset = handleTextSize / 3f
                                 canvas.nativeCanvas.drawText("L", startX, handleY + textYOffset, handleTextPaint)
                                 canvas.nativeCanvas.drawText("R", endX, handleY + textYOffset, handleTextPaint)
+                            }
+                            drawIntoCanvas { canvas ->
+                                handleTextPaint.textSize = labelTextSize
+                                handleTextPaint.color = labelTextColor.toArgb()
+                                val startLabel = formatDuration(startHandleMs.toLong())
+                                val endLabel = formatDuration(endHandleMs.toLong())
+                                val startLabelWidth = handleTextPaint.measureText(startLabel)
+                                val endLabelWidth = handleTextPaint.measureText(endLabel)
+                                val labelHeight = labelTextSize + (labelPadding * 2)
+                                val startLabelBound = (startLabelWidth / 2) + labelPadding
+                                val endLabelBound = (endLabelWidth / 2) + labelPadding
+                                val startLabelX = startX.coerceIn(startLabelBound, widthPx - startLabelBound)
+                                val endLabelX = endX.coerceIn(endLabelBound, widthPx - endLabelBound)
+                                val startRectLeft = startLabelX - (startLabelWidth / 2) - labelPadding
+                                val startRectRight = startLabelX + (startLabelWidth / 2) + labelPadding
+                                val endRectLeft = endLabelX - (endLabelWidth / 2) - labelPadding
+                                val endRectRight = endLabelX + (endLabelWidth / 2) + labelPadding
+                                drawRoundRect(
+                                    color = labelBackgroundColor,
+                                    topLeft = Offset(startRectLeft, labelTop),
+                                    size = androidx.compose.ui.geometry.Size(
+                                        startRectRight - startRectLeft,
+                                        labelHeight
+                                    ),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx())
+                                )
+                                drawRoundRect(
+                                    color = labelBackgroundColor,
+                                    topLeft = Offset(endRectLeft, labelTop),
+                                    size = androidx.compose.ui.geometry.Size(
+                                        endRectRight - endRectLeft,
+                                        labelHeight
+                                    ),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx())
+                                )
+                                val labelBaseline = labelTop + labelPadding + labelTextSize
+                                canvas.nativeCanvas.drawText(startLabel, startLabelX, labelBaseline, handleTextPaint)
+                                canvas.nativeCanvas.drawText(endLabel, endLabelX, labelBaseline, handleTextPaint)
                             }
                         }
                     }
@@ -1714,6 +1812,46 @@ fun TrimAudioDialog(
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text(formatDuration(range.start.toLong()), color = Zinc300)
                     Text(formatDuration(range.endInclusive.toLong()), color = Zinc300)
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Preview selection",
+                        color = Zinc300,
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            formatDuration(previewPositionMs),
+                            color = Zinc400,
+                            style = TextStyle(fontSize = 12.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (isPreviewPlaying) {
+                                    previewPlayer.pause()
+                                    previewPlayer.seekTo(selectionStartMs.toInt())
+                                    isPreviewPlaying = false
+                                } else {
+                                    previewPlayer.seekTo(selectionStartMs.toInt())
+                                    previewPlayer.start()
+                                    isPreviewPlaying = true
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(if (isPreviewPlaying) "Pause" else "Play", color = Color.White, fontSize = 12.sp)
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
