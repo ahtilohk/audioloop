@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -1567,20 +1568,33 @@ fun TrimAudioDialog(
     Dialog(onDismissRequest = onDismiss) {
         Card(
             colors = CardDefaults.cardColors(containerColor = Zinc900),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
+            border = BorderStroke(1.dp, Zinc800),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Trim Audio", style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold))
-                Spacer(modifier = Modifier.height(16.dp))
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    "Trim Audio",
+                    style = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    "Drag the L and R handles to refine the selection.",
+                    style = TextStyle(color = Zinc400, fontSize = 12.sp)
+                )
+                Spacer(modifier = Modifier.height(18.dp))
                 
                 // Visual Trimmer with Waveform
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
-                        .background(Zinc800, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 4.dp)
+                        .background(
+                            Brush.verticalGradient(listOf(Zinc800, Zinc900)),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
                 ) {
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
@@ -1809,9 +1823,38 @@ fun TrimAudioDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text(formatDuration(range.start.toLong()), color = Zinc300)
-                    Text(formatDuration(range.endInclusive.toLong()), color = Zinc300)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Text("Start", color = Zinc500, fontSize = 11.sp)
+                        Surface(
+                            color = Zinc800,
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, Zinc700)
+                        ) {
+                            Text(
+                                formatDuration(range.start.toLong()),
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("End", color = Zinc500, fontSize = 11.sp)
+                        Surface(
+                            color = Zinc800,
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, Zinc700)
+                        ) {
+                            Text(
+                                formatDuration(range.endInclusive.toLong()),
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -1845,16 +1888,20 @@ fun TrimAudioDialog(
                                     isPreviewPlaying = true
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Text(if (isPreviewPlaying) "Pause" else "Play", color = Color.White, fontSize = 12.sp)
                         }
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Divider(color = Zinc800, thickness = 1.dp)
+
+                Spacer(modifier = Modifier.height(20.dp))
                 
                 // Actions: 2 equal buttons + Cancel below
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1862,7 +1909,8 @@ fun TrimAudioDialog(
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, Zinc600),
                             modifier = Modifier.weight(1f).height(50.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
@@ -1871,8 +1919,8 @@ fun TrimAudioDialog(
                         
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true) }, 
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
-                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Cyan700),
+                            shape = RoundedCornerShape(14.dp),
                             modifier = Modifier.weight(1f).height(50.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
