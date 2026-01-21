@@ -1510,25 +1510,10 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
     )
 }
 
-private enum class TrimHandle {
+private enum class TrimDragTarget {
     Start,
-    End
-}
-
-private fun resolveTrimHandle(
-    x: Float,
-    startX: Float,
-    endX: Float,
-    hitRadius: Float
-): TrimHandle {
-    val distStart = kotlin.math.abs(x - startX)
-    val distEnd = kotlin.math.abs(x - endX)
-    return when {
-        distStart <= hitRadius -> TrimHandle.Start
-        distEnd <= hitRadius -> TrimHandle.End
-        distStart <= distEnd -> TrimHandle.Start
-        else -> TrimHandle.End
-    }
+    End,
+    Playhead
 }
 
 @Composable
@@ -1579,7 +1564,7 @@ fun TrimAudioDialog(
                     style = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 )
                 Text(
-                    "Drag the L and R handles to refine the selection.",
+                    "Drag the L and R handles to refine the selection. Tap or drag the waveform to set playback.",
                     style = TextStyle(color = Zinc400, fontSize = 12.sp)
                 )
                 Spacer(modifier = Modifier.height(18.dp))
@@ -1599,6 +1584,7 @@ fun TrimAudioDialog(
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val handleHitRadius = with(LocalDensity.current) { 24.dp.toPx() }
+                    val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
                     
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
@@ -1809,12 +1795,32 @@ fun TrimAudioDialog(
                             .pointerInput(Unit) {
                                 awaitEachGesture {
                                     val down = awaitFirstDown(requireUnconsumed = false)
-                                    val handle = resolveTrimHandle(
-                                        down.position.x,
-                                        startX,
-                                        endX,
-                                        handleHitRadius
-                                    )
+                                    var playheadX = if (totalDuration > 0f) {
+                                        ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
+                                    } else {
+                                        0f
+                                    }
+                                    val isNearPlayhead = kotlin.math.abs(down.position.x - playheadX) <= playheadHitRadius
+                                    val dragTarget = when {
+                                        isNearPlayhead -> TrimDragTarget.Playhead
+                                        kotlin.math.abs(down.position.x - startX) <= handleHitRadius -> TrimDragTarget.Start
+                                        kotlin.math.abs(down.position.x - endX) <= handleHitRadius -> TrimDragTarget.End
+                                        else -> TrimDragTarget.Playhead
+                                    }
+                                    if (dragTarget == TrimDragTarget.Playhead) {
+                                        playheadX = down.position.x.coerceIn(0f, widthPx)
+                                        val newPreviewMs = if (widthPx > 0f) {
+                                            ((playheadX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                        } else {
+                                            0f
+                                        }
+                                        if (isPreviewPlaying) {
+                                            previewPlayer.pause()
+                                            isPreviewPlaying = false
+                                        }
+                                        previewPositionMs = newPreviewMs.toLong()
+                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                    }
                                     var lastX = down.position.x
                                     while (true) {
                                         val event = awaitPointerEvent()
@@ -1828,27 +1834,43 @@ fun TrimAudioDialog(
                                             continue
                                         }
                                         change.consume()
-                                        when (handle) {
-                                            TrimHandle.Start -> {
+                                        when (dragTarget) {
+                                            TrimDragTarget.Start -> {
                                                 startX = (startX + dragAmount).coerceIn(0f, widthPx)
                                             }
-                                            TrimHandle.End -> {
+                                            TrimDragTarget.End -> {
                                                 endX = (endX + dragAmount).coerceIn(0f, widthPx)
                                             }
+                                            TrimDragTarget.Playhead -> {
+                                                playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
+                                                val newPreviewMs = if (widthPx > 0f) {
+                                                    ((playheadX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                } else {
+                                                    0f
+                                                }
+                                                if (isPreviewPlaying) {
+                                                    previewPlayer.pause()
+                                                    isPreviewPlaying = false
+                                                }
+                                                previewPositionMs = newPreviewMs.toLong()
+                                                previewPlayer.seekTo(previewPositionMs.toInt())
+                                            }
                                         }
-                                        val newSelectionStart = min(startX, endX)
-                                        val newSelectionEnd = max(startX, endX)
-                                        val newStartMs = if (widthPx > 0f) {
-                                            ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
-                                        } else {
-                                            0f
+                                        if (dragTarget != TrimDragTarget.Playhead) {
+                                            val newSelectionStart = min(startX, endX)
+                                            val newSelectionEnd = max(startX, endX)
+                                            val newStartMs = if (widthPx > 0f) {
+                                                ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                            } else {
+                                                0f
+                                            }
+                                            val newEndMs = if (widthPx > 0f) {
+                                                ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                            } else {
+                                                totalDuration
+                                            }
+                                            range = newStartMs..newEndMs
                                         }
-                                        val newEndMs = if (widthPx > 0f) {
-                                            ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
-                                        } else {
-                                            totalDuration
-                                        }
-                                        range = newStartMs..newEndMs
                                     }
                                 }
                             }
