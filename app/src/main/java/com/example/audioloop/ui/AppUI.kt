@@ -1685,8 +1685,11 @@ fun TrimAudioDialog(
                         
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                             // Dimensions
+                            val labelAreaHeight = 26.dp.toPx()
                             val handleAreaHeight = 40.dp.toPx()
-                            val waveAreaHeight = size.height - handleAreaHeight
+                            val waveAreaHeight = size.height - handleAreaHeight - labelAreaHeight
+                            val waveTop = labelAreaHeight
+                            val waveBottom = waveTop + waveAreaHeight
                             val handleY = size.height - (handleAreaHeight / 2)
                             
                             // 1. Draw Waveform (Top area)
@@ -1697,15 +1700,15 @@ fun TrimAudioDialog(
                                 
                                 drawLine(
                                     color = if (isSelected) selectionColor else remainingColor,
-                                    start = Offset(x + barWidth/2, (waveAreaHeight - barHeight) / 2),
-                                    end = Offset(x + barWidth/2, (waveAreaHeight + barHeight) / 2),
+                                    start = Offset(x + barWidth / 2, waveTop + (waveAreaHeight - barHeight) / 2),
+                                    end = Offset(x + barWidth / 2, waveTop + (waveAreaHeight + barHeight) / 2),
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
                                 )
                             }
                             
                             // 2. Draw Selection Indicators (Lines extending down)
-                            drawLine(startHandleColor, Offset(startX, 0f), Offset(startX, waveAreaHeight), strokeWidth = 2.dp.toPx())
-                            drawLine(endHandleColor, Offset(endX, 0f), Offset(endX, waveAreaHeight), strokeWidth = 2.dp.toPx())
+                            drawLine(startHandleColor, Offset(startX, waveTop), Offset(startX, waveBottom), strokeWidth = 2.dp.toPx())
+                            drawLine(endHandleColor, Offset(endX, waveTop), Offset(endX, waveBottom), strokeWidth = 2.dp.toPx())
                             
                             // 3. Draw Handle Track (Visual guide)
                             drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
@@ -1719,8 +1722,8 @@ fun TrimAudioDialog(
                             if (playheadX in selectionStartX..selectionEndX) {
                                 drawLine(
                                     color = Color.White.copy(alpha = 0.7f),
-                                    start = Offset(playheadX, 0f),
-                                    end = Offset(playheadX, waveAreaHeight),
+                                    start = Offset(playheadX, waveTop),
+                                    end = Offset(playheadX, waveBottom),
                                     strokeWidth = 1.5.dp.toPx()
                                 )
                                 drawCircle(
@@ -1773,7 +1776,7 @@ fun TrimAudioDialog(
                                 val startRectRight = startLabelX + (startLabelWidth / 2) + labelPadding
                                 val endRectLeft = endLabelX - (endLabelWidth / 2) - labelPadding
                                 val endRectRight = endLabelX + (endLabelWidth / 2) + labelPadding
-                                val labelTop = waveAreaHeight + ((handleAreaHeight - labelHeight) / 2f)
+                                val labelTop = (labelAreaHeight - labelHeight) / 2f
                                 drawRoundRect(
                                     color = labelBackgroundColor,
                                     topLeft = Offset(startRectLeft, labelTop),
