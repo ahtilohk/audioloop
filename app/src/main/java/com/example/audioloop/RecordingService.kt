@@ -53,6 +53,9 @@ class RecordingService : Service() {
 
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
+    private val stateLock = Any()
+    private var recordingState = RecordingState.IDLE
+    private var pendingStart: PendingStart? = null
     private var currentFile: File? = null
     private var currentUri: android.net.Uri? = null // For MediaStore
     private var recordingPfd: android.os.ParcelFileDescriptor? = null
@@ -73,6 +76,27 @@ class RecordingService : Service() {
     // Live Waveform Ticker
     private var tickerJob: Job? = null
     private var recordingStartTime = 0L
+
+    private enum class RecordingState {
+        IDLE,
+        RECORDING,
+        STOPPING
+    }
+
+    private sealed class PendingStart {
+        data class Mic(
+            val fileName: String,
+            val source: Int,
+            val usePublic: Boolean,
+            val category: String
+        ) : PendingStart()
+
+        data class Internal(
+            val fileName: String,
+            val resultCode: Int,
+            val data: Intent
+        ) : PendingStart()
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -119,7 +143,20 @@ class RecordingService : Service() {
     }
 
     private suspend fun startMicRecording(fileName: String, source: Int, usePublic: Boolean, category: String) {
-        if (isRecording) return
+        val shouldStart = synchronized(stateLock) {
+            when (recordingState) {
+                RecordingState.RECORDING -> false
+                RecordingState.STOPPING -> {
+                    pendingStart = PendingStart.Mic(fileName, source, usePublic, category)
+                    false
+                }
+                RecordingState.IDLE -> {
+                    recordingState = RecordingState.RECORDING
+                    true
+                }
+            }
+        }
+        if (!shouldStart) return
 
         val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
         
@@ -224,12 +261,30 @@ class RecordingService : Service() {
             currentFile?.delete()
             currentUri?.let { contentResolver.delete(it, null, null) }
             pfd?.close()
+            synchronized(stateLock) {
+                if (recordingState == RecordingState.RECORDING) {
+                    recordingState = RecordingState.IDLE
+                }
+            }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun startInternalRecording(fileName: String, resultCode: Int, data: Intent) {
-        if (isRecording) return
+        val shouldStart = synchronized(stateLock) {
+            when (recordingState) {
+                RecordingState.RECORDING -> false
+                RecordingState.STOPPING -> {
+                    pendingStart = PendingStart.Internal(fileName, resultCode, data)
+                    false
+                }
+                RecordingState.IDLE -> {
+                    recordingState = RecordingState.RECORDING
+                    true
+                }
+            }
+        }
+        if (!shouldStart) return
 
         val finalFileName = if (fileName.endsWith(".m4a")) fileName else "$fileName.m4a"
         val file = File(filesDir, finalFileName)
@@ -314,6 +369,11 @@ class RecordingService : Service() {
             e.printStackTrace()
             showToast("Stream Recording Error: ${e.message}")
             safelyStopRecorder()
+            synchronized(stateLock) {
+                if (recordingState == RecordingState.RECORDING) {
+                    recordingState = RecordingState.IDLE
+                }
+            }
         }
     }
 
@@ -392,6 +452,9 @@ class RecordingService : Service() {
         
         // 1. Mark state immediately to prevent re-entry
         isRecording = false
+        synchronized(stateLock) {
+            recordingState = RecordingState.STOPPING
+        }
         
         // 2. UI Feedback immediately (Main Thread safe)
         startForegroundServiceNotification("Recording stopped...", false)
@@ -436,6 +499,30 @@ class RecordingService : Service() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "Saved!", Toast.LENGTH_SHORT).show()
                 }
+            }
+            val nextStart = synchronized(stateLock) {
+                recordingState = RecordingState.IDLE
+                val next = pendingStart
+                pendingStart = null
+                next
+            }
+            when (nextStart) {
+                is PendingStart.Mic -> {
+                    startMicRecording(
+                        nextStart.fileName,
+                        nextStart.source,
+                        nextStart.usePublic,
+                        nextStart.category
+                    )
+                }
+                is PendingStart.Internal -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        startInternalRecording(nextStart.fileName, nextStart.resultCode, nextStart.data)
+                    } else {
+                        showToast("Stream recording requires Android Q+")
+                    }
+                }
+                null -> Unit
             }
         }
     }
