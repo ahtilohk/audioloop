@@ -1661,24 +1661,6 @@ fun TrimAudioDialog(
                     val remainingColor = Zinc700
                     val labelBackgroundColor = Zinc800.copy(alpha = 0.95f)
                     val labelTextColor = Color.White
-                    fun resolvePreviewPositionMs(rawMs: Float): Long {
-                        val clamped = rawMs.coerceIn(0f, totalDuration)
-                        return if (trimMode == TrimMode.Keep) {
-                            clamped.coerceIn(selectionStartMs, selectionEndMs).toLong()
-                        } else {
-                            if (clamped in selectionStartMs..selectionEndMs) {
-                                val distanceToStart = clamped - selectionStartMs
-                                val distanceToEnd = selectionEndMs - clamped
-                                if (distanceToStart <= distanceToEnd) {
-                                    selectionStartMs.toLong()
-                                } else {
-                                    selectionEndMs.toLong()
-                                }
-                            } else {
-                                clamped.toLong()
-                            }
-                        }
-                    }
                     val startHandleMs = if (widthPx > 0f) {
                         ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
@@ -1698,6 +1680,25 @@ fun TrimAudioDialog(
                         ((selectionEndX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
                         totalDuration
+                    }
+
+                    fun resolvePreviewPositionMs(rawMs: Float): Long {
+                        val clamped = rawMs.coerceIn(0f, totalDuration)
+                        return if (trimMode == TrimMode.Keep) {
+                            clamped.coerceIn(selectionStartMs, selectionEndMs).toLong()
+                        } else {
+                            if (clamped in selectionStartMs..selectionEndMs) {
+                                val distanceToStart = clamped - selectionStartMs
+                                val distanceToEnd = selectionEndMs - clamped
+                                if (distanceToStart <= distanceToEnd) {
+                                    selectionStartMs.toLong()
+                                } else {
+                                    selectionEndMs.toLong()
+                                }
+                            } else {
+                                clamped.toLong()
+                            }
+                        }
                     }
 
                     LaunchedEffect(widthPx) {
