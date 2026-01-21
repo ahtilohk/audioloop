@@ -1607,7 +1607,7 @@ fun TrimAudioDialog(
                     val handleTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelPadding = with(LocalDensity.current) { 6.dp.toPx() }
-                    val labelTop = with(LocalDensity.current) { 6.dp.toPx() }
+                    val labelGap = with(LocalDensity.current) { 8.dp.toPx() }
                     val handleTextPaint = remember {
                         Paint().apply {
                             isAntiAlias = true
@@ -1618,7 +1618,7 @@ fun TrimAudioDialog(
                     val endHandleColor = Red500
                     val selectionColor = Cyan400
                     val remainingColor = Zinc700
-                    val labelBackgroundColor = Zinc900.copy(alpha = 0.85f)
+                    val labelBackgroundColor = Zinc800.copy(alpha = 0.95f)
                     val labelTextColor = Color.White
                     val startHandleMs = if (widthPx > 0f) {
                         ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
@@ -1711,6 +1711,25 @@ fun TrimAudioDialog(
                             drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
                             drawLine(selectionColor, Offset(selectionStartX, handleY), Offset(selectionEndX, handleY), strokeWidth = 2.dp.toPx())
 
+                            val playheadX = if (totalDuration > 0f) {
+                                ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
+                            } else {
+                                0f
+                            }
+                            if (playheadX in selectionStartX..selectionEndX) {
+                                drawLine(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    start = Offset(playheadX, 0f),
+                                    end = Offset(playheadX, waveAreaHeight),
+                                    strokeWidth = 1.5.dp.toPx()
+                                )
+                                drawCircle(
+                                    color = Color.White,
+                                    radius = 4.dp.toPx(),
+                                    center = Offset(playheadX, handleY)
+                                )
+                            }
+
                             // 4. Draw Handles (Bottom area)
                             drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
                             drawCircle(startHandleColor, radius = 10.dp.toPx(), center = Offset(startX, handleY))
@@ -1734,12 +1753,27 @@ fun TrimAudioDialog(
                                 val labelHeight = labelTextSize + (labelPadding * 2)
                                 val startLabelBound = (startLabelWidth / 2) + labelPadding
                                 val endLabelBound = (endLabelWidth / 2) + labelPadding
-                                val startLabelX = startX.coerceIn(startLabelBound, widthPx - startLabelBound)
-                                val endLabelX = endX.coerceIn(endLabelBound, widthPx - endLabelBound)
+                                val startMin = startLabelBound
+                                val startMax = widthPx - startLabelBound
+                                val endMin = endLabelBound
+                                val endMax = widthPx - endLabelBound
+                                var startLabelX = startX.coerceIn(startMin, startMax)
+                                var endLabelX = endX.coerceIn(endMin, endMax)
+                                val requiredGap = startLabelBound + endLabelBound + labelGap
+                                if (endLabelX - startLabelX < requiredGap) {
+                                    val mid = (startLabelX + endLabelX) / 2f
+                                    startLabelX = (mid - requiredGap / 2f).coerceIn(startMin, startMax)
+                                    endLabelX = (mid + requiredGap / 2f).coerceIn(endMin, endMax)
+                                    if (endLabelX - startLabelX < requiredGap) {
+                                        startLabelX = (endLabelX - requiredGap).coerceIn(startMin, startMax)
+                                        endLabelX = (startLabelX + requiredGap).coerceIn(endMin, endMax)
+                                    }
+                                }
                                 val startRectLeft = startLabelX - (startLabelWidth / 2) - labelPadding
                                 val startRectRight = startLabelX + (startLabelWidth / 2) + labelPadding
                                 val endRectLeft = endLabelX - (endLabelWidth / 2) - labelPadding
                                 val endRectRight = endLabelX + (endLabelWidth / 2) + labelPadding
+                                val labelTop = waveAreaHeight + ((handleAreaHeight - labelHeight) / 2f)
                                 drawRoundRect(
                                     color = labelBackgroundColor,
                                     topLeft = Offset(startRectLeft, labelTop),
