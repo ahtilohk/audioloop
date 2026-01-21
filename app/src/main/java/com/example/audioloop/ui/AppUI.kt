@@ -1837,10 +1837,10 @@ fun TrimAudioDialog(
                             onClick = {
                                 if (isPreviewPlaying) {
                                     previewPlayer.pause()
-                                    previewPlayer.seekTo(selectionStartMs.toInt())
+                                    previewPlayer.seekTo(range.start.toInt())
                                     isPreviewPlaying = false
                                 } else {
-                                    previewPlayer.seekTo(selectionStartMs.toInt())
+                                    previewPlayer.seekTo(range.start.toInt())
                                     previewPlayer.start()
                                     isPreviewPlaying = true
                                 }
