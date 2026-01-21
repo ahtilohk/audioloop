@@ -70,6 +70,7 @@ import java.io.File
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import android.graphics.Paint
 
 import androidx.compose.runtime.mutableFloatStateOf
