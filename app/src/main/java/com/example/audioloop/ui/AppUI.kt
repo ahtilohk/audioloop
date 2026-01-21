@@ -1569,7 +1569,7 @@ fun TrimAudioDialog(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "Tip: to cut from the middle, drag both handles inward to keep the part you want.",
+                    "The highlighted range is what you keep. To trim from the middle, move both handles inward.",
                     style = TextStyle(color = Zinc500, fontSize = 11.sp)
                 )
                 Spacer(modifier = Modifier.height(18.dp))
@@ -1588,8 +1588,11 @@ fun TrimAudioDialog(
                 ) {
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
-                    val handleHitRadius = with(LocalDensity.current) { 24.dp.toPx() }
+                    val heightPx = constraints.maxHeight.toFloat()
+                    val handleHitRadius = with(LocalDensity.current) { 32.dp.toPx() }
                     val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
+                    val handleAreaHeight = with(LocalDensity.current) { 40.dp.toPx() }
+                    val handleY = heightPx - (handleAreaHeight / 2)
                     
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
@@ -1681,11 +1684,9 @@ fun TrimAudioDialog(
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                             // Dimensions
                             val labelAreaHeight = 26.dp.toPx()
-                            val handleAreaHeight = 40.dp.toPx()
                             val waveAreaHeight = size.height - handleAreaHeight - labelAreaHeight
                             val waveTop = labelAreaHeight
                             val waveBottom = waveTop + waveAreaHeight
-                            val handleY = size.height - (handleAreaHeight / 2)
                             
                             // 1. Draw Waveform (Top area)
                             bars.forEachIndexed { index, amplitude ->
@@ -1704,6 +1705,17 @@ fun TrimAudioDialog(
                             // 2. Draw Selection Indicators (Lines extending down)
                             drawLine(startHandleColor, Offset(startX, waveTop), Offset(startX, waveBottom), strokeWidth = 2.dp.toPx())
                             drawLine(endHandleColor, Offset(endX, waveTop), Offset(endX, waveBottom), strokeWidth = 2.dp.toPx())
+
+                            drawRect(
+                                color = Zinc900.copy(alpha = 0.35f),
+                                topLeft = Offset(0f, waveTop),
+                                size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
+                            )
+                            drawRect(
+                                color = Zinc900.copy(alpha = 0.35f),
+                                topLeft = Offset(selectionEndX, waveTop),
+                                size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
+                            )
                             
                             // 3. Draw Handle Track (Visual guide)
                             drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
@@ -1813,11 +1825,17 @@ fun TrimAudioDialog(
                                     } else {
                                         0f
                                     }
+                                    val startDx = down.position.x - startX
+                                    val endDx = down.position.x - endX
+                                    val startDy = down.position.y - handleY
+                                    val endDy = down.position.y - handleY
+                                    val isNearStartHandle = (startDx * startDx) + (startDy * startDy) <= (handleHitRadius * handleHitRadius)
+                                    val isNearEndHandle = (endDx * endDx) + (endDy * endDy) <= (handleHitRadius * handleHitRadius)
                                     val isNearPlayhead = kotlin.math.abs(down.position.x - playheadX) <= playheadHitRadius
                                     val dragTarget = when {
+                                        isNearStartHandle -> TrimDragTarget.Start
+                                        isNearEndHandle -> TrimDragTarget.End
                                         isNearPlayhead -> TrimDragTarget.Playhead
-                                        kotlin.math.abs(down.position.x - startX) <= handleHitRadius -> TrimDragTarget.Start
-                                        kotlin.math.abs(down.position.x - endX) <= handleHitRadius -> TrimDragTarget.End
                                         else -> TrimDragTarget.Playhead
                                     }
                                     if (dragTarget == TrimDragTarget.Playhead) {
