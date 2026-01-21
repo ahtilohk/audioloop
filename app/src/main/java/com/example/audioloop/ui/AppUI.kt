@@ -1657,9 +1657,6 @@ fun TrimAudioDialog(
                     androidx.compose.foundation.Canvas(
                         modifier = Modifier
                             .fillMaxSize()
-                    androidx.compose.foundation.Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
                             .pointerInput(Unit) {
                                 awaitEachGesture {
                                     val down = awaitFirstDown(requireUnconsumed = false)
