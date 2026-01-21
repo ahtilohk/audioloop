@@ -1704,7 +1704,7 @@ fun TrimAudioDialog(
                                 }
                             }
                     ) {
-                    ) {
+
                         // Invisible touch layer, visual handles are drawn above
                     }
                 }
