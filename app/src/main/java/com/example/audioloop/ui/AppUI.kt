@@ -50,10 +50,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.gestures.*
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
@@ -66,12 +67,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import java.io.File
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import android.graphics.Paint
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
 
 
@@ -1562,16 +1562,39 @@ fun TrimAudioDialog(
                         .padding(horizontal = 4.dp)
                 ) {
                     val widthPx = constraints.maxWidth.toFloat()
-                    val heightPx = constraints.maxHeight.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val handleHitRadius = with(LocalDensity.current) { 24.dp.toPx() }
                     
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
-                    
-                    LaunchedEffect(range) {
-                        startX = (range.start / totalDuration) * widthPx
-                        endX = (range.endInclusive / totalDuration) * widthPx
+                    val selectionStartX = min(startX, endX)
+                    val selectionEndX = max(startX, endX)
+                    val handleTextSize = with(LocalDensity.current) { 12.sp.toPx() }
+                    val handleTextPaint = remember {
+                        Paint().apply {
+                            isAntiAlias = true
+                            textAlign = Paint.Align.CENTER
+                        }
+                    }
+                    val startHandleColor = Cyan500
+                    val endHandleColor = Red500
+                    val selectionColor = Cyan400
+                    val remainingColor = Zinc700
+                    val selectionStartMs = if (widthPx > 0f) {
+                        ((selectionStartX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                    } else {
+                        0f
+                    }
+                    val selectionEndMs = if (widthPx > 0f) {
+                        ((selectionEndX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                    } else {
+                        totalDuration
+                    }
+
+                    LaunchedEffect(widthPx) {
+                        startX = startX.coerceIn(0f, widthPx)
+                        endX = endX.coerceIn(0f, widthPx)
+                        range = selectionStartMs..selectionEndMs
                     }
 
                     // Render Waveform and UI
@@ -1595,10 +1618,10 @@ fun TrimAudioDialog(
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
                                 val barHeight = (amplitude / 100f) * waveAreaHeight
-                                val isSelected = x >= startX && x <= endX
+                                val isSelected = x >= selectionStartX && x <= selectionEndX
                                 
                                 drawLine(
-                                    color = if (isSelected) Cyan500 else Zinc600,
+                                    color = if (isSelected) selectionColor else remainingColor,
                                     start = Offset(x + barWidth/2, (waveAreaHeight - barHeight) / 2),
                                     end = Offset(x + barWidth/2, (waveAreaHeight + barHeight) / 2),
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
@@ -1606,19 +1629,26 @@ fun TrimAudioDialog(
                             }
                             
                             // 2. Draw Selection Indicators (Lines extending down)
-                            drawLine(Cyan500, Offset(startX, 0f), Offset(startX, waveAreaHeight), strokeWidth = 2.dp.toPx())
-                            drawLine(Cyan500, Offset(endX, 0f), Offset(endX, waveAreaHeight), strokeWidth = 2.dp.toPx())
+                            drawLine(startHandleColor, Offset(startX, 0f), Offset(startX, waveAreaHeight), strokeWidth = 2.dp.toPx())
+                            drawLine(endHandleColor, Offset(endX, 0f), Offset(endX, waveAreaHeight), strokeWidth = 2.dp.toPx())
                             
                             // 3. Draw Handle Track (Visual guide)
                             drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
-                            drawLine(Cyan500, Offset(startX, handleY), Offset(endX, handleY), strokeWidth = 2.dp.toPx())
+                            drawLine(selectionColor, Offset(selectionStartX, handleY), Offset(selectionEndX, handleY), strokeWidth = 2.dp.toPx())
 
                             // 4. Draw Handles (Bottom area)
                             drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
-                            drawCircle(Cyan500, radius = 10.dp.toPx(), center = Offset(startX, handleY))
+                            drawCircle(startHandleColor, radius = 10.dp.toPx(), center = Offset(startX, handleY))
                             
                             drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(endX, handleY))
-                            drawCircle(Cyan500, radius = 10.dp.toPx(), center = Offset(endX, handleY))
+                            drawCircle(endHandleColor, radius = 10.dp.toPx(), center = Offset(endX, handleY))
+                            drawIntoCanvas { canvas ->
+                                handleTextPaint.textSize = handleTextSize
+                                handleTextPaint.color = android.graphics.Color.WHITE
+                                val textYOffset = handleTextSize / 3f
+                                canvas.nativeCanvas.drawText("L", startX, handleY + textYOffset, handleTextPaint)
+                                canvas.nativeCanvas.drawText("R", endX, handleY + textYOffset, handleTextPaint)
+                            }
                         }
                     }
                     
@@ -1639,24 +1669,39 @@ fun TrimAudioDialog(
                                         handleHitRadius
                                     )
                                     var lastX = down.position.x
-                                    drag(down.id) { change ->
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                        if (!change.pressed) {
+                                            break
+                                        }
                                         val dragAmount = change.position.x - lastX
                                         lastX = change.position.x
+                                        if (dragAmount == 0f) {
+                                            continue
+                                        }
                                         change.consume()
                                         when (handle) {
                                             TrimHandle.Start -> {
-                                                val newStart = (startX + dragAmount).coerceIn(0f, endX - 20)
-                                                startX = newStart
-                                                val newTime = (newStart / widthPx) * totalDuration
-                                                range = newTime..range.endInclusive
+                                                startX = (startX + dragAmount).coerceIn(0f, widthPx)
                                             }
                                             TrimHandle.End -> {
-                                                val newEnd = (endX + dragAmount).coerceIn(startX + 20, widthPx)
-                                                endX = newEnd
-                                                val newTime = (newEnd / widthPx) * totalDuration
-                                                range = range.start..newTime
+                                                endX = (endX + dragAmount).coerceIn(0f, widthPx)
                                             }
                                         }
+                                        val newSelectionStart = min(startX, endX)
+                                        val newSelectionEnd = max(startX, endX)
+                                        val newStartMs = if (widthPx > 0f) {
+                                            ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                        } else {
+                                            0f
+                                        }
+                                        val newEndMs = if (widthPx > 0f) {
+                                            ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                        } else {
+                                            totalDuration
+                                        }
+                                        range = newStartMs..newEndMs
                                     }
                                 }
                             }
