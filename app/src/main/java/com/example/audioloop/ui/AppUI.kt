@@ -1567,6 +1567,11 @@ fun TrimAudioDialog(
                     "Drag the L and R handles to refine the selection. Tap or drag the waveform to set playback.",
                     style = TextStyle(color = Zinc400, fontSize = 12.sp)
                 )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    "Tip: to cut from the middle, drag both handles inward to keep the part you want.",
+                    style = TextStyle(color = Zinc500, fontSize = 11.sp)
+                )
                 Spacer(modifier = Modifier.height(18.dp))
                 
                 // Visual Trimmer with Waveform
@@ -1634,12 +1639,16 @@ fun TrimAudioDialog(
                     }
 
                     LaunchedEffect(selectionStartMs, selectionEndMs) {
+                        val clampedPreviewMs = previewPositionMs.coerceIn(
+                            selectionStartMs.toLong(),
+                            selectionEndMs.toLong()
+                        )
                         if (isPreviewPlaying) {
                             previewPlayer.pause()
-                            previewPlayer.seekTo(selectionStartMs.toInt())
+                            previewPlayer.seekTo(clampedPreviewMs.toInt())
                             isPreviewPlaying = false
                         }
-                        previewPositionMs = selectionStartMs.toLong()
+                        previewPositionMs = clampedPreviewMs
                     }
 
                     LaunchedEffect(isPreviewPlaying, selectionStartMs, selectionEndMs) {
@@ -1705,19 +1714,23 @@ fun TrimAudioDialog(
                             } else {
                                 0f
                             }
-                            if (playheadX in selectionStartX..selectionEndX) {
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    start = Offset(playheadX, waveTop),
-                                    end = Offset(playheadX, waveBottom),
-                                    strokeWidth = 1.5.dp.toPx()
-                                )
-                                drawCircle(
-                                    color = Color.White,
-                                    radius = 4.dp.toPx(),
-                                    center = Offset(playheadX, handleY)
-                                )
+                            val playheadInSelection = playheadX in selectionStartX..selectionEndX
+                            val playheadLineColor = if (playheadInSelection) {
+                                Color.White.copy(alpha = 0.7f)
+                            } else {
+                                Color.White.copy(alpha = 0.35f)
                             }
+                            drawLine(
+                                color = playheadLineColor,
+                                start = Offset(playheadX, waveTop),
+                                end = Offset(playheadX, waveBottom),
+                                strokeWidth = 1.5.dp.toPx()
+                            )
+                            drawCircle(
+                                color = Color.White,
+                                radius = 4.dp.toPx(),
+                                center = Offset(playheadX, handleY)
+                            )
 
                             // 4. Draw Handles (Bottom area)
                             drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
@@ -1810,7 +1823,8 @@ fun TrimAudioDialog(
                                     if (dragTarget == TrimDragTarget.Playhead) {
                                         playheadX = down.position.x.coerceIn(0f, widthPx)
                                         val newPreviewMs = if (widthPx > 0f) {
-                                            ((playheadX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                            ((playheadX / widthPx) * totalDuration)
+                                                .coerceIn(selectionStartMs, selectionEndMs)
                                         } else {
                                             0f
                                         }
@@ -1844,7 +1858,8 @@ fun TrimAudioDialog(
                                             TrimDragTarget.Playhead -> {
                                                 playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
                                                 val newPreviewMs = if (widthPx > 0f) {
-                                                    ((playheadX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                    ((playheadX / widthPx) * totalDuration)
+                                                        .coerceIn(selectionStartMs, selectionEndMs)
                                                 } else {
                                                     0f
                                                 }
@@ -1939,10 +1954,14 @@ fun TrimAudioDialog(
                             onClick = {
                                 if (isPreviewPlaying) {
                                     previewPlayer.pause()
-                                    previewPlayer.seekTo(range.start.toInt())
                                     isPreviewPlaying = false
                                 } else {
-                                    previewPlayer.seekTo(range.start.toInt())
+                                    val startMs = previewPositionMs.coerceIn(
+                                        range.start.toLong(),
+                                        range.endInclusive.toLong()
+                                    )
+                                    previewPositionMs = startMs
+                                    previewPlayer.seekTo(startMs.toInt())
                                     previewPlayer.start()
                                     isPreviewPlaying = true
                                 }
@@ -1952,6 +1971,21 @@ fun TrimAudioDialog(
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Text(if (isPreviewPlaying) "Pause" else "Play", color = Color.White, fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                previewPlayer.pause()
+                                val stopMs = range.start.toLong()
+                                previewPositionMs = stopMs
+                                previewPlayer.seekTo(stopMs.toInt())
+                                isPreviewPlaying = false
+                            },
+                            border = BorderStroke(1.dp, Zinc700),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("Stop", color = Zinc300, fontSize = 12.sp)
                         }
                     }
                 }
