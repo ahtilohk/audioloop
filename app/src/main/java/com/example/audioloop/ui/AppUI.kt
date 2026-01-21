@@ -1505,6 +1505,11 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
     )
 }
 
+private enum class TrimHandle {
+    Start,
+    End
+}
+
 @Composable
 fun TrimAudioDialog(
     file: File,
@@ -1513,6 +1518,7 @@ fun TrimAudioDialog(
     onConfirm: (start: Long, end: Long, replace: Boolean) -> Unit
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
+    var activeHandle by remember { mutableStateOf<TrimHandle?>(null) }
     
     // Waveform Loading
     val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
@@ -1600,28 +1606,52 @@ fun TrimAudioDialog(
                     }
                     
                     // Touch/Drag Layer
-                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-                        detectHorizontalDragGestures { change, dragAmount ->
-                            val x = change.position.x
-                            // Determine closest handle
-                            val distStart = kotlin.math.abs(x - startX)
-                            val distEnd = kotlin.math.abs(x - endX)
-                            
-                            if (distStart < distEnd) {
-                                // Dragging start
-                                var newStart = (startX + dragAmount).coerceIn(0f, endX - 20)
-                                startX = newStart
-                                var newTime = (newStart / widthPx) * totalDuration
-                                range = newTime..range.endInclusive
-                            } else {
-                                // Dragging end
-                                var newEnd = (endX + dragAmount).coerceIn(startX + 20, widthPx)
-                                endX = newEnd
-                                var newTime = (newEnd / widthPx) * totalDuration
-                                range = range.start..newTime
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragStart = { offset ->
+                                        val distStart = kotlin.math.abs(offset.x - startX)
+                                        val distEnd = kotlin.math.abs(offset.x - endX)
+                                        activeHandle = if (distStart <= distEnd) {
+                                            TrimHandle.Start
+                                        } else {
+                                            TrimHandle.End
+                                        }
+                                    },
+                                    onDragEnd = { activeHandle = null },
+                                    onDragCancel = { activeHandle = null }
+                                ) { change, dragAmount ->
+                                    val handle = activeHandle ?: run {
+                                        val distStart = kotlin.math.abs(change.position.x - startX)
+                                        val distEnd = kotlin.math.abs(change.position.x - endX)
+                                        val resolved = if (distStart <= distEnd) {
+                                            TrimHandle.Start
+                                        } else {
+                                            TrimHandle.End
+                                        }
+                                        activeHandle = resolved
+                                        resolved
+                                    }
+                                    change.consume()
+                                    when (handle) {
+                                        TrimHandle.Start -> {
+                                            val newStart = (startX + dragAmount).coerceIn(0f, endX - 20)
+                                            startX = newStart
+                                            val newTime = (newStart / widthPx) * totalDuration
+                                            range = newTime..range.endInclusive
+                                        }
+                                        TrimHandle.End -> {
+                                            val newEnd = (endX + dragAmount).coerceIn(startX + 20, widthPx)
+                                            endX = newEnd
+                                            val newTime = (newEnd / widthPx) * totalDuration
+                                            range = range.start..newTime
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    }) {
+                    ) {
                         // Invisible touch layer, visual handles are drawn above
                     }
                 }
