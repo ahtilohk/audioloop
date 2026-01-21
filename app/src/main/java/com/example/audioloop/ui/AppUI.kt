@@ -1661,6 +1661,24 @@ fun TrimAudioDialog(
                     val remainingColor = Zinc700
                     val labelBackgroundColor = Zinc800.copy(alpha = 0.95f)
                     val labelTextColor = Color.White
+                    fun resolvePreviewPositionMs(rawMs: Float): Long {
+                        val clamped = rawMs.coerceIn(0f, totalDuration)
+                        return if (trimMode == TrimMode.Keep) {
+                            clamped.coerceIn(selectionStartMs, selectionEndMs).toLong()
+                        } else {
+                            if (clamped in selectionStartMs..selectionEndMs) {
+                                val distanceToStart = clamped - selectionStartMs
+                                val distanceToEnd = selectionEndMs - clamped
+                                if (distanceToStart <= distanceToEnd) {
+                                    selectionStartMs.toLong()
+                                } else {
+                                    selectionEndMs.toLong()
+                                }
+                            } else {
+                                clamped.toLong()
+                            }
+                        }
+                    }
                     val startHandleMs = if (widthPx > 0f) {
                         ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
@@ -1688,11 +1706,8 @@ fun TrimAudioDialog(
                         range = selectionStartMs..selectionEndMs
                     }
 
-                    LaunchedEffect(selectionStartMs, selectionEndMs) {
-                        val clampedPreviewMs = previewPositionMs.coerceIn(
-                            selectionStartMs.toLong(),
-                            selectionEndMs.toLong()
-                        )
+                    LaunchedEffect(selectionStartMs, selectionEndMs, trimMode) {
+                        val clampedPreviewMs = resolvePreviewPositionMs(previewPositionMs.toFloat())
                         if (isPreviewPlaying) {
                             previewPlayer.pause()
                             previewPlayer.seekTo(clampedPreviewMs.toInt())
@@ -1701,16 +1716,29 @@ fun TrimAudioDialog(
                         previewPositionMs = clampedPreviewMs
                     }
 
-                    LaunchedEffect(isPreviewPlaying, selectionStartMs, selectionEndMs) {
+                    LaunchedEffect(isPreviewPlaying, selectionStartMs, selectionEndMs, trimMode) {
                         if (isPreviewPlaying) {
                             while (isActive && previewPlayer.isPlaying) {
                                 val current = previewPlayer.currentPosition.toLong()
                                 previewPositionMs = current
-                                if (current >= selectionEndMs.toLong()) {
-                                    previewPlayer.pause()
-                                    previewPlayer.seekTo(selectionStartMs.toInt())
-                                    isPreviewPlaying = false
-                                    break
+                                if (trimMode == TrimMode.Keep) {
+                                    if (current >= selectionEndMs.toLong()) {
+                                        previewPlayer.pause()
+                                        previewPlayer.seekTo(selectionStartMs.toInt())
+                                        isPreviewPlaying = false
+                                        break
+                                    }
+                                } else {
+                                    if (current in selectionStartMs.toLong()..selectionEndMs.toLong()) {
+                                        previewPlayer.seekTo(selectionEndMs.toInt())
+                                        previewPositionMs = selectionEndMs.toLong()
+                                    } else if (current >= totalDuration.toLong()) {
+                                        previewPlayer.pause()
+                                        previewPlayer.seekTo(0)
+                                        previewPositionMs = 0L
+                                        isPreviewPlaying = false
+                                        break
+                                    }
                                 }
                                 delay(50)
                             }
@@ -1936,16 +1964,15 @@ fun TrimAudioDialog(
                                             TrimDragTarget.Playhead -> {
                                                 playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
                                                 val newPreviewMs = if (widthPx > 0f) {
-                                                    ((playheadX / widthPx) * totalDuration)
-                                                        .coerceIn(selectionStartMs, selectionEndMs)
+                                                    resolvePreviewPositionMs((playheadX / widthPx) * totalDuration)
                                                 } else {
-                                                    0f
+                                                    0L
                                                 }
                                                 if (isPreviewPlaying) {
                                                     previewPlayer.pause()
                                                     isPreviewPlaying = false
                                                 }
-                                                previewPositionMs = newPreviewMs.toLong()
+                                                previewPositionMs = newPreviewMs
                                                 previewPlayer.seekTo(previewPositionMs.toInt())
                                             }
                                         }
@@ -2034,10 +2061,8 @@ fun TrimAudioDialog(
                                     previewPlayer.pause()
                                     isPreviewPlaying = false
                                 } else {
-                                    val startMs = previewPositionMs.coerceIn(
-                                        range.start.toLong(),
-                                        range.endInclusive.toLong()
-                                    )
+                                    val baseStartMs = previewPositionMs.toFloat()
+                                    val startMs = resolvePreviewPositionMs(baseStartMs)
                                     previewPositionMs = startMs
                                     previewPlayer.seekTo(startMs.toInt())
                                     previewPlayer.start()
@@ -2054,7 +2079,11 @@ fun TrimAudioDialog(
                         OutlinedButton(
                             onClick = {
                                 previewPlayer.pause()
-                                val stopMs = range.start.toLong()
+                                val stopMs = if (trimMode == TrimMode.Keep) {
+                                    range.start.toLong()
+                                } else {
+                                    0L
+                                }
                                 previewPositionMs = stopMs
                                 previewPlayer.seekTo(stopMs.toInt())
                                 isPreviewPlaying = false
