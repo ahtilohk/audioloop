@@ -1538,6 +1538,24 @@ fun TrimAudioDialog(
     var previewPositionMs by remember { mutableLongStateOf(0L) }
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
     
+    fun resolvePreviewPosition(rawMs: Float): Long {
+        val total = durationMs.toFloat()
+        val clamped = rawMs.coerceIn(0f, total)
+        return if (trimMode == TrimMode.Keep) {
+            clamped.coerceIn(range.start, range.endInclusive).toLong()
+        } else {
+            val start = range.start
+            val end = range.endInclusive
+            if (clamped in start..end) {
+                val distStart = clamped - start
+                val distEnd = end - clamped
+                if (distStart <= distEnd) start.toLong() else end.toLong()
+            } else {
+                clamped.toLong()
+            }
+        }
+    }
+    
     // Waveform Loading
     val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
         value = withContext(Dispatchers.IO) {
@@ -1682,25 +1700,6 @@ fun TrimAudioDialog(
                         totalDuration
                     }
 
-                    fun resolvePreviewPositionMs(rawMs: Float): Long {
-                        val clamped = rawMs.coerceIn(0f, totalDuration)
-                        return if (trimMode == TrimMode.Keep) {
-                            clamped.coerceIn(selectionStartMs, selectionEndMs).toLong()
-                        } else {
-                            if (clamped in selectionStartMs..selectionEndMs) {
-                                val distanceToStart = clamped - selectionStartMs
-                                val distanceToEnd = selectionEndMs - clamped
-                                if (distanceToStart <= distanceToEnd) {
-                                    selectionStartMs.toLong()
-                                } else {
-                                    selectionEndMs.toLong()
-                                }
-                            } else {
-                                clamped.toLong()
-                            }
-                        }
-                    }
-
                     LaunchedEffect(widthPx) {
                         startX = startX.coerceIn(0f, widthPx)
                         endX = endX.coerceIn(0f, widthPx)
@@ -1708,7 +1707,7 @@ fun TrimAudioDialog(
                     }
 
                     LaunchedEffect(selectionStartMs, selectionEndMs, trimMode) {
-                        val clampedPreviewMs = resolvePreviewPositionMs(previewPositionMs.toFloat())
+                        val clampedPreviewMs = resolvePreviewPosition(previewPositionMs.toFloat())
                         if (isPreviewPlaying) {
                             previewPlayer.pause()
                             previewPlayer.seekTo(clampedPreviewMs.toInt())
@@ -1965,7 +1964,7 @@ fun TrimAudioDialog(
                                             TrimDragTarget.Playhead -> {
                                                 playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
                                                 val newPreviewMs = if (widthPx > 0f) {
-                                                    resolvePreviewPositionMs((playheadX / widthPx) * totalDuration)
+                                                    resolvePreviewPosition((playheadX / widthPx) * totalDuration)
                                                 } else {
                                                     0L
                                                 }
@@ -2063,7 +2062,7 @@ fun TrimAudioDialog(
                                     isPreviewPlaying = false
                                 } else {
                                     val baseStartMs = previewPositionMs.toFloat()
-                                    val startMs = resolvePreviewPositionMs(baseStartMs)
+                                    val startMs = resolvePreviewPosition(baseStartMs)
                                     previewPositionMs = startMs
                                     previewPlayer.seekTo(startMs.toInt())
                                     previewPlayer.start()
