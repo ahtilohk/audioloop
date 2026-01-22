@@ -526,6 +526,7 @@ fun CategoryManagementSheet(
             var draggingCategory by remember { mutableStateOf<String?>(null) }
             var overlayOffsetY by remember { mutableFloatStateOf(0f) }
             var grabOffsetY by remember { mutableFloatStateOf(0f) }
+            var draggingItemSizePx by remember { mutableFloatStateOf(0f) }
             var overscrollSpeed by remember { mutableFloatStateOf(0f) }
 
             fun checkForSwap() {
@@ -533,7 +534,7 @@ fun CategoryManagementSheet(
                 val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
                 if (currentVisibleItems.isEmpty()) return
 
-                val overlayCenterY = overlayOffsetY + (with(density) { 24.dp.toPx() })
+                val overlayCenterY = overlayOffsetY + (draggingItemSizePx / 2f)
                 var targetIndex = -1
                 val hoveredItem = currentVisibleItems.find {
                     overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
@@ -583,7 +584,7 @@ fun CategoryManagementSheet(
                     .pointerInput(Unit) {
                         val gripWidth = 60.dp.toPx()
                         awaitEachGesture {
-                            val down = awaitFirstDown(requireUnconsumed = false)
+                            val down = awaitFirstDown(requireUnconsumed = true)
                             val y = down.position.y
                             val x = down.position.x
                             val hitItem = scrollState.layoutInfo.visibleItemsInfo.find {
@@ -598,6 +599,7 @@ fun CategoryManagementSheet(
                                     draggingCategory = uiCategories[index]
 
                                     val itemTop = hitItem.offset.toFloat()
+                                    draggingItemSizePx = hitItem.size.toFloat()
                                     overlayOffsetY = itemTop
                                     grabOffsetY = y - itemTop
 
@@ -632,6 +634,7 @@ fun CategoryManagementSheet(
                                     overscrollSpeed = 0f
                                     draggingCategoryIndex = -1
                                     draggingCategory = null
+                                    draggingItemSizePx = 0f
                                     onReorder(uiCategories.toList())
                                 }
                             }
@@ -659,6 +662,10 @@ fun CategoryManagementSheet(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clickable(enabled = !isEditing && !isDragging) {
+                                    onSelect(cat)
+                                    onClose()
+                                }
                                 .alpha(if (isDragging) 0f else 1f)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (currentCategory == cat) Cyan900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
@@ -704,12 +711,7 @@ fun CategoryManagementSheet(
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Medium
                                     ),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            onSelect(cat)
-                                            onClose()
-                                        }
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
 
