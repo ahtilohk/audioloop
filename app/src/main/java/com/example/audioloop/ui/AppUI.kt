@@ -408,11 +408,18 @@ fun CategoryManagementSheet(
     onAdd: (String) -> Unit,
     onRename: (String, String) -> Unit,
     onDelete: (String) -> Unit,
+    onReorder: (List<String>) -> Unit,
     onClose: () -> Unit
 ) {
     var newCategoryName by remember { mutableStateOf("") }
     var editingId by remember { mutableStateOf<String?>(null) }
     var editName by remember { mutableStateOf("") }
+    val uiCategories = remember { mutableStateListOf<String>() }
+
+    LaunchedEffect(categories) {
+        uiCategories.clear()
+        uiCategories.addAll(categories)
+    }
 
     Box(
         modifier = Modifier
@@ -512,118 +519,269 @@ fun CategoryManagementSheet(
             Divider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
 
             // List
-            LazyColumn(
+            val density = LocalDensity.current
+            val scrollState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+            var draggingCategoryIndex by remember { mutableIntStateOf(-1) }
+            var draggingCategory by remember { mutableStateOf<String?>(null) }
+            var overlayOffsetY by remember { mutableFloatStateOf(0f) }
+            var grabOffsetY by remember { mutableFloatStateOf(0f) }
+            var overscrollSpeed by remember { mutableFloatStateOf(0f) }
+
+            fun checkForSwap() {
+                if (uiCategories.size <= 1) return
+                val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
+                if (currentVisibleItems.isEmpty()) return
+
+                val overlayCenterY = overlayOffsetY + (with(density) { 24.dp.toPx() })
+                var targetIndex = -1
+                val hoveredItem = currentVisibleItems.find {
+                    overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
+                }
+
+                if (hoveredItem != null) {
+                    targetIndex = hoveredItem.index
+                } else {
+                    val firstVisible = currentVisibleItems.first()
+                    val lastVisible = currentVisibleItems.last()
+                    if (overlayCenterY < firstVisible.offset) {
+                        targetIndex = firstVisible.index
+                    } else if (overlayCenterY > lastVisible.offset + lastVisible.size) {
+                        targetIndex = lastVisible.index
+                    }
+                }
+
+                if (targetIndex == 0) {
+                    targetIndex = 1
+                }
+
+                if (targetIndex != -1 && targetIndex != draggingCategoryIndex) {
+                    if (draggingCategoryIndex in uiCategories.indices && targetIndex in uiCategories.indices) {
+                        val itemToMove = uiCategories.removeAt(draggingCategoryIndex)
+                        uiCategories.add(targetIndex, itemToMove)
+                        draggingCategoryIndex = targetIndex
+                    }
+                }
+            }
+
+            LaunchedEffect(overscrollSpeed) {
+                if (overscrollSpeed != 0f) {
+                    while (true) {
+                        val scrolled = scrollState.scrollBy(overscrollSpeed)
+                        if (scrolled != 0f) {
+                            checkForSwap()
+                        }
+                        kotlinx.coroutines.delay(10)
+                    }
+                }
+            }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .weight(1f)
+                    .pointerInput(Unit) {
+                        val gripWidth = 60.dp.toPx()
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            val y = down.position.y
+                            val x = down.position.x
+                            val hitItem = scrollState.layoutInfo.visibleItemsInfo.find {
+                                y >= it.offset && y <= it.offset + it.size
+                            }
+
+                            if (hitItem != null && x <= gripWidth) {
+                                val index = hitItem.index
+                                if (index in uiCategories.indices && uiCategories[index] != "General") {
+                                    down.consume()
+                                    draggingCategoryIndex = index
+                                    draggingCategory = uiCategories[index]
+
+                                    val itemTop = hitItem.offset.toFloat()
+                                    overlayOffsetY = itemTop
+                                    grabOffsetY = y - itemTop
+
+                                    var isDragging = true
+                                    while (isDragging) {
+                                        val event = awaitPointerEvent()
+                                        val change = event.changes.firstOrNull { it.id == down.id }
+
+                                        if (change == null || !change.pressed) {
+                                            isDragging = false
+                                            break
+                                        }
+
+                                        if (change.positionChanged()) {
+                                            change.consume()
+                                            val newY = change.position.y
+                                            overlayOffsetY = newY - grabOffsetY
+
+                                            val viewportHeight = size.height.toFloat()
+                                            val threshold = 60.dp.toPx()
+                                            val maxSpeed = 20.dp.toPx()
+
+                                            overscrollSpeed = when {
+                                                newY < threshold -> -maxSpeed * ((threshold - newY) / threshold).coerceIn(0.1f, 1f)
+                                                newY > viewportHeight - threshold -> maxSpeed * ((newY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
+                                                else -> 0f
+                                            }
+                                            checkForSwap()
+                                        }
+                                    }
+
+                                    overscrollSpeed = 0f
+                                    draggingCategoryIndex = -1
+                                    draggingCategory = null
+                                    onReorder(uiCategories.toList())
+                                }
+                            }
+                        }
+                    }
             ) {
-                item {
-                    Text(
-                        text = "Manage your categories",
-                        style = TextStyle(color = Zinc500, fontSize = 12.sp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding(),
+                    state = scrollState,
+                    contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 40.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        Text(
+                            text = "Manage your categories",
+                            style = TextStyle(color = Zinc500, fontSize = 12.sp),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                    itemsIndexed(uiCategories, key = { _, cat -> cat }) { index, cat ->
+                        val isEditing = editingId == cat
+                        val isDragging = draggingCategoryIndex == index
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(if (isDragging) 0f else 1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (currentCategory == cat) Cyan900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
+                                .border(
+                                    1.dp,
+                                    if (currentCategory == cat) Cyan500.copy(alpha = 0.5f) else Zinc700.copy(alpha = 0.5f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                AppIcons.GripVertical,
+                                contentDescription = null,
+                                tint = if (cat == "General") Zinc700 else Zinc500,
+                                modifier = Modifier.size(18.dp)
+                            )
+
+                            if (isEditing) {
+                                BasicTextField(
+                                    value = editName,
+                                    onValueChange = { editName = it },
+                                    singleLine = true,
+                                    textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(Zinc900, RoundedCornerShape(8.dp))
+                                        .border(1.dp, Cyan500, RoundedCornerShape(8.dp))
+                                        .padding(8.dp),
+                                    keyboardActions = KeyboardActions(onDone = {
+                                        if (editName.isNotBlank() && editName != cat) {
+                                            onRename(cat, editName.trim())
+                                        }
+                                        editingId = null
+                                    })
+                                )
+                            } else {
+                                Text(
+                                    text = cat,
+                                    style = TextStyle(
+                                        color = if (currentCategory == cat) Cyan300 else Zinc200,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            onSelect(cat)
+                                            onClose()
+                                        }
+                                )
+                            }
+
+                            if (cat != "General" && !isEditing) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    IconButton(
+                                        onClick = {
+                                            editingId = cat
+                                            editName = cat
+                                        },
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                    ) {
+                                        Icon(AppIcons.Edit, contentDescription = "Edit", tint = Zinc400, modifier = Modifier.size(14.dp))
+                                    }
+                                    IconButton(
+                                        onClick = { onDelete(cat) },
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                    ) {
+                                        Icon(AppIcons.Delete, contentDescription = "Delete", tint = Zinc400, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            } else if (cat == "General") {
+                                Box(
+                                    modifier = Modifier
+                                        .background(Zinc800, RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text("default", color = Zinc500, fontSize = 10.sp)
+                                }
+                            } else if (isEditing) {
+                                IconButton(
+                                    onClick = {
+                                        if (editName.isNotBlank() && editName != cat) {
+                                            onRename(cat, editName.trim())
+                                        }
+                                        editingId = null
+                                    },
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .background(Cyan600, RoundedCornerShape(8.dp))
+                                ) {
+                                    Icon(AppIcons.Check, contentDescription = "Save", tint = Color.White, modifier = Modifier.size(14.dp))
+                                }
+                            }
+                        }
+                    }
                 }
-                items(categories) { cat ->
-                    val isEditing = editingId == cat
+
+                if (draggingCategory != null) {
+                    val cat = draggingCategory!!
                     Row(
                         modifier = Modifier
+                            .offset { IntOffset(0, overlayOffsetY.roundToInt()) }
+                            .shadow(8.dp, RoundedCornerShape(12.dp))
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (currentCategory == cat) Cyan900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
-                            .border(
-                                1.dp,
-                                if (currentCategory == cat) Cyan500.copy(alpha = 0.5f) else Zinc700.copy(alpha = 0.5f),
-                                RoundedCornerShape(12.dp)
-                            )
+                            .background(Zinc800.copy(alpha = 0.7f))
+                            .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(AppIcons.GripVertical, contentDescription = null, tint = Zinc500, modifier = Modifier.size(18.dp))
-
-                        if (isEditing) {
-                            BasicTextField(
-                                value = editName,
-                                onValueChange = { editName = it },
-                                singleLine = true,
-                                textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(Zinc900, RoundedCornerShape(8.dp))
-                                    .border(1.dp, Cyan500, RoundedCornerShape(8.dp))
-                                    .padding(8.dp),
-                                keyboardActions = KeyboardActions(onDone = {
-                                    if (editName.isNotBlank() && editName != cat) {
-                                        onRename(cat, editName.trim())
-                                    }
-                                    editingId = null
-                                })
-                            )
-                        } else {
-                            Text(
-                                text = cat,
-                                style = TextStyle(
-                                    color = if (currentCategory == cat) Cyan300 else Zinc200,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable {
-                                        onSelect(cat)
-                                        onClose()
-                                    }
-                            )
-                        }
-
-                        if (cat != "General" && !isEditing) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                IconButton(
-                                    onClick = {
-                                        editingId = cat
-                                        editName = cat
-                                    },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                ) {
-                                    Icon(AppIcons.Edit, contentDescription = "Edit", tint = Zinc400, modifier = Modifier.size(14.dp))
-                                }
-                                IconButton(
-                                    onClick = { onDelete(cat) },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                ) {
-                                    Icon(AppIcons.Delete, contentDescription = "Delete", tint = Zinc400, modifier = Modifier.size(14.dp))
-                                }
-                            }
-                        } else if (cat == "General") {
-                            Box(
-                                modifier = Modifier
-                                    .background(Zinc800, RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text("default", color = Zinc500, fontSize = 10.sp)
-                            }
-                        } else if (isEditing) {
-                            IconButton(
-                                onClick = {
-                                    if (editName.isNotBlank() && editName != cat) {
-                                        onRename(cat, editName.trim())
-                                    }
-                                    editingId = null
-                                },
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(Cyan600, RoundedCornerShape(8.dp))
-                            ) {
-                                Icon(AppIcons.Check, contentDescription = "Save", tint = Color.White, modifier = Modifier.size(14.dp))
-                            }
-                        }
+                        Text(
+                            text = cat,
+                            style = TextStyle(color = Zinc200, fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
@@ -648,7 +806,9 @@ fun AudioLoopMainScreen(
     onAddCategory: (String) -> Unit,
     onRenameCategory: (String, String) -> Unit,
     onDeleteCategory: (String) -> Unit,
+
     onReorderCategory: (String, Int) -> Unit, // -1 up, +1 down
+    onReorderCategories: (List<String>) -> Unit,
     
     onMoveFile: (RecordingItem, String) -> Unit,
     onReorderFile: (File, Int) -> Unit,
@@ -1370,6 +1530,7 @@ fun AudioLoopMainScreen(
                 onAdd = onAddCategory,
                 onRename = onRenameCategory,
                 onDelete = onDeleteCategory,
+                onReorder = onReorderCategories,
                 onClose = { showCategorySheet = false }
             )
         }

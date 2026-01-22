@@ -393,6 +393,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 }
                             }
                         },
+                        onReorderCategories = { newOrder ->
+                            categories = newOrder
+                            saveCategoryOrder(newOrder)
+                        },
                         onMoveFile = { item, targetCat ->
                             moveFileToCategory(item.file, targetCat)
                             savedItems = getSavedRecordings(uiCategory, filesDir)
