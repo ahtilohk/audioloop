@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.gestures.*
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
@@ -1133,7 +1134,7 @@ fun AudioLoopMainScreen(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        // Row 1: Speed & Repeat
+                        // Row 1: Speed, Repeat, Sleep
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1144,6 +1145,13 @@ fun AudioLoopMainScreen(
                             Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
                             Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
+                            Text("Sleep:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            val sleepText = if (sleepTimerRemainingMs > 0L) {
+                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                                String.format("%d:%02d", totalSec / 60, totalSec % 60)
+                            } else "Off"
+                            Text(sleepText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
 
                         // Row 2: Storage & Shadowing
@@ -1154,20 +1162,10 @@ fun AudioLoopMainScreen(
                             val storageText = if (usePublicStorage) "Public" else "Internal"
                             Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             Text(storageText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                            
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val shadowText = if (isShadowing) "Yes" else "No"
                             Text(shadowText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                            if (sleepTimerRemainingMs > 0L) {
-                                Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                                Text("Sleep:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                                Text(
-                                    String.format("%d:%02d", totalSec / 60, totalSec % 60),
-                                    style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp)
-                                )
-                            }
                         }
                     }
 
@@ -2034,9 +2032,20 @@ fun TrimAudioDialog(
                                 )
                             }
                             
-                            // 3. Draw Handle Track (Visual guide)
-                            drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
-                            drawLine(selectionColor, Offset(selectionStartX, handleY), Offset(selectionEndX, handleY), strokeWidth = 2.dp.toPx())
+                            // 3. Draw Handle Track (Visual guide) — gapped around circles
+                            val circleGap = 13.dp.toPx()
+                            val trackStroke = 2.dp.toPx()
+                            if (selectionStartX - circleGap > 0f) {
+                                drawLine(Zinc700, Offset(0f, handleY), Offset(selectionStartX - circleGap, handleY), strokeWidth = trackStroke)
+                            }
+                            if (size.width > selectionEndX + circleGap) {
+                                drawLine(Zinc700, Offset(selectionEndX + circleGap, handleY), Offset(size.width, handleY), strokeWidth = trackStroke)
+                            }
+                            val selTrackStart = selectionStartX + circleGap
+                            val selTrackEnd = selectionEndX - circleGap
+                            if (selTrackEnd > selTrackStart) {
+                                drawLine(selectionColor, Offset(selTrackStart, handleY), Offset(selTrackEnd, handleY), strokeWidth = trackStroke)
+                            }
 
                             val playheadX = if (totalDuration > 0f) {
                                 ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
@@ -2136,7 +2145,7 @@ fun TrimAudioDialog(
                             .fillMaxSize()
                             .pointerInput(Unit) {
                                 awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                                     down.consume()
                                     var playheadX = if (totalDuration > 0f) {
                                         ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
@@ -2182,7 +2191,7 @@ fun TrimAudioDialog(
                                     }
                                     var lastX = down.position.x
                                     while (true) {
-                                        val event = awaitPointerEvent()
+                                        val event = awaitPointerEvent(PointerEventPass.Initial)
                                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
                                         if (!change.pressed) {
                                             break
