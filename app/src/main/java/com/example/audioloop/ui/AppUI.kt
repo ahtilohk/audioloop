@@ -841,7 +841,9 @@ fun AudioLoopMainScreen(
     onShadowingChange: (Boolean) -> Unit,
     
     usePublicStorage: Boolean,
-    onPublicStorageChange: (Boolean) -> Unit
+    onPublicStorageChange: (Boolean) -> Unit,
+    sleepTimerRemainingMs: Long = 0L,
+    onSleepTimerChange: (Int) -> Unit = {}
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf("Speech") }
@@ -1157,6 +1159,15 @@ fun AudioLoopMainScreen(
                             Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val shadowText = if (isShadowing) "Yes" else "No"
                             Text(shadowText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            if (sleepTimerRemainingMs > 0L) {
+                                Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
+                                Text("Sleep:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                                Text(
+                                    String.format("%d:%02d", totalSec / 60, totalSec % 60),
+                                    style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp)
+                                )
+                            }
                         }
                     }
 
@@ -1267,6 +1278,59 @@ fun AudioLoopMainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = Cyan600, modifier = Modifier.size(10.dp))
+                                }
+                            }
+                        }
+
+                        // Sleep Timer
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column {
+                                    Text("Sleep Timer", style = TextStyle(color = Zinc300, fontSize = 14.sp))
+                                    Text("Stops playback after set time", style = TextStyle(color = Zinc600, fontSize = 10.sp))
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                val timerActive = sleepTimerRemainingMs > 0L
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (!timerActive) Cyan600 else Zinc800)
+                                        .clickable { onSleepTimerChange(0) }
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Text("Off", style = TextStyle(color = if (!timerActive) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                }
+                                listOf(5, 15, 30, 45, 60).forEach { m ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (timerActive) Zinc700 else Zinc800)
+                                            .clickable { onSleepTimerChange(m) }
+                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    ) {
+                                        Text("${m}m", style = TextStyle(color = if (timerActive) Zinc300 else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                    }
+                                }
+                            }
+                            if (sleepTimerRemainingMs > 0L) {
+                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                                val min = totalSec / 60
+                                val sec = totalSec % 60
+                                val remaining = String.format("%d:%02d", min, sec)
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Stops in $remaining",
+                                        style = TextStyle(color = Cyan300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                    )
+                                    Text(
+                                        "Tap Off to cancel",
+                                        style = TextStyle(color = Zinc600, fontSize = 10.sp)
+                                    )
                                 }
                             }
                         }
