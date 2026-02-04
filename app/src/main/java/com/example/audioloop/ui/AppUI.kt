@@ -1881,20 +1881,17 @@ fun TrimAudioDialog(
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
-                    val handleHitRadius = with(LocalDensity.current) { 32.dp.toPx() }
-                    val handleLineHitWidth = with(LocalDensity.current) { 22.dp.toPx() }
-                    val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
-                    val labelAreaHeight = with(LocalDensity.current) { 26.dp.toPx() }
-                    val handleAreaHeight = with(LocalDensity.current) { 40.dp.toPx() }
-                    val handleY = heightPx - (handleAreaHeight / 2)
+                    val handleHitWidth = with(LocalDensity.current) { 28.dp.toPx() }
+                    val handleBarWidth = with(LocalDensity.current) { 7.dp.toPx() }
+                    val handleBarRadius = with(LocalDensity.current) { 3.5.dp.toPx() }
+                    val labelAreaHeight = with(LocalDensity.current) { 22.dp.toPx() }
                     val waveTop = labelAreaHeight
-                    val waveBottom = heightPx - handleAreaHeight
-                    
+                    val waveBottom = heightPx
+
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
                     val selectionStartX = min(startX, endX)
                     val selectionEndX = max(startX, endX)
-                    val handleTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelPadding = with(LocalDensity.current) { 6.dp.toPx() }
                     val labelGap = with(LocalDensity.current) { 8.dp.toPx() }
@@ -1988,10 +1985,9 @@ fun TrimAudioDialog(
                         val barWidth = widthPx / bars.size
                         
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                            // Dimensions
-                            val waveAreaHeight = size.height - handleAreaHeight - labelAreaHeight
+                            val waveAreaHeight = size.height - labelAreaHeight
 
-                            // 1. Draw Waveform (Top area)
+                            // 1. Waveform bars
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
                                 val barHeight = (amplitude / 100f) * waveAreaHeight
@@ -2008,81 +2004,64 @@ fun TrimAudioDialog(
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
                                 )
                             }
-                            
-                            // 2. Draw Selection Indicators (Lines extending down)
-                            drawLine(startHandleColor, Offset(startX, waveTop), Offset(startX, waveBottom), strokeWidth = 2.dp.toPx())
-                            drawLine(endHandleColor, Offset(endX, waveTop), Offset(endX, waveBottom), strokeWidth = 2.dp.toPx())
 
+                            // 2. Dim unselected regions
                             if (trimMode == TrimMode.Keep) {
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(0f, waveTop),
                                     size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
                                 )
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(selectionEndX, waveTop),
                                     size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
                                 )
                             } else {
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(selectionStartX, waveTop),
                                     size = androidx.compose.ui.geometry.Size(selectionEndX - selectionStartX, waveAreaHeight)
                                 )
                             }
-                            
-                            // 3. Draw Handle Track (Visual guide) — gapped around circles
-                            val circleGap = 13.dp.toPx()
-                            val trackStroke = 2.dp.toPx()
-                            if (selectionStartX - circleGap > 0f) {
-                                drawLine(Zinc700, Offset(0f, handleY), Offset(selectionStartX - circleGap, handleY), strokeWidth = trackStroke)
-                            }
-                            if (size.width > selectionEndX + circleGap) {
-                                drawLine(Zinc700, Offset(selectionEndX + circleGap, handleY), Offset(size.width, handleY), strokeWidth = trackStroke)
-                            }
-                            val selTrackStart = selectionStartX + circleGap
-                            val selTrackEnd = selectionEndX - circleGap
-                            if (selTrackEnd > selTrackStart) {
-                                drawLine(selectionColor, Offset(selTrackStart, handleY), Offset(selTrackEnd, handleY), strokeWidth = trackStroke)
-                            }
 
+                            // 3. Playhead
                             val playheadX = if (totalDuration > 0f) {
                                 ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
                             } else {
                                 0f
                             }
-                            val playheadInSelection = playheadX in selectionStartX..selectionEndX
-                            val playheadLineColor = if (playheadInSelection) {
-                                Color.White.copy(alpha = 0.7f)
-                            } else {
-                                Color.White.copy(alpha = 0.35f)
-                            }
                             drawLine(
-                                color = playheadLineColor,
+                                color = Color.White.copy(alpha = if (playheadX in selectionStartX..selectionEndX) 0.7f else 0.3f),
                                 start = Offset(playheadX, waveTop),
                                 end = Offset(playheadX, waveBottom),
                                 strokeWidth = 1.5.dp.toPx()
                             )
-                            drawCircle(
-                                color = Color.White,
-                                radius = 4.dp.toPx(),
-                                center = Offset(playheadX, handleY)
-                            )
 
-                            // 4. Draw Handles (Bottom area)
-                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
-                            drawCircle(startHandleColor, radius = 10.dp.toPx(), center = Offset(startX, handleY))
-                            
-                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(endX, handleY))
-                            drawCircle(endHandleColor, radius = 10.dp.toPx(), center = Offset(endX, handleY))
-                            drawIntoCanvas { canvas ->
-                                handleTextPaint.textSize = handleTextSize
-                                handleTextPaint.color = android.graphics.Color.WHITE
-                                val textYOffset = handleTextSize / 3f
-                                canvas.nativeCanvas.drawText("L", startX, handleY + textYOffset, handleTextPaint)
-                                canvas.nativeCanvas.drawText("R", endX, handleY + textYOffset, handleTextPaint)
+                            // 4. Edge-bar handles
+                            drawRoundRect(
+                                color = startHandleColor,
+                                topLeft = Offset(startX - handleBarWidth / 2, waveTop),
+                                size = androidx.compose.ui.geometry.Size(handleBarWidth, waveAreaHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(handleBarRadius)
+                            )
+                            drawRoundRect(
+                                color = endHandleColor,
+                                topLeft = Offset(endX - handleBarWidth / 2, waveTop),
+                                size = androidx.compose.ui.geometry.Size(handleBarWidth, waveAreaHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(handleBarRadius)
+                            )
+                            // Grip indicators (3 horizontal lines per handle)
+                            val gripY = waveTop + waveAreaHeight / 2
+                            val gripSpacing = 3.dp.toPx()
+                            val gripHalfW = 2.dp.toPx()
+                            for (i in -1..1) {
+                                val y = gripY + i * gripSpacing
+                                drawLine(Color.White.copy(alpha = 0.85f), Offset(startX - gripHalfW, y), Offset(startX + gripHalfW, y), strokeWidth = 1.5.dp.toPx())
+                                drawLine(Color.White.copy(alpha = 0.85f), Offset(endX - gripHalfW, y), Offset(endX + gripHalfW, y), strokeWidth = 1.5.dp.toPx())
                             }
+
+                            // 5. Time labels
                             drawIntoCanvas { canvas ->
                                 handleTextPaint.textSize = labelTextSize
                                 handleTextPaint.color = labelTextColor.toArgb()
@@ -2152,23 +2131,12 @@ fun TrimAudioDialog(
                                     } else {
                                         0f
                                     }
-                                    val startDx = down.position.x - startX
-                                    val endDx = down.position.x - endX
-                                    val startDy = down.position.y - handleY
-                                    val endDy = down.position.y - handleY
-                                    val isNearStartHandle = (startDx * startDx) + (startDy * startDy) <= (handleHitRadius * handleHitRadius)
-                                    val isNearEndHandle = (endDx * endDx) + (endDy * endDy) <= (handleHitRadius * handleHitRadius)
-                                    val isNearStartLine = kotlin.math.abs(down.position.x - startX) <= handleLineHitWidth &&
-                                        down.position.y in waveTop..waveBottom
-                                    val isNearEndLine = kotlin.math.abs(down.position.x - endX) <= handleLineHitWidth &&
-                                        down.position.y in waveTop..waveBottom
-                                    val isNearStart = isNearStartHandle || isNearStartLine
-                                    val isNearEnd = isNearEndHandle || isNearEndLine
+                                    val isNearStart = kotlin.math.abs(down.position.x - startX) <= handleHitWidth / 2
+                                    val isNearEnd = kotlin.math.abs(down.position.x - endX) <= handleHitWidth / 2
                                     val dragTarget = when {
                                         isNearStart && isNearEnd -> {
-                                            val startXDist = kotlin.math.abs(down.position.x - startX)
-                                            val endXDist = kotlin.math.abs(down.position.x - endX)
-                                            if (startXDist <= endXDist) TrimDragTarget.Start else TrimDragTarget.End
+                                            if (kotlin.math.abs(down.position.x - startX) <= kotlin.math.abs(down.position.x - endX))
+                                                TrimDragTarget.Start else TrimDragTarget.End
                                         }
                                         isNearStart -> TrimDragTarget.Start
                                         isNearEnd -> TrimDragTarget.End
