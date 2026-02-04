@@ -1820,7 +1820,7 @@ fun TrimAudioDialog(
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
                     val handleHitRadius = with(LocalDensity.current) { 32.dp.toPx() }
-                    val handleLineHitWidth = with(LocalDensity.current) { 12.dp.toPx() }
+                    val handleLineHitWidth = with(LocalDensity.current) { 22.dp.toPx() }
                     val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
                     val labelAreaHeight = with(LocalDensity.current) { 26.dp.toPx() }
                     val handleAreaHeight = with(LocalDensity.current) { 40.dp.toPx() }
@@ -2073,6 +2073,7 @@ fun TrimAudioDialog(
                             .pointerInput(Unit) {
                                 awaitEachGesture {
                                     val down = awaitFirstDown(requireUnconsumed = false)
+                                    down.consume()
                                     var playheadX = if (totalDuration > 0f) {
                                         ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
                                     } else {
@@ -2088,11 +2089,16 @@ fun TrimAudioDialog(
                                         down.position.y in waveTop..waveBottom
                                     val isNearEndLine = kotlin.math.abs(down.position.x - endX) <= handleLineHitWidth &&
                                         down.position.y in waveTop..waveBottom
-                                    val isNearPlayhead = kotlin.math.abs(down.position.x - playheadX) <= playheadHitRadius
+                                    val isNearStart = isNearStartHandle || isNearStartLine
+                                    val isNearEnd = isNearEndHandle || isNearEndLine
                                     val dragTarget = when {
-                                        isNearStartHandle || isNearStartLine -> TrimDragTarget.Start
-                                        isNearEndHandle || isNearEndLine -> TrimDragTarget.End
-                                        isNearPlayhead -> TrimDragTarget.Playhead
+                                        isNearStart && isNearEnd -> {
+                                            val startXDist = kotlin.math.abs(down.position.x - startX)
+                                            val endXDist = kotlin.math.abs(down.position.x - endX)
+                                            if (startXDist <= endXDist) TrimDragTarget.Start else TrimDragTarget.End
+                                        }
+                                        isNearStart -> TrimDragTarget.Start
+                                        isNearEnd -> TrimDragTarget.End
                                         else -> TrimDragTarget.Playhead
                                     }
                                     if (dragTarget == TrimDragTarget.Playhead) {
@@ -2117,12 +2123,12 @@ fun TrimAudioDialog(
                                         if (!change.pressed) {
                                             break
                                         }
+                                        change.consume()
                                         val dragAmount = change.position.x - lastX
                                         lastX = change.position.x
                                         if (dragAmount == 0f) {
                                             continue
                                         }
-                                        change.consume()
                                         when (dragTarget) {
                                             TrimDragTarget.Start -> {
                                                 startX = (startX + dragAmount).coerceIn(0f, widthPx)
