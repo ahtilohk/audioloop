@@ -290,6 +290,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     onDispose { context.unregisterReceiver(receiver) }
                 }
 
+                // Request microphone permission on app start
+                LaunchedEffect(Unit) {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                }
+
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
                         // Update categories

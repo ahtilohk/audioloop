@@ -1881,20 +1881,26 @@ fun TrimAudioDialog(
                             RoundedCornerShape(12.dp)
                         )
                         .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        // No padding here - we handle it internally for better touch handling at edges
                 ) {
-                    val widthPx = constraints.maxWidth.toFloat()
+                    val fullWidthPx = constraints.maxWidth.toFloat()
+                    val fullHeightPx = constraints.maxHeight.toFloat()
+                    // Internal padding for visual margins (but touch extends to edges)
+                    val hPadding = with(LocalDensity.current) { 6.dp.toPx() }
+                    val vPadding = with(LocalDensity.current) { 4.dp.toPx() }
+                    val widthPx = fullWidthPx - 2 * hPadding  // Drawable width
                     val totalDuration = durationMs.toFloat()
-                    val heightPx = constraints.maxHeight.toFloat()
-                    val handleHitWidth = with(LocalDensity.current) { 28.dp.toPx() }
+                    val heightPx = fullHeightPx - 2 * vPadding  // Drawable height
+                    val handleHitWidth = with(LocalDensity.current) { 32.dp.toPx() }  // Increased for better touch
                     val handleBarWidth = with(LocalDensity.current) { 7.dp.toPx() }
                     val handleBarRadius = with(LocalDensity.current) { 3.5.dp.toPx() }
                     val labelAreaHeight = with(LocalDensity.current) { 22.dp.toPx() }
-                    val waveTop = labelAreaHeight
-                    val waveBottom = heightPx
+                    val waveTop = vPadding + labelAreaHeight
+                    val waveBottom = fullHeightPx - vPadding
 
-                    var startX by remember { mutableFloatStateOf(0f) }
-                    var endX by remember { mutableFloatStateOf(widthPx) }
+                    // Handle positions are now relative to full width, but constrained to drawable area
+                    var startX by remember { mutableFloatStateOf(hPadding) }
+                    var endX by remember { mutableFloatStateOf(fullWidthPx - hPadding) }
                     val selectionStartX = min(startX, endX)
                     val selectionEndX = max(startX, endX)
                     val labelTextSize = with(LocalDensity.current) { 12.sp.toPx() }
@@ -1912,30 +1918,33 @@ fun TrimAudioDialog(
                     val remainingColor = Zinc700
                     val labelBackgroundColor = Zinc800.copy(alpha = 0.95f)
                     val labelTextColor = Color.White
+                    // Map handle positions (in full coordinates) to time values
+                    val minHandleX = hPadding
+                    val maxHandleX = fullWidthPx - hPadding
                     val startHandleMs = if (widthPx > 0f) {
-                        ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                        (((startX - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
                         0f
                     }
                     val endHandleMs = if (widthPx > 0f) {
-                        ((endX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                        (((endX - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
                         totalDuration
                     }
                     val selectionStartMs = if (widthPx > 0f) {
-                        ((selectionStartX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                        (((selectionStartX - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
                         0f
                     }
                     val selectionEndMs = if (widthPx > 0f) {
-                        ((selectionEndX / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                        (((selectionEndX - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                     } else {
                         totalDuration
                     }
 
-                    LaunchedEffect(widthPx) {
-                        startX = startX.coerceIn(0f, widthPx)
-                        endX = endX.coerceIn(0f, widthPx)
+                    LaunchedEffect(fullWidthPx) {
+                        startX = startX.coerceIn(minHandleX, maxHandleX)
+                        endX = endX.coerceIn(minHandleX, maxHandleX)
                         range = selectionStartMs..selectionEndMs
                     }
 
@@ -1988,13 +1997,13 @@ fun TrimAudioDialog(
                     } else {
                         val bars = waveform.value!!
                         val barWidth = widthPx / bars.size
-                        
-                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                            val waveAreaHeight = size.height - labelAreaHeight
+                        val waveAreaHeight = waveBottom - waveTop
 
-                            // 1. Waveform bars
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+
+                            // 1. Waveform bars (offset by hPadding)
                             bars.forEachIndexed { index, amplitude ->
-                                val x = index * barWidth
+                                val x = hPadding + index * barWidth
                                 val barHeight = (amplitude / 100f) * waveAreaHeight
                                 val isSelected = x >= selectionStartX && x <= selectionEndX
                                 val barColor = if (trimMode == TrimMode.Keep) {
@@ -2014,13 +2023,13 @@ fun TrimAudioDialog(
                             if (trimMode == TrimMode.Keep) {
                                 drawRect(
                                     color = Zinc900.copy(alpha = 0.4f),
-                                    topLeft = Offset(0f, waveTop),
-                                    size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
+                                    topLeft = Offset(hPadding, waveTop),
+                                    size = androidx.compose.ui.geometry.Size(selectionStartX - hPadding, waveAreaHeight)
                                 )
                                 drawRect(
                                     color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(selectionEndX, waveTop),
-                                    size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
+                                    size = androidx.compose.ui.geometry.Size(maxHandleX - selectionEndX, waveAreaHeight)
                                 )
                             } else {
                                 drawRect(
@@ -2030,11 +2039,11 @@ fun TrimAudioDialog(
                                 )
                             }
 
-                            // 3. Playhead
+                            // 3. Playhead (map time to full coordinates)
                             val playheadX = if (totalDuration > 0f) {
-                                ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
+                                hPadding + ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
                             } else {
-                                0f
+                                hPadding
                             }
                             drawLine(
                                 color = Color.White.copy(alpha = if (playheadX in selectionStartX..selectionEndX) 0.7f else 0.3f),
@@ -2077,10 +2086,11 @@ fun TrimAudioDialog(
                                 val labelHeight = labelTextSize + (labelPadding * 2)
                                 val startLabelBound = (startLabelWidth / 2) + labelPadding
                                 val endLabelBound = (endLabelWidth / 2) + labelPadding
-                                val startMin = startLabelBound
-                                val startMax = widthPx - startLabelBound
-                                val endMin = endLabelBound
-                                val endMax = widthPx - endLabelBound
+                                // Use full coordinates for label positioning
+                                val startMin = hPadding + startLabelBound
+                                val startMax = fullWidthPx - hPadding - startLabelBound
+                                val endMin = hPadding + endLabelBound
+                                val endMax = fullWidthPx - hPadding - endLabelBound
                                 var startLabelX = startX.coerceIn(startMin, startMax)
                                 var endLabelX = endX.coerceIn(endMin, endMax)
                                 val requiredGap = startLabelBound + endLabelBound + labelGap
@@ -2123,7 +2133,7 @@ fun TrimAudioDialog(
                         }
                     }
                     
-                    // Touch/Drag Layer
+                    // Touch/Drag Layer - covers full area including padding for edge touch
                     androidx.compose.foundation.Canvas(
                         modifier = Modifier
                             .fillMaxSize()
@@ -2132,21 +2142,21 @@ fun TrimAudioDialog(
                                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                                     down.consume()
                                     var playheadX = if (totalDuration > 0f) {
-                                        ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
+                                        hPadding + ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
                                     } else {
-                                        0f
+                                        hPadding
                                     }
-                                    // Extended hit zones at edges - when handle is near edge, expand hit zone outward
-                                    val startHitLeft = if (startX < handleHitWidth) 0f else startX - handleHitWidth / 2
+                                    // Extended hit zones - expand to screen edges when handle is near edge
+                                    val startHitLeft = if (startX - minHandleX < handleHitWidth) 0f else startX - handleHitWidth / 2
                                     val startHitRight = startX + handleHitWidth / 2
                                     val endHitLeft = endX - handleHitWidth / 2
-                                    val endHitRight = if (endX > widthPx - handleHitWidth) widthPx else endX + handleHitWidth / 2
+                                    val endHitRight = if (maxHandleX - endX < handleHitWidth) fullWidthPx else endX + handleHitWidth / 2
                                     val touchX = down.position.x
                                     val isNearStart = touchX >= startHitLeft && touchX <= startHitRight
                                     val isNearEnd = touchX >= endHitLeft && touchX <= endHitRight
                                     val dragTarget = when {
                                         isNearStart && isNearEnd -> {
-                                            if (kotlin.math.abs(down.position.x - startX) <= kotlin.math.abs(down.position.x - endX))
+                                            if (kotlin.math.abs(touchX - startX) <= kotlin.math.abs(touchX - endX))
                                                 TrimDragTarget.Start else TrimDragTarget.End
                                         }
                                         isNearStart -> TrimDragTarget.Start
@@ -2159,9 +2169,9 @@ fun TrimAudioDialog(
                                     }
                                     try {
                                         if (dragTarget == TrimDragTarget.Playhead) {
-                                            playheadX = down.position.x.coerceIn(0f, widthPx)
+                                            playheadX = down.position.x.coerceIn(minHandleX, maxHandleX)
                                             val newPreviewMs = if (widthPx > 0f) {
-                                                ((playheadX / widthPx) * totalDuration)
+                                                (((playheadX - hPadding) / widthPx) * totalDuration)
                                                     .coerceIn(selectionStartMs, selectionEndMs)
                                             } else {
                                                 0f
@@ -2188,15 +2198,15 @@ fun TrimAudioDialog(
                                             }
                                             when (dragTarget) {
                                                 TrimDragTarget.Start -> {
-                                                    startX = (startX + dragAmount).coerceIn(0f, widthPx)
+                                                    startX = (startX + dragAmount).coerceIn(minHandleX, maxHandleX)
                                                 }
                                                 TrimDragTarget.End -> {
-                                                    endX = (endX + dragAmount).coerceIn(0f, widthPx)
+                                                    endX = (endX + dragAmount).coerceIn(minHandleX, maxHandleX)
                                                 }
                                                 TrimDragTarget.Playhead -> {
-                                                    playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
+                                                    playheadX = (playheadX + dragAmount).coerceIn(minHandleX, maxHandleX)
                                                     val newPreviewMs = if (widthPx > 0f) {
-                                                        resolvePreviewPosition((playheadX / widthPx) * totalDuration)
+                                                        resolvePreviewPosition(((playheadX - hPadding) / widthPx) * totalDuration)
                                                     } else {
                                                         0L
                                                     }
@@ -2212,12 +2222,12 @@ fun TrimAudioDialog(
                                                 val newSelectionStart = min(startX, endX)
                                                 val newSelectionEnd = max(startX, endX)
                                                 val newStartMs = if (widthPx > 0f) {
-                                                    ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                    (((newSelectionStart - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                                                 } else {
                                                     0f
                                                 }
                                                 val newEndMs = if (widthPx > 0f) {
-                                                    ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                    (((newSelectionEnd - hPadding) / widthPx) * totalDuration).coerceIn(0f, totalDuration)
                                                 } else {
                                                     totalDuration
                                                 }
