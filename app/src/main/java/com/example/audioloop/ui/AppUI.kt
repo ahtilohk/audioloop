@@ -1778,17 +1778,7 @@ fun TrimAudioDialog(
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (!playerReady && !playerInitError) {
-                // Loading state while file is being prepared
-                Column(
-                    modifier = Modifier.padding(40.dp).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(color = Cyan700)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Loading audio...", color = Zinc400, fontSize = 14.sp)
-                }
-            } else {
+            if (playerReady) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     "Trim Audio",
@@ -2338,7 +2328,16 @@ fun TrimAudioDialog(
                         Text("Cancel", color = Zinc400)
                     }
                 }
-            } // else
+            } else if (!playerInitError) {
+                // Loading state while file is being prepared
+                Column(
+                    modifier = Modifier.padding(40.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(color = Cyan700)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Loading audio...", color = Zinc400, fontSize = 14.sp)
+                }
             }
         }
     }
