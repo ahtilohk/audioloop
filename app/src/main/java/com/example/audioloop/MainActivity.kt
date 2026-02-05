@@ -228,6 +228,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var categories by mutableStateOf(listOf("General"))
     private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
     private var usePublicStorage by mutableStateOf(false)
+    private var sleepTimerRemainingMs by mutableLongStateOf(0L)
+    private var sleepTimerJob: kotlinx.coroutines.Job? = null
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -286,6 +288,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     val filter = IntentFilter(RecordingService.ACTION_RECORDING_SAVED)
                     ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
                     onDispose { context.unregisterReceiver(receiver) }
+                }
+
+                // Request microphone permission on app start
+                LaunchedEffect(Unit) {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
                 }
 
                 LaunchedEffect(uiCategory) {
@@ -475,10 +484,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it },
                         usePublicStorage = usePublicStorage,
-                        onPublicStorageChange = { 
+                        onPublicStorageChange = {
                             usePublicStorage = it
                             savePublicStoragePref(this@MainActivity, it)
-                        }
+                        },
+                        sleepTimerRemainingMs = sleepTimerRemainingMs,
+                        onSleepTimerChange = { minutes -> setSleepTimer(minutes) }
                     )
                 }
             }
@@ -1071,6 +1082,46 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         mediaPlayer = null
         // Update isPaused state
         isPaused = false
+    }
+
+    private fun setSleepTimer(minutes: Int) {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        if (minutes <= 0) {
+            sleepTimerRemainingMs = 0L
+            return
+        }
+        val endTime = System.currentTimeMillis() + minutes * 60_000L
+        sleepTimerRemainingMs = minutes * 60_000L
+        sleepTimerJob = launch(Dispatchers.Main) {
+            while (isActive) {
+                val remaining = endTime - System.currentTimeMillis()
+                if (remaining <= 0L) {
+                    sleepTimerRemainingMs = 0L
+                    fadeOutAndStop()
+                    break
+                }
+                sleepTimerRemainingMs = remaining
+                delay(1000L)
+            }
+        }
+    }
+
+    private suspend fun fadeOutAndStop() {
+        mediaPlayer?.let { mp ->
+            // Ensure we start from full volume
+            try { mp.setVolume(1f, 1f) } catch (_: Exception) {}
+            // Only fade if actually playing
+            if (mp.isPlaying) {
+                for (i in 20 downTo 0) {
+                    val vol = i / 20f
+                    try { mp.setVolume(vol, vol) } catch (_: Exception) {}
+                    delay(150L)
+                }
+            }
+        }
+        stopPlaying()
+        playingFileName = ""
     }
 
     private fun pausePlaying() {
