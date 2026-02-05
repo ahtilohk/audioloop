@@ -839,7 +839,9 @@ fun AudioLoopMainScreen(
     onShadowingChange: (Boolean) -> Unit,
     
     usePublicStorage: Boolean,
-    onPublicStorageChange: (Boolean) -> Unit
+    onPublicStorageChange: (Boolean) -> Unit,
+    sleepTimerRemainingMs: Long = 0L,
+    onSleepTimerChange: (Int) -> Unit = {}
 ) {
     var settingsOpen by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf("Speech") }
