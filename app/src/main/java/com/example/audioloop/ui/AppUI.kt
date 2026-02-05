@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -1803,7 +1804,11 @@ fun TrimAudioDialog(
         isPreviewPlaying = false
         previewPositionMs = 0L
     }
-    
+
+    // Hoisted state for disabling scroll during handle drag
+    var isDraggingHandle by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             colors = CardDefaults.cardColors(containerColor = Zinc900),
@@ -1815,7 +1820,7 @@ fun TrimAudioDialog(
             Column(
                 modifier = Modifier
                     .padding(20.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState, enabled = !isDraggingHandle)
             ) {
                 Text(
                     "Trim Audio",
@@ -2142,76 +2147,84 @@ fun TrimAudioDialog(
                                         isNearEnd -> TrimDragTarget.End
                                         else -> TrimDragTarget.Playhead
                                     }
-                                    if (dragTarget == TrimDragTarget.Playhead) {
-                                        playheadX = down.position.x.coerceIn(0f, widthPx)
-                                        val newPreviewMs = if (widthPx > 0f) {
-                                            ((playheadX / widthPx) * totalDuration)
-                                                .coerceIn(selectionStartMs, selectionEndMs)
-                                        } else {
-                                            0f
-                                        }
-                                        if (isPreviewPlaying) {
-                                            previewPlayer.pause()
-                                            isPreviewPlaying = false
-                                        }
-                                        previewPositionMs = newPreviewMs.toLong()
-                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                    // Disable scroll when dragging a handle
+                                    if (dragTarget != TrimDragTarget.Playhead) {
+                                        isDraggingHandle = true
                                     }
-                                    var lastX = down.position.x
-                                    while (true) {
-                                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                        if (!change.pressed) {
-                                            break
-                                        }
-                                        change.consume()
-                                        val dragAmount = change.position.x - lastX
-                                        lastX = change.position.x
-                                        if (dragAmount == 0f) {
-                                            continue
-                                        }
-                                        when (dragTarget) {
-                                            TrimDragTarget.Start -> {
-                                                startX = (startX + dragAmount).coerceIn(0f, widthPx)
-                                            }
-                                            TrimDragTarget.End -> {
-                                                endX = (endX + dragAmount).coerceIn(0f, widthPx)
-                                            }
-                                            TrimDragTarget.Playhead -> {
-                                                playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
-                                                val newPreviewMs = if (widthPx > 0f) {
-                                                    resolvePreviewPosition((playheadX / widthPx) * totalDuration)
-                                                } else {
-                                                    0L
-                                                }
-                                                if (isPreviewPlaying) {
-                                                    previewPlayer.pause()
-                                                    isPreviewPlaying = false
-                                                }
-                                                previewPositionMs = newPreviewMs
-                                                previewPlayer.seekTo(previewPositionMs.toInt())
-                                            }
-                                        }
-                                        if (dragTarget != TrimDragTarget.Playhead) {
-                                            val newSelectionStart = min(startX, endX)
-                                            val newSelectionEnd = max(startX, endX)
-                                            val newStartMs = if (widthPx > 0f) {
-                                                ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                    try {
+                                        if (dragTarget == TrimDragTarget.Playhead) {
+                                            playheadX = down.position.x.coerceIn(0f, widthPx)
+                                            val newPreviewMs = if (widthPx > 0f) {
+                                                ((playheadX / widthPx) * totalDuration)
+                                                    .coerceIn(selectionStartMs, selectionEndMs)
                                             } else {
                                                 0f
                                             }
-                                            val newEndMs = if (widthPx > 0f) {
-                                                ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
-                                            } else {
-                                                totalDuration
+                                            if (isPreviewPlaying) {
+                                                previewPlayer.pause()
+                                                isPreviewPlaying = false
                                             }
-                                            range = newStartMs..newEndMs
+                                            previewPositionMs = newPreviewMs.toLong()
+                                            previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
+                                        var lastX = down.position.x
+                                        while (true) {
+                                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                            if (!change.pressed) {
+                                                break
+                                            }
+                                            change.consume()
+                                            val dragAmount = change.position.x - lastX
+                                            lastX = change.position.x
+                                            if (dragAmount == 0f) {
+                                                continue
+                                            }
+                                            when (dragTarget) {
+                                                TrimDragTarget.Start -> {
+                                                    startX = (startX + dragAmount).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.End -> {
+                                                    endX = (endX + dragAmount).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.Playhead -> {
+                                                    playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
+                                                    val newPreviewMs = if (widthPx > 0f) {
+                                                        resolvePreviewPosition((playheadX / widthPx) * totalDuration)
+                                                    } else {
+                                                        0L
+                                                    }
+                                                    if (isPreviewPlaying) {
+                                                        previewPlayer.pause()
+                                                        isPreviewPlaying = false
+                                                    }
+                                                    previewPositionMs = newPreviewMs
+                                                    previewPlayer.seekTo(previewPositionMs.toInt())
+                                                }
+                                            }
+                                            if (dragTarget != TrimDragTarget.Playhead) {
+                                                val newSelectionStart = min(startX, endX)
+                                                val newSelectionEnd = max(startX, endX)
+                                                val newStartMs = if (widthPx > 0f) {
+                                                    ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                } else {
+                                                    0f
+                                                }
+                                                val newEndMs = if (widthPx > 0f) {
+                                                    ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                } else {
+                                                    totalDuration
+                                                }
+                                                range = newStartMs..newEndMs
+                                            }
+                                        }
+                                    } finally {
+                                        // Always re-enable scroll when gesture ends
+                                        isDraggingHandle = false
                                     }
                                 }
                             }
                     ) {
-
                         // Invisible touch layer, visual handles are drawn above
                     }
                 }
@@ -2252,25 +2265,100 @@ fun TrimAudioDialog(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
+                // Professional Preview Time Display
+                val selectionDurationMs = (range.endInclusive - range.start).toLong()
+                val progressFraction = if (selectionDurationMs > 0) {
+                    ((previewPositionMs - range.start.toLong()).toFloat() / selectionDurationMs).coerceIn(0f, 1f)
+                } else 0f
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        "Preview selection",
-                        color = Zinc300,
-                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Large centered time display
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Current position - prominent
                         Text(
                             formatDuration(previewPositionMs),
-                            color = Zinc400,
-                            style = TextStyle(fontSize = 12.sp)
+                            color = if (isPreviewPlaying) Cyan400 else Color.White,
+                            style = TextStyle(
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            " / ",
+                            color = Zinc500,
+                            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal)
+                        )
+                        // Selection duration
+                        Text(
+                            formatDuration(selectionDurationMs),
+                            color = Zinc400,
+                            style = TextStyle(
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Progress bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(Zinc700, RoundedCornerShape(2.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progressFraction)
+                                .fillMaxHeight()
+                                .background(
+                                    if (isPreviewPlaying) Cyan500 else Zinc500,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Compact control buttons
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Stop button
+                        OutlinedButton(
+                            onClick = {
+                                previewPlayer.pause()
+                                val stopMs = if (trimMode == TrimMode.Keep) {
+                                    range.start.toLong()
+                                } else {
+                                    0L
+                                }
+                                previewPositionMs = stopMs
+                                previewPlayer.seekTo(stopMs.toInt())
+                                isPreviewPlaying = false
+                            },
+                            border = BorderStroke(1.dp, Zinc600),
+                            shape = RoundedCornerShape(50),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.height(40.dp)
+                        ) {
+                            Text("Stop", color = Zinc300, fontSize = 13.sp)
+                        }
+
+                        // Play/Pause button - prominent
                         Button(
                             onClick = {
                                 if (isPreviewPlaying) {
@@ -2285,30 +2373,19 @@ fun TrimAudioDialog(
                                     isPreviewPlaying = true
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isPreviewPlaying) Zinc700 else Cyan600
+                            ),
+                            shape = RoundedCornerShape(50),
+                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                            modifier = Modifier.height(40.dp)
                         ) {
-                            Text(if (isPreviewPlaying) "Pause" else "Play", color = Color.White, fontSize = 12.sp)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                previewPlayer.pause()
-                                val stopMs = if (trimMode == TrimMode.Keep) {
-                                    range.start.toLong()
-                                } else {
-                                    0L
-                                }
-                                previewPositionMs = stopMs
-                                previewPlayer.seekTo(stopMs.toInt())
-                                isPreviewPlaying = false
-                            },
-                            border = BorderStroke(1.dp, Zinc700),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text("Stop", color = Zinc300, fontSize = 12.sp)
+                            Text(
+                                if (isPreviewPlaying) "Pause" else "Play",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
