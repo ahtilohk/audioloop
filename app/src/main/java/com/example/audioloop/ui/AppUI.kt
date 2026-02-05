@@ -1700,6 +1700,7 @@ fun TrimAudioDialog(
     var isPreviewPlaying by remember { mutableStateOf(false) }
     var previewPositionMs by remember { mutableLongStateOf(0L) }
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
+    var playerReady by remember { mutableStateOf(false) }
     var playerInitError by remember { mutableStateOf(false) }
     
     fun resolvePreviewPosition(rawMs: Float): Long {
@@ -1727,24 +1728,39 @@ fun TrimAudioDialog(
         }
     }
 
-    DisposableEffect(file) {
-        try {
-            previewPlayer.reset()
-            previewPlayer.setDataSource(context, Uri.fromFile(file))
-            previewPlayer.prepare()
-        } catch (e: Exception) {
-            playerInitError = true
+    // Initialize MediaPlayer with retry logic for Stream-recorded files
+    LaunchedEffect(file) {
+        isPreviewPlaying = false
+        previewPositionMs = 0L
+        playerReady = false
+        playerInitError = false
+
+        // Retry up to 5 times with increasing delays (for files still being finalized)
+        val delays = listOf(0L, 150L, 300L, 500L, 800L)
+        for ((attempt, delayMs) in delays.withIndex()) {
+            if (delayMs > 0) delay(delayMs)
+            try {
+                withContext(Dispatchers.IO) {
+                    previewPlayer.reset()
+                    previewPlayer.setDataSource(context, Uri.fromFile(file))
+                    previewPlayer.prepare()
+                }
+                playerReady = true
+                return@LaunchedEffect
+            } catch (e: Exception) {
+                if (attempt == delays.lastIndex) {
+                    playerInitError = true
+                }
+            }
         }
+    }
+
+    DisposableEffect(file) {
         onDispose {
             try {
                 previewPlayer.release()
             } catch (_: Exception) { }
         }
-    }
-
-    LaunchedEffect(file) {
-        isPreviewPlaying = false
-        previewPositionMs = 0L
     }
 
     LaunchedEffect(playerInitError) {
@@ -1762,6 +1778,17 @@ fun TrimAudioDialog(
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
+            if (!playerReady && !playerInitError) {
+                // Loading state while file is being prepared
+                Column(
+                    modifier = Modifier.padding(40.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(color = Cyan700)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Loading audio...", color = Zinc400, fontSize = 14.sp)
+                }
+            } else {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     "Trim Audio",
@@ -2307,10 +2334,11 @@ fun TrimAudioDialog(
                     
                     Spacer(modifier = Modifier.height(12.dp))
                     
-                    TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) { 
-                        Text("Cancel", color = Zinc400) 
+                    TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                        Text("Cancel", color = Zinc400)
                     }
                 }
+            } // else
             }
         }
     }
