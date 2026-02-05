@@ -1102,10 +1102,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     private suspend fun fadeOutAndStop() {
         mediaPlayer?.let { mp ->
-            for (i in 20 downTo 0) {
-                val vol = i / 20f
-                try { mp.setVolume(vol, vol) } catch (_: Exception) {}
-                delay(150L)
+            // Ensure we start from full volume
+            try { mp.setVolume(1f, 1f) } catch (_: Exception) {}
+            // Only fade if actually playing
+            if (mp.isPlaying) {
+                for (i in 20 downTo 0) {
+                    val vol = i / 20f
+                    try { mp.setVolume(vol, vol) } catch (_: Exception) {}
+                    delay(150L)
+                }
             }
         }
         stopPlaying()

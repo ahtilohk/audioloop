@@ -2136,8 +2136,14 @@ fun TrimAudioDialog(
                                     } else {
                                         0f
                                     }
-                                    val isNearStart = kotlin.math.abs(down.position.x - startX) <= handleHitWidth / 2
-                                    val isNearEnd = kotlin.math.abs(down.position.x - endX) <= handleHitWidth / 2
+                                    // Extended hit zones at edges - when handle is near edge, expand hit zone outward
+                                    val startHitLeft = if (startX < handleHitWidth) 0f else startX - handleHitWidth / 2
+                                    val startHitRight = startX + handleHitWidth / 2
+                                    val endHitLeft = endX - handleHitWidth / 2
+                                    val endHitRight = if (endX > widthPx - handleHitWidth) widthPx else endX + handleHitWidth / 2
+                                    val touchX = down.position.x
+                                    val isNearStart = touchX >= startHitLeft && touchX <= startHitRight
+                                    val isNearEnd = touchX >= endHitLeft && touchX <= endHitRight
                                     val dragTarget = when {
                                         isNearStart && isNearEnd -> {
                                             if (kotlin.math.abs(down.position.x - startX) <= kotlin.math.abs(down.position.x - endX))
@@ -2277,37 +2283,54 @@ fun TrimAudioDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Large centered time display
+                    // Two-column time display with labels
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Current position - prominent
-                        Text(
-                            formatDuration(previewPositionMs),
-                            color = if (isPreviewPlaying) Cyan400 else Color.White,
-                            style = TextStyle(
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
+                        // Current position column
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Position",
+                                color = Zinc500,
+                                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium)
                             )
-                        )
-                        Text(
-                            " / ",
-                            color = Zinc500,
-                            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal)
-                        )
-                        // Selection duration
-                        Text(
-                            formatDuration(selectionDurationMs),
-                            color = Zinc400,
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Medium,
-                                fontFamily = FontFamily.Monospace
+                            Text(
+                                formatDuration(previewPositionMs),
+                                color = if (isPreviewPlaying) Cyan400 else Color.White,
+                                style = TextStyle(
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
                             )
+                        }
+
+                        Text(
+                            "  /  ",
+                            color = Zinc600,
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Light),
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
+
+                        // New file length column
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "New length",
+                                color = Zinc500,
+                                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                            )
+                            Text(
+                                formatDuration(selectionDurationMs),
+                                color = Zinc400,
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
