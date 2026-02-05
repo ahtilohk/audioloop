@@ -1700,6 +1700,7 @@ fun TrimAudioDialog(
     var isPreviewPlaying by remember { mutableStateOf(false) }
     var previewPositionMs by remember { mutableLongStateOf(0L) }
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
+    var playerInitError by remember { mutableStateOf(false) }
     
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
@@ -1727,17 +1728,30 @@ fun TrimAudioDialog(
     }
 
     DisposableEffect(file) {
-        previewPlayer.reset()
-        previewPlayer.setDataSource(context, Uri.fromFile(file))
-        previewPlayer.prepare()
+        try {
+            previewPlayer.reset()
+            previewPlayer.setDataSource(context, Uri.fromFile(file))
+            previewPlayer.prepare()
+        } catch (e: Exception) {
+            playerInitError = true
+        }
         onDispose {
-            previewPlayer.release()
+            try {
+                previewPlayer.release()
+            } catch (_: Exception) { }
         }
     }
 
     LaunchedEffect(file) {
         isPreviewPlaying = false
         previewPositionMs = 0L
+    }
+
+    LaunchedEffect(playerInitError) {
+        if (playerInitError) {
+            android.widget.Toast.makeText(context, "Unable to load audio file for trimming", android.widget.Toast.LENGTH_SHORT).show()
+            onDismiss()
+        }
     }
     
     Dialog(onDismissRequest = onDismiss) {
