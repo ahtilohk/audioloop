@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -2232,67 +2233,141 @@ fun TrimAudioDialog(
                     }
                 }
                 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Professional Preview Time Display
+                val selectionDurationMs = if (trimMode == TrimMode.Keep) {
+                    (range.endInclusive - range.start).toLong()
+                } else {
+                    durationMs - (range.endInclusive - range.start).toLong()
+                }
+                val progressFraction = if (selectionDurationMs > 0) {
+                    ((previewPositionMs - range.start.toLong()).toFloat() / (range.endInclusive - range.start).toLong()).coerceIn(0f, 1f)
+                } else 0f
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Two-column time display with labels
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Current position column
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Position",
+                                color = Zinc500,
+                                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                            )
+                            Text(
+                                formatDuration(previewPositionMs),
+                                color = if (isPreviewPlaying) Cyan400 else Color.White,
+                                style = TextStyle(
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        }
+
+                        Text(
+                            "  /  ",
+                            color = Zinc600,
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Light),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+
+                        // New file length column
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "New length",
+                                color = Zinc500,
+                                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                            )
+                            Text(
+                                formatDuration(selectionDurationMs),
+                                color = Zinc400,
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Progress bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(Zinc700, RoundedCornerShape(2.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progressFraction)
+                                .fillMaxHeight()
+                                .background(
+                                    if (isPreviewPlaying) Cyan500 else Zinc500,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        "Preview selection",
-                        color = Zinc300,
-                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            formatDuration(previewPositionMs),
-                            color = Zinc400,
-                            style = TextStyle(fontSize = 12.sp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                if (isPreviewPlaying) {
-                                    previewPlayer.pause()
-                                    isPreviewPlaying = false
-                                } else {
-                                    val baseStartMs = previewPositionMs.toFloat()
-                                    val startMs = resolvePreviewPosition(baseStartMs)
-                                    previewPositionMs = startMs
-                                    previewPlayer.seekTo(startMs.toInt())
-                                    previewPlayer.start()
-                                    isPreviewPlaying = true
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                        ) {
-                            Text(if (isPreviewPlaying) "Pause" else "Play", color = Color.White, fontSize = 12.sp)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            onClick = {
+                    Button(
+                        onClick = {
+                            if (isPreviewPlaying) {
                                 previewPlayer.pause()
-                                val stopMs = if (trimMode == TrimMode.Keep) {
-                                    range.start.toLong()
-                                } else {
-                                    0L
-                                }
-                                previewPositionMs = stopMs
-                                previewPlayer.seekTo(stopMs.toInt())
                                 isPreviewPlaying = false
-                            },
-                            border = BorderStroke(1.dp, Zinc700),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text("Stop", color = Zinc300, fontSize = 12.sp)
-                        }
+                            } else {
+                                val baseStartMs = previewPositionMs.toFloat()
+                                val startMs = resolvePreviewPosition(baseStartMs)
+                                previewPositionMs = startMs
+                                previewPlayer.seekTo(startMs.toInt())
+                                previewPlayer.start()
+                                isPreviewPlaying = true
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (isPreviewPlaying) Cyan700 else Zinc800),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+                    ) {
+                        Text(if (isPreviewPlaying) "Pause" else "Play Preview", color = Color.White, fontSize = 14.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    OutlinedButton(
+                        onClick = {
+                            previewPlayer.pause()
+                            val stopMs = if (trimMode == TrimMode.Keep) {
+                                range.start.toLong()
+                            } else {
+                                0L
+                            }
+                            previewPositionMs = stopMs
+                            previewPlayer.seekTo(stopMs.toInt())
+                            isPreviewPlaying = false
+                        },
+                        border = BorderStroke(1.dp, Zinc700),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+                    ) {
+                        Text("Stop", color = Zinc300, fontSize = 14.sp)
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Divider(color = Zinc800, thickness = 1.dp)
