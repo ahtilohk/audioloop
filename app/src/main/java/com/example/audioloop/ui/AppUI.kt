@@ -2419,6 +2419,7 @@ fun TrimAudioDialog(
         }
     }
 }
+}
 
 fun formatDuration(ms: Long): String {
     val m = java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(ms)
