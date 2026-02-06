@@ -1782,7 +1782,7 @@ fun TrimAudioDialog(
             modifier = Modifier.fillMaxWidth()
         ) {
             if (playerReady) {
-            Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     "Trim Audio",
                     style = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
