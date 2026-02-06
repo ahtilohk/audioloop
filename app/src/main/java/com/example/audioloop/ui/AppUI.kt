@@ -1762,6 +1762,7 @@ fun TrimAudioDialog(
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
     var playerReady by remember { mutableStateOf(false) }
     var playerInitError by remember { mutableStateOf(false) }
+    var isDraggingHandle by remember { mutableStateOf(false) }
     
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
