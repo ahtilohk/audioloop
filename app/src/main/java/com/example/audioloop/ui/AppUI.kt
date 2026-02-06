@@ -986,10 +986,10 @@ fun AudioLoopMainScreen(
                     onClick = { showCategorySheet = true },
                     modifier = Modifier
                         .size(32.dp)
-                        .background(Cyan600.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                        .border(1.dp, Cyan500.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                        .background(themeColors.primary600.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .border(1.dp, themeColors.primary500.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                 ) {
-                   Icon(AppIcons.Edit, contentDescription = "Edit Categories", tint = Cyan400, modifier = Modifier.size(16.dp))
+                   Icon(AppIcons.Edit, contentDescription = "Edit Categories", tint = themeColors.primary400, modifier = Modifier.size(16.dp))
                 }
             }
             
@@ -1012,7 +1012,7 @@ fun AudioLoopMainScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (active) Cyan600 else Color.Transparent)
+                                    .background(if (active) themeColors.primary600 else Color.Transparent)
                                     .clickable { mode = m }
                                     .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center
@@ -1104,10 +1104,10 @@ fun AudioLoopMainScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Cyan600.copy(alpha = 0.3f), CircleShape),
+                                        .background(themeColors.primary600.copy(alpha = 0.3f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.Mic, contentDescription = null, tint = Cyan300, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.Mic, contentDescription = null, tint = themeColors.primary300, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
@@ -1127,7 +1127,7 @@ fun AudioLoopMainScreen(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(if (settingsOpen) Cyan600 else Zinc800.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
+                            .background(if (settingsOpen) themeColors.primary600 else Zinc800.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(AppIcons.Settings, contentDescription = null, tint = if (settingsOpen) Color.White else Zinc400, modifier = Modifier.size(16.dp))
@@ -1410,7 +1410,7 @@ fun AudioLoopMainScreen(
                                     selectedFiles = emptySet()
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Cyan600),
+                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -1425,7 +1425,7 @@ fun AudioLoopMainScreen(
                             Button(
                                 onClick = { filePickerLauncher.launch("audio/*") },
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Cyan600),
+                                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier.height(28.dp)
                             ) {
@@ -1974,7 +1974,7 @@ fun TrimAudioDialog(
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
-                    val handleHitWidth = with(LocalDensity.current) { 28.dp.toPx() }
+                    val handleHitWidth = with(LocalDensity.current) { 40.dp.toPx() }
                     val handleBarWidth = with(LocalDensity.current) { 7.dp.toPx() }
                     val handleBarRadius = with(LocalDensity.current) { 3.5.dp.toPx() }
                     val labelAreaHeight = with(LocalDensity.current) { 22.dp.toPx() }
@@ -2224,11 +2224,11 @@ fun TrimAudioDialog(
                                     } else {
                                         0f
                                     }
-                                    // Extended hit zones at edges - when handle is near edge, expand hit zone outward
-                                    val startHitLeft = if (startX < handleHitWidth) 0f else startX - handleHitWidth / 2
-                                    val startHitRight = startX + handleHitWidth / 2
-                                    val endHitLeft = endX - handleHitWidth / 2
-                                    val endHitRight = if (endX > widthPx - handleHitWidth) widthPx else endX + handleHitWidth / 2
+                                    // Extended hit zones at edges - ensure full hit width even when handle is at edge
+                                    val startHitLeft = 0f.coerceAtLeast(startX - handleHitWidth / 2)
+                                    val startHitRight = if (startX < handleHitWidth) handleHitWidth else startX + handleHitWidth / 2
+                                    val endHitLeft = if (endX > widthPx - handleHitWidth) widthPx - handleHitWidth else endX - handleHitWidth / 2
+                                    val endHitRight = widthPx.coerceAtMost(endX + handleHitWidth / 2)
                                     val touchX = down.position.x
                                     val isNearStart = touchX >= startHitLeft && touchX <= startHitRight
                                     val isNearEnd = touchX >= endHitLeft && touchX <= endHitRight
