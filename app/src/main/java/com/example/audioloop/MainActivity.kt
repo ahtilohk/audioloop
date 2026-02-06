@@ -77,6 +77,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
@@ -248,6 +249,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             AudioLoopTheme {
                 val coroutineScope = rememberCoroutineScope()
 
+                // First launch welcome dialog
+                var showWelcomeDialog by remember { mutableStateOf(isFirstLaunch(this)) }
 
                 val context = LocalContext.current
                 // Force English always as per user request
@@ -340,6 +343,74 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         currentProgress = 0f
                         currentTimeString = "00:00"
                     }
+                }
+
+                // Welcome Dialog for first launch
+                if (showWelcomeDialog) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { },
+                        containerColor = com.example.audioloop.ui.theme.Zinc900,
+                        titleContentColor = Color.White,
+                        textContentColor = com.example.audioloop.ui.theme.Zinc300,
+                        title = {
+                            Text(
+                                "Welcome to AudioLoop!",
+                                style = androidx.compose.ui.text.TextStyle(
+                                    brush = Brush.linearGradient(
+                                        listOf(currentTheme.palette.primary400, currentTheme.palette.primary200)
+                                    ),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                            )
+                        },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    "AudioLoop supports two recording modes:",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text("🎤", fontSize = 16.sp)
+                                    Column {
+                                        Text("Speech", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
+                                        Text("Records your voice using the microphone.", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)
+                                    }
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text("🔊", fontSize = 16.sp)
+                                    Column {
+                                        Text("Stream", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
+                                        Text("Records audio playing on your device (music, videos, etc).", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)
+                                    }
+                                }
+                                androidx.compose.material3.HorizontalDivider(color = com.example.audioloop.ui.theme.Zinc700)
+                                Text(
+                                    "⚠️ Note about Stream recording:",
+                                    color = com.example.audioloop.ui.theme.Sunset400,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    "Android requires permission confirmation each time you start Stream recording. This is a security feature and cannot be bypassed.",
+                                    color = com.example.audioloop.ui.theme.Zinc400,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    setFirstLaunchComplete(this@MainActivity)
+                                    showWelcomeDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = currentTheme.palette.primary600)
+                            ) {
+                                Text("Got it!", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    )
                 }
 
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -612,6 +683,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         } catch (e: Exception) {
             com.example.audioloop.ui.theme.AppTheme.CYAN
         }
+    }
+
+    fun isFirstLaunch(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("is_first_launch", true)
+    }
+
+    fun setFirstLaunchComplete(context: Context) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("is_first_launch", false).apply()
     }
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
