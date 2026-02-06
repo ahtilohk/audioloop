@@ -230,6 +230,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var usePublicStorage by mutableStateOf(false)
     private var sleepTimerRemainingMs by mutableLongStateOf(0L)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
+    private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.CYAN)
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -241,6 +242,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
         
         usePublicStorage = getPublicStoragePref(this)
+        currentTheme = getThemePref(this)
 
         setContent {
             AudioLoopTheme {
@@ -489,7 +491,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savePublicStoragePref(this@MainActivity, it)
                         },
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
-                        onSleepTimerChange = { minutes -> setSleepTimer(minutes) }
+                        onSleepTimerChange = { minutes -> setSleepTimer(minutes) },
+                        currentTheme = currentTheme,
+                        onThemeChange = { theme ->
+                            currentTheme = theme
+                            saveThemePref(this@MainActivity, theme)
+                        }
                     )
                 }
             }
@@ -590,6 +597,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     fun getPublicStoragePref(context: Context): Boolean {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("use_public_storage", false)
+    }
+
+    fun saveThemePref(context: Context, theme: com.example.audioloop.ui.theme.AppTheme) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("app_theme", theme.name).apply()
+    }
+
+    fun getThemePref(context: Context): com.example.audioloop.ui.theme.AppTheme {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        val themeName = prefs.getString("app_theme", "CYAN") ?: "CYAN"
+        return try {
+            com.example.audioloop.ui.theme.AppTheme.valueOf(themeName)
+        } catch (e: Exception) {
+            com.example.audioloop.ui.theme.AppTheme.CYAN
+        }
     }
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {

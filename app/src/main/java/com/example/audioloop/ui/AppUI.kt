@@ -843,8 +843,12 @@ fun AudioLoopMainScreen(
     usePublicStorage: Boolean,
     onPublicStorageChange: (Boolean) -> Unit,
     sleepTimerRemainingMs: Long = 0L,
-    onSleepTimerChange: (Int) -> Unit = {}
+    onSleepTimerChange: (Int) -> Unit = {},
+    currentTheme: com.example.audioloop.ui.theme.AppTheme = com.example.audioloop.ui.theme.AppTheme.CYAN,
+    onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit = {}
 ) {
+    // Get theme colors
+    val themeColors = currentTheme.palette
     var settingsOpen by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf("Speech") }
     var isSelectionMode by remember { mutableStateOf(false) }
@@ -916,7 +920,7 @@ fun AudioLoopMainScreen(
                 Text(
                     text = "AudioLoop",
                     style = TextStyle(
-                        brush = Brush.linearGradient(listOf(Cyan400, Cyan200)),
+                        brush = Brush.linearGradient(listOf(themeColors.primary400, themeColors.primary200)),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
@@ -924,7 +928,7 @@ fun AudioLoopMainScreen(
                 Text(
                     text = if (isSelectionMode) "CANCEL" else "SELECT PLAYLIST",
                     style = TextStyle(
-                        color = if (isSelectionMode) Red400 else Cyan400,
+                        color = if (isSelectionMode) Red400 else themeColors.primary400,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     ),
@@ -1139,18 +1143,18 @@ fun AudioLoopMainScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text("Speed:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            Text("${selectedSpeed}x", style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text("${selectedSpeed}x", style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
-                            Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text(loopText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("Timer:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val sleepText = if (sleepTimerRemainingMs > 0L) {
                                 val totalSec = (sleepTimerRemainingMs / 1000).toInt()
                                 String.format("%d:%02d", totalSec / 60, totalSec % 60)
                             } else "Off"
-                            Text(sleepText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text(sleepText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
 
                         // Row 2: Storage & Shadowing
@@ -1160,19 +1164,19 @@ fun AudioLoopMainScreen(
                         ) {
                             val storageText = if (usePublicStorage) "Public" else "Internal"
                             Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            Text(storageText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                            
+                            Text(storageText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val shadowText = if (isShadowing) "Yes" else "No"
-                            Text(shadowText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text(shadowText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
                     }
 
                     Icon(
                          if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
                          contentDescription = null,
-                         tint = if (settingsOpen) Cyan400 else Zinc500,
+                         tint = if (settingsOpen) themeColors.primary400 else Zinc500,
                          modifier = Modifier.size(16.dp)
                     )
                 }
@@ -1196,7 +1200,7 @@ fun AudioLoopMainScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) Cyan600 else Zinc800)
+                                            .background(if (active) themeColors.primary600 else Zinc800)
                                             .clickable { onSpeedChange(s) }
                                             .padding(horizontal = 8.dp, vertical = 6.dp)
                                     ) {
@@ -1205,7 +1209,7 @@ fun AudioLoopMainScreen(
                                 }
                             }
                         }
-                        
+
                         // Repeats
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
@@ -1216,7 +1220,7 @@ fun AudioLoopMainScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) Cyan600 else Zinc800)
+                                            .background(if (active) themeColors.primary600 else Zinc800)
                                             .clickable { onLoopCountChange(r) }
                                             .padding(horizontal = 12.dp, vertical = 6.dp)
                                     ) {
@@ -1237,7 +1241,7 @@ fun AudioLoopMainScreen(
                                     .width(44.dp)
                                     .height(24.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isShadowing) Cyan600 else Zinc700)
+                                    .background(if (isShadowing) themeColors.primary600 else Zinc700)
                                     .clickable { onShadowingChange(!isShadowing) }
                             ) {
                                 Box(
@@ -1248,11 +1252,11 @@ fun AudioLoopMainScreen(
                                         .background(Color.White),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = Cyan600, modifier = Modifier.size(10.dp))
+                                    if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
                                 }
                             }
                         }
-                        
+
                         // Public Storage
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
@@ -1264,7 +1268,7 @@ fun AudioLoopMainScreen(
                                     .width(44.dp)
                                     .height(24.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(if (usePublicStorage) Cyan600 else Zinc700)
+                                    .background(if (usePublicStorage) themeColors.primary600 else Zinc700)
                                     .clickable { onPublicStorageChange(!usePublicStorage) }
                             ) {
                                 Box(
@@ -1275,7 +1279,7 @@ fun AudioLoopMainScreen(
                                         .background(Color.White),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = Cyan600, modifier = Modifier.size(10.dp))
+                                    if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
                                 }
                             }
                         }
@@ -1288,7 +1292,7 @@ fun AudioLoopMainScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (!timerActive) Cyan600 else Zinc800)
+                                        .background(if (!timerActive) themeColors.primary600 else Zinc800)
                                         .clickable { onSleepTimerChange(0) }
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 ) {
@@ -1319,13 +1323,64 @@ fun AudioLoopMainScreen(
                             ) {
                                 Text(
                                     "Stops in $remaining",
-                                    style = TextStyle(color = Cyan300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                    style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                                 )
                                 Text(
                                     "Cancel",
                                     style = TextStyle(color = Red400, fontSize = 12.sp, fontWeight = FontWeight.Medium),
                                     modifier = Modifier.clickable { onSleepTimerChange(0) }
                                 )
+                            }
+                        }
+
+                        // Theme Selector
+                        Text("Theme:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            com.example.audioloop.ui.theme.AppTheme.entries.forEach { theme ->
+                                val isSelected = currentTheme == theme
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isSelected) theme.palette.primary600 else Zinc800)
+                                        .border(
+                                            width = if (isSelected) 2.dp else 1.dp,
+                                            color = if (isSelected) theme.palette.primary400 else Zinc700,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { onThemeChange(theme) }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(CircleShape)
+                                            .background(theme.palette.primary500)
+                                    )
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            com.example.audioloop.ui.theme.AppTheme.entries.forEach { theme ->
+                                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    Text(
+                                        theme.displayName,
+                                        style = TextStyle(
+                                            color = if (currentTheme == theme) theme.palette.primary300 else Zinc500,
+                                            fontSize = 9.sp,
+                                            fontWeight = if (currentTheme == theme) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
