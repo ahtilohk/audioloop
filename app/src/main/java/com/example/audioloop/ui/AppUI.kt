@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.gestures.*
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
@@ -1143,6 +1144,13 @@ fun AudioLoopMainScreen(
                             Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
                             Text(loopText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
+                            Text("Timer:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            val sleepText = if (sleepTimerRemainingMs > 0L) {
+                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                                String.format("%d:%02d", totalSec / 60, totalSec % 60)
+                            } else "Off"
+                            Text(sleepText, style = TextStyle(color = Cyan300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
 
                         // Row 2: Storage & Shadowing
@@ -1269,6 +1277,55 @@ fun AudioLoopMainScreen(
                                 ) {
                                     if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = Cyan600, modifier = Modifier.size(10.dp))
                                 }
+                            }
+                        }
+
+                        // Sleep Timer
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                val timerActive = sleepTimerRemainingMs > 0L
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (!timerActive) Cyan600 else Zinc800)
+                                        .clickable { onSleepTimerChange(0) }
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Text("Off", style = TextStyle(color = if (!timerActive) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                }
+                                listOf(5, 15, 30, 45, 60).forEach { m ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (timerActive) Zinc700 else Zinc800)
+                                            .clickable { onSleepTimerChange(m) }
+                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    ) {
+                                        Text("${m}m", style = TextStyle(color = if (timerActive) Zinc300 else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                    }
+                                }
+                            }
+                        }
+                        if (sleepTimerRemainingMs > 0L) {
+                            val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                            val min = totalSec / 60
+                            val sec = totalSec % 60
+                            val remaining = String.format("%d:%02d", min, sec)
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Stops in $remaining",
+                                    style = TextStyle(color = Cyan300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                )
+                                Text(
+                                    "Cancel",
+                                    style = TextStyle(color = Red400, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                                    modifier = Modifier.clickable { onSleepTimerChange(0) }
+                                )
                             }
                         }
                     }
@@ -1738,19 +1795,35 @@ fun TrimAudioDialog(
         playerReady = false
         playerInitError = false
 
-        // Retry up to 5 times with increasing delays (for files still being finalized)
-        val delays = listOf(0L, 150L, 300L, 500L, 800L)
+        // Wait for file to be fully written - check if file exists and has content
+        var fileReady = false
+        for (i in 1..10) {
+            if (file.exists() && file.length() > 0 && file.canRead()) {
+                fileReady = true
+                break
+            }
+            delay(200L)
+        }
+
+        if (!fileReady) {
+            playerInitError = true
+            return@LaunchedEffect
+        }
+
+        // Retry up to 8 times with increasing delays (for files still being finalized)
+        val delays = listOf(0L, 300L, 500L, 800L, 1000L, 1500L, 2000L, 2500L)
         for ((attempt, delayMs) in delays.withIndex()) {
             if (delayMs > 0) delay(delayMs)
             try {
                 withContext(Dispatchers.IO) {
                     previewPlayer.reset()
-                    previewPlayer.setDataSource(context, Uri.fromFile(file))
+                    previewPlayer.setDataSource(file.absolutePath)
                     previewPlayer.prepare()
                 }
                 playerReady = true
                 return@LaunchedEffect
             } catch (e: Exception) {
+                android.util.Log.w("TrimDialog", "Attempt ${attempt + 1} failed: ${e.message}")
                 if (attempt == delays.lastIndex) {
                     playerInitError = true
                 }
@@ -1847,20 +1920,17 @@ fun TrimAudioDialog(
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
-                    val handleHitRadius = with(LocalDensity.current) { 32.dp.toPx() }
-                    val handleLineHitWidth = with(LocalDensity.current) { 12.dp.toPx() }
-                    val playheadHitRadius = with(LocalDensity.current) { 16.dp.toPx() }
-                    val labelAreaHeight = with(LocalDensity.current) { 26.dp.toPx() }
-                    val handleAreaHeight = with(LocalDensity.current) { 40.dp.toPx() }
-                    val handleY = heightPx - (handleAreaHeight / 2)
+                    val handleHitWidth = with(LocalDensity.current) { 28.dp.toPx() }
+                    val handleBarWidth = with(LocalDensity.current) { 7.dp.toPx() }
+                    val handleBarRadius = with(LocalDensity.current) { 3.5.dp.toPx() }
+                    val labelAreaHeight = with(LocalDensity.current) { 22.dp.toPx() }
                     val waveTop = labelAreaHeight
-                    val waveBottom = heightPx - handleAreaHeight
+                    val waveBottom = heightPx
                     
                     var startX by remember { mutableFloatStateOf(0f) }
                     var endX by remember { mutableFloatStateOf(widthPx) }
                     val selectionStartX = min(startX, endX)
                     val selectionEndX = max(startX, endX)
-                    val handleTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelTextSize = with(LocalDensity.current) { 12.sp.toPx() }
                     val labelPadding = with(LocalDensity.current) { 6.dp.toPx() }
                     val labelGap = with(LocalDensity.current) { 8.dp.toPx() }
@@ -1954,10 +2024,9 @@ fun TrimAudioDialog(
                         val barWidth = widthPx / bars.size
                         
                         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                            // Dimensions
-                            val waveAreaHeight = size.height - handleAreaHeight - labelAreaHeight
+                            val waveAreaHeight = size.height - labelAreaHeight
 
-                            // 1. Draw Waveform (Top area)
+                            // 1. Waveform bars
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
                                 val barHeight = (amplitude / 100f) * waveAreaHeight
@@ -1974,70 +2043,64 @@ fun TrimAudioDialog(
                                     strokeWidth = (barWidth * 0.6f).coerceAtLeast(1f)
                                 )
                             }
-                            
-                            // 2. Draw Selection Indicators (Lines extending down)
-                            drawLine(startHandleColor, Offset(startX, waveTop), Offset(startX, waveBottom), strokeWidth = 2.dp.toPx())
-                            drawLine(endHandleColor, Offset(endX, waveTop), Offset(endX, waveBottom), strokeWidth = 2.dp.toPx())
 
+                            // 2. Dim unselected regions
                             if (trimMode == TrimMode.Keep) {
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(0f, waveTop),
                                     size = androidx.compose.ui.geometry.Size(selectionStartX, waveAreaHeight)
                                 )
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(selectionEndX, waveTop),
                                     size = androidx.compose.ui.geometry.Size(size.width - selectionEndX, waveAreaHeight)
                                 )
                             } else {
                                 drawRect(
-                                    color = Zinc900.copy(alpha = 0.35f),
+                                    color = Zinc900.copy(alpha = 0.4f),
                                     topLeft = Offset(selectionStartX, waveTop),
                                     size = androidx.compose.ui.geometry.Size(selectionEndX - selectionStartX, waveAreaHeight)
                                 )
                             }
-                            
-                            // 3. Draw Handle Track (Visual guide)
-                            drawLine(Zinc700, Offset(0f, handleY), Offset(size.width, handleY), strokeWidth = 2.dp.toPx())
-                            drawLine(selectionColor, Offset(selectionStartX, handleY), Offset(selectionEndX, handleY), strokeWidth = 2.dp.toPx())
 
+                            // 3. Playhead
                             val playheadX = if (totalDuration > 0f) {
                                 ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
                             } else {
                                 0f
                             }
-                            val playheadInSelection = playheadX in selectionStartX..selectionEndX
-                            val playheadLineColor = if (playheadInSelection) {
-                                Color.White.copy(alpha = 0.7f)
-                            } else {
-                                Color.White.copy(alpha = 0.35f)
-                            }
                             drawLine(
-                                color = playheadLineColor,
+                                color = Color.White.copy(alpha = if (playheadX in selectionStartX..selectionEndX) 0.7f else 0.3f),
                                 start = Offset(playheadX, waveTop),
                                 end = Offset(playheadX, waveBottom),
                                 strokeWidth = 1.5.dp.toPx()
                             )
-                            drawCircle(
-                                color = Color.White,
-                                radius = 4.dp.toPx(),
-                                center = Offset(playheadX, handleY)
-                            )
 
-                            // 4. Draw Handles (Bottom area)
-                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(startX, handleY))
-                            drawCircle(startHandleColor, radius = 10.dp.toPx(), center = Offset(startX, handleY))
-                            
-                            drawCircle(Color.White, radius = 12.dp.toPx(), center = Offset(endX, handleY))
-                            drawCircle(endHandleColor, radius = 10.dp.toPx(), center = Offset(endX, handleY))
-                            drawIntoCanvas { canvas ->
-                                handleTextPaint.textSize = handleTextSize
-                                handleTextPaint.color = android.graphics.Color.WHITE
-                                val textYOffset = handleTextSize / 3f
-                                canvas.nativeCanvas.drawText("L", startX, handleY + textYOffset, handleTextPaint)
-                                canvas.nativeCanvas.drawText("R", endX, handleY + textYOffset, handleTextPaint)
+                            // 4. Edge-bar handles
+                            drawRoundRect(
+                                color = startHandleColor,
+                                topLeft = Offset(startX - handleBarWidth / 2, waveTop),
+                                size = androidx.compose.ui.geometry.Size(handleBarWidth, waveAreaHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(handleBarRadius)
+                            )
+                            drawRoundRect(
+                                color = endHandleColor,
+                                topLeft = Offset(endX - handleBarWidth / 2, waveTop),
+                                size = androidx.compose.ui.geometry.Size(handleBarWidth, waveAreaHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(handleBarRadius)
+                            )
+                            // Grip indicators (3 horizontal lines per handle)
+                            val gripY = waveTop + waveAreaHeight / 2
+                            val gripSpacing = 3.dp.toPx()
+                            val gripHalfW = 2.dp.toPx()
+                            for (i in -1..1) {
+                                val y = gripY + i * gripSpacing
+                                drawLine(Color.White.copy(alpha = 0.85f), Offset(startX - gripHalfW, y), Offset(startX + gripHalfW, y), strokeWidth = 1.5.dp.toPx())
+                                drawLine(Color.White.copy(alpha = 0.85f), Offset(endX - gripHalfW, y), Offset(endX + gripHalfW, y), strokeWidth = 1.5.dp.toPx())
                             }
+
+                            // 5. Time labels
                             drawIntoCanvas { canvas ->
                                 handleTextPaint.textSize = labelTextSize
                                 handleTextPaint.color = labelTextColor.toArgb()
@@ -2100,99 +2163,108 @@ fun TrimAudioDialog(
                             .fillMaxSize()
                             .pointerInput(Unit) {
                                 awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                                    down.consume()
                                     var playheadX = if (totalDuration > 0f) {
                                         ((previewPositionMs.toFloat() / totalDuration) * widthPx).coerceIn(0f, widthPx)
                                     } else {
                                         0f
                                     }
-                                    val startDx = down.position.x - startX
-                                    val endDx = down.position.x - endX
-                                    val startDy = down.position.y - handleY
-                                    val endDy = down.position.y - handleY
-                                    val isNearStartHandle = (startDx * startDx) + (startDy * startDy) <= (handleHitRadius * handleHitRadius)
-                                    val isNearEndHandle = (endDx * endDx) + (endDy * endDy) <= (handleHitRadius * handleHitRadius)
-                                    val isNearStartLine = kotlin.math.abs(down.position.x - startX) <= handleLineHitWidth &&
-                                        down.position.y in waveTop..waveBottom
-                                    val isNearEndLine = kotlin.math.abs(down.position.x - endX) <= handleLineHitWidth &&
-                                        down.position.y in waveTop..waveBottom
-                                    val isNearPlayhead = kotlin.math.abs(down.position.x - playheadX) <= playheadHitRadius
+                                    // Extended hit zones at edges - when handle is near edge, expand hit zone outward
+                                    val startHitLeft = if (startX < handleHitWidth) 0f else startX - handleHitWidth / 2
+                                    val startHitRight = startX + handleHitWidth / 2
+                                    val endHitLeft = endX - handleHitWidth / 2
+                                    val endHitRight = if (endX > widthPx - handleHitWidth) widthPx else endX + handleHitWidth / 2
+                                    val touchX = down.position.x
+                                    val isNearStart = touchX >= startHitLeft && touchX <= startHitRight
+                                    val isNearEnd = touchX >= endHitLeft && touchX <= endHitRight
                                     val dragTarget = when {
-                                        isNearStartHandle || isNearStartLine -> TrimDragTarget.Start
-                                        isNearEndHandle || isNearEndLine -> TrimDragTarget.End
-                                        isNearPlayhead -> TrimDragTarget.Playhead
+                                        isNearStart && isNearEnd -> {
+                                            if (kotlin.math.abs(down.position.x - startX) <= kotlin.math.abs(down.position.x - endX))
+                                                TrimDragTarget.Start else TrimDragTarget.End
+                                        }
+                                        isNearStart -> TrimDragTarget.Start
+                                        isNearEnd -> TrimDragTarget.End
                                         else -> TrimDragTarget.Playhead
                                     }
-                                    if (dragTarget == TrimDragTarget.Playhead) {
-                                        playheadX = down.position.x.coerceIn(0f, widthPx)
-                                        val newPreviewMs = if (widthPx > 0f) {
-                                            ((playheadX / widthPx) * totalDuration)
-                                                .coerceIn(selectionStartMs, selectionEndMs)
-                                        } else {
-                                            0f
-                                        }
-                                        if (isPreviewPlaying) {
-                                            previewPlayer.pause()
-                                            isPreviewPlaying = false
-                                        }
-                                        previewPositionMs = newPreviewMs.toLong()
-                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                    // Disable scroll when dragging a handle
+                                    if (dragTarget != TrimDragTarget.Playhead) {
+                                        isDraggingHandle = true
                                     }
-                                    var lastX = down.position.x
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                        if (!change.pressed) {
-                                            break
-                                        }
-                                        val dragAmount = change.position.x - lastX
-                                        lastX = change.position.x
-                                        if (dragAmount == 0f) {
-                                            continue
-                                        }
-                                        change.consume()
-                                        when (dragTarget) {
-                                            TrimDragTarget.Start -> {
-                                                startX = (startX + dragAmount).coerceIn(0f, widthPx)
-                                            }
-                                            TrimDragTarget.End -> {
-                                                endX = (endX + dragAmount).coerceIn(0f, widthPx)
-                                            }
-                                            TrimDragTarget.Playhead -> {
-                                                playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
-                                                val newPreviewMs = if (widthPx > 0f) {
-                                                    resolvePreviewPosition((playheadX / widthPx) * totalDuration)
-                                                } else {
-                                                    0L
-                                                }
-                                                if (isPreviewPlaying) {
-                                                    previewPlayer.pause()
-                                                    isPreviewPlaying = false
-                                                }
-                                                previewPositionMs = newPreviewMs
-                                                previewPlayer.seekTo(previewPositionMs.toInt())
-                                            }
-                                        }
-                                        if (dragTarget != TrimDragTarget.Playhead) {
-                                            val newSelectionStart = min(startX, endX)
-                                            val newSelectionEnd = max(startX, endX)
-                                            val newStartMs = if (widthPx > 0f) {
-                                                ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                    try {
+                                        if (dragTarget == TrimDragTarget.Playhead) {
+                                            playheadX = down.position.x.coerceIn(0f, widthPx)
+                                            val newPreviewMs = if (widthPx > 0f) {
+                                                ((playheadX / widthPx) * totalDuration)
+                                                    .coerceIn(selectionStartMs, selectionEndMs)
                                             } else {
                                                 0f
                                             }
-                                            val newEndMs = if (widthPx > 0f) {
-                                                ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
-                                            } else {
-                                                totalDuration
+                                            if (isPreviewPlaying) {
+                                                previewPlayer.pause()
+                                                isPreviewPlaying = false
                                             }
-                                            range = newStartMs..newEndMs
+                                            previewPositionMs = newPreviewMs.toLong()
+                                            previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
+                                        var lastX = down.position.x
+                                        while (true) {
+                                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                            if (!change.pressed) {
+                                                break
+                                            }
+                                            change.consume()
+                                            val dragAmount = change.position.x - lastX
+                                            lastX = change.position.x
+                                            if (dragAmount == 0f) {
+                                                continue
+                                            }
+                                            when (dragTarget) {
+                                                TrimDragTarget.Start -> {
+                                                    startX = (startX + dragAmount).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.End -> {
+                                                    endX = (endX + dragAmount).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.Playhead -> {
+                                                    playheadX = (playheadX + dragAmount).coerceIn(0f, widthPx)
+                                                    val newPreviewMs = if (widthPx > 0f) {
+                                                        resolvePreviewPosition((playheadX / widthPx) * totalDuration)
+                                                    } else {
+                                                        0L
+                                                    }
+                                                    if (isPreviewPlaying) {
+                                                        previewPlayer.pause()
+                                                        isPreviewPlaying = false
+                                                    }
+                                                    previewPositionMs = newPreviewMs
+                                                    previewPlayer.seekTo(previewPositionMs.toInt())
+                                                }
+                                            }
+                                            if (dragTarget != TrimDragTarget.Playhead) {
+                                                val newSelectionStart = min(startX, endX)
+                                                val newSelectionEnd = max(startX, endX)
+                                                val newStartMs = if (widthPx > 0f) {
+                                                    ((newSelectionStart / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                } else {
+                                                    0f
+                                                }
+                                                val newEndMs = if (widthPx > 0f) {
+                                                    ((newSelectionEnd / widthPx) * totalDuration).coerceIn(0f, totalDuration)
+                                                } else {
+                                                    totalDuration
+                                                }
+                                                range = newStartMs..newEndMs
+                                            }
+                                        }
+                                    } finally {
+                                        // Always re-enable scroll when gesture ends
+                                        isDraggingHandle = false
                                     }
                                 }
                             }
                     ) {
-
                         // Invisible touch layer, visual handles are drawn above
                     }
                 }

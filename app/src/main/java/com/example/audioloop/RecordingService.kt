@@ -538,8 +538,10 @@ class RecordingService : Service() {
         
         try {
             if (isMuxerStarted) {
-                aacMuxer?.stop() 
+                aacMuxer?.stop()
                 aacMuxer?.release()
+                // Give filesystem time to sync the file
+                Thread.sleep(100)
             }
         } catch (e: Exception) { e.printStackTrace() }
         
@@ -552,7 +554,9 @@ class RecordingService : Service() {
         try {
             mediaRecorder?.stop()
             mediaRecorder?.release()
-        } catch (e: Exception) { 
+            // Give filesystem time to sync the file
+            Thread.sleep(100)
+        } catch (e: Exception) {
              currentFile?.delete()
         }
         
