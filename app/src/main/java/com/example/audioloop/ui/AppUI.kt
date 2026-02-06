@@ -1282,7 +1282,7 @@ fun AudioLoopMainScreen(
 
                         // Sleep Timer
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Text("Sleep:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 val timerActive = sleepTimerRemainingMs > 0L
                                 Box(
