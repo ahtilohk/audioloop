@@ -2405,7 +2405,8 @@ fun TrimAudioDialog(
                         Text("Cancel", color = Zinc400)
                     }
                 }
-            } else if (!playerInitError) {
+            }
+            if (!playerReady && !playerInitError) {
                 // Loading state while file is being prepared
                 Column(
                     modifier = Modifier.padding(40.dp).fillMaxWidth(),
