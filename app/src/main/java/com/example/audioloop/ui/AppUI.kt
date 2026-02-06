@@ -1626,6 +1626,7 @@ fun AudioLoopMainScreen(
         if (showTrimDialog && recordingToTrim != null) {
              TrimAudioDialog(
                 file = recordingToTrim!!.file,
+                uri = recordingToTrim!!.uri,
                 durationMs = recordingToTrim!!.durationMillis,
                 onDismiss = { showTrimDialog = false },
                 onConfirm = { start, end, replace, removeSelection ->
@@ -1750,6 +1751,7 @@ private enum class TrimMode {
 @Composable
 fun TrimAudioDialog(
     file: File,
+    uri: android.net.Uri,
     durationMs: Long,
     onDismiss: () -> Unit,
     onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit
@@ -1789,40 +1791,36 @@ fun TrimAudioDialog(
         }
     }
 
-    // Initialize MediaPlayer with retry logic for Stream-recorded files
-    LaunchedEffect(file) {
+    // Initialize MediaPlayer using ContentResolver (professional approach)
+    // This works reliably with both internal storage and MediaStore
+    LaunchedEffect(uri) {
         isPreviewPlaying = false
         previewPositionMs = 0L
         playerReady = false
         playerInitError = false
 
-        // Wait for file to be fully written - check if file exists and has content
-        var fileReady = false
-        for (i in 1..10) {
-            if (file.exists() && file.length() > 0 && file.canRead()) {
-                fileReady = true
-                break
-            }
-            delay(200L)
-        }
-
-        if (!fileReady) {
-            playerInitError = true
-            return@LaunchedEffect
-        }
-
-        // Retry up to 8 times with increasing delays (for files still being finalized)
-        val delays = listOf(0L, 300L, 500L, 800L, 1000L, 1500L, 2000L, 2500L)
+        // Retry up to 10 times with increasing delays (for files still being finalized)
+        val delays = listOf(0L, 200L, 400L, 600L, 800L, 1000L, 1500L, 2000L, 2500L, 3000L)
         for ((attempt, delayMs) in delays.withIndex()) {
             if (delayMs > 0) delay(delayMs)
             try {
-                withContext(Dispatchers.IO) {
-                    previewPlayer.reset()
-                    previewPlayer.setDataSource(file.absolutePath)
-                    previewPlayer.prepare()
+                val success = withContext(Dispatchers.IO) {
+                    // Use ContentResolver to open file - works with all storage types
+                    val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+                    if (pfd != null) {
+                        previewPlayer.reset()
+                        previewPlayer.setDataSource(pfd.fileDescriptor)
+                        previewPlayer.prepare()
+                        pfd.close()
+                        true
+                    } else {
+                        false
+                    }
                 }
-                playerReady = true
-                return@LaunchedEffect
+                if (success) {
+                    playerReady = true
+                    return@LaunchedEffect
+                }
             } catch (e: Exception) {
                 android.util.Log.w("TrimDialog", "Attempt ${attempt + 1} failed: ${e.message}")
                 if (attempt == delays.lastIndex) {
