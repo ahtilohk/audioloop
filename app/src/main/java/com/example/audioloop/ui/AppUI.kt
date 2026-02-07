@@ -105,7 +105,8 @@ fun FileItem(
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
     isDragging: Boolean = false,
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette,
+    playlistPosition: Int = 0 // 0 means not in playlist, >0 is position in playlist
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -268,15 +269,42 @@ fun FileItem(
                     .weight(1f)
                     .padding(start = 4.dp)
             ) {
-                Text(
-                    text = item.name.substringBeforeLast("."),
-                    style = TextStyle(
-                        color = if (isPlaying) Color.White else Zinc200,
-                        fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Normal,
-                        fontSize = 13.sp
-                    ),
-                    maxLines = 1
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = item.name.substringBeforeLast("."),
+                        style = TextStyle(
+                            color = if (isPlaying) Color.White else Zinc200,
+                            fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Normal,
+                            fontSize = 13.sp
+                        ),
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    // Playlist position badge
+                    if (playlistPosition > 0 && !isSelectionMode) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    if (isPlaying) themeColors.primary500 else themeColors.primary700.copy(alpha = 0.7f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 5.dp, vertical = 1.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "♫ $playlistPosition",
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = "${if(isPlaying) "Playing / " else ""}${item.durationString}",
                     style = TextStyle(
@@ -856,6 +884,7 @@ fun AudioLoopMainScreen(
     var mode by remember { mutableStateOf("Speech") }
     var isSelectionMode by remember { mutableStateOf(false) }
     var selectedFiles by remember { mutableStateOf(setOf<String>()) }
+    var playingPlaylistFiles by remember { mutableStateOf(listOf<String>()) } // Track files in current playlist
     var showCategorySheet by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
     
@@ -1424,9 +1453,18 @@ fun AudioLoopMainScreen(
                     if (isSelectionMode && selectedFiles.isNotEmpty()) {
                         Button(
                             onClick = {
-                                val filesToPlay = recordingItems.filter { selectedFiles.contains(it.name) }
+                                // Sort files by selection order
+                                val orderedSelection = selectedFiles.toList()
+                                val filesToPlay = orderedSelection.mapNotNull { name ->
+                                    recordingItems.find { it.name == name }
+                                }
                                 if (filesToPlay.isNotEmpty()) {
-                                    onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
+                                    // Track playlist files for visual indication
+                                    playingPlaylistFiles = filesToPlay.map { it.name }
+                                    onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed) {
+                                        // Clear playlist tracking when playback completes
+                                        playingPlaylistFiles = emptyList()
+                                    }
                                     isSelectionMode = false
                                     selectedFiles = emptySet()
                                 }
@@ -1610,7 +1648,7 @@ fun AudioLoopMainScreen(
                             },
                             onPause = onPausePlay,
                             onResume = onResumePlay,
-                            onStop = onStopPlay,
+                            onStop = { playingPlaylistFiles = emptyList(); onStopPlay() },
                             onToggleSelect = { toggleSelection(item.name) },
                             onRename = { itemToModify = item; showRenameDialog = true },
                             onTrim = { recordingToTrim = item; showTrimDialog = true },
@@ -1622,7 +1660,8 @@ fun AudioLoopMainScreen(
                             onSeek = onSeekTo,
                             onReorder = { /* Legacy disabled */ },
                             isDragging = draggingItemIndex == index,
-                            themeColors = themeColors
+                            themeColors = themeColors,
+                            playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
                         )
                    }
                    item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -1656,7 +1695,8 @@ fun AudioLoopMainScreen(
                         onSeek = {},
                         onReorder = {},
                         isDragging = true,
-                        themeColors = themeColors
+                        themeColors = themeColors,
+                        playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
                     )
                 }
             }
@@ -2001,7 +2041,7 @@ fun TrimAudioDialog(
                     val widthPx = constraints.maxWidth.toFloat()
                     val totalDuration = durationMs.toFloat()
                     val heightPx = constraints.maxHeight.toFloat()
-                    val handleHitWidth = with(LocalDensity.current) { 40.dp.toPx() }
+                    val handleHitWidth = with(LocalDensity.current) { 56.dp.toPx() } // Large hit zone for thumb
                     val handleBarWidth = with(LocalDensity.current) { 7.dp.toPx() }
                     val handleBarRadius = with(LocalDensity.current) { 3.5.dp.toPx() }
                     val labelAreaHeight = with(LocalDensity.current) { 22.dp.toPx() }
@@ -2251,12 +2291,17 @@ fun TrimAudioDialog(
                                     } else {
                                         0f
                                     }
-                                    // Extended hit zones at edges - ensure full hit width even when handle is at edge
-                                    val startHitLeft = 0f.coerceAtLeast(startX - handleHitWidth / 2)
-                                    val startHitRight = if (startX < handleHitWidth) handleHitWidth else startX + handleHitWidth / 2
-                                    val endHitLeft = if (endX > widthPx - handleHitWidth) widthPx - handleHitWidth else endX - handleHitWidth / 2
-                                    val endHitRight = widthPx.coerceAtMost(endX + handleHitWidth / 2)
+                                    // Extended hit zones at edges - generous zones for thumb interaction
+                                    // When handle is near edge, extend hit zone all the way to the edge
+                                    val edgeThreshold = handleHitWidth * 0.75f
+                                    val startHitLeft = if (startX < edgeThreshold) 0f else startX - handleHitWidth / 2
+                                    val startHitRight = startX + handleHitWidth / 2
+                                    val endHitLeft = endX - handleHitWidth / 2
+                                    val endHitRight = if (endX > widthPx - edgeThreshold) widthPx else endX + handleHitWidth / 2
                                     val touchX = down.position.x
+                                    // Use distance-based detection for more reliable touch
+                                    val distToStart = kotlin.math.abs(touchX - startX)
+                                    val distToEnd = kotlin.math.abs(touchX - endX)
                                     val isNearStart = touchX >= startHitLeft && touchX <= startHitRight
                                     val isNearEnd = touchX >= endHitLeft && touchX <= endHitRight
                                     val dragTarget = when {
