@@ -1100,8 +1100,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         speedProvider: () -> Float,
         shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
-        onComplete: () -> Unit,
-        currentIteration: Int = 1
+        currentIteration: Int = 1,
+        onComplete: () -> Unit
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
 
@@ -1115,11 +1115,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             when {
                 loopCount == -1 -> {
                     // Infinite loop - restart from beginning
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                 }
                 currentIteration < loopCount -> {
                     // More iterations remaining - restart with incremented counter
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration + 1)
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration + 1) { onComplete() }
                 }
                 else -> {
                     // All iterations complete
@@ -1170,23 +1170,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                            onNext("Pausing for repeat...") // Visual cue?
                            delay(pauseDuration)
                            if (isActive) {
-                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                            }
                        }
                     } else {
-                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                     }
                 }
                 setOnErrorListener { _, what, extra ->
                     Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
         }
     }
 
