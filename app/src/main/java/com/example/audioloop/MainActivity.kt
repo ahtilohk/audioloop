@@ -1100,19 +1100,32 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         speedProvider: () -> Float,
         shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
-        onComplete: () -> Unit
+        onComplete: () -> Unit,
+        currentIteration: Int = 1
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
-        
+
         // Dynamically fetch current settings
         val loopCount = loopCountProvider()
         val speed = speedProvider()
         val isShadowing = shadowingProvider()
 
         if (currentIndex >= allFiles.size) {
-            // Loop check
-            if (loopCount == -1) playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
-            else onComplete()
+            // End of playlist - check if we should loop
+            when {
+                loopCount == -1 -> {
+                    // Infinite loop - restart from beginning
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
+                }
+                currentIteration < loopCount -> {
+                    // More iterations remaining - restart with incremented counter
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration + 1)
+                }
+                else -> {
+                    // All iterations complete
+                    onComplete()
+                }
+            }
             return
         }
         stopPlaying()
@@ -1146,34 +1159,34 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     // Set isPaused to false when playback starts
                     isPaused = false
                 }
-                setOnCompletionListener { 
+                setOnCompletionListener {
                     if (isShadowing) {
                        // Shadowing Logic: Pause -> Repeat Same
                        val duration = it.duration.toLong()
                        val pauseDuration = if (duration < 15000L) duration else 5000L
-                       
+
                        // Launch coroutine for delay
                        shadowingJob = launch(Dispatchers.Main) {
                            onNext("Pausing for repeat...") // Visual cue?
                            delay(pauseDuration)
                            if (isActive) {
-                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
                            }
                        }
                     } else {
-                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
                     }
                 }
                 setOnErrorListener { _, what, extra ->
                     Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete)
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, onComplete, currentIteration)
         }
     }
 

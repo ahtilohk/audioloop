@@ -928,18 +928,30 @@ fun AudioLoopMainScreen(
                         fontSize = 20.sp
                     )
                 )
-                Text(
-                    text = if (isSelectionMode) "CANCEL" else "SELECT PLAYLIST",
-                    style = TextStyle(
-                        color = if (isSelectionMode) Red400 else themeColors.primary400,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier.clickable {
-                        isSelectionMode = !isSelectionMode
-                        if (!isSelectionMode) selectedFiles = emptySet()
-                    }
-                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isSelectionMode) Red500.copy(alpha = 0.15f) else themeColors.primary600.copy(alpha = 0.15f))
+                        .border(
+                            1.dp,
+                            if (isSelectionMode) Red400.copy(alpha = 0.5f) else themeColors.primary500.copy(alpha = 0.5f),
+                            RoundedCornerShape(8.dp)
+                        )
+                        .clickable {
+                            isSelectionMode = !isSelectionMode
+                            if (!isSelectionMode) selectedFiles = emptySet()
+                        }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = if (isSelectionMode) "Cancel" else "Select",
+                        style = TextStyle(
+                            color = if (isSelectionMode) Red400 else themeColors.primary400,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp
+                        )
+                    )
+                }
             }
 
             // Category Row
