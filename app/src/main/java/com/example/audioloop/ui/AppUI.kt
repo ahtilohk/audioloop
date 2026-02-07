@@ -920,14 +920,50 @@ fun AudioLoopMainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "AudioLoop",
-                    style = TextStyle(
-                        brush = Brush.linearGradient(listOf(themeColors.primary400, themeColors.primary200)),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                )
+                // App Title with professional styling
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // App icon/logo area
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(themeColors.primary500, themeColors.primary700)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Mic,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "AudioLoop",
+                            style = TextStyle(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                letterSpacing = 0.5.sp
+                            )
+                        )
+                        Text(
+                            text = "Voice Recorder",
+                            style = TextStyle(
+                                color = Zinc500,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -944,7 +980,7 @@ fun AudioLoopMainScreen(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = if (isSelectionMode) "Cancel" else "Select",
+                        text = if (isSelectionMode) "Cancel" else "Select Playlist",
                         style = TextStyle(
                             color = if (isSelectionMode) Red400 else themeColors.primary400,
                             fontWeight = FontWeight.Medium,
