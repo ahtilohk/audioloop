@@ -230,6 +230,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
     private var usePublicStorage by mutableStateOf(false)
     private var sleepTimerRemainingMs by mutableLongStateOf(0L)
+    private var selectedSleepMinutes by mutableIntStateOf(0)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
     private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.CYAN)
 
@@ -562,6 +563,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savePublicStoragePref(this@MainActivity, it)
                         },
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
+                        selectedSleepMinutes = selectedSleepMinutes,
                         onSleepTimerChange = { minutes -> setSleepTimer(minutes) },
                         currentTheme = currentTheme,
                         onThemeChange = { theme ->
@@ -1190,6 +1192,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private fun setSleepTimer(minutes: Int) {
         sleepTimerJob?.cancel()
         sleepTimerJob = null
+        selectedSleepMinutes = minutes
         if (minutes <= 0) {
             sleepTimerRemainingMs = 0L
             return

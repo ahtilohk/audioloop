@@ -845,6 +845,7 @@ fun AudioLoopMainScreen(
     usePublicStorage: Boolean,
     onPublicStorageChange: (Boolean) -> Unit,
     sleepTimerRemainingMs: Long = 0L,
+    selectedSleepMinutes: Int = 0,
     onSleepTimerChange: (Int) -> Unit = {},
     currentTheme: com.example.audioloop.ui.theme.AppTheme = com.example.audioloop.ui.theme.AppTheme.CYAN,
     onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit = {}
@@ -1291,24 +1292,26 @@ fun AudioLoopMainScreen(
                             Text("Sleep:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 val timerActive = sleepTimerRemainingMs > 0L
+                                val isOffSelected = selectedSleepMinutes == 0
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (!timerActive) themeColors.primary600 else Zinc800)
+                                        .background(if (isOffSelected) themeColors.primary600 else Zinc800)
                                         .clickable { onSleepTimerChange(0) }
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 ) {
-                                    Text("Off", style = TextStyle(color = if (!timerActive) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                    Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
                                 }
                                 listOf(5, 15, 30, 45, 60).forEach { m ->
+                                    val isSelected = selectedSleepMinutes == m && timerActive
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (timerActive) Zinc700 else Zinc800)
+                                            .background(if (isSelected) themeColors.primary600 else Zinc800)
                                             .clickable { onSleepTimerChange(m) }
                                             .padding(horizontal = 8.dp, vertical = 6.dp)
                                     ) {
-                                        Text("${m}m", style = TextStyle(color = if (timerActive) Zinc300 else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
                                     }
                                 }
                             }
