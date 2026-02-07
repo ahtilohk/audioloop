@@ -1200,7 +1200,7 @@ fun AudioLoopMainScreen(
                             val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
                             Text(loopText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                             Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                            Text("Timer:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
+                            Text("Sleep:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
                             val sleepText = if (sleepTimerRemainingMs > 0L) {
                                 val totalSec = (sleepTimerRemainingMs / 1000).toInt()
                                 String.format("%d:%02d", totalSec / 60, totalSec % 60)
@@ -1208,18 +1208,13 @@ fun AudioLoopMainScreen(
                             Text(sleepText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
 
-                        // Row 2: Storage & Shadowing
+                        // Row 2: Shadowing
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            val storageText = if (usePublicStorage) "Public" else "Internal"
-                            Text("Storage:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            Text(storageText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-
-                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
                             Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            val shadowText = if (isShadowing) "Yes" else "No"
+                            val shadowText = if (isShadowing) "On" else "Off"
                             Text(shadowText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
                         }
                     }
@@ -1304,33 +1299,6 @@ fun AudioLoopMainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
-                                }
-                            }
-                        }
-
-                        // Public Storage
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Column {
-                                Text("Public Storage", style = TextStyle(color = Zinc300, fontSize = 14.sp))
-                                Text("Save recordings to Music/AudioLoop", style = TextStyle(color = Zinc600, fontSize = 10.sp))
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .width(44.dp)
-                                    .height(24.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (usePublicStorage) themeColors.primary600 else Zinc700)
-                                    .clickable { onPublicStorageChange(!usePublicStorage) }
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .offset(x = if (usePublicStorage) 22.dp else 2.dp, y = 2.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (usePublicStorage) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
                                 }
                             }
                         }

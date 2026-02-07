@@ -535,7 +535,7 @@ class RecordingService : Service() {
                 aacEncoder?.release()
             }
         } catch (e: Exception) { e.printStackTrace() }
-        
+
         try {
             if (isMuxerStarted) {
                 aacMuxer?.stop()
@@ -544,10 +544,15 @@ class RecordingService : Service() {
                 Thread.sleep(100)
             }
         } catch (e: Exception) { e.printStackTrace() }
-        
+
         try {
             audioRecord?.stop()
             audioRecord?.release()
+        } catch (e: Exception) { e.printStackTrace() }
+
+        // Release MediaProjection (for Stream recording)
+        try {
+            mediaProjection?.stop()
         } catch (e: Exception) { e.printStackTrace() }
 
         // Mic Recorder
@@ -559,12 +564,13 @@ class RecordingService : Service() {
         } catch (e: Exception) {
              currentFile?.delete()
         }
-        
+
         // Reset State Variables (Idempotency)
         mediaRecorder = null
         aacEncoder = null
         aacMuxer = null
         audioRecord = null
+        mediaProjection = null
         isMuxerStarted = false
         isEncoderStarted = false
         // isRecording is already false

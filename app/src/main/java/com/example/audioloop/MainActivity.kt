@@ -228,7 +228,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var uiCategory by mutableStateOf("General")
     private var categories by mutableStateOf(listOf("General"))
     private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
-    private var usePublicStorage by mutableStateOf(false)
+    private var usePublicStorage by mutableStateOf(true) // Always use public storage (Music/AudioLoop)
     private var sleepTimerRemainingMs by mutableLongStateOf(0L)
     private var selectedSleepMinutes by mutableIntStateOf(0)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
@@ -243,7 +243,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             e.printStackTrace()
         }
         
-        usePublicStorage = getPublicStoragePref(this)
         currentTheme = getThemePref(this)
 
         setContent {
@@ -558,10 +557,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it },
                         usePublicStorage = usePublicStorage,
-                        onPublicStorageChange = {
-                            usePublicStorage = it
-                            savePublicStoragePref(this@MainActivity, it)
-                        },
+                        onPublicStorageChange = { }, // Storage always public now
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
                         selectedSleepMinutes = selectedSleepMinutes,
                         onSleepTimerChange = { minutes -> setSleepTimer(minutes) },
