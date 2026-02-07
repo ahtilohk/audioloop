@@ -104,21 +104,22 @@ fun FileItem(
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
-    isDragging: Boolean = false
+    isDragging: Boolean = false,
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
     val backgroundColor = when {
-        isDragging -> Cyan800.copy(alpha = 0.5f)
-        isPlaying -> Cyan900.copy(alpha = 0.4f)
-        isSelected -> Cyan900.copy(alpha = 0.2f)
+        isDragging -> themeColors.primary800.copy(alpha = 0.5f)
+        isPlaying -> themeColors.primary900.copy(alpha = 0.4f)
+        isSelected -> themeColors.primary900.copy(alpha = 0.2f)
         else -> Zinc800.copy(alpha = 0.4f)
     }
 
     val borderColor = when {
-        isDragging -> Cyan400
-        isPlaying -> Cyan500.copy(alpha = 0.7f)
-        isSelected -> Cyan500.copy(alpha = 0.4f)
+        isDragging -> themeColors.primary400
+        isPlaying -> themeColors.primary500.copy(alpha = 0.7f)
+        isSelected -> themeColors.primary500.copy(alpha = 0.4f)
         else -> Zinc700.copy(alpha = 0.4f)
     }
 
@@ -159,7 +160,7 @@ fun FileItem(
                     Icon(
                         imageVector = AppIcons.GripVertical,
                         contentDescription = "Drag to reorder",
-                        tint = if (isDragging) Cyan400 else Zinc600, // Visual feedback
+                        tint = if (isDragging) themeColors.primary400 else Zinc600, // Visual feedback
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -171,10 +172,10 @@ fun FileItem(
                         .clip(CircleShape)
                         .border(
                             2.dp,
-                            if (isSelected) Cyan600 else Zinc500,
+                            if (isSelected) themeColors.primary600 else Zinc500,
                             CircleShape
                         )
-                        .background(if (isSelected) Cyan600 else Color.Transparent)
+                        .background(if (isSelected) themeColors.primary600 else Color.Transparent)
                         .clickable { onToggleSelect() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -196,7 +197,7 @@ fun FileItem(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.linearGradient(listOf(Cyan500, Cyan600)))
+                            .background(Brush.linearGradient(listOf(themeColors.primary500, themeColors.primary600)))
                             .clickable { onPause() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -212,7 +213,7 @@ fun FileItem(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.linearGradient(listOf(Cyan500, Cyan600)))
+                            .background(Brush.linearGradient(listOf(themeColors.primary500, themeColors.primary600)))
                             .clickable { onResume() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -242,14 +243,14 @@ fun FileItem(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Cyan500.copy(alpha = 0.2f))
+                            .background(themeColors.primary500.copy(alpha = 0.2f))
                     )
                     Box(
                         modifier = Modifier
                             .padding(2.dp)
                             .fillMaxSize()
                             .clip(RoundedCornerShape(6.dp))
-                            .background(Brush.linearGradient(listOf(Cyan400, Cyan500, Cyan700))),
+                            .background(Brush.linearGradient(listOf(themeColors.primary400, themeColors.primary500, themeColors.primary700))),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -279,7 +280,7 @@ fun FileItem(
                 Text(
                     text = "${if(isPlaying) "Playing / " else ""}${item.durationString}",
                     style = TextStyle(
-                        color = if (isPlaying) Cyan300 else Zinc500,
+                        color = if (isPlaying) themeColors.primary300 else Zinc500,
                         fontSize = 11.sp
                     )
                 )
@@ -345,7 +346,7 @@ fun FileItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Cyan900.copy(alpha = 0.3f))
+                        .background(themeColors.primary900.copy(alpha = 0.3f))
                         .padding(8.dp)
                     // Waveform placeholder logic retained...
                 ) {
@@ -364,7 +365,7 @@ fun FileItem(
                                          .weight(1f)
                                          .padding(horizontal = 0.5.dp)
                                          .fillMaxHeight(0.3f + (Math.random() * 0.7f).toFloat())
-                                         .background(Cyan400, CircleShape)
+                                         .background(themeColors.primary400, CircleShape)
                                  )
                              }
                          }
@@ -379,15 +380,15 @@ fun FileItem(
                          ) {
                              Text(
                                  text = "$currentTimeString / ${item.durationString}",
-                                 style = TextStyle(color = Cyan300, fontSize = 10.sp, fontWeight = FontWeight.Medium),
+                                 style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium),
                                  modifier = Modifier.width(80.dp)
                              )
                              Slider(
                                  value = currentProgress,
                                  onValueChange = onSeek,
                                  colors = SliderDefaults.colors(
-                                     thumbColor = Cyan200,
-                                     activeTrackColor = Cyan500,
+                                     thumbColor = themeColors.primary200,
+                                     activeTrackColor = themeColors.primary500,
                                      inactiveTrackColor = Zinc700.copy(alpha = 0.5f)
                                  ),
                                  modifier = Modifier.weight(1f).height(20.dp)
@@ -488,7 +489,7 @@ fun CategoryManagementSheet(
                     onValueChange = { newCategoryName = it },
                     singleLine = true,
                     textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                    cursorBrush = SolidColor(Cyan500),
+                    cursorBrush = SolidColor(themeColors.primary500),
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
@@ -510,7 +511,7 @@ fun CategoryManagementSheet(
                         }
                     },
                     modifier = Modifier.height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Cyan600),
+                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
                     shape = RoundedCornerShape(12.dp),
                     enabled = newCategoryName.isNotBlank()
                 ) {
@@ -670,10 +671,10 @@ fun CategoryManagementSheet(
                                 }
                                 .alpha(if (isDragging) 0f else 1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (currentCategory == cat) Cyan900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
+                                .background(if (currentCategory == cat) themeColors.primary900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
                                 .border(
                                     1.dp,
-                                    if (currentCategory == cat) Cyan500.copy(alpha = 0.5f) else Zinc700.copy(alpha = 0.5f),
+                                    if (currentCategory == cat) themeColors.primary500.copy(alpha = 0.5f) else Zinc700.copy(alpha = 0.5f),
                                     RoundedCornerShape(12.dp)
                                 )
                                 .padding(12.dp),
@@ -696,7 +697,7 @@ fun CategoryManagementSheet(
                                     modifier = Modifier
                                         .weight(1f)
                                         .background(Zinc900, RoundedCornerShape(8.dp))
-                                        .border(1.dp, Cyan500, RoundedCornerShape(8.dp))
+                                        .border(1.dp, themeColors.primary500, RoundedCornerShape(8.dp))
                                         .padding(8.dp),
                                     keyboardActions = KeyboardActions(onDone = {
                                         if (editName.isNotBlank() && editName != cat) {
@@ -709,7 +710,7 @@ fun CategoryManagementSheet(
                                 Text(
                                     text = cat,
                                     style = TextStyle(
-                                        color = if (currentCategory == cat) Cyan300 else Zinc200,
+                                        color = if (currentCategory == cat) themeColors.primary300 else Zinc200,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Medium
                                     ),
@@ -757,7 +758,7 @@ fun CategoryManagementSheet(
                                     },
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Cyan600, RoundedCornerShape(8.dp))
+                                        .background(themeColors.primary600, RoundedCornerShape(8.dp))
                                 ) {
                                     Icon(AppIcons.Check, contentDescription = "Save", tint = Color.White, modifier = Modifier.size(14.dp))
                                 }
@@ -964,7 +965,7 @@ fun AudioLoopMainScreen(
                             Text(
                                 text = cat,
                                 style = TextStyle(
-                                    color = if (isActive) Cyan400 else Zinc500,
+                                    color = if (isActive) themeColors.primary400 else Zinc500,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -975,7 +976,7 @@ fun AudioLoopMainScreen(
                                         .padding(top = 2.dp)
                                         .width(20.dp)
                                         .height(2.dp)
-                                        .background(Cyan500, CircleShape)
+                                        .background(themeColors.primary500, CircleShape)
                                 )
                             }
                         }
@@ -1068,7 +1069,7 @@ fun AudioLoopMainScreen(
                                 .height(64.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(Brush.linearGradient(listOf(Zinc900, Zinc800, Zinc900)))
-                                .border(1.dp, Cyan500.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
+                                .border(1.dp, themeColors.primary500.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             if (isRecording) {
@@ -1584,7 +1585,7 @@ fun AudioLoopMainScreen(
                             isSelectionMode = isSelectionMode,
                             isSelected = isSelected,
                             selectionOrder = selectedFiles.indexOf(item.name) + 1,
-                            onPlay = { 
+                            onPlay = {
                                 onStartPlaylist(listOf(item), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
                             },
                             onPause = onPausePlay,
@@ -1600,7 +1601,8 @@ fun AudioLoopMainScreen(
                             currentTimeString = if (isPlaying) currentTimeString else "00:00",
                             onSeek = onSeekTo,
                             onReorder = { /* Legacy disabled */ },
-                            isDragging = draggingItemIndex == index
+                            isDragging = draggingItemIndex == index,
+                            themeColors = themeColors
                         )
                    }
                    item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -1633,7 +1635,8 @@ fun AudioLoopMainScreen(
                         onDelete = {},
                         onSeek = {},
                         onReorder = {},
-                        isDragging = true
+                        isDragging = true,
+                        themeColors = themeColors
                     )
                 }
             }
@@ -1657,7 +1660,8 @@ fun AudioLoopMainScreen(
             RenameDialog(
                 currentName = itemToModify!!.name,
                 onDismiss = { showRenameDialog = false },
-                onConfirm = { newName -> onRenameFile(itemToModify!!, newName); showRenameDialog = false }
+                onConfirm = { newName -> onRenameFile(itemToModify!!, newName); showRenameDialog = false },
+                themeColors = themeColors
             )
         }
         
@@ -1687,7 +1691,8 @@ fun AudioLoopMainScreen(
                 onConfirm = { start, end, replace, removeSelection ->
                     onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection)
                     showTrimDialog = false
-                }
+                },
+                themeColors = themeColors
              )
         }
     }
@@ -1697,7 +1702,7 @@ fun AudioLoopMainScreen(
 // Dialog Helpers adapted from MainActivity
 
 @Composable
-fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit, themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette) {
     var textState by remember { mutableStateOf(TextFieldValue(text = currentName, selection = TextRange(currentName.length))) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1720,9 +1725,9 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Zinc300,
-                        focusedBorderColor = Cyan500,
+                        focusedBorderColor = themeColors.primary500,
                         unfocusedBorderColor = Zinc600,
-                        focusedLabelColor = Cyan500,
+                        focusedLabelColor = themeColors.primary500,
                         unfocusedLabelColor = Zinc500
                     ),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
@@ -1736,7 +1741,7 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                     TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
                     Button(
                         onClick = { onConfirm(textState.text) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Cyan600)
+                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
                     ) { Text("Save") }
                 }
             }
@@ -1809,7 +1814,8 @@ fun TrimAudioDialog(
     uri: android.net.Uri,
     durationMs: Long,
     onDismiss: () -> Unit,
-    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit
+    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit,
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current
@@ -1936,7 +1942,7 @@ fun TrimAudioDialog(
                         Button(
                             onClick = { trimMode = TrimMode.Keep },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (keepSelected) Cyan700 else Zinc800
+                                containerColor = if (keepSelected) themeColors.primary700 else Zinc800
                             ),
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
@@ -1945,7 +1951,7 @@ fun TrimAudioDialog(
                         }
                         OutlinedButton(
                             onClick = { trimMode = TrimMode.Remove },
-                            border = BorderStroke(1.dp, if (removeSelected) Cyan400 else Zinc700),
+                            border = BorderStroke(1.dp, if (removeSelected) themeColors.primary400 else Zinc700),
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                         ) {
@@ -1994,9 +2000,9 @@ fun TrimAudioDialog(
                             textAlign = Paint.Align.CENTER
                         }
                     }
-                    val startHandleColor = Cyan500
+                    val startHandleColor = themeColors.primary500
                     val endHandleColor = Red500
-                    val selectionColor = Cyan400
+                    val selectionColor = themeColors.primary400
                     val remainingColor = Zinc700
                     val labelBackgroundColor = Zinc800.copy(alpha = 0.95f)
                     val labelTextColor = Color.White
@@ -2071,7 +2077,7 @@ fun TrimAudioDialog(
                     
                     if (waveform.value == null) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = Cyan500, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = themeColors.primary500, modifier = Modifier.size(24.dp))
                         }
                     } else {
                         val bars = waveform.value!!
@@ -2390,7 +2396,7 @@ fun TrimAudioDialog(
                             )
                             Text(
                                 formatDuration(previewPositionMs),
-                                color = if (isPreviewPlaying) Cyan400 else Color.White,
+                                color = if (isPreviewPlaying) themeColors.primary400 else Color.White,
                                 style = TextStyle(
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
@@ -2439,7 +2445,7 @@ fun TrimAudioDialog(
                                 .fillMaxWidth(progressFraction)
                                 .fillMaxHeight()
                                 .background(
-                                    if (isPreviewPlaying) Cyan500 else Zinc500,
+                                    if (isPreviewPlaying) themeColors.primary500 else Zinc500,
                                     RoundedCornerShape(2.dp)
                                 )
                         )
@@ -2467,7 +2473,7 @@ fun TrimAudioDialog(
                                 isPreviewPlaying = true
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isPreviewPlaying) Cyan700 else Zinc800),
+                        colors = ButtonDefaults.buttonColors(containerColor = if (isPreviewPlaying) themeColors.primary700 else Zinc800),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
                     ) {
@@ -2515,8 +2521,8 @@ fun TrimAudioDialog(
                         }
                         
                         Button(
-                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true, trimMode == TrimMode.Remove) }, 
-                            colors = ButtonDefaults.buttonColors(containerColor = Cyan700),
+                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true, trimMode == TrimMode.Remove) },
+                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary700),
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier.weight(1f).height(50.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
@@ -2538,7 +2544,7 @@ fun TrimAudioDialog(
                     modifier = Modifier.padding(40.dp).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = Cyan700)
+                    CircularProgressIndicator(color = themeColors.primary700)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("Loading audio...", color = Zinc400, fontSize = 14.sp)
                 }
