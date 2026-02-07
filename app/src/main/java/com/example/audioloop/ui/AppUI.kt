@@ -412,7 +412,8 @@ fun CategoryManagementSheet(
     onRename: (String, String) -> Unit,
     onDelete: (String) -> Unit,
     onReorder: (List<String>) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
 ) {
     var newCategoryName by remember { mutableStateOf("") }
     var editingId by remember { mutableStateOf<String?>(null) }
@@ -1651,7 +1652,8 @@ fun AudioLoopMainScreen(
                 onRename = onRenameCategory,
                 onDelete = onDeleteCategory,
                 onReorder = onReorderCategories,
-                onClose = { showCategorySheet = false }
+                onClose = { showCategorySheet = false },
+                themeColors = themeColors
             )
         }
         
