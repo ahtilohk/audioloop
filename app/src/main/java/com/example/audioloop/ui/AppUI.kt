@@ -961,61 +961,6 @@ fun AudioLoopMainScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-<<<<<<< HEAD
-                // App Title with professional styling
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // App icon/logo area
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(themeColors.primary500, themeColors.primary700)
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.Mic,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = "AudioLoop",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                letterSpacing = 0.5.sp
-                            )
-                        )
-                        Text(
-                            text = "Voice Recorder",
-                            style = TextStyle(
-                                color = Zinc500,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        )
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isSelectionMode) Red500.copy(alpha = 0.15f) else themeColors.primary600.copy(alpha = 0.15f))
-                        .border(
-                            1.dp,
-                            if (isSelectionMode) Red400.copy(alpha = 0.5f) else themeColors.primary500.copy(alpha = 0.5f),
-                            RoundedCornerShape(8.dp)
-                        )
-=======
                 Text(
                     text = "Loop & Learn Audio",
                     style = TextStyle(
@@ -1034,26 +979,11 @@ fun AudioLoopMainScreen(
                     ),
                     modifier = Modifier
                         .align(Alignment.End)
->>>>>>> 2c1ea6b (Rebrand to Loop and Learn Audio + category UX fixes + public storage import)
                         .clickable {
                             isSelectionMode = !isSelectionMode
                             if (!isSelectionMode) selectedFiles = emptySet()
                         }
-<<<<<<< HEAD
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = if (isSelectionMode) "Cancel" else "Select Playlist",
-                        style = TextStyle(
-                            color = if (isSelectionMode) Red400 else themeColors.primary400,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp
-                        )
-                    )
-                }
-=======
                 )
->>>>>>> 2c1ea6b (Rebrand to Loop and Learn Audio + category UX fixes + public storage import)
             }
 
             // Category Row
