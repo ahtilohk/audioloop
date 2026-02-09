@@ -304,20 +304,41 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
-                        // Update categories
+                        // Update categories from internal storage
                         val realDirs = filesDir.listFiles()?.filter { it.isDirectory }?.map { it.name } ?: emptyList()
                         val savedOrder = loadCategoryOrder()
                         
                         val newOrder = ArrayList<String>()
                         // 1. Add known ones in order
                         savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
-                        // 2. Add new ones
+                        // 2. Add new ones from internal storage
                         realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
-                        // 3. Ensure General exists and is first if list empty (or fallback)
-                        if (!newOrder.contains("General")) newOrder.add(0, "General") 
                         
-                        // Move General to top if it's not (Optional, but good practice for "Default")
-                        // But user might want to reorder it. Let's strictly follow saved logic BUT ensure it exists.
+                        // 3. Scan public storage (Music/AudioLoop) for additional categories
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            try {
+                                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                                val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH)
+                                val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                                val selectionArgs = arrayOf("Music/AudioLoop/%")
+                                
+                                contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                                    val pathCol = cursor.getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH)
+                                    while (cursor.moveToNext()) {
+                                        val path = cursor.getString(pathCol) ?: continue
+                                        // Extract category name: "Music/AudioLoop/CategoryName/" -> "CategoryName"
+                                        val parts = path.removePrefix("Music/AudioLoop/").trimEnd('/').split("/")
+                                        val categoryName = parts.firstOrNull()?.takeIf { it.isNotBlank() }
+                                        if (categoryName != null && !newOrder.contains(categoryName) && categoryName != "General") {
+                                            newOrder.add(categoryName)
+                                        }
+                                    }
+                                }
+                            } catch (e: Exception) { e.printStackTrace() }
+                        }
+                        
+                        // 4. Ensure General exists
+                        if (!newOrder.contains("General")) newOrder.add(0, "General") 
                         
                         withContext(Dispatchers.Main) { categories = newOrder }
 

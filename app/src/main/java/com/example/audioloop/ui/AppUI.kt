@@ -544,7 +544,12 @@ fun CategoryManagementSheet(
                 Button(
                     onClick = {
                         if (newCategoryName.isNotBlank()) {
-                            onAdd(newCategoryName.trim())
+                            val newCat = newCategoryName.trim()
+                            // Add to local list immediately for instant UI update
+                            if (!uiCategories.contains(newCat)) {
+                                uiCategories.add(newCat)
+                            }
+                            onAdd(newCat)
                             newCategoryName = ""
                         }
                     },
@@ -951,13 +956,12 @@ fun AudioLoopMainScreen(
                 .statusBarsPadding()
         ) {
             // Header
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
+<<<<<<< HEAD
                 // App Title with professional styling
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -1011,10 +1015,31 @@ fun AudioLoopMainScreen(
                             if (isSelectionMode) Red400.copy(alpha = 0.5f) else themeColors.primary500.copy(alpha = 0.5f),
                             RoundedCornerShape(8.dp)
                         )
+=======
+                Text(
+                    text = "Loop & Learn Audio",
+                    style = TextStyle(
+                        brush = Brush.linearGradient(listOf(Cyan400, Cyan200)),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = if (isSelectionMode) "CANCEL" else "SELECT PLAYLIST",
+                    style = TextStyle(
+                        color = if (isSelectionMode) Red400 else Cyan400,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.End)
+>>>>>>> 2c1ea6b (Rebrand to Loop and Learn Audio + category UX fixes + public storage import)
                         .clickable {
                             isSelectionMode = !isSelectionMode
                             if (!isSelectionMode) selectedFiles = emptySet()
                         }
+<<<<<<< HEAD
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
@@ -1026,6 +1051,9 @@ fun AudioLoopMainScreen(
                         )
                     )
                 }
+=======
+                )
+>>>>>>> 2c1ea6b (Rebrand to Loop and Learn Audio + category UX fixes + public storage import)
             }
 
             // Category Row
