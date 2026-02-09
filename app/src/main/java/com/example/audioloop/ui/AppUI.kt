@@ -283,19 +283,28 @@ fun FileItem(
                         maxLines = 1,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    // Playlist position badge
-                    if (playlistPosition > 0 && !isSelectionMode) {
+                    // Selection/Playlist position badge - show during selection OR during playlist playback
+                    val badgeNumber = when {
+                        isSelectionMode && isSelected -> selectionOrder
+                        !isSelectionMode && playlistPosition > 0 -> playlistPosition
+                        else -> 0
+                    }
+                    if (badgeNumber > 0) {
                         Box(
                             modifier = Modifier
                                 .background(
-                                    if (isPlaying) themeColors.primary500 else themeColors.primary700.copy(alpha = 0.7f),
+                                    when {
+                                        isPlaying -> themeColors.primary500
+                                        isSelectionMode -> themeColors.primary600
+                                        else -> themeColors.primary700.copy(alpha = 0.7f)
+                                    },
                                     RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 5.dp, vertical = 1.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "♫ $playlistPosition",
+                                text = "♫ $badgeNumber",
                                 style = TextStyle(
                                     color = Color.White,
                                     fontSize = 10.sp,
