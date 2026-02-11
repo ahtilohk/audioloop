@@ -428,7 +428,6 @@ fun FileItem(
                 }
             }
         }
-        }
 
     }
 }
@@ -988,7 +987,7 @@ fun AudioLoopMainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = if (isSelectionMode) AppIcons.X else AppIcons.ListMusic,
+                            imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.PlayArrow,
                             contentDescription = null,
                             tint = if (isSelectionMode) Red400 else themeColors.primary,
                             modifier = Modifier.size(18.dp)
@@ -1732,16 +1731,16 @@ fun AudioLoopMainScreen(
             RenameDialog(
                 currentName = itemToModify!!.name,
                 onDismiss = { showRenameDialog = false },
-                onConfirm = { newName -> onRenameFile(itemToModify!!, newName); showRenameDialog = false },
+                onConfirm = { newName: String -> onRenameFile(itemToModify!!, newName); showRenameDialog = false },
                 themeColors = themeColors
             )
         }
-        
+
         if (showMoveDialog && itemToModify != null) {
             MoveFileDialog(
                 categories = categories,
                 onDismiss = { showMoveDialog = false },
-                onSelect = { targetCat -> onMoveFile(itemToModify!!, targetCat); showMoveDialog = false }
+                onSelect = { targetCat: String -> onMoveFile(itemToModify!!, targetCat); showMoveDialog = false }
             )
         }
         
@@ -1760,7 +1759,7 @@ fun AudioLoopMainScreen(
                 uri = recordingToTrim!!.uri,
                 durationMs = recordingToTrim!!.durationMillis,
                 onDismiss = { showTrimDialog = false },
-                onConfirm = { start, end, replace, removeSelection ->
+                onConfirm = { start: Long, end: Long, replace: Boolean, removeSelection: Boolean ->
                     onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection)
                     showTrimDialog = false
                 },
@@ -1768,7 +1767,6 @@ fun AudioLoopMainScreen(
              )
         }
     }
-}
 }
 
 // Dialog Helpers adapted from MainActivity
