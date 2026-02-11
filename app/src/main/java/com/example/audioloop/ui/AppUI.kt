@@ -1767,6 +1767,8 @@ fun AudioLoopMainScreen(
              )
         }
     }
+    }
+}
 }
 
 // Dialog Helpers adapted from MainActivity
