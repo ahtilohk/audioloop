@@ -246,7 +246,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         currentTheme = getThemePref(this)
 
         setContent {
-            AudioLoopTheme {
+            AudioLoopTheme(appTheme = currentTheme) {
                 val coroutineScope = rememberCoroutineScope()
 
                 // First launch welcome dialog

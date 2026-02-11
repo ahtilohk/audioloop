@@ -110,40 +110,43 @@ fun FileItem(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
+    // Modern MD3 card states
     val backgroundColor = when {
-        isDragging -> themeColors.primary800.copy(alpha = 0.5f)
-        isPlaying -> themeColors.primary900.copy(alpha = 0.4f)
-        isSelected -> themeColors.primary900.copy(alpha = 0.2f)
-        else -> Zinc800.copy(alpha = 0.4f)
+        isDragging -> themeColors.primaryContainer.copy(alpha = 0.6f)
+        isPlaying -> themeColors.primaryContainer.copy(alpha = 0.4f)
+        isSelected -> themeColors.secondaryContainer.copy(alpha = 0.3f)
+        else -> Zinc800.copy(alpha = 0.3f)
     }
 
     val borderColor = when {
-        isDragging -> themeColors.primary400
-        isPlaying -> themeColors.primary500.copy(alpha = 0.7f)
-        isSelected -> themeColors.primary500.copy(alpha = 0.4f)
-        else -> Zinc700.copy(alpha = 0.4f)
+        isDragging -> themeColors.primary
+        isPlaying -> themeColors.primary.copy(alpha = 0.8f)
+        isSelected -> themeColors.secondary.copy(alpha = 0.6f)
+        else -> Zinc700.copy(alpha = 0.3f)
     }
 
-    val scale by animateFloatAsState(targetValue = if (isDragging) 1.02f else 1f, label = "scale")
+    val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
+    val elevation by animateDpAsState(targetValue = if (isDragging) 8.dp else if (isPlaying) 4.dp else 2.dp, label = "elevation")
 
-    Box(
+    Surface(
+        onClick = {
+            if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
+        },
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp, horizontal = 20.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = backgroundColor,
+        border = BorderStroke(1.5.dp, borderColor),
+        shadowElevation = elevation
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .clip(RoundedCornerShape(12.dp))
-                .background(backgroundColor)
-                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-                .clickable {
-                    if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
-                }
         ) {
             Row(
                 modifier = Modifier
@@ -167,100 +170,96 @@ fun FileItem(
                 }
 
             if (isSelectionMode) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .border(
-                            2.dp,
-                            if (isSelected) themeColors.primary600 else Zinc500,
-                            CircleShape
-                        )
-                        .background(if (isSelected) themeColors.primary600 else Color.Transparent)
-                        .clickable { onToggleSelect() },
-                    contentAlignment = Alignment.Center
+                Surface(
+                    onClick = { onToggleSelect() },
+                    modifier = Modifier.size(36.dp),
+                    shape = CircleShape,
+                    color = if (isSelected) themeColors.primary else Color.Transparent,
+                    border = BorderStroke(
+                        2.dp,
+                        if (isSelected) themeColors.primary else Zinc500
+                    )
                 ) {
-                    if (isSelected) {
-                        Text(
-                            text = selectionOrder.toString(),
-                            style = TextStyle(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Text(
+                                text = selectionOrder.toString(),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
+                        }
                     }
                 }
             } else if (isPlaying) {
-                // If Playing -> Show Pause Button, If Paused -> Show Play Button
+                // Modern Play/Pause Button
                 if (!isPaused) {
-                   Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.linearGradient(listOf(themeColors.primary500, themeColors.primary600)))
-                            .clickable { onPause() },
-                        contentAlignment = Alignment.Center
+                   FilledIconButton(
+                        onClick = { onPause() },
+                        modifier = Modifier.size(44.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = themeColors.primary,
+                            contentColor = Color.White
+                        )
                     ) {
                         // Pause Icon (Two vertical bars)
-                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Box(modifier = Modifier.size(width = 4.dp, height = 12.dp).background(Color.White, RoundedCornerShape(2.dp)))
-                            Box(modifier = Modifier.size(width = 4.dp, height = 12.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
                         }
                     }
                 } else {
                     // Paused -> Show Play (Resume)
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.linearGradient(listOf(themeColors.primary500, themeColors.primary600)))
-                            .clickable { onResume() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(AppIcons.PlayArrow, contentDescription = "Resume", tint = Color.White, modifier = Modifier.size(24.dp))
-                    }
-                }
-            
-               // Separate Stop Button (Small, secondary)
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Zinc800)
-                        .clickable { onStop() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(modifier = Modifier.size(12.dp).background(Red500, RoundedCornerShape(2.dp)))
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable { onPlay() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(themeColors.primary500.copy(alpha = 0.2f))
-                    )
-                    Box(
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Brush.linearGradient(listOf(themeColors.primary400, themeColors.primary500, themeColors.primary700))),
-                        contentAlignment = Alignment.Center
+                    FilledIconButton(
+                        onClick = { onResume() },
+                        modifier = Modifier.size(44.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = themeColors.primary,
+                            contentColor = Color.White
+                        )
                     ) {
                         Icon(
                             imageVector = AppIcons.PlayArrow,
-                            contentDescription = "Play",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            contentDescription = "Resume",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
+                }
+
+               // Stop Button
+                FilledIconButton(
+                    onClick = { onStop() },
+                    modifier = Modifier.size(36.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = Red800.copy(alpha = 0.4f),
+                        contentColor = Red400
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(14.dp)
+                            .background(Red400, RoundedCornerShape(2.dp))
+                    )
+                }
+            } else {
+                // Not playing - show play button
+                FilledIconButton(
+                    onClick = { onPlay() },
+                    modifier = Modifier.size(40.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = themeColors.primaryContainer,
+                        contentColor = themeColors.onPrimaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = AppIcons.PlayArrow,
+                        contentDescription = "Play",
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
 
@@ -275,50 +274,44 @@ fun FileItem(
                 ) {
                     Text(
                         text = item.name.substringBeforeLast("."),
-                        style = TextStyle(
+                        style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isPlaying) Color.White else Zinc200,
-                            fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Normal,
-                            fontSize = 13.sp
+                            fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Medium
                         ),
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    // Selection/Playlist position badge - show during selection OR during playlist playback
+                    // Selection/Playlist position badge
                     val badgeNumber = when {
                         isSelectionMode && isSelected -> selectionOrder
                         !isSelectionMode && playlistPosition > 0 -> playlistPosition
                         else -> 0
                     }
                     if (badgeNumber > 0) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    when {
-                                        isPlaying -> themeColors.primary500
-                                        isSelectionMode -> themeColors.primary600
-                                        else -> themeColors.primary700.copy(alpha = 0.7f)
-                                    },
-                                    RoundedCornerShape(4.dp)
-                                )
-                                .padding(horizontal = 5.dp, vertical = 1.dp),
-                            contentAlignment = Alignment.Center
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = when {
+                                isPlaying -> themeColors.primary
+                                isSelectionMode -> themeColors.secondary
+                                else -> themeColors.tertiary.copy(alpha = 0.8f)
+                            }
                         ) {
                             Text(
                                 text = "♫ $badgeNumber",
-                                style = TextStyle(
+                                style = MaterialTheme.typography.labelSmall.copy(
                                     color = Color.White,
-                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold
-                                )
+                                ),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
                 }
                 Text(
-                    text = "${if(isPlaying) "Playing / " else ""}${item.durationString}",
-                    style = TextStyle(
-                        color = if (isPlaying) themeColors.primary300 else Zinc500,
-                        fontSize = 11.sp
+                    text = "${if(isPlaying) "Playing • " else ""}${item.durationString}",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (isPlaying) themeColors.primary else Zinc500
                     )
                 )
             }
@@ -955,128 +948,169 @@ fun AudioLoopMainScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            // Header
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Text(
-                    text = "Loop & Learn Audio",
-                    style = TextStyle(
-                        brush = Brush.linearGradient(listOf(Cyan400, Cyan200)),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = if (isSelectionMode) "CANCEL" else "SELECT PLAYLIST",
-                    style = TextStyle(
-                        color = if (isSelectionMode) Red400 else Cyan400,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .clickable {
-                            isSelectionMode = !isSelectionMode
-                            if (!isSelectionMode) selectedFiles = emptySet()
-                        }
-                )
-            }
-
-            // Category Row
+            // Header - Modern MD3 Design
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Loop & Learn",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(themeColors.primary300, themeColors.primary400)
+                        ),
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+
+                // Playlist Selection Button
+                Surface(
+                    onClick = {
+                        isSelectionMode = !isSelectionMode
+                        if (!isSelectionMode) selectedFiles = emptySet()
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (isSelectionMode)
+                        Red500.copy(alpha = 0.15f)
+                    else
+                        themeColors.primaryContainer.copy(alpha = 0.3f),
+                    border = BorderStroke(
+                        1.dp,
+                        if (isSelectionMode) Red400 else themeColors.primary
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isSelectionMode) AppIcons.X else AppIcons.ListMusic,
+                            contentDescription = null,
+                            tint = if (isSelectionMode) Red400 else themeColors.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = if (isSelectionMode) "Cancel" else "Playlist",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = if (isSelectionMode) Red400 else themeColors.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Category Navigation - MD3 Chips Style
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 LazyRow(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(categories) { cat ->
                         val isActive = currentCategory == cat
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clickable { onCategoryChange(cat) }
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        Surface(
+                            onClick = { onCategoryChange(cat) },
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isActive)
+                                themeColors.primaryContainer
+                            else
+                                Zinc800.copy(alpha = 0.4f),
+                            border = if (isActive)
+                                BorderStroke(1.5.dp, themeColors.primary)
+                            else
+                                BorderStroke(1.dp, Zinc700.copy(alpha = 0.5f))
                         ) {
                             Text(
                                 text = cat,
-                                style = TextStyle(
-                                    color = if (isActive) themeColors.primary400 else Zinc500,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = if (isActive) themeColors.onPrimaryContainer else Zinc400,
+                                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Medium
+                                ),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                             )
-                            if (isActive) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 2.dp)
-                                        .width(20.dp)
-                                        .height(2.dp)
-                                        .background(themeColors.primary500, CircleShape)
-                                )
-                            }
                         }
                     }
                 }
-                
-                IconButton(
+
+                // Category Management Button
+                FilledIconButton(
                     onClick = { showCategorySheet = true },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(themeColors.primary600.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                        .border(1.dp, themeColors.primary500.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = themeColors.secondaryContainer,
+                        contentColor = themeColors.onSecondaryContainer
+                    ),
+                    modifier = Modifier.size(40.dp)
                 ) {
-                   Icon(AppIcons.Edit, contentDescription = "Edit Categories", tint = themeColors.primary400, modifier = Modifier.size(16.dp))
+                   Icon(
+                       imageVector = AppIcons.Edit,
+                       contentDescription = "Manage Categories",
+                       modifier = Modifier.size(20.dp)
+                   )
                 }
             }
-            
-            HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
-            // Recording Section
+            HorizontalDivider(
+                color = Zinc700.copy(alpha = 0.3f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+            )
+
+            // Recording Section - Modern MD3 Design
             AnimatedVisibility(visible = !isSelectionMode) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    // Mode Switcher
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Mode Switcher - MD3 Segmented Button Style
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            .height(48.dp)
+                            .background(Zinc800.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                            .border(1.dp, Zinc700.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                            .padding(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        listOf("Speech", "Stream").forEach { m ->
+                        listOf("Speech" to AppIcons.Mic, "Stream" to AppIcons.Radio).forEach { (m, icon) ->
                             val active = mode == m
-                            Box(
+                            Surface(
+                                onClick = { mode = m },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (active) themeColors.primary600 else Color.Transparent)
-                                    .clickable { mode = m }
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxHeight(),
+                                shape = RoundedCornerShape(18.dp),
+                                color = if (active)
+                                    themeColors.primary
+                                else
+                                    Color.Transparent
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
                                     Icon(
-                                        imageVector = if (m == "Speech") AppIcons.Mic else AppIcons.Radio,
+                                        imageVector = icon,
                                         contentDescription = null,
                                         tint = if (active) Color.White else Zinc400,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(18.dp)
                                     )
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = m,
-                                        style = TextStyle(
+                                        style = MaterialTheme.typography.labelLarge.copy(
                                             color = if (active) Color.White else Zinc400,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 14.sp
+                                            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium
                                         )
                                     )
                                 }
@@ -1084,77 +1118,88 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Big Record Button
-                    Box(
+                    // Record Button - Modern FAB-Inspired Design
+                    Surface(
+                        onClick = {
+                            if (isRecording) {
+                                onStopRecord()
+                                isRecording = false
+                            } else {
+                                val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
+                                val dateStr = dateFormat.format(java.util.Date())
+                                val prefix = if (mode == "Speech") "Speech" else "Stream"
+                                val name = "${prefix}_$dateStr"
+                                val commenced = onStartRecord(name, mode == "Stream")
+                                if (commenced) isRecording = true
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                if (isRecording) {
-                                    onStopRecord()
-                                    isRecording = false
-                                    // isDragging = false, //
-                                } else {
-                                    // Generate name: Speech_yyyy.MM.dd HH:mm or Stream_...
-                                    val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
-                                    val dateStr = dateFormat.format(java.util.Date())
-                                    
-                                    val prefix = if (mode == "Speech") "Speech" else "Stream"
-                                    val name = "${prefix}_$dateStr"
-                                    
-                                    // Start recording
-                                    val commenced = onStartRecord(name, mode == "Stream")
-                                    if (commenced) isRecording = true
-                                }
-                            }
+                            .height(72.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (isRecording)
+                            Red800.copy(alpha = 0.4f)
+                        else
+                            themeColors.primaryContainer,
+                        border = BorderStroke(
+                            2.dp,
+                            if (isRecording) Red500 else themeColors.primary
+                        ),
+                        shadowElevation = if (isRecording) 0.dp else 4.dp
                     ) {
-                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(64.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Brush.linearGradient(listOf(Zinc900, Zinc800, Zinc900)))
-                                .border(1.dp, themeColors.primary500.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (isRecording) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                // Record indicator/icon
                                 Box(
                                     modifier = Modifier
-                                        .matchParentSize()
-                                        .background(Red500.copy(alpha = 0.1f))
-                                        .border(1.dp, Red500.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                                )
-                            }
-                            
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Box(modifier = Modifier.size(12.dp)) {
-                                    Box(modifier = Modifier.matchParentSize().background(Red500, CircleShape).alpha(if (isRecording) 1f else 1f))
+                                        .size(48.dp)
+                                        .background(
+                                            if (isRecording) Red500 else themeColors.primary,
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     if (isRecording) {
+                                        // Pulsing stop icon
                                         Box(
                                             modifier = Modifier
-                                                .matchParentSize()
-                                                .background(Red500, CircleShape)
-                                                .graphicsLayer { alpha = 0.5f; scaleX = 1.5f; scaleY = 1.5f }
+                                                .size(16.dp)
+                                                .background(Color.White, RoundedCornerShape(3.dp))
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Radio,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
                                         )
                                     }
                                 }
-                                Text(
-                                    text = if (isRecording) "STOP RECORDING" else "RECORD NEW",
-                                    style = TextStyle(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                        letterSpacing = 1.sp
+
+                                // Record button text
+                                Column(horizontalAlignment = Alignment.Start) {
+                                    Text(
+                                        text = if (isRecording) "Recording..." else "Start Recording",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            color = if (isRecording) Red400 else themeColors.onPrimaryContainer,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(themeColors.primary600.copy(alpha = 0.3f), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(AppIcons.Mic, contentDescription = null, tint = themeColors.primary300, modifier = Modifier.size(16.dp))
+                                    Text(
+                                        text = if (isRecording) "Tap to stop" else "$mode mode",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            color = if (isRecording)
+                                                Red400.copy(alpha = 0.7f)
+                                            else
+                                                themeColors.onPrimaryContainer.copy(alpha = 0.7f)
+                                        )
+                                    )
                                 }
                             }
                         }
@@ -1162,66 +1207,65 @@ fun AudioLoopMainScreen(
                 }
             }
 
-            // Settings Row
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { settingsOpen = !settingsOpen },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
+            // Settings Section - Modern MD3 Card Design
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Zinc800.copy(alpha = 0.3f),
+                border = BorderStroke(1.dp, Zinc700.copy(alpha = 0.3f))
+            ) {
+                Column {
+                    // Settings Header (Collapsible)
+                    Row(
                         modifier = Modifier
-                            .size(32.dp)
-                            .background(if (settingsOpen) themeColors.primary600 else Zinc800.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .clickable { settingsOpen = !settingsOpen }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(AppIcons.Settings, contentDescription = null, tint = if (settingsOpen) Color.White else Zinc400, modifier = Modifier.size(16.dp))
-                    }
-                    
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        // Row 1: Speed & Repeat
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text("Speed:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            Text("${selectedSpeed}x", style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                            Text("Repeat:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
-                            Text(loopText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                            Text("•", style = TextStyle(color = Zinc700, fontSize = 12.sp))
-                            Text("Sleep:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            val sleepText = if (sleepTimerRemainingMs > 0L) {
-                                val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                                String.format("%d:%02d", totalSec / 60, totalSec % 60)
-                            } else "Off"
-                            Text(sleepText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
+                        Icon(
+                            imageVector = AppIcons.Settings,
+                            contentDescription = null,
+                            tint = if (settingsOpen) themeColors.primary else Zinc400,
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Playback Settings",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = if (settingsOpen) themeColors.onPrimaryContainer else Zinc300,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+
+                            // Quick preview when collapsed
+                            if (!settingsOpen) {
+                                val loopText = if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x"
+                                val sleepText = if (sleepTimerRemainingMs > 0L) {
+                                    val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                                    String.format("%d:%02d", totalSec / 60, totalSec % 60)
+                                } else "Off"
+
+                                Text(
+                                    text = "Speed ${selectedSpeed}x • Loop $loopText • Sleep $sleepText",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = Zinc500
+                                    )
+                                )
+                            }
                         }
 
-                        // Row 2: Shadowing
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text("Shadowing:", style = TextStyle(color = Zinc500, fontSize = 12.sp))
-                            val shadowText = if (isShadowing) "On" else "Off"
-                            Text(shadowText, style = TextStyle(color = themeColors.primary300, fontWeight = FontWeight.Medium, fontSize = 12.sp))
-                        }
+                        Icon(
+                            imageVector = if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
+                            contentDescription = null,
+                            tint = if (settingsOpen) themeColors.primary else Zinc500,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
-
-                    Icon(
-                         if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
-                         contentDescription = null,
-                         tint = if (settingsOpen) themeColors.primary400 else Zinc500,
-                         modifier = Modifier.size(16.dp)
-                    )
-                }
 
                 AnimatedVisibility(visible = settingsOpen) {
                     Column(
