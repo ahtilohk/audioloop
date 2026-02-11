@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AudioLoop</string>
+    <string name="app_name">Loop &amp; Learn Audio</string>
     <string name="title_general">General</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_save">Save</string>

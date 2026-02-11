@@ -304,22 +304,31 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
-                        // Update categories
+                        // Update categories from internal storage
                         val realDirs = filesDir.listFiles()?.filter { it.isDirectory }?.map { it.name } ?: emptyList()
+                        // Also discover categories from public storage (MediaStore) - useful after reinstall
+                        val mediaStoreCategories = discoverCategoriesFromMediaStore()
                         val savedOrder = loadCategoryOrder()
-                        
+
                         val newOrder = ArrayList<String>()
                         // 1. Add known ones in order
-                        savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
-                        // 2. Add new ones
+                        savedOrder.forEach {
+                            if (realDirs.contains(it) || mediaStoreCategories.contains(it)) {
+                                newOrder.add(it)
+                            }
+                        }
+                        // 2. Add new ones from internal storage
                         realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
-                        // 3. Ensure General exists and is first if list empty (or fallback)
-                        if (!newOrder.contains("General")) newOrder.add(0, "General") 
-                        
-                        // Move General to top if it's not (Optional, but good practice for "Default")
-                        // But user might want to reorder it. Let's strictly follow saved logic BUT ensure it exists.
-                        
+                        // 3. Add new ones discovered from MediaStore (public storage)
+                        mediaStoreCategories.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
+                        // 4. Ensure General exists and is first
+                        if (!newOrder.contains("General")) newOrder.add(0, "General")
+
                         withContext(Dispatchers.Main) { categories = newOrder }
+                        // Save discovered categories for future
+                        if (mediaStoreCategories.isNotEmpty()) {
+                            saveCategoryOrder(newOrder)
+                        }
 
                         // Update items
                         val items = getSavedRecordings(uiCategory, filesDir)
@@ -879,6 +888,39 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
         } catch (e: Exception) { e.printStackTrace() }
         return list
+    }
+
+    // Discover categories from public storage (MediaStore) - useful after reinstall
+    private fun discoverCategoriesFromMediaStore(): Set<String> {
+        val discoveredCategories = mutableSetOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH)
+                val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                val selectionArgs = arrayOf("Music/AudioLoop/%")
+
+                contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                    val pathCol = cursor.getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH)
+                    while (cursor.moveToNext()) {
+                        val relativePath = cursor.getString(pathCol) ?: continue
+                        // relativePath is like "Music/AudioLoop/" or "Music/AudioLoop/CategoryName/"
+                        val parts = relativePath.trimEnd('/').split("/")
+                        if (parts.size >= 3 && parts[0] == "Music" && parts[1] == "AudioLoop") {
+                            if (parts.size == 3) {
+                                // This is a category subfolder: Music/AudioLoop/CategoryName
+                                val categoryName = parts[2]
+                                if (categoryName.isNotBlank() && categoryName != "General") {
+                                    discoveredCategories.add(categoryName)
+                                }
+                            }
+                            // Files directly in Music/AudioLoop/ belong to "General" (already default)
+                        }
+                    }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+        return discoveredCategories
     }
 
     private fun renameFile(item: RecordingItem, newName: String) {

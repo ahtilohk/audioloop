@@ -544,7 +544,12 @@ fun CategoryManagementSheet(
                 Button(
                     onClick = {
                         if (newCategoryName.isNotBlank()) {
-                            onAdd(newCategoryName.trim())
+                            val trimmedName = newCategoryName.trim()
+                            // Add to local list immediately for instant feedback
+                            if (!uiCategories.contains(trimmedName)) {
+                                uiCategories.add(trimmedName)
+                            }
+                            onAdd(trimmedName)
                             newCategoryName = ""
                         }
                     },
@@ -582,17 +587,19 @@ fun CategoryManagementSheet(
                 }
 
                 if (hoveredItem != null) {
-                    targetIndex = hoveredItem.index
+                    // Account for header item at index 0 - categories start at index 1
+                    targetIndex = hoveredItem.index - 1
                 } else {
                     val firstVisible = currentVisibleItems.first()
                     val lastVisible = currentVisibleItems.last()
                     if (overlayCenterY < firstVisible.offset) {
-                        targetIndex = firstVisible.index
+                        targetIndex = firstVisible.index - 1
                     } else if (overlayCenterY > lastVisible.offset + lastVisible.size) {
-                        targetIndex = lastVisible.index
+                        targetIndex = lastVisible.index - 1
                     }
                 }
 
+                // Prevent moving to position 0 (General stays first)
                 if (targetIndex == 0) {
                     targetIndex = 1
                 }
@@ -633,11 +640,12 @@ fun CategoryManagementSheet(
                             }
 
                             if (hitItem != null && x <= gripWidth) {
-                                val index = hitItem.index
-                                if (index in uiCategories.indices && uiCategories[index] != "General") {
+                                // Account for header item at index 0 - categories start at index 1
+                                val categoryIndex = hitItem.index - 1
+                                if (categoryIndex in uiCategories.indices && uiCategories[categoryIndex] != "General") {
                                     down.consume()
-                                    draggingCategoryIndex = index
-                                    draggingCategory = uiCategories[index]
+                                    draggingCategoryIndex = categoryIndex
+                                    draggingCategory = uiCategories[categoryIndex]
 
                                     val itemTop = hitItem.offset.toFloat()
                                     draggingItemSizePx = hitItem.size.toFloat()
@@ -691,11 +699,17 @@ fun CategoryManagementSheet(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
-                        Text(
-                            text = "Manage your categories",
-                            style = TextStyle(color = Zinc500, fontSize = 12.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                            Text(
+                                text = "Manage your categories",
+                                style = TextStyle(color = Zinc500, fontSize = 12.sp)
+                            )
+                            Text(
+                                text = "Drag ☰ to reorder",
+                                style = TextStyle(color = Zinc600, fontSize = 10.sp),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
                     }
                     itemsIndexed(uiCategories, key = { _, cat -> cat }) { index, cat ->
                         val isEditing = editingId == cat
@@ -984,20 +998,21 @@ fun AudioLoopMainScreen(
                     }
                     Column {
                         Text(
-                            text = "AudioLoop",
+                            text = "Loop & Learn",
                             style = TextStyle(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                letterSpacing = 0.5.sp
+                                fontSize = 15.sp,
+                                letterSpacing = 0.3.sp
                             )
                         )
                         Text(
-                            text = "Voice Recorder",
+                            text = "Audio",
                             style = TextStyle(
-                                color = Zinc500,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium
+                                color = themeColors.primary400,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.sp
                             )
                         )
                     }
@@ -2040,6 +2055,7 @@ fun TrimAudioDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(
                             Brush.verticalGradient(listOf(Zinc800, Zinc900)),
                             RoundedCornerShape(12.dp)
@@ -2159,7 +2175,9 @@ fun TrimAudioDialog(
                             // 1. Waveform bars
                             bars.forEachIndexed { index, amplitude ->
                                 val x = index * barWidth
-                                val barHeight = (amplitude / 100f) * waveAreaHeight
+                                // Clamp amplitude to 0-100 and barHeight to waveAreaHeight for safety
+                                val clampedAmplitude = amplitude.coerceIn(0, 100)
+                                val barHeight = ((clampedAmplitude / 100f) * waveAreaHeight).coerceAtMost(waveAreaHeight)
                                 val isSelected = x >= selectionStartX && x <= selectionEndX
                                 val barColor = if (trimMode == TrimMode.Keep) {
                                     if (isSelected) selectionColor else remainingColor
