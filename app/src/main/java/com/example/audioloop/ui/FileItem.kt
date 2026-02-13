@@ -298,7 +298,7 @@ fun FileItem(
                             }
                         ) {
                             Text(
-                                text = "â™« $badgeNumber",
+                                text = "\u266B $badgeNumber",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold

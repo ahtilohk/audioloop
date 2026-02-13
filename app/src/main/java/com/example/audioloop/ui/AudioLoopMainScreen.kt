@@ -207,15 +207,23 @@ fun AudioLoopMainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Loop & Learn",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(themeColors.primary300, themeColors.primary400)
-                        ),
-                        fontWeight = FontWeight.Bold
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(
+                        imageVector = AppIcons.GraphicEq, 
+                        contentDescription = "Logo", 
+                        tint = themeColors.primary400,
+                        modifier = Modifier.size(28.dp)
                     )
-                )
+                    Text(
+                        text = "Loop & Learn",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(themeColors.primary300, themeColors.primary400)
+                            ),
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
 
                 // Playlist Selection Button
                 Surface(
@@ -254,6 +262,8 @@ fun AudioLoopMainScreen(
                     }
                 }
             }
+
+
 
             // Category Navigation - MD3 Chips Style
             Row(
@@ -495,18 +505,81 @@ fun AudioLoopMainScreen(
 
                             // Quick preview when collapsed
                             if (!settingsOpen) {
-                                val loopText = if (selectedLoopCount == -1) "âˆž" else "${selectedLoopCount}x"
+                                val loopText = if (selectedLoopCount == -1) "\u221E" else "${selectedLoopCount}x"
                                 val sleepText = if (sleepTimerRemainingMs > 0L) {
                                     val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                                    String.format("%d:%02d", totalSec / 60, totalSec % 60)
+                                    val minutes = totalSec / 60
+                                    val seconds = totalSec % 60
+                                    String.format("%02d:%02d", minutes, seconds)
                                 } else "Off"
 
-                                Text(
-                                    text = "Speed ${selectedSpeed}x â€¢ Loop $loopText â€¢ Sleep $sleepText",
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = Zinc500
-                                    )
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Speed
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = AppIcons.Speed,
+                                            contentDescription = "Speed",
+                                            tint = Zinc500,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = "${selectedSpeed}x",
+                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                        )
+                                    }
+
+                                    // Loop Count
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = AppIcons.Loop,
+                                            contentDescription = "Loop Count",
+                                            tint = Zinc500,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = loopText,
+                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                        )
+                                    }
+
+                                    // Shadowing
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = AppIcons.Shadow,
+                                            contentDescription = "Shadowing",
+                                            tint = Zinc500,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = if (isShadowing) "On" else "Off",
+                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                        )
+                                    }
+
+                                    // Sleep Timer
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = AppIcons.Sleep,
+                                            contentDescription = "Sleep Timer",
+                                            tint = Zinc500,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = sleepText,
+                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                        )
+                                    }
+                                }
                             }
                         }
 
