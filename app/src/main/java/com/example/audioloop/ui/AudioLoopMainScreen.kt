@@ -133,7 +133,7 @@ fun AudioLoopMainScreen(
     sleepTimerRemainingMs: Long = 0L,
     selectedSleepMinutes: Int = 0,
     onSleepTimerChange: (Int) -> Unit = {},
-    currentTheme: com.example.audioloop.ui.theme.AppTheme = com.example.audioloop.ui.theme.AppTheme.CYAN,
+    currentTheme: com.example.audioloop.ui.theme.AppTheme = com.example.audioloop.ui.theme.AppTheme.SLATE,
     onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit = {}
 ) {
     // Get theme colors
@@ -192,7 +192,7 @@ fun AudioLoopMainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Zinc950)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier

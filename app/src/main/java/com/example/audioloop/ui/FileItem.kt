@@ -105,7 +105,7 @@ fun FileItem(
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
     isDragging: Boolean = false,
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette,
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette,
     playlistPosition: Int = 0 // 0 means not in playlist, >0 is position in playlist
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
