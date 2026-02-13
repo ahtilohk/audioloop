@@ -92,6 +92,17 @@ val Rose700 = Color(0xFFB82857)
 val Rose800 = Color(0xFF8A1C3F)
 val Rose900 = Color(0xFF5C1127)
 
+// Slate Theme (Professional Blue-Grey)
+val Slate100 = Color(0xFFF1F5F9)
+val Slate200 = Color(0xFFE2E8F0)
+val Slate300 = Color(0xFFCBD5E1)
+val Slate400 = Color(0xFF94A3B8)
+val Slate500 = Color(0xFF64748B)  // Primary
+val Slate600 = Color(0xFF475569)
+val Slate700 = Color(0xFF334155)
+val Slate800 = Color(0xFF1E293B)
+val Slate900 = Color(0xFF0F172A)
+
 // MD3 Theme data class with full tonal palette
 data class AppColorPalette(
     val name: String,
@@ -124,6 +135,7 @@ data class AppColorPalette(
 
 // Available themes with full MD3 tonal palettes
 enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
+    SLATE("Professional", AppColorPalette("Slate", Slate100, Slate200, Slate300, Slate400, Slate500, Slate600, Slate700, Slate800, Slate900)),
     CYAN("Cyan", AppColorPalette("Cyan", Cyan100, Cyan200, Cyan300, Cyan400, Cyan500, Cyan600, Cyan700, Cyan800, Cyan900)),
     SUNSET("Sunset", AppColorPalette("Sunset", Sunset100, Sunset200, Sunset300, Sunset400, Sunset500, Sunset600, Sunset700, Sunset800, Sunset900)),
     OCEAN("Ocean", AppColorPalette("Ocean", Ocean100, Ocean200, Ocean300, Ocean400, Ocean500, Ocean600, Ocean700, Ocean800, Ocean900)),

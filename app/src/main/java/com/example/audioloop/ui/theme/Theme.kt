@@ -61,27 +61,33 @@ fun createDarkColorScheme(palette: AppColorPalette) = darkColorScheme(
 // Default color schemes
 private val DarkColorScheme = createDarkColorScheme(AppTheme.CYAN.palette)
 
-private val LightColorScheme = lightColorScheme(
-    primary = Cyan600,
+// Creates a light color scheme for a given theme palette
+fun createLightColorScheme(palette: AppColorPalette) = lightColorScheme(
+    // Primary colors
+    primary = palette.primary600,
     onPrimary = Color.White,
-    primaryContainer = Cyan200,
-    onPrimaryContainer = Cyan900,
+    primaryContainer = palette.primary200,
+    onPrimaryContainer = palette.primary900,
 
-    secondary = Cyan700,
+    // Secondary colors
+    secondary = palette.primary700,
     onSecondary = Color.White,
-    secondaryContainer = Cyan300,
-    onSecondaryContainer = Cyan800,
+    secondaryContainer = palette.primary300,
+    onSecondaryContainer = palette.primary800,
 
-    tertiary = Cyan500,
+    // Tertiary colors
+    tertiary = palette.primary500,
     onTertiary = Color.White,
-    tertiaryContainer = Cyan100,
-    onTertiaryContainer = Cyan900,
+    tertiaryContainer = palette.primary100,
+    onTertiaryContainer = palette.primary900,
 
+    // Error colors
     error = Red600,
     onError = Color.White,
     errorContainer = Red400,
     onErrorContainer = Red900,
 
+    // Surface colors
     background = Zinc100,
     onBackground = Zinc900,
     surface = Color.White,
@@ -89,6 +95,7 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = Zinc200,
     onSurfaceVariant = Zinc700,
 
+    // Outline colors
     outline = Zinc500,
     outlineVariant = Zinc300
 )
@@ -106,7 +113,7 @@ fun AudioLoopTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> createDarkColorScheme(appTheme.palette)
-        else -> LightColorScheme
+        else -> createLightColorScheme(appTheme.palette)
     }
 
     MaterialTheme(
