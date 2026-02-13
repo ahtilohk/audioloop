@@ -91,7 +91,7 @@ fun CategoryManagementSheet(
     onDelete: (String) -> Unit,
     onReorder: (List<String>) -> Unit,
     onClose: () -> Unit,
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette
 ) {
     var newCategoryName by remember { mutableStateOf("") }
     var editingId by remember { mutableStateOf<String?>(null) }

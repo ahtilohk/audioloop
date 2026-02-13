@@ -232,7 +232,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var sleepTimerRemainingMs by mutableLongStateOf(0L)
     private var selectedSleepMinutes by mutableIntStateOf(0)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
-    private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.CYAN)
+    private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -700,7 +700,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         return try {
             com.example.audioloop.ui.theme.AppTheme.valueOf(themeName)
         } catch (e: Exception) {
-            com.example.audioloop.ui.theme.AppTheme.CYAN
+            com.example.audioloop.ui.theme.AppTheme.SLATE
         }
     }
 

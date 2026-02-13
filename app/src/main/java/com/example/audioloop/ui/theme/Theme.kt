@@ -59,7 +59,7 @@ fun createDarkColorScheme(palette: AppColorPalette) = darkColorScheme(
 )
 
 // Default color schemes
-private val DarkColorScheme = createDarkColorScheme(AppTheme.CYAN.palette)
+private val DarkColorScheme = createDarkColorScheme(AppTheme.SLATE.palette)
 
 // Creates a light color scheme for a given theme palette
 fun createLightColorScheme(palette: AppColorPalette) = lightColorScheme(
@@ -104,7 +104,7 @@ fun createLightColorScheme(palette: AppColorPalette) = lightColorScheme(
 fun AudioLoopTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    appTheme: AppTheme = AppTheme.CYAN,
+    appTheme: AppTheme = AppTheme.SLATE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

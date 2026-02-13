@@ -665,7 +665,7 @@ fun AudioLoopMainScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOf(1, 5, -1).forEach { r ->
                                     val active = selectedLoopCount == r
-                                    val label = if (r == -1) "âˆž" else "${r}x"
+                                    val label = if (r == -1) "\u221E" else "${r}x"
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
@@ -1139,7 +1139,7 @@ fun AudioLoopMainScreen(
 // Dialog Helpers adapted from MainActivity
 
 @Composable
-fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit, themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette) {
+fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit, themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette) {
     var textState by remember { mutableStateOf(TextFieldValue(text = currentName, selection = TextRange(currentName.length))) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -1252,7 +1252,7 @@ fun TrimAudioDialog(
     durationMs: Long,
     onDismiss: () -> Unit,
     onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit,
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current

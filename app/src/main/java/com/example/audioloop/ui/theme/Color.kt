@@ -136,9 +136,8 @@ data class AppColorPalette(
 // Available themes with full MD3 tonal palettes
 enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
     SLATE("Professional", AppColorPalette("Slate", Slate100, Slate200, Slate300, Slate400, Slate500, Slate600, Slate700, Slate800, Slate900)),
-    CYAN("Cyan", AppColorPalette("Cyan", Cyan100, Cyan200, Cyan300, Cyan400, Cyan500, Cyan600, Cyan700, Cyan800, Cyan900)),
-    SUNSET("Sunset", AppColorPalette("Sunset", Sunset100, Sunset200, Sunset300, Sunset400, Sunset500, Sunset600, Sunset700, Sunset800, Sunset900)),
     OCEAN("Ocean", AppColorPalette("Ocean", Ocean100, Ocean200, Ocean300, Ocean400, Ocean500, Ocean600, Ocean700, Ocean800, Ocean900)),
+    SUNSET("Sunset", AppColorPalette("Sunset", Sunset100, Sunset200, Sunset300, Sunset400, Sunset500, Sunset600, Sunset700, Sunset800, Sunset900)),
     FOREST("Forest", AppColorPalette("Forest", Forest100, Forest200, Forest300, Forest400, Forest500, Forest600, Forest700, Forest800, Forest900)),
     VIOLET("Violet", AppColorPalette("Violet", Violet100, Violet200, Violet300, Violet400, Violet500, Violet600, Violet700, Violet800, Violet900)),
     ROSE("Rose", AppColorPalette("Rose", Rose100, Rose200, Rose300, Rose400, Rose500, Rose600, Rose700, Rose800, Rose900))
