@@ -218,17 +218,17 @@ fun AudioLoopMainScreen(
                     )
                     Text(
                         text = "Loop & Learn Audio",
-                        style = MaterialTheme.typography.headlineMedium.copy(
+                        style = MaterialTheme.typography.titleLarge.copy( // Smaller than headlineMedium
                             brush = Brush.horizontalGradient(
                                 colors = listOf(themeColors.primary400, themeColors.primary600, themeColors.secondary)
                             ),
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFamily = FontFamily.Serif, // Adding a touch of elegance
-                            letterSpacing = 0.5.sp,
+                            fontWeight = FontWeight.Bold, // Reduced from ExtraBold
+                            // fontFamily = FontFamily.Default, // Back to clean sans-serif
+                            letterSpacing = 0.sp, // Normal spacing
                             shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.2f),
-                                offset = Offset(2f, 2f),
-                                blurRadius = 4f
+                                color = Color.Black.copy(alpha = 0.15f), // Softer shadow
+                                offset = Offset(1f, 1f),
+                                blurRadius = 2f
                             )
                         )
                     )
