@@ -195,6 +195,7 @@ fun AudioLoopMainScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .background(themeColors.primary900.copy(alpha = 0.4f)) // Subtle themed surface tint
     ) {
         Column(
             modifier = Modifier
@@ -860,10 +861,10 @@ fun AudioLoopMainScreen(
                         if (!isSelectionMode) {
                             Button(
                                 onClick = { filePickerLauncher.launch("audio/*") },
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.height(28.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.height(32.dp)
                             ) {
                                 Text("+ Add file", fontSize = 12.sp, color = Color.White)
                             }
@@ -1954,8 +1955,7 @@ fun TrimAudioDialog(
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false, trimMode == TrimMode.Remove) }, 
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700),
-                            shape = RoundedCornerShape(14.dp),
-                            border = BorderStroke(1.dp, Zinc600),
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.weight(1f).height(50.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
@@ -1965,7 +1965,7 @@ fun TrimAudioDialog(
                         Button(
                             onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true, trimMode == TrimMode.Remove) },
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary700),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.weight(1f).height(50.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
