@@ -34,6 +34,8 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -71,7 +73,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import java.io.File
-import androidx.compose.ui.geometry.Offset
+
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -215,12 +217,19 @@ fun AudioLoopMainScreen(
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = "Loop & Learn",
+                        text = "Loop & Learn Audio",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(themeColors.primary300, themeColors.primary400)
+                                colors = listOf(themeColors.primary400, themeColors.primary600, themeColors.secondary)
                             ),
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Serif, // Adding a touch of elegance
+                            letterSpacing = 0.5.sp,
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.2f),
+                                offset = Offset(2f, 2f),
+                                blurRadius = 4f
+                            )
                         )
                     )
                 }
@@ -445,22 +454,58 @@ fun AudioLoopMainScreen(
 
                                 // Record button text
                                 Column(horizontalAlignment = Alignment.Start) {
-                                    Text(
-                                        text = if (isRecording) "Recording..." else "Start Recording",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            color = if (isRecording) Red400 else themeColors.onPrimaryContainer,
-                                            fontWeight = FontWeight.Bold
+                                    // Timer Logic
+                                    var recordingDurationSeconds by remember { mutableLongStateOf(0L) }
+                                    
+                                    LaunchedEffect(isRecording) {
+                                        if (isRecording) {
+                                            val startTime = System.currentTimeMillis()
+                                            while (isActive) {
+                                                recordingDurationSeconds = (System.currentTimeMillis() - startTime) / 1000
+                                                delay(1000)
+                                            }
+                                        } else {
+                                            recordingDurationSeconds = 0L
+                                        }
+                                    }
+
+                                    if (isRecording) {
+                                        val hours = recordingDurationSeconds / 3600
+                                        val minutes = (recordingDurationSeconds % 3600) / 60
+                                        val seconds = recordingDurationSeconds % 60
+                                        val timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                                        
+                                        Text(
+                                            text = timeString,
+                                            style = MaterialTheme.typography.headlineSmall.copy(
+                                                color = Red400,
+                                                fontWeight = FontWeight.Bold,
+                                                fontFamily = FontFamily.Monospace, // Monospace for stable digits
+                                                letterSpacing = 2.sp
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = if (isRecording) "Tap to stop" else "$mode mode",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            color = if (isRecording)
-                                                Red400.copy(alpha = 0.7f)
-                                            else
-                                                themeColors.onPrimaryContainer.copy(alpha = 0.7f)
+                                        Text(
+                                            text = "Recording...",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = Red400.copy(alpha = 0.8f),
+                                                fontWeight = FontWeight.Medium
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Text(
+                                            text = "Start Recording",
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                color = themeColors.onPrimaryContainer,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                        Text(
+                                            text = "$mode mode",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = themeColors.onPrimaryContainer.copy(alpha = 0.7f)
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
