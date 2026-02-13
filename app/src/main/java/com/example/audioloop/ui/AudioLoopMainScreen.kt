@@ -209,27 +209,21 @@ fun AudioLoopMainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(
                         imageVector = AppIcons.GraphicEq, 
                         contentDescription = "Logo", 
                         tint = themeColors.primary400,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                     Text(
-                        text = "Loop & Learn Audio",
-                        style = MaterialTheme.typography.titleLarge.copy( // Smaller than headlineMedium
+                        text = "Loop & Learn",
+                        style = MaterialTheme.typography.titleMedium.copy(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(themeColors.primary400, themeColors.primary600, themeColors.secondary)
+                                colors = listOf(themeColors.primary300, themeColors.primary400)
                             ),
-                            fontWeight = FontWeight.Bold, // Reduced from ExtraBold
-                            // fontFamily = FontFamily.Default, // Back to clean sans-serif
-                            letterSpacing = 0.sp, // Normal spacing
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.15f), // Softer shadow
-                                offset = Offset(1f, 1f),
-                                blurRadius = 2f
-                            )
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp
                         )
                     )
                 }
