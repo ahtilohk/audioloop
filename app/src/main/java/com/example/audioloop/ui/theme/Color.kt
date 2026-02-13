@@ -16,9 +16,11 @@ val Zinc200 = Color(0xFFE4E4E7)  // On surface
 val Zinc100 = Color(0xFFF4F4F5)  // On surface bright
 
 // Error colors (MD3 system)
+val Red200 = Color(0xFFFECACA)   // Error light variant
 val Red400 = Color(0xFFF87171)   // Error light
 val Red500 = Color(0xFFEF4444)   // Error
 val Red600 = Color(0xFFDC2626)   // Error dark
+val Red700 = Color(0xFFB91C1C)   // Error darker
 val Red800 = Color(0xFF991B1B)   // Error container
 val Red900 = Color(0xFF7F1D1D)   // On error container
 
@@ -92,6 +94,17 @@ val Rose700 = Color(0xFFB82857)
 val Rose800 = Color(0xFF8A1C3F)
 val Rose900 = Color(0xFF5C1127)
 
+// Slate Theme (Professional Blue-Grey)
+val Slate100 = Color(0xFFF1F5F9)
+val Slate200 = Color(0xFFE2E8F0)
+val Slate300 = Color(0xFFCBD5E1)
+val Slate400 = Color(0xFF94A3B8)
+val Slate500 = Color(0xFF64748B)  // Primary
+val Slate600 = Color(0xFF475569)
+val Slate700 = Color(0xFF334155)
+val Slate800 = Color(0xFF1E293B)
+val Slate900 = Color(0xFF0F172A)
+
 // MD3 Theme data class with full tonal palette
 data class AppColorPalette(
     val name: String,
@@ -124,6 +137,7 @@ data class AppColorPalette(
 
 // Available themes with full MD3 tonal palettes
 enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
+    SLATE("Professional", AppColorPalette("Slate", Slate100, Slate200, Slate300, Slate400, Slate500, Slate600, Slate700, Slate800, Slate900)),
     CYAN("Cyan", AppColorPalette("Cyan", Cyan100, Cyan200, Cyan300, Cyan400, Cyan500, Cyan600, Cyan700, Cyan800, Cyan900)),
     SUNSET("Sunset", AppColorPalette("Sunset", Sunset100, Sunset200, Sunset300, Sunset400, Sunset500, Sunset600, Sunset700, Sunset800, Sunset900)),
     OCEAN("Ocean", AppColorPalette("Ocean", Ocean100, Ocean200, Ocean300, Ocean400, Ocean500, Ocean600, Ocean700, Ocean800, Ocean900)),
@@ -135,7 +149,7 @@ enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
 // Legacy theme colors (for compatibility)
 val Background = Zinc950
 val Surface = Zinc900
-val Primary = Cyan500
+val Primary = Slate500
 val OnPrimary = Color.White
-val OnBackground = Color.White
-val OnSurface = Color.White
+val OnBackground = Slate200
+val OnSurface = Slate200

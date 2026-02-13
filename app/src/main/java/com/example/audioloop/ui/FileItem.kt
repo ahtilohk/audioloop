@@ -1,86 +1,37 @@
 ﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import kotlinx.coroutines.*
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.zIndex
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.foundation.gestures.*
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChanged
-import androidx.compose.ui.unit.IntOffset
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
-import android.media.MediaPlayer
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalContext
-import java.io.File
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
-import android.graphics.Paint
 
-import androidx.compose.runtime.mutableFloatStateOf
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileItem(
     modifier: Modifier = Modifier,
@@ -105,235 +56,148 @@ fun FileItem(
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
     isDragging: Boolean = false,
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.CYAN.palette,
+    themeColors: AppColorPalette = AppTheme.CYAN.palette,
     playlistPosition: Int = 0 // 0 means not in playlist, >0 is position in playlist
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
-    // Modern MD3 card states
-    val backgroundColor = when {
-        isDragging -> themeColors.primaryContainer.copy(alpha = 0.6f)
-        isPlaying -> themeColors.primaryContainer.copy(alpha = 0.4f)
-        isSelected -> themeColors.secondaryContainer.copy(alpha = 0.3f)
-        else -> Zinc800.copy(alpha = 0.3f)
-    }
+    // Animation states
+    val scale by animateFloatAsState(targetValue = if (isDragging) 1.05f else 1f, label = "scale")
+    val elevation by animateDpAsState(targetValue = if (isDragging) 8.dp else if (isPlaying) 2.dp else 0.dp, label = "elevation")
+    val borderAlpha by animateFloatAsState(targetValue = if (isSelected || isPlaying) 1f else 0.5f, label = "borderAlpha")
 
-    val borderColor = when {
-        isDragging -> themeColors.primary
-        isPlaying -> themeColors.primary.copy(alpha = 0.8f)
-        isSelected -> themeColors.secondary.copy(alpha = 0.6f)
-        else -> Zinc700.copy(alpha = 0.3f)
-    }
-
-    val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
-    val elevation by animateDpAsState(targetValue = if (isDragging) 8.dp else if (isPlaying) 4.dp else 2.dp, label = "elevation")
-
-    Surface(
-        onClick = {
-            if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
-        },
+    // Card Container
+    OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 20.dp)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
+            }
+            .clickable {
+                if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
             },
-        shape = RoundedCornerShape(16.dp),
-        color = backgroundColor,
-        border = BorderStroke(1.5.dp, borderColor),
-        shadowElevation = elevation
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = if (isDragging) themeColors.primaryContainer.copy(alpha = 0.9f)
+                           else if (isSelected) themeColors.secondaryContainer.copy(alpha = 0.3f)
+                           else Zinc900.copy(alpha = 0.5f),
+            contentColor = Zinc200
+        ),
+        border = BorderStroke(
+            1.dp, 
+            if (isDragging) themeColors.primary 
+            else if (isSelected) themeColors.secondary.copy(alpha = borderAlpha)
+            else if (isPlaying) themeColors.primary.copy(alpha = borderAlpha)
+            else Zinc800
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            
+            // --- Top Row: Info & Controls ---
             Row(
                 modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Drag Handle (Always visible or only in edit mode? Always visible is better for easy reorder)
+                Icon(
+                    imageVector = AppIcons.GripVertical,
+                    contentDescription = "Drag",
+                    tint = if (isDragging) themeColors.primary else Zinc600,
+                    modifier = Modifier.size(20.dp)
+                )
 
-                Box(
-                    modifier = Modifier
-                        .size(48.dp), // Minimum touch target
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = AppIcons.GripVertical,
-                        contentDescription = "Drag to reorder",
-                        tint = if (isDragging) themeColors.primary400 else Zinc600, // Visual feedback
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-            if (isSelectionMode) {
-                Surface(
-                    onClick = { onToggleSelect() },
-                    modifier = Modifier.size(36.dp),
-                    shape = CircleShape,
-                    color = if (isSelected) themeColors.primary else Color.Transparent,
-                    border = BorderStroke(
-                        2.dp,
-                        if (isSelected) themeColors.primary else Zinc500
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isSelected) {
-                            Text(
-                                text = selectionOrder.toString(),
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
+                // Selection / Play Status Indicator
+                Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                    if (isSelectionMode) {
+                        Surface(
+                            onClick = { onToggleSelect() },
+                            shape = CircleShape,
+                            color = if (isSelected) themeColors.primary else Color.Transparent,
+                            border = BorderStroke(2.dp, if (isSelected) themeColors.primary else Zinc600),
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            if (isSelected && selectionOrder > 0) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = selectionOrder.toString(),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // Play/Pause Button
+                        FilledIconButton(
+                            onClick = { 
+                                if (isPlaying) {
+                                    if (isPaused) onResume() else onPause() 
+                                } else {
+                                    onPlay()
+                                }
+                            },
+                            modifier = Modifier.size(40.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = if (isPlaying) themeColors.primary else Zinc800,
+                                contentColor = if (isPlaying) Color.White else themeColors.primary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying && !isPaused) AppIcons.Pause else AppIcons.PlayArrow,
+                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                 }
-            } else if (isPlaying) {
-                // Modern Play/Pause Button
-                if (!isPaused) {
-                   FilledIconButton(
-                        onClick = { onPause() },
-                        modifier = Modifier.size(44.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = themeColors.primary,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        // Pause Icon (Two vertical bars)
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
-                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
-                        }
-                    }
-                } else {
-                    // Paused -> Show Play (Resume)
-                    FilledIconButton(
-                        onClick = { onResume() },
-                        modifier = Modifier.size(44.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = themeColors.primary,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.PlayArrow,
-                            contentDescription = "Resume",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
 
-               // Stop Button
-                FilledIconButton(
-                    onClick = { onStop() },
-                    modifier = Modifier.size(36.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Red800.copy(alpha = 0.4f),
-                        contentColor = Red400
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .background(Red400, RoundedCornerShape(2.dp))
-                    )
-                }
-            } else {
-                // Not playing - show play button
-                FilledIconButton(
-                    onClick = { onPlay() },
-                    modifier = Modifier.size(40.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = themeColors.primaryContainer,
-                        contentColor = themeColors.onPrimaryContainer
-                    )
-                ) {
-                    Icon(
-                        imageVector = AppIcons.PlayArrow,
-                        contentDescription = "Play",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 4.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
+                // File Info
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.name.substringBeforeLast("."),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isPlaying) Color.White else Zinc200,
-                            fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Medium
-                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isPlaying) themeColors.primary else Zinc200,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        overflow = TextOverflow.Ellipsis
                     )
-                    // Selection/Playlist position badge
-                    val badgeNumber = when {
-                        isSelectionMode && isSelected -> selectionOrder
-                        !isSelectionMode && playlistPosition > 0 -> playlistPosition
-                        else -> 0
-                    }
-                    if (badgeNumber > 0) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = when {
-                                isPlaying -> themeColors.primary
-                                isSelectionMode -> themeColors.secondary
-                                else -> themeColors.tertiary.copy(alpha = 0.8f)
-                            }
-                        ) {
-                            Text(
-                                text = "â™« $badgeNumber",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = item.durationString,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Zinc500
+                        )
+                        if (playlistPosition > 0) {
+                             Surface(
+                                 color = themeColors.tertiaryContainer,
+                                 shape = RoundedCornerShape(4.dp),
+                                 modifier = Modifier.padding(start = 4.dp)
+                             ) {
+                                 Text(
+                                     text = "Queue #$playlistPosition",
+                                     style = MaterialTheme.typography.labelSmall,
+                                     color = themeColors.onTertiaryContainer,
+                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                 )
+                             }
                         }
                     }
                 }
-                Text(
-                    text = "${if(isPlaying) "Playing â€¢ " else ""}${item.durationString}",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (isPlaying) themeColors.primary else Zinc500
-                    )
-                )
-            }
 
-            if (!isSelectionMode && !isPlaying) {
+                // Menu (More Options)
                 Box {
-                    IconButton(
-                        onClick = { menuExpanded = true },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.MoreVert,
-                            contentDescription = "Menu",
-                            tint = Zinc500,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(AppIcons.MoreVert, "More", tint = Zinc500)
                     }
-                    
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(Zinc900).border(1.dp, Zinc800, RoundedCornerShape(4.dp))
+                        modifier = Modifier.background(Zinc900).border(1.dp, Zinc800, RoundedCornerShape(8.dp))
                     ) {
                         DropdownMenuItem(
                             text = { Text("Rename", color = Zinc200) },
@@ -364,71 +228,93 @@ fun FileItem(
                     }
                 }
             }
-        }
-
-        if (isPlaying) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
-                    .fillMaxWidth()
+            
+            // --- Bottom Section: Waveform (Animated visibility) ---
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isPlaying,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(themeColors.primary900.copy(alpha = 0.3f))
-                        .padding(8.dp)
-                    // Waveform placeholder logic retained...
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .background(Zinc950.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .border(1.dp, Zinc800, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-                         // Waveform visual
-                         Row(
-                             modifier = Modifier
-                                 .fillMaxWidth()
-                                 .height(24.dp),
-                             horizontalArrangement = Arrangement.SpaceBetween,
-                             verticalAlignment = Alignment.Bottom
+                    // Minimized Waveform Visualization
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(32.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(40) { i ->
+                            val height = 0.3f + (Math.random() * 0.7f).toFloat()
+                            val isActive = (i / 40f) < (currentProgress / 100f) // Approximate progress visualization
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 1.dp)
+                                    .fillMaxHeight(height)
+                                    .background(
+                                        if (isActive) themeColors.primary400 else Zinc700.copy(alpha = 0.5f),
+                                        CircleShape
+                                    )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Time and Slider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = currentTimeString,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = themeColors.primary300,
+                            modifier = Modifier.width(40.dp)
+                        )
+                        
+                        Slider(
+                            value = currentProgress,
+                            onValueChange = onSeek,
+                            colors = SliderDefaults.colors(
+                                thumbColor = themeColors.primary,
+                                activeTrackColor = themeColors.primary,
+                                inactiveTrackColor = Zinc800
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        Text(
+                            text = item.durationString,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Zinc500,
+                            modifier = Modifier.width(40.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
+                    }
+                    
+                    // Extra Controls (Stop)
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                         OutlinedButton(
+                             onClick = onStop,
+                             border = BorderStroke(1.dp, Red800),
+                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Red400),
+                             modifier = Modifier.height(32.dp),
+                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                          ) {
-                             repeat(30) {
-                                 Box(
-                                     modifier = Modifier
-                                         .weight(1f)
-                                         .padding(horizontal = 0.5.dp)
-                                         .fillMaxHeight(0.3f + (Math.random() * 0.7f).toFloat())
-                                         .background(themeColors.primary400, CircleShape)
-                                 )
-                             }
-                         }
-                         
-                         Spacer(modifier = Modifier.height(4.dp))
-                         
-                         // Slider & Time
-                         Row(
-                             modifier = Modifier.fillMaxWidth(),
-                             verticalAlignment = Alignment.CenterVertically,
-                             horizontalArrangement = Arrangement.spacedBy(8.dp)
-                         ) {
-                             Text(
-                                 text = "$currentTimeString / ${item.durationString}",
-                                 style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium),
-                                 modifier = Modifier.width(80.dp)
-                             )
-                             Slider(
-                                 value = currentProgress,
-                                 onValueChange = onSeek,
-                                 colors = SliderDefaults.colors(
-                                     thumbColor = themeColors.primary200,
-                                     activeTrackColor = themeColors.primary500,
-                                     inactiveTrackColor = Zinc700.copy(alpha = 0.5f)
-                                 ),
-                                 modifier = Modifier.weight(1f).height(20.dp)
-                             )
+                             Text("Stop Playback", fontSize = 12.sp)
                          }
                     }
                 }
             }
         }
-
     }
-}
 }

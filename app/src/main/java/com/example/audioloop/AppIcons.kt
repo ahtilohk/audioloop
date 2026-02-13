@@ -245,6 +245,30 @@ object AppIcons {
         }
     private var _playArrow: ImageVector? = null
 
+    // Replacement for Icons.Default.Pause
+    val Pause: ImageVector
+        get() {
+            if (_pause != null) return _pause!!
+            _pause = materialIcon(name = "Pause") {
+                materialPath {
+                    moveTo(6.0f, 19.0f)
+                    horizontalLineToRelative(4.0f)
+                    verticalLineTo(5.0f)
+                    horizontalLineTo(6.0f)
+                    verticalLineToRelative(14.0f)
+                    close()
+                    moveTo(14.0f, 5.0f)
+                    verticalLineToRelative(14.0f)
+                    horizontalLineToRelative(4.0f)
+                    verticalLineTo(5.0f)
+                    horizontalLineToRelative(-4.0f)
+                    close()
+                }
+            }
+            return _pause!!
+        }
+    private var _pause: ImageVector? = null
+
     // Replacement for Icons.Default.MoreVert
     val MoreVert: ImageVector
         get() {
@@ -424,7 +448,7 @@ object AppIcons {
         }
     private var _chevronUp: ImageVector? = null
 
-   // Replacement for Icons.Default.DragIndicator (GripVertical)
+    // Replacement for Icons.Default.DragIndicator (GripVertical)
     val GripVertical: ImageVector
         get() {
             if (_gripVertical != null) return _gripVertical!!
@@ -587,4 +611,23 @@ object AppIcons {
             return _share!!
         }
     private var _share: ImageVector? = null
+
+    // Replacement for Icons.Default.KeyboardArrowRight (ChevronRight)
+    val ChevronRight: ImageVector
+        get() {
+            if (_chevronRight != null) return _chevronRight!!
+            _chevronRight = materialIcon(name = "ChevronRight") {
+                materialPath {
+                    moveTo(8.59f, 16.59f)
+                    lineTo(13.17f, 12.0f)
+                    lineTo(8.59f, 7.41f)
+                    lineTo(10.0f, 6.0f)
+                    lineToRelative(6.0f, 6.0f)
+                    lineToRelative(-6.0f, 6.0f)
+                    close()
+                }
+            }
+            return _chevronRight!!
+        }
+    private var _chevronRight: ImageVector? = null
 }

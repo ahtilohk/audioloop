@@ -1,0 +1,69 @@
+Configuration on demand is an incubating feature.
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:2:23 Unresolved reference 'ImageVector'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:4:47 Smart cast to 'TypeVariable(K)?' is impossible, because '_chevronRight' is a mutable property that could be mutated concurrently.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:5:29 Unresolved reference 'materialIcon'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:5:65 Unresolved reference 'materialPath'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:6:17 Unresolved reference 'materialPath'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:6:30 Unresolved reference 'close'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:7:21 Unresolved reference 'moveTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:8:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:9:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:10:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:11:21 Unresolved reference 'lineToRelative'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:12:21 Unresolved reference 'lineToRelative'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:13:21 Unresolved reference 'close'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:18:32 Unresolved reference 'ImageVector'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:216:28 Unresolved reference 'awaitEachGesture'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:217:43 Unresolved reference 'awaitFirstDown'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:240:56 Unresolved reference 'awaitPointerEvent'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:241:85 Unresolved reference 'it'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:242:74 Unresolved reference 'pressed'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:247:55 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun PointerInputChange.positionChanged(): Boolean
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:248:55 Unresolved reference 'consume'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:249:66 Unresolved reference 'position'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:257:102 None of the following candidates is applicable:
+fun BigDecimal.div(other: BigDecimal): BigDecimal
+fun BigInteger.div(other: BigInteger): BigInteger
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:259:120 None of the following candidates is applicable:
+fun BigDecimal.div(other: BigDecimal): BigDecimal
+fun BigInteger.div(other: BigInteger): BigInteger
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/TrimAudioDialog.kt:465:25 None of the following candidates is applicable:
+fun Canvas(modifier: Modifier, onDraw: DrawScope.() -> Unit): Unit
+fun Canvas(modifier: Modifier, contentDescription: String, onDraw: DrawScope.() -> Unit): Unit
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4s
+16 actionable tasks: 1 executed, 15 up-to-date

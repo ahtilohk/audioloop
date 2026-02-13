@@ -1,0 +1,432 @@
+Configuration on demand is an incubating feature.
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugKotlin
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:2 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:4 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:6 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:8 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:9 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:10 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:11 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:12 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:14 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:15 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:16 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:17 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:18 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:19 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:20 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:21 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:22 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:23 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:24 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:25 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:26 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:27 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:28 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:29 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:30 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:31 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:32 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:33 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:34 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:35 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:36 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:38 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:39 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:40 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:41 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:42 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:43 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:44 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:46 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:47 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:48 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:49 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:50 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:51 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:52 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:53 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:54 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:55 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:56 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:57 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:58 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:59 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:60 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:61 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:62 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:63 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:64 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:65 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:66 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:67 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:68 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:69 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:70 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:71 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:72 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:73 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:74 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:75 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:76 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:77 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:78 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:79 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:80 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:81 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:82 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:83 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:84 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:85 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:86 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:87 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:88 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:89 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:90 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:91 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:92 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:93 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:94 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:95 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:96 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:97 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:98 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:99 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:100 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:101 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:102 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:103 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:104 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:105 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:106 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:107 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:108 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:109 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:110 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:112 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:113 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:114 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:115 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:116 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:117 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:118 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:119 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:120 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:121 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:122 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:123 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:124 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:125 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:126 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:127 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:128 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:129 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:130 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:131 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:132 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:133 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:134 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:135 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:136 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:137 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:138 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:139 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:615:140 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:616:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:3 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:5 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:7 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:9 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:10 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:11 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:12 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:13 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:14 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:15 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:17 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:18 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:19 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:20 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:21 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:22 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:23 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:24 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:25 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:26 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:27 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:28 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:29 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:30 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:31 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:32 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:33 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:34 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:35 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:36 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:37 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:38 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:39 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:40 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:41 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:42 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:43 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:45 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:46 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:47 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:48 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:49 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:50 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:51 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:52 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:53 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:54 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:55 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:56 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:57 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:58 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:59 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:60 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:61 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:62 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:63 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:64 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:65 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:66 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:617:67 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:618:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:3 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:5 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:7 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:9 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:11 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:13 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:15 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:17 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:18 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:19 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:20 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:21 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:22 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:23 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:24 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:25 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:26 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:27 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:29 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:30 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:30 Function declaration must have a name.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:619:31 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:620:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:621:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:621:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:622:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:623:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:623:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:623:131 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:624:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:625:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:625:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:625:61 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:626:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:627:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:627:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:628:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:629:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:629:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:630:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:631:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:631:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:632:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:633:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:633:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:634:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:635:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:635:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:636:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:637:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:637:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:638:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:639:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:639:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:640:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:641:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:641:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:641:35 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:642:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:643:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:643:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:643:27 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:644:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:645:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:645:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:646:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:647:1 Syntax error: Expecting an element.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:647:3 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:647:19 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:648:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:3 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:5 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:7 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:9 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:10 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:11 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:12 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:13 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:14 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:15 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:16 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:17 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:18 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:19 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:20 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:21 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:22 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:23 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:25 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:26 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:27 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:28 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:29 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:30 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:31 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:33 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:34 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:35 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:36 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:37 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:38 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:39 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:40 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:41 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:42 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:43 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:44 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:45 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:46 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:47 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:48 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:49 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:50 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:51 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:52 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:53 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:54 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:55 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:56 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:57 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:58 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:59 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:60 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:61 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:63 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:64 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:65 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:66 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:67 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:68 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:69 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:70 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:71 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:72 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:73 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:74 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:75 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:76 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:77 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:78 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:79 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:80 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:81 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:82 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:83 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:84 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:85 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:86 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:87 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:89 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:90 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:91 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:93 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:94 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:95 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:96 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:97 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:98 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:99 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:100 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:649:101 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:650:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons.kt:651:1 Syntax error: Expecting a top level declaration.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:2:23 Unresolved reference 'ImageVector'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:4:47 Smart cast to 'TypeVariable(K)?' is impossible, because '_chevronRight' is a mutable property that could be mutated concurrently.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:5:29 Unresolved reference 'materialIcon'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:5:65 Unresolved reference 'materialPath'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:6:17 Unresolved reference 'materialPath'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:6:30 Unresolved reference 'close'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:7:21 Unresolved reference 'moveTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:8:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:9:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:10:21 Unresolved reference 'lineTo'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:11:21 Unresolved reference 'lineToRelative'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:12:21 Unresolved reference 'lineToRelative'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:13:21 Unresolved reference 'close'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AppIcons_fragment.kt:18:32 Unresolved reference 'ImageVector'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:216:28 Unresolved reference 'awaitEachGesture'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:217:43 Unresolved reference 'awaitFirstDown'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:240:56 Unresolved reference 'awaitPointerEvent'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:241:85 Unresolved reference 'it'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:242:74 Unresolved reference 'pressed'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:247:55 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun PointerInputChange.positionChanged(): Boolean
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:248:55 Unresolved reference 'consume'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:249:66 Unresolved reference 'position'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:257:102 None of the following candidates is applicable:
+fun BigDecimal.div(other: BigDecimal): BigDecimal
+fun BigInteger.div(other: BigInteger): BigInteger
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/CategoryManagementSheet.kt:259:120 None of the following candidates is applicable:
+fun BigDecimal.div(other: BigDecimal): BigDecimal
+fun BigInteger.div(other: BigInteger): BigInteger
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/Dialogs.kt:150:78 Unresolved reference 'ChevronRight'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/ui/TrimAudioDialog.kt:465:25 None of the following candidates is applicable:
+fun Canvas(modifier: Modifier, onDraw: DrawScope.() -> Unit): Unit
+fun Canvas(modifier: Modifier, contentDescription: String, onDraw: DrawScope.() -> Unit): Unit
+
+> Task :app:compileDebugKotlin FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 6s
+16 actionable tasks: 1 executed, 15 up-to-date
