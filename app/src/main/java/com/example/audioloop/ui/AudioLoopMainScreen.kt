@@ -257,7 +257,7 @@ fun AudioLoopMainScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            text = if (isSelectionMode) "Cancel" else "Playlist",
+                            text = if (isSelectionMode) "Cancel" else "Select Playlist",
                             style = MaterialTheme.typography.labelLarge.copy(
                                 color = if (isSelectionMode) Red400 else themeColors.primary,
                                 fontWeight = FontWeight.SemiBold
