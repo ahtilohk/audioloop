@@ -386,124 +386,142 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    // Record Button - Modern FAB-Inspired Design
-                    Surface(
-                        onClick = {
-                            if (isRecording) {
-                                onStopRecord()
-                                isRecording = false
-                            } else {
-                                val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
-                                val dateStr = dateFormat.format(java.util.Date())
-                                val prefix = if (mode == "Speech") "Speech" else "Stream"
-                                val name = "${prefix}_$dateStr"
-                                val commenced = onStartRecord(name, mode == "Stream")
-                                if (commenced) isRecording = true
-                            }
-                        },
+                    // Record Button - Modern Gradient Action Button
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (isRecording)
-                            Red800.copy(alpha = 0.4f)
-                        else
-                            themeColors.primaryContainer,
-                        border = BorderStroke(
-                            2.dp,
-                            if (isRecording) Red500 else themeColors.primary
-                        ),
-                        shadowElevation = if (isRecording) 0.dp else 4.dp
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .height(80.dp) // Slightly taller for presence
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                if (isRecording) {
+                                    Brush.linearGradient(
+                                        colors = listOf(Red900.copy(alpha = 0.3f), Red800.copy(alpha = 0.1f))
+                                    )
+                                } else {
+                                    Brush.linearGradient(
+                                        colors = listOf(themeColors.primary400, themeColors.primary600)
+                                    )
+                                }
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = if (isRecording) {
+                                    SolidColor(Red500)
+                                } else {
+                                    Brush.linearGradient(
+                                        colors = listOf(themeColors.primary300, themeColors.primary500)
+                                    )
+                                },
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .clickable {
+                                if (isRecording) {
+                                    onStopRecord()
+                                    isRecording = false
+                                } else {
+                                    val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
+                                    val dateStr = dateFormat.format(java.util.Date())
+                                    val prefix = if (mode == "Speech") "Speech" else "Stream"
+                                    val name = "${prefix}_$dateStr"
+                                    val commenced = onStartRecord(name, mode == "Stream")
+                                    if (commenced) isRecording = true
+                                }
+                            },
+                        contentAlignment = Alignment.CenterStart
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            // Record Indicator / Icon
+                            Box(
+                                modifier = Modifier
+                                    .size(52.dp)
+                                    .background(
+                                        color = if (isRecording) Red500 else Color.White.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                // Record indicator/icon
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(
-                                            if (isRecording) Red500 else themeColors.primary,
-                                            CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                if (isRecording) {
+                                    // Pulsing stop icon
+                                    Box(
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .background(Color.White, RoundedCornerShape(4.dp))
+                                    )
+                                } else {
+                                    // Mic icon
+                                    Icon(
+                                        imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Radio,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(26.dp)
+                                    )
+                                }
+                            }
+
+                            // Text Content
+                            Column(
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                // Timer Logic
+                                var recordingDurationSeconds by remember { mutableLongStateOf(0L) }
+                                
+                                LaunchedEffect(isRecording) {
                                     if (isRecording) {
-                                        // Pulsing stop icon
-                                        Box(
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .background(Color.White, RoundedCornerShape(3.dp))
-                                        )
+                                        val startTime = System.currentTimeMillis()
+                                        while (isActive) {
+                                            recordingDurationSeconds = (System.currentTimeMillis() - startTime) / 1000
+                                            delay(1000)
+                                        }
                                     } else {
-                                        Icon(
-                                            imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Radio,
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(24.dp)
-                                        )
+                                        recordingDurationSeconds = 0L
                                     }
                                 }
 
-                                // Record button text
-                                Column(horizontalAlignment = Alignment.Start) {
-                                    // Timer Logic
-                                    var recordingDurationSeconds by remember { mutableLongStateOf(0L) }
+                                if (isRecording) {
+                                    val hours = recordingDurationSeconds / 3600
+                                    val minutes = (recordingDurationSeconds % 3600) / 60
+                                    val seconds = recordingDurationSeconds % 60
+                                    val timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds)
                                     
-                                    LaunchedEffect(isRecording) {
-                                        if (isRecording) {
-                                            val startTime = System.currentTimeMillis()
-                                            while (isActive) {
-                                                recordingDurationSeconds = (System.currentTimeMillis() - startTime) / 1000
-                                                delay(1000)
-                                            }
-                                        } else {
-                                            recordingDurationSeconds = 0L
-                                        }
-                                    }
-
-                                    if (isRecording) {
-                                        val hours = recordingDurationSeconds / 3600
-                                        val minutes = (recordingDurationSeconds % 3600) / 60
-                                        val seconds = recordingDurationSeconds % 60
-                                        val timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-                                        
-                                        Text(
-                                            text = timeString,
-                                            style = MaterialTheme.typography.headlineSmall.copy(
-                                                color = Red400,
-                                                fontWeight = FontWeight.Bold,
-                                                fontFamily = FontFamily.Monospace, // Monospace for stable digits
-                                                letterSpacing = 2.sp
-                                            )
+                                    Text(
+                                        text = timeString,
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            color = Red400,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = FontFamily.Monospace,
+                                            letterSpacing = 2.sp
                                         )
-                                        Text(
-                                            text = "Recording...",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = Red400.copy(alpha = 0.8f),
-                                                fontWeight = FontWeight.Medium
-                                            )
+                                    )
+                                    Text(
+                                        text = "Recording...",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Red400.copy(alpha = 0.8f),
+                                            fontWeight = FontWeight.Medium
                                         )
-                                    } else {
-                                        Text(
-                                            text = "Start Recording",
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                color = themeColors.onPrimaryContainer,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Start Recording",
+                                        style = MaterialTheme.typography.titleLarge.copy( // Larger & Bolder
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 20.sp
                                         )
-                                        Text(
-                                            text = "$mode mode",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = themeColors.onPrimaryContainer.copy(alpha = 0.7f)
-                                            )
+                                    )
+                                    Text(
+                                        text = "$mode mode",
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            color = Color.White.copy(alpha = 0.7f),
+                                            fontWeight = FontWeight.Medium
                                         )
-                                    }
+                                    )
                                 }
                             }
                         }
