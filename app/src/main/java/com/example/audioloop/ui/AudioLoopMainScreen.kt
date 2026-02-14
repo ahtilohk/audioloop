@@ -386,34 +386,29 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    // Record Button - Modern Gradient Action Button
+                    // Record Button - Studio Pro Design
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .height(80.dp) // Slightly taller for presence
-                            .clip(RoundedCornerShape(24.dp))
+                            .height(84.dp) // Professional height
+                            .clip(RoundedCornerShape(20.dp))
                             .background(
                                 if (isRecording) {
-                                    Brush.linearGradient(
-                                        colors = listOf(Red900.copy(alpha = 0.3f), Red800.copy(alpha = 0.1f))
+                                    // Recording: Deep Red Pulse
+                                    Brush.radialGradient(
+                                        colors = listOf(Red900, Color.Black),
+                                        radius = 600f
                                     )
                                 } else {
-                                    Brush.linearGradient(
-                                        colors = listOf(themeColors.primary400, themeColors.primary600)
-                                    )
+                                    // Idle: Studio Dark (Zinc900)
+                                    SolidColor(Zinc900)
                                 }
                             )
                             .border(
-                                width = 1.dp,
-                                brush = if (isRecording) {
-                                    SolidColor(Red500)
-                                } else {
-                                    Brush.linearGradient(
-                                        colors = listOf(themeColors.primary300, themeColors.primary500)
-                                    )
-                                },
-                                shape = RoundedCornerShape(24.dp)
+                                width = if (isRecording) 2.dp else 1.dp,
+                                color = if (isRecording) Red500 else Red900.copy(alpha = 0.5f), // Subtle red border in idle
+                                shape = RoundedCornerShape(20.dp)
                             )
                             .clickable {
                                 if (isRecording) {
@@ -432,7 +427,7 @@ fun AudioLoopMainScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(24.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 24.dp)
@@ -440,9 +435,19 @@ fun AudioLoopMainScreen(
                             // Record Indicator / Icon
                             Box(
                                 modifier = Modifier
-                                    .size(52.dp)
+                                    .size(56.dp)
+                                    .shadow(
+                                        elevation = if (isRecording) 12.dp else 0.dp,
+                                        spotColor = Red500,
+                                        shape = CircleShape
+                                    )
                                     .background(
-                                        color = if (isRecording) Red500 else Color.White.copy(alpha = 0.2f),
+                                        color = if (isRecording) Red600 else Zinc800,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isRecording) Red400 else Zinc700,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -451,16 +456,16 @@ fun AudioLoopMainScreen(
                                     // Pulsing stop icon
                                     Box(
                                         modifier = Modifier
-                                            .size(18.dp)
+                                            .size(20.dp)
                                             .background(Color.White, RoundedCornerShape(4.dp))
                                     )
                                 } else {
-                                    // Mic icon
+                                    // Mic icon (Red accent)
                                     Icon(
                                         imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Radio,
                                         contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(26.dp)
+                                        tint = Red500, // Red accent icon
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 }
                             }
@@ -493,7 +498,7 @@ fun AudioLoopMainScreen(
                                     Text(
                                         text = timeString,
                                         style = MaterialTheme.typography.headlineSmall.copy(
-                                            color = Red400,
+                                            color = Color.White,
                                             fontWeight = FontWeight.Bold,
                                             fontFamily = FontFamily.Monospace,
                                             letterSpacing = 2.sp
@@ -502,23 +507,24 @@ fun AudioLoopMainScreen(
                                     Text(
                                         text = "Recording...",
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = Red400.copy(alpha = 0.8f),
+                                            color = Red400,
                                             fontWeight = FontWeight.Medium
                                         )
                                     )
                                 } else {
                                     Text(
                                         text = "Start Recording",
-                                        style = MaterialTheme.typography.titleLarge.copy( // Larger & Bolder
+                                        style = MaterialTheme.typography.titleLarge.copy(
                                             color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 20.sp
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 20.sp,
+                                            letterSpacing = 0.5.sp
                                         )
                                     )
                                     Text(
                                         text = "$mode mode",
-                                        style = MaterialTheme.typography.titleSmall.copy(
-                                            color = Color.White.copy(alpha = 0.7f),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Zinc500,
                                             fontWeight = FontWeight.Medium
                                         )
                                     )
