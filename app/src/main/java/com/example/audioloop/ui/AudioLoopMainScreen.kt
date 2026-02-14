@@ -1,9 +1,15 @@
-﻿import com.example.audioloop.ui.TrimAudioDialog
+﻿package com.example.audioloop.ui
+
+import com.example.audioloop.ui.TrimAudioDialog
 import com.example.audioloop.ui.RenameDialog
 import com.example.audioloop.ui.MoveFileDialog
 import com.example.audioloop.ui.DeleteConfirmDialog
 import com.example.audioloop.ui.formatDuration
+import com.example.audioloop.RecordingItem
+import com.example.audioloop.WaveformGenerator
+import com.example.audioloop.AppIcons
 import kotlinx.coroutines.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -67,8 +73,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.foundation.gestures.detectDragGestures
 import android.media.MediaPlayer
-import com.example.audioloop.AppIcons
-import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
 import android.content.Context
 import android.content.Intent
