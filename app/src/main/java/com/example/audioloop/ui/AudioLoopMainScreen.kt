@@ -406,8 +406,8 @@ fun AudioLoopMainScreen(
                                 }
                             )
                             .border(
-                                width = if (isRecording) 2.dp else 1.dp,
-                                color = if (isRecording) Red500 else Red900.copy(alpha = 0.5f), // Subtle red border in idle
+                                width = 2.dp, // Thicker border for premium look
+                                color = if (isRecording) Red500 else Red900.copy(alpha = 0.8f), // More visible red border
                                 shape = RoundedCornerShape(20.dp)
                             )
                             .clickable {
