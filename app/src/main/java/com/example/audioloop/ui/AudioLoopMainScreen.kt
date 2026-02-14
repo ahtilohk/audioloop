@@ -415,7 +415,7 @@ fun AudioLoopMainScreen(
                                     onStopRecord()
                                     isRecording = false
                                 } else {
-                                    val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault())
+                                    val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm:ss", java.util.Locale.getDefault())
                                     val dateStr = dateFormat.format(java.util.Date())
                                     val prefix = if (mode == "Speech") "Speech" else "Stream"
                                     val name = "${prefix}_$dateStr"
