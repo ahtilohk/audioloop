@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -227,6 +228,10 @@ fun TrimAudioDialog(
                         
                         var startX by remember { mutableFloatStateOf(0f) }
                         var endX by remember { mutableFloatStateOf(widthPx) }
+                        
+                        // State for drag target
+                        var dragTarget by remember { mutableStateOf<TrimDragTarget?>(null) }
+                        
                         val selectionStartX = min(startX, endX)
                         val selectionEndX = max(startX, endX)
                         
@@ -248,27 +253,44 @@ fun TrimAudioDialog(
                         
                         // Playback sync logic
                         LaunchedEffect(selectionStartMs, selectionEndMs, trimMode) {
-                            val clampedPreviewMs = resolvePreviewPosition(previewPositionMs.toFloat())
-                            if (isPreviewPlaying) {
-                                previewPlayer.pause()
-                                previewPlayer.seekTo(clampedPreviewMs.toInt())
-                                isPreviewPlaying = false
+                            // Validate current position based on mode
+                            // Only force seek if we weren't just scrubbing
+                            if (dragTarget == null) {
+                                val current = previewPositionMs.toFloat()
+                                // If Keep mode: ensure inside range
+                                if (trimMode == TrimMode.Keep) {
+                                    if (current < selectionStartMs || current > selectionEndMs) {
+                                         previewPositionMs = selectionStartMs.toLong()
+                                         if (isPreviewPlaying) previewPlayer.seekTo(selectionStartMs.toInt())
+                                    }
+                                }
                             }
-                            previewPositionMs = clampedPreviewMs
                         }
 
                         LaunchedEffect(isPreviewPlaying) {
                              if (isPreviewPlaying) {
                                   while (isActive && previewPlayer.isPlaying) {
-                                      previewPositionMs = previewPlayer.currentPosition.toLong()
-                                      // Loop/Stop logic
-                                      if (trimMode == TrimMode.Keep && previewPositionMs >= selectionEndMs) {
-                                            previewPlayer.pause()
-                                            previewPlayer.seekTo(selectionStartMs.toInt())
-                                            isPreviewPlaying = false
+                                      val currentMs = previewPlayer.currentPosition.toLong()
+                                      previewPositionMs = currentMs
+                                      
+                                      if (trimMode == TrimMode.Keep) {
+                                          // Keep Mode: Stop if we start exceeding selection
+                                          if (currentMs >= selectionEndMs) {
+                                                previewPlayer.pause()
+                                                previewPlayer.seekTo(selectionStartMs.toInt())
+                                                previewPositionMs = selectionStartMs.toLong()
+                                                isPreviewPlaying = false
+                                          }
+                                      } else {
+                                          // Remove Mode: Skip the selection
+                                          if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
+                                               previewPlayer.seekTo(selectionEndMs.toInt())
+                                               previewPositionMs = selectionEndMs.toLong()
+                                          }
                                       }
-                                      delay(50)
+                                      delay(30)
                                   }
+                                  isPreviewPlaying = false
                              }
                         }
 
@@ -310,7 +332,7 @@ fun TrimAudioDialog(
                             }
                             
                             // Dimming layers
-                            val dimColor = Color.Black.copy(alpha = 0.6f)
+                            val dimColor = Color.Black.copy(alpha = 0.7f)
                             if (trimMode == TrimMode.Keep) {
                                 drawRect(dimColor, size = Size(selectionStartX, size.height))
                                 drawRect(dimColor, topLeft = Offset(selectionEndX, 0f), size = Size(size.width - selectionEndX, size.height))
@@ -349,28 +371,56 @@ fun TrimAudioDialog(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .pointerInput(Unit) {
+                                    detectTapGestures(onTap = { offset ->
+                                        val tapMs = (offset.x / widthPx) * totalDuration
+                                        previewPositionMs = tapMs.toLong().coerceIn(0L, durationMs)
+                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                    })
+                                }
+                                .pointerInput(Unit) {
                                     detectDragGestures(
                                         onDragStart = { offset ->
                                              val touchX = offset.x
-                                             val isNearStart = kotlin.math.abs(touchX - startX) < handleHitWidth
-                                             val isNearEnd = kotlin.math.abs(touchX - endX) < handleHitWidth
-                                             isDraggingHandle = true
+                                             val distStart = kotlin.math.abs(touchX - startX)
+                                             val distEnd = kotlin.math.abs(touchX - endX)
+                                             
+                                             // Hit test handles with priority
+                                             if (distStart < handleHitWidth && distStart <= distEnd) {
+                                                 dragTarget = TrimDragTarget.Start
+                                             } else if (distEnd < handleHitWidth) {
+                                                 dragTarget = TrimDragTarget.End
+                                             } else {
+                                                 dragTarget = TrimDragTarget.Playhead
+                                                 // Snap playhead immediately on drag start if hitting body
+                                                 val newMs = (touchX / widthPx) * totalDuration
+                                                 previewPositionMs = newMs.toLong().coerceIn(0L, durationMs)
+                                                 previewPlayer.seekTo(previewPositionMs.toInt())
+                                             }
+                                             isDraggingHandle = (dragTarget != TrimDragTarget.Playhead)
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
-                                            // Handle dragging
                                             val touchX = change.position.x
-                                            val distStart = kotlin.math.abs(touchX - startX)
-                                            val distEnd = kotlin.math.abs(touchX - endX)
-                                            // Simple heuristic: if we started near a handle, move that one.
-                                            // Or if we are just dragging, move the closest one.
-                                            if (distStart < distEnd) {
-                                                startX = (startX + dragAmount.x).coerceIn(0f, widthPx)
-                                            } else {
-                                                endX = (endX + dragAmount.x).coerceIn(0f, widthPx)
+                                            
+                                            when(dragTarget) {
+                                                TrimDragTarget.Start -> {
+                                                     startX = (startX + dragAmount.x).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.End -> {
+                                                     endX = (endX + dragAmount.x).coerceIn(0f, widthPx)
+                                                }
+                                                TrimDragTarget.Playhead -> {
+                                                     val newMs = (touchX / widthPx) * totalDuration
+                                                     previewPositionMs = newMs.toLong().coerceIn(0L, durationMs)
+                                                     previewPlayer.seekTo(previewPositionMs.toInt())
+                                                }
+                                                null -> {}
                                             }
                                         },
-                                        onDragEnd = { isDraggingHandle = false }
+                                        onDragEnd = { 
+                                            dragTarget = null 
+                                            isDraggingHandle = false
+                                        }
                                     )
                                 }
                         ) {}
@@ -405,8 +455,16 @@ fun TrimAudioDialog(
                                          previewPlayer.pause()
                                          isPreviewPlaying = false
                                      } else {
-                                         val startMs = resolvePreviewPosition(previewPositionMs.toFloat())
-                                         previewPlayer.seekTo(startMs.toInt())
+                                         // If at end, restart
+                                         val start = range.start.toLong()
+                                         val end = range.endInclusive.toLong()
+                                         if (trimMode == TrimMode.Keep && previewPositionMs >= end) {
+                                             previewPositionMs = start
+                                         } else if (previewPositionMs >= durationMs) {
+                                             previewPositionMs = 0L
+                                         }
+                                         
+                                         previewPlayer.seekTo(previewPositionMs.toInt())
                                          previewPlayer.start()
                                          isPreviewPlaying = true
                                      }
@@ -442,27 +500,35 @@ fun TrimAudioDialog(
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, Zinc700),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc400)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc200)
                         ) {
                             Text("Cancel")
                         }
                         
                          Button(
-                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), false, trimMode == TrimMode.Remove) },
+                            onClick = { 
+                                val start = range.start.toLong()
+                                val end = range.endInclusive.toLong()
+                                onConfirm(start, end, false, trimMode == TrimMode.Remove) 
+                            },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White)
                         ) {
-                            Text("Save Copy")
+                            Text("Save Copy", color = Color.White)
                         }
                         
                         Button(
-                            onClick = { onConfirm(range.start.toLong(), range.endInclusive.toLong(), true, trimMode == TrimMode.Remove) },
+                            onClick = { 
+                                val start = range.start.toLong()
+                                val end = range.endInclusive.toLong()
+                                onConfirm(start, end, true, trimMode == TrimMode.Remove) 
+                            },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White)
                         ) {
-                            Text("Replace")
+                            Text("Replace", color = Color.White)
                         }
                     }
                 }
