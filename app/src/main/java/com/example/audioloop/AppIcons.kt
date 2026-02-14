@@ -727,9 +727,4 @@ object AppIcons {
         }
     private var _sleep: ImageVector? = null
 
-    val Play: ImageVector
-        get() = androidx.compose.material.icons.Icons.Default.PlayArrow
-
-    val Pause: ImageVector
-        get() = androidx.compose.material.icons.Icons.Default.Pause
 }

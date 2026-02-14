@@ -16,6 +16,8 @@ val Zinc200 = Color(0xFFE4E4E7)  // On surface
 val Zinc100 = Color(0xFFF4F4F5)  // On surface bright
 
 // Error colors (MD3 system)
+val Red100 = Color(0xFFFFE5E5)   // Error lightest
+val Red200 = Color(0xFFFECACA)   // Error lighter
 val Red400 = Color(0xFFF87171)   // Error light
 val Red500 = Color(0xFFEF4444)   // Error
 val Red600 = Color(0xFFDC2626)   // Error dark
