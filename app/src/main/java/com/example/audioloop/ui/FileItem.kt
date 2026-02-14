@@ -150,22 +150,22 @@ fun FileItem(
         ) {
             Row(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(start = 4.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
 
                 Box(
                     modifier = Modifier
-                        .size(48.dp), // Minimum touch target
+                        .size(width = 28.dp, height = 48.dp), // Narrow but tall touch target
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = AppIcons.GripVertical,
                         contentDescription = "Drag to reorder",
                         tint = if (isDragging) themeColors.primary400 else Zinc600, // Visual feedback
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
