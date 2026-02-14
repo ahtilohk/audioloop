@@ -599,7 +599,7 @@ fun AudioLoopMainScreen(
                                             imageVector = AppIcons.Shadow,
                                             contentDescription = "Shadowing",
                                             tint = Zinc500,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(

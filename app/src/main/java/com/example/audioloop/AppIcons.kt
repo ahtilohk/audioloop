@@ -588,68 +588,51 @@ object AppIcons {
         }
     private var _share: ImageVector? = null
 
-    // Speed (ShutterSpeed-like)
+    // Speed (Fast-Forward)
     val Speed: ImageVector
         get() {
             if (_speed != null) return _speed!!
             _speed = materialIcon(name = "Speed") {
                 materialPath {
-                    moveTo(20.38f, 8.57f)
-                    lineToRelative(-1.23f, 1.85f)
-                    curveToRelative(0.55f, 1.11f, 0.85f, 2.37f, 0.85f, 3.69f) // Outer circle part
-                    curveToRelative(0.0f, 4.48f, -3.52f, 8.12f, -7.94f, 8.12f) // Bottom arc
-                    curveTo(7.5f, 22.23f, 3.94f, 18.5f, 3.94f, 13.91f) // Left arc
-                    curveToRelative(0.0f, -4.33f, 3.29f, -7.86f, 7.5f, -8.11f) // Top arc
-                    lineTo(10.5f, 5.73f)
-                    curveToRelative(-3.67f, 0.25f, -6.56f, 3.33f, -6.56f, 7.02f)
-                    curveToRelative(0.0f, 3.84f, 3.16f, 7.03f, 7.06f, 7.03f)
-                    reflectiveCurveToRelative(7.12f, -3.22f, 7.12f, -7.12f)
-                    curveToRelative(0.0f, -1.13f, -0.27f, -2.18f, -0.73f, -3.12f)
-                    lineToRelative(2.99f, -0.97f)
-                    close() 
-                    // Needle
-                    moveTo(12.0f, 14.0f)
-                    lineToRelative(3.5f, -3.5f) // Simple needle
+                    // First triangle
+                    moveTo(4.0f, 18.0f)
+                    lineTo(4.0f, 6.0f)
+                    lineTo(12.0f, 12.0f)
+                    close()
+                    // Second triangle
+                    moveTo(12.0f, 18.0f)
+                    lineTo(12.0f, 6.0f)
+                    lineTo(20.0f, 12.0f)
+                    close()
                 }
             }
             return _speed!!
         }
     private var _speed: ImageVector? = null
 
-    // Loop (AllInclusive / Infinity)
+    // Loop (Repeat arrows)
     val Loop: ImageVector
         get() {
              if (_loop != null) return _loop!!
              _loop = materialIcon(name = "Loop") {
                  materialPath {
-                    moveTo(18.6f, 6.62f)
-                    curveToRelative(-1.44f, 0.0f, -2.8f, 0.56f, -3.77f, 1.53f)
-                    lineTo(12.0f, 10.66f)
-                    lineTo(10.48f, 12.18f)
-                    lineTo(5.17f, 6.87f)
-                    curveTo(4.2f, 5.9f, 2.84f, 5.34f, 1.4f, 5.34f) // Left loop start
-                    verticalLineToRelative(2.0f)
-                    curveToRelative(0.89f, 0.0f, 1.74f, 0.35f, 2.37f, 0.98f)
-                    lineTo(10.0f, 14.53f) // Cross point
-                    lineToRelative(1.52f, -1.52f)
-                    lineToRelative(2.13f, -2.13f)
-                    curveToRelative(0.97f, -0.97f, 1.15f, -1.52f, 2.95f, -1.52f) // Right loop top
-                    curveToRelative(1.48f, 0.0f, 2.72f, 1.22f, 2.76f, 2.73f)
-                    curveToRelative(0.05f, 1.54f, -1.22f, 2.83f, -2.76f, 2.83f)
-                    horizontalLineToRelative(-0.96f)
-                    verticalLineToRelative(2.0f)
-                    horizontalLineToRelative(0.96f)
-                    curveToRelative(2.64f, 0.0f, 4.8f, -2.18f, 4.75f, -4.84f)
-                    curveToRelative(-0.06f, -2.63f, -2.18f, -4.72f, -4.81f, -4.73f)
-                    close()
-                    // Bottom left part
-                    moveTo(1.4f, 16.94f)
-                    curveToRelative(1.44f, 0.0f, 2.8f, -0.56f, 3.77f, -1.53f)
-                    lineTo(7.33f, 13.25f)
-                    lineTo(5.82f, 11.73f)
-                    lineToRelative(-2.05f, 2.05f)
-                    curveToRelative(-0.63f, 0.63f, -1.48f, 0.98f, -2.37f, 0.98f)
-                    verticalLineToRelative(2.18f)
+                    // Top arrow (pointing right)
+                    moveTo(7.0f, 7.0f)
+                    horizontalLineTo(17.17f)
+                    lineTo(14.59f, 4.41f)
+                    lineTo(16.0f, 3.0f)
+                    lineTo(21.0f, 8.0f)
+                    lineTo(16.0f, 13.0f)
+                    lineTo(14.59f, 11.59f)
+                    lineTo(17.17f, 9.0f)
+                    horizontalLineTo(7.0f)
+                    curveToRelative(-2.76f, 0.0f, -5.0f, 2.24f, -5.0f, 5.0f)
+                    reflectiveCurveToRelative(2.24f, 5.0f, 5.0f, 5.0f)
+                    horizontalLineTo(17.0f)
+                    verticalLineTo(21.0f)
+                    horizontalLineTo(7.0f)
+                    curveToRelative(-3.87f, 0.0f, -7.0f, -3.13f, -7.0f, -7.0f)
+                    reflectiveCurveToRelative(3.13f, -7.0f, 7.0f, -7.0f)
                     close()
                  }
              }
