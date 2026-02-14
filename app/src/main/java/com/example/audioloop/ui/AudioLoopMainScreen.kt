@@ -269,57 +269,59 @@ fun AudioLoopMainScreen(
 
 
 
-            // Category Navigation - MD3 Chips Style
+            // Category Navigation - Underline Tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 LazyRow(
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     items(categories) { cat ->
                         val isActive = currentCategory == cat
-                        Surface(
-                            onClick = { onCategoryChange(cat) },
-                            shape = RoundedCornerShape(20.dp),
-                            color = if (isActive)
-                                themeColors.primaryContainer
-                            else
-                                Zinc800.copy(alpha = 0.4f),
-                            border = if (isActive)
-                                BorderStroke(1.5.dp, themeColors.primary)
-                            else
-                                BorderStroke(1.dp, Zinc700.copy(alpha = 0.5f))
+                        Column(
+                            modifier = Modifier
+                                .clickable { onCategoryChange(cat) }
+                                .padding(horizontal = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = cat,
                                 style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (isActive) themeColors.onPrimaryContainer else Zinc400,
-                                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Medium
+                                    color = if (isActive) themeColors.primary300 else Zinc500,
+                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
                                 ),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                            // Underline indicator
+                            Box(
+                                modifier = Modifier
+                                    .height(2.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        if (isActive) themeColors.primary400
+                                        else Color.Transparent,
+                                        RoundedCornerShape(1.dp)
+                                    )
                             )
                         }
                     }
                 }
 
                 // Category Management Button
-                FilledIconButton(
+                IconButton(
                     onClick = { showCategorySheet = true },
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = themeColors.secondaryContainer,
-                        contentColor = themeColors.onSecondaryContainer
-                    ),
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                    Icon(
                        imageVector = AppIcons.Edit,
                        contentDescription = "Manage Categories",
-                       modifier = Modifier.size(20.dp)
+                       tint = Zinc500,
+                       modifier = Modifier.size(18.dp)
                    )
                 }
             }
@@ -327,7 +329,7 @@ fun AudioLoopMainScreen(
             HorizontalDivider(
                 color = Zinc700.copy(alpha = 0.3f),
                 thickness = 1.dp,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
 
             // Recording Section - Modern MD3 Design
