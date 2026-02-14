@@ -285,6 +285,7 @@ fun AudioLoopMainScreen(
                         val isActive = currentCategory == cat
                         Column(
                             modifier = Modifier
+                                .width(IntrinsicSize.Max)
                                 .clickable { onCategoryChange(cat) }
                                 .padding(horizontal = 12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
