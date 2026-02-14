@@ -267,7 +267,7 @@ fun TrimAudioDialog(
                             }
                         }
 
-                        LaunchedEffect(isPreviewPlaying) {
+                        LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs) {
                              if (isPreviewPlaying) {
                                   while (isActive && previewPlayer.isPlaying) {
                                       val currentMs = previewPlayer.currentPosition.toLong()
@@ -282,7 +282,7 @@ fun TrimAudioDialog(
                                                 isPreviewPlaying = false
                                           }
                                       } else {
-                                          // Remove Mode: Skip the selection
+                                          // Remove Mode: Skip the selection STRICTLY
                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
                                                previewPlayer.seekTo(selectionEndMs.toInt())
                                                previewPositionMs = selectionEndMs.toLong()
@@ -373,7 +373,16 @@ fun TrimAudioDialog(
                                 .pointerInput(Unit) {
                                     detectTapGestures(onTap = { offset ->
                                         val tapMs = (offset.x / widthPx) * totalDuration
-                                        previewPositionMs = tapMs.toLong().coerceIn(0L, durationMs)
+                                        var newMs = tapMs.toLong().coerceIn(0L, durationMs)
+                                        
+                                        // Enforce Cut Mode constraints
+                                        if (trimMode == TrimMode.Remove) {
+                                            if (newMs >= selectionStartMs && newMs < selectionEndMs) {
+                                                newMs = selectionEndMs.toLong()
+                                            }
+                                        }
+                                        
+                                        previewPositionMs = newMs
                                         previewPlayer.seekTo(previewPositionMs.toInt())
                                     })
                                 }
@@ -410,8 +419,17 @@ fun TrimAudioDialog(
                                                      endX = (endX + dragAmount.x).coerceIn(0f, widthPx)
                                                 }
                                                 TrimDragTarget.Playhead -> {
-                                                     val newMs = (touchX / widthPx) * totalDuration
-                                                     previewPositionMs = newMs.toLong().coerceIn(0L, durationMs)
+                                                     val rawMs = (touchX / widthPx) * totalDuration
+                                                     var newMs = rawMs.toLong().coerceIn(0L, durationMs)
+                                                     
+                                                     // Enforce Cut Mode constraints
+                                                     if (trimMode == TrimMode.Remove) {
+                                                         if (newMs >= selectionStartMs && newMs < selectionEndMs) {
+                                                             newMs = selectionEndMs.toLong()
+                                                         }
+                                                     }
+                                                     
+                                                     previewPositionMs = newMs
                                                      previewPlayer.seekTo(previewPositionMs.toInt())
                                                 }
                                                 null -> {}
@@ -428,7 +446,44 @@ fun TrimAudioDialog(
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Time Displays - Digital Clock Style
+                    // Time Displays - digital & projected
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Current Position
+                        Column {
+                            Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text(
+                                formatDuration(previewPositionMs),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                            )
+                        }
+
+                        // Projected Duration
+                        Column(horizontalAlignment = Alignment.End) {
+                            val start = range.start.toLong()
+                            val end = range.endInclusive.toLong()
+                            val projectedDuration = if (trimMode == TrimMode.Keep) {
+                                (end - start).coerceAtLeast(0L)
+                            } else {
+                                (durationMs - (end - start)).coerceAtLeast(0L)
+                            }
+                            
+                            Text("NEW LENGTH", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text(
+                                formatDuration(projectedDuration),
+                                color = themeColors.primary200,
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Selection Range Displays
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -439,29 +494,37 @@ fun TrimAudioDialog(
                             Text(
                                 formatDuration(range.start.toLong()),
                                 color = themeColors.primary200,
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
                             )
                         }
                         
                         // Center Play Control
                          Box(
                             modifier = Modifier
-                                .size(56.dp)
+                                .size(48.dp) // Slightly smaller
                                 .shadow(8.dp, CircleShape)
                                 .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
                                 .border(1.dp, Zinc700, CircleShape)
                                 .clickable {
+                                     val start = range.start.toLong()
+                                     val end = range.endInclusive.toLong()
+                                     
                                      if (isPreviewPlaying) {
                                          previewPlayer.pause()
                                          isPreviewPlaying = false
                                      } else {
-                                         // If at end, restart
-                                         val start = range.start.toLong()
-                                         val end = range.endInclusive.toLong()
-                                         if (trimMode == TrimMode.Keep && previewPositionMs >= end) {
-                                             previewPositionMs = start
-                                         } else if (previewPositionMs >= durationMs) {
-                                             previewPositionMs = 0L
+                                         // Smart Start Logic
+                                         if (trimMode == TrimMode.Keep) {
+                                             if (previewPositionMs < start || previewPositionMs >= end) {
+                                                  previewPositionMs = start
+                                             }
+                                         } else {
+                                             // Cut Mode
+                                             if (previewPositionMs >= start && previewPositionMs < end) {
+                                                  previewPositionMs = end
+                                             } else if (previewPositionMs >= durationMs) {
+                                                  previewPositionMs = 0L
+                                             }
                                          }
                                          
                                          previewPlayer.seekTo(previewPositionMs.toInt())
@@ -475,7 +538,7 @@ fun TrimAudioDialog(
                                 imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                         
@@ -484,7 +547,7 @@ fun TrimAudioDialog(
                             Text(
                                 formatDuration(range.endInclusive.toLong()),
                                 color = Red200,
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
                             )
                         }
                     }
@@ -494,15 +557,16 @@ fun TrimAudioDialog(
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     // Footer Actions
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                          OutlinedButton(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, Zinc700),
+                            contentPadding = PaddingValues(horizontal = 4.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc200)
                         ) {
-                            Text("Cancel")
+                            Text("Cancel", maxLines = 1, style = MaterialTheme.typography.labelLarge)
                         }
                         
                          Button(
@@ -513,9 +577,10 @@ fun TrimAudioDialog(
                             },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White)
                         ) {
-                            Text("Save Copy", color = Color.White)
+                            Text("Save Copy", maxLines = 1, style = MaterialTheme.typography.labelLarge)
                         }
                         
                         Button(
@@ -526,9 +591,10 @@ fun TrimAudioDialog(
                             },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White)
                         ) {
-                            Text("Replace", color = Color.White)
+                            Text("Replace", maxLines = 1, style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
