@@ -245,6 +245,33 @@ object AppIcons {
         }
     private var _playArrow: ImageVector? = null
 
+    val Play: ImageVector
+        get() = PlayArrow
+
+    // Replacement for Icons.Default.Pause
+    val Pause: ImageVector
+        get() {
+            if (_pause != null) return _pause!!
+            _pause = materialIcon(name = "Pause") {
+                materialPath {
+                    moveTo(6.0f, 19.0f)
+                    horizontalLineToRelative(4.0f)
+                    verticalLineTo(5.0f)
+                    horizontalLineTo(6.0f)
+                    verticalLineToRelative(14.0f)
+                    close()
+                    moveTo(14.0f, 5.0f)
+                    verticalLineToRelative(14.0f)
+                    horizontalLineToRelative(4.0f)
+                    verticalLineTo(5.0f)
+                    horizontalLineToRelative(-4.0f)
+                    close()
+                }
+            }
+            return _pause!!
+        }
+    private var _pause: ImageVector? = null
+
     // Replacement for Icons.Default.MoreVert
     val MoreVert: ImageVector
         get() {
@@ -699,4 +726,10 @@ object AppIcons {
              return _sleep!!
         }
     private var _sleep: ImageVector? = null
+
+    val Play: ImageVector
+        get() = androidx.compose.material.icons.Icons.Default.PlayArrow
+
+    val Pause: ImageVector
+        get() = androidx.compose.material.icons.Icons.Default.Pause
 }

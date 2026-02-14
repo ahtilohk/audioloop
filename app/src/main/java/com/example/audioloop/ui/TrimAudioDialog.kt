@@ -37,6 +37,13 @@ import com.example.audioloop.ui.theme.*
 import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
 
+// Define local colors if not resolved
+private val Red100 = Color(0xFFFFE5E5)
+private val Red200 = Color(0xFFFECACA)
+private val Red500 = Color(0xFFEF4444)
+private val Red900 = Color(0xFF7F1D1D)
+
+
 private enum class TrimDragTarget {
     Start,
     End,
