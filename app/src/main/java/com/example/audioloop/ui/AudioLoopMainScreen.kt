@@ -471,7 +471,7 @@ fun AudioLoopMainScreen(
                                 } else {
                                     // Mic icon (Red accent)
                                     Icon(
-                                        imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Radio,
+                                        imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Stream,
                                         contentDescription = null,
                                         tint = Red500, // Red accent icon
                                         modifier = Modifier.size(28.dp)

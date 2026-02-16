@@ -752,4 +752,49 @@ object AppIcons {
         }
     private var _replay: ImageVector? = null
 
+    // Stream (Broadcasting/Signal - Sensors style)
+    val Stream: ImageVector
+        get() {
+            if (_stream != null) return _stream!!
+            _stream = materialIcon(name = "Stream") {
+                materialPath {
+                    // Central dot
+                    moveTo(12.0f, 15.0f)
+                    curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
+                    reflectiveCurveToRelative(-0.9f, -2.0f, -2.0f, -2.0f)
+                    reflectiveCurveToRelative(-2.0f, 0.9f, -2.0f, 2.0f)
+                    reflectiveCurveToRelative(0.9f, 2.0f, 2.0f, 2.0f)
+                    close()
+                    // Inner ring
+                    moveTo(12.0f, 7.0f)
+                    curveToRelative(-3.31f, 0.0f, -6.0f, 2.69f, -6.0f, 6.0f)
+                    curveToRelative(0.0f, 1.66f, 0.68f, 3.15f, 1.76f, 4.24f)
+                    lineToRelative(1.42f, -1.42f)
+                    curveTo(8.42f, 15.05f, 8.0f, 14.08f, 8.0f, 13.0f)
+                    curveToRelative(0.0f, -2.21f, 1.79f, -4.0f, 4.0f, -4.0f)
+                    reflectiveCurveToRelative(4.0f, 1.79f, 4.0f, 4.0f)
+                    curveToRelative(0.0f, 1.08f, -0.42f, 2.05f, -1.18f, 2.82f)
+                    lineToRelative(1.42f, 1.42f)
+                    curveTo(17.32f, 16.15f, 18.0f, 14.66f, 18.0f, 13.0f)
+                    curveToRelative(0.0f, -3.31f, -2.69f, -6.0f, -6.0f, -6.0f)
+                    close()
+                    // Outer ring
+                    moveTo(12.0f, 3.0f)
+                    curveTo(6.48f, 3.0f, 2.0f, 7.48f, 2.0f, 13.0f)
+                    curveToRelative(0.0f, 2.76f, 1.12f, 5.26f, 2.93f, 7.07f)
+                    lineToRelative(1.41f, -1.41f)
+                    curveTo(4.94f, 17.26f, 4.0f, 15.24f, 4.0f, 13.0f)
+                    curveToRelative(0.0f, -4.42f, 3.58f, -8.0f, 8.0f, -8.0f)
+                    reflectiveCurveToRelative(8.0f, 3.58f, 8.0f, 8.0f)
+                    curveToRelative(0.0f, 2.24f, -0.94f, 4.26f, -2.34f, 5.66f)
+                    lineToRelative(1.41f, 1.41f)
+                    curveTo(20.88f, 18.26f, 22.0f, 15.76f, 22.0f, 13.0f)
+                    curveToRelative(0.0f, -5.52f, -4.48f, -10.0f, -10.0f, -10.0f)
+                    close()
+                }
+            }
+            return _stream!!
+        }
+    private var _stream: ImageVector? = null
+
 }
