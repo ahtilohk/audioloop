@@ -156,7 +156,7 @@ fun CategoryManagementSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc800.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp)
     ) {
@@ -212,7 +212,7 @@ fun CategoryManagementSheet(
                         .padding(horizontal = 16.dp),
                     decorationBox = { innerTextField ->
                         Box(contentAlignment = Alignment.CenterStart) {
-                            if (newCategoryName.isEmpty()) Text("New category name...", color = Zinc500, fontSize = 14.sp)
+                            if (newCategoryName.isEmpty()) Text("Category name...", color = Zinc500, fontSize = 14.sp)
                             innerTextField()
                         }
                     }
