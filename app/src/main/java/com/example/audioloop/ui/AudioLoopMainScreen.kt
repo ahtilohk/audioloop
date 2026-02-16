@@ -200,7 +200,7 @@ fun AudioLoopMainScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -208,7 +208,7 @@ fun AudioLoopMainScreen(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .statusBarsPadding()
         ) {
             // Header - Modern MD3 Design
@@ -861,7 +861,6 @@ fun AudioLoopMainScreen(
                     }
                 }
             }
-            }
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -1144,7 +1143,9 @@ fun AudioLoopMainScreen(
                 themeColors = themeColors
              )
         }
+
     }
+}
 }
 // Dialog Helpers adapted from MainActivity
 
