@@ -319,12 +319,19 @@ class RecordingService : Service() {
             }
             if (projection == null) throw IllegalStateException("MediaProjection on null")
             mediaProjection = projection
+            projection.registerCallback(object : android.media.projection.MediaProjection.Callback() {
+                override fun onStop() {
+                    Log.d("AudioLoop", "MediaProjection stopped externally")
+                    safelyStopRecorder()
+                }
+            }, android.os.Handler(android.os.Looper.getMainLooper()))
 
             // 1. Setup AudioRecord (Input)
-            val sampleRate = 44100
+            val sampleRate = 48000 // Native rate for many devices
             val channelConfig = AudioFormat.CHANNEL_IN_STEREO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             
+            Log.d("AudioLoop", "Using MediaProjection for internal audio capture")
             val config = AudioPlaybackCaptureConfiguration.Builder(projection)
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                 .addMatchingUsage(AudioAttributes.USAGE_GAME)
@@ -332,7 +339,8 @@ class RecordingService : Service() {
                 .build()
 
             val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-            val bufferSize = minBufferSize * 2
+            val bufferSize = (minBufferSize * 4).coerceAtLeast(8192) // Increased buffer for stability
+            Log.d("AudioLoop", "Internal Capture Buffer Size: $bufferSize")
 
             val recordFormat = AudioFormat.Builder()
                 .setEncoding(audioFormat)
@@ -486,15 +494,20 @@ class RecordingService : Service() {
                         Log.e("AudioLoop", "AudioRecord error: $read")
                         break 
                     }
+                    if (read == 0) continue
                     
                     // Live Amplitude Calculation
                     if (read > 0) {
-                        var sum = 0.0
-                        // Sample every 100th byte (approx)
-                        for (i in 0 until read step 100) {
-                            sum += kotlin.math.abs(buffer[i].toInt())
+                        var sum = 0L
+                        // Sample every 4th byte for 16-bit PCM (every two samples approx)
+                        for (i in 0 until read step 4) {
+                            // Combine two bytes into short
+                            val sample = (buffer[i+1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)
+                            sum += kotlin.math.abs(sample.toInt())
                         }
-                        currentMaxAmplitude = (sum / (read/100 + 1)).toInt() * 10 // Adjusted scaling
+                        val avg = (sum / (read / 4 + 1)).toInt()
+                        currentMaxAmplitude = avg * 2 // More accurate scaling for PCM 16-bit
+                        if (avg > 10) Log.v("AudioLoop", "Capture active avg=$avg")
                     }
 
                     // 2. Feed Encoder
