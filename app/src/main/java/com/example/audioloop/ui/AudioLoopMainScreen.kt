@@ -598,61 +598,77 @@ fun AudioLoopMainScreen(
                                 ) {
                                     // Speed
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val isActive = selectedSpeed != 1.0f
                                         Icon(
                                             imageVector = AppIcons.Speed,
                                             contentDescription = "Speed",
-                                            tint = Zinc500,
+                                            tint = if (isActive) themeColors.primary else Zinc500,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
                                             text = "${selectedSpeed}x",
-                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = if (isActive) themeColors.primary else Zinc500,
+                                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+                                            )
                                         )
                                     }
 
                                     // Loop Count
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val isActive = selectedLoopCount != 1
                                         Icon(
                                             imageVector = AppIcons.Loop,
                                             contentDescription = "Loop Count",
-                                            tint = Zinc500,
+                                            tint = if (isActive) themeColors.primary else Zinc500,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
                                             text = loopText,
-                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = if (isActive) themeColors.primary else Zinc500,
+                                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+                                            )
                                         )
                                     }
 
                                     // Shadowing
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val isActive = isShadowing
                                         Icon(
                                             imageVector = AppIcons.Shadow,
                                             contentDescription = "Shadowing",
-                                            tint = Zinc500,
+                                            tint = if (isActive) themeColors.primary else Zinc500,
                                             modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
-                                            text = if (isShadowing) "On" else "Off",
-                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                            text = if (isActive) "On" else "Off",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = if (isActive) themeColors.primary else Zinc500,
+                                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+                                            )
                                         )
                                     }
 
                                     // Sleep Timer
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val isActive = sleepTimerRemainingMs > 0L
                                         Icon(
                                             imageVector = AppIcons.Sleep,
                                             contentDescription = "Sleep Timer",
-                                            tint = Zinc500,
+                                            tint = if (isActive) themeColors.primary else Zinc500,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
                                             text = sleepText,
-                                            style = MaterialTheme.typography.bodySmall.copy(color = Zinc500)
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = if (isActive) themeColors.primary else Zinc500,
+                                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+                                            )
                                         )
                                     }
                                 }
