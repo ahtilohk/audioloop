@@ -861,6 +861,7 @@ fun AudioLoopMainScreen(
                     }
                 }
             }
+            }
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -1144,7 +1145,6 @@ fun AudioLoopMainScreen(
              )
         }
     }
-}
 }
 // Dialog Helpers adapted from MainActivity
 
