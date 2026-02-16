@@ -309,7 +309,7 @@ fun FileItem(
                     }
                 }
                 Text(
-                    text = "${if(isPlaying) "Playing â€¢ " else ""}${item.durationString}",
+                    text = "${if(isPlaying) "Playing \u2022 " else ""}${item.durationString}",
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = if (isPlaying) themeColors.primary else Zinc500
                     )
