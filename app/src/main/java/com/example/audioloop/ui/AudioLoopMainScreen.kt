@@ -144,8 +144,6 @@ fun AudioLoopMainScreen(
     sleepTimerRemainingMs: Long = 0L,
     selectedSleepMinutes: Int = 0,
     onSleepTimerChange: (Int) -> Unit,
-    streamUrl: String,
-    onStreamUrlChange: (String) -> Unit,
     currentTheme: com.example.audioloop.ui.theme.AppTheme,
     onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit
 ) {
@@ -808,67 +806,7 @@ fun AudioLoopMainScreen(
                             }
                         }
 
-                        // Stream URL Input
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text("Stream Recording / Radio", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            // Presets
-                            Text("Presets:", style = TextStyle(color = Zinc600, fontSize = 10.sp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                listOf(
-                                    "Tartu" to "http://raadio.pereraadio.ee:8000/tartu",
-                                    "Tallinn" to "http://raadio.pereraadio.ee:8000/tallinn",
-                                    "Kuressaare" to "http://raadio.pereraadio.ee:8000/kuressaare"
-                                ).forEach { (label, url) ->
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (streamUrl == url) themeColors.primary600 else Zinc800)
-                                            .clickable { onStreamUrlChange(url) }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(label, style = TextStyle(color = Color.White, fontSize = 11.sp))
-                                    }
-                                }
-                            }
 
-                            Spacer(modifier = Modifier.height(4.dp))
-                            BasicTextField(
-                                value = streamUrl,
-                                onValueChange = onStreamUrlChange,
-                                textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.None),
-                                decorationBox = { innerTextField ->
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(Zinc800)
-                                            .border(1.dp, if (streamUrl.isNotEmpty()) themeColors.primary400 else Zinc700, RoundedCornerShape(8.dp))
-                                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                                    ) {
-                                        if (streamUrl.isEmpty()) {
-                                            Text("Enter Icecast/MP3 URL...", style = TextStyle(color = Zinc500, fontSize = 14.sp))
-                                        }
-                                        innerTextField()
-                                    }
-                                }
-                            )
-                            
-                            Text(
-                                text = if (streamUrl.isBlank()) 
-                                    "Empty URL: Records Browser (Popup required)" 
-                                else "Direct Mode: Better quality, background recording",
-                                color = if (streamUrl.isBlank()) Zinc500 else themeColors.primary300,
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                        }
 
                         // Theme Selector
                         Text("Theme:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))

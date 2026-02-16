@@ -34,7 +34,6 @@ class RecordingService : Service() {
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_START_INTERNAL = "ACTION_START_INTERNAL"
-        const val ACTION_START_STREAM = "ACTION_START_STREAM"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_RECORDING_SAVED = "com.example.audioloop.RECORDING_SAVED"
         const val ACTION_AMPLITUDE_UPDATE = "com.example.audioloop.AMPLITUDE_UPDATE"
@@ -47,7 +46,6 @@ class RecordingService : Service() {
         const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS"
         const val EXTRA_USE_PUBLIC_STORAGE = "EXTRA_USE_PUBLIC_STORAGE"
         const val EXTRA_CATEGORY = "EXTRA_CATEGORY"
-        const val EXTRA_STREAM_URL = "EXTRA_STREAM_URL"
 
         private const val CHANNEL_ID = "recording_channel"
         private const val NOTIFICATION_ID = 1
@@ -74,10 +72,6 @@ class RecordingService : Service() {
     private var muxerTrackIndex = -1
     private var isMuxerStarted = false
     
-    // --- DIRECT STREAM RECORDING ---
-    private var isStreamRecording = false
-    private var streamJob: Job? = null
-    
     private var currentMaxAmplitude = 0
     
     // Live Waveform Ticker
@@ -102,12 +96,6 @@ class RecordingService : Service() {
             val fileName: String,
             val resultCode: Int,
             val data: Intent
-        ) : PendingStart()
-
-        data class WebStream(
-            val fileName: String,
-            val url: String,
-            val category: String
         ) : PendingStart()
     }
 
@@ -147,12 +135,6 @@ class RecordingService : Service() {
                 } else {
                     stopSelf()
                 }
-            }
-            ACTION_START_STREAM -> {
-                val fileName = intent.getStringExtra(EXTRA_FILENAME) ?: "stream_rec"
-                val url = intent.getStringExtra(EXTRA_STREAM_URL) ?: ""
-                val category = intent.getStringExtra(EXTRA_CATEGORY) ?: "General"
-                serviceScope.launch { startDirectStreamRecording(fileName, url, category) }
             }
             ACTION_STOP -> {
                 serviceScope.launch { stopRecording() }
@@ -404,83 +386,6 @@ class RecordingService : Service() {
         }
     }
 
-    private suspend fun startDirectStreamRecording(fileName: String, url: String, category: String) {
-        val shouldStart = synchronized(stateLock) {
-            when (recordingState) {
-                RecordingState.RECORDING -> false
-                RecordingState.STOPPING -> {
-                    pendingStart = PendingStart.WebStream(fileName, url, category)
-                    false
-                }
-                RecordingState.IDLE -> {
-                    recordingState = RecordingState.RECORDING
-                    true
-                }
-            }
-        }
-        if (!shouldStart) return
-        if (url.isBlank()) {
-            showToast("Stream URL is empty!")
-            synchronized(stateLock) { recordingState = RecordingState.IDLE }
-            return
-        }
-
-        val finalFileName = if (fileName.endsWith(".mp3")) fileName else "$fileName.mp3"
-        val file = File(filesDir, if (category == "General") finalFileName else "$category/$finalFileName")
-        file.parentFile?.mkdirs()
-        currentFile = file
-
-        startForegroundServiceNotification("Direct stream recording...", false)
-
-        try {
-            isRecording = true
-            isStreamRecording = true
-            recordingStartTime = System.currentTimeMillis()
-
-            streamJob = serviceScope.launch(Dispatchers.IO) {
-                try {
-                    val connection = java.net.URL(url).openConnection()
-                    connection.connectTimeout = 10000
-                    connection.readTimeout = 10000
-                    
-                    connection.getInputStream().use { input ->
-                        file.outputStream().use { output ->
-                            val buffer = ByteArray(8192)
-                            var bytesRead: Int
-                            while (isActive && isRecording) {
-                                bytesRead = input.read(buffer)
-                                if (bytesRead == -1) break
-                                output.write(buffer, 0, bytesRead)
-                                
-                                // Fake amplitude for stream (just random pulse)
-                                currentMaxAmplitude = 5000 + (Math.random() * 10000).toInt()
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        showToast("Stream error: ${e.message}")
-                    }
-                    safelyStopRecorder()
-                }
-            }
-
-            startAmplitudeTicker()
-            showToast("Direct Stream Recording started!")
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            showToast("Direct Stream Error: ${e.message}")
-            safelyStopRecorder()
-            synchronized(stateLock) {
-                if (recordingState == RecordingState.RECORDING) {
-                    recordingState = RecordingState.IDLE
-                }
-            }
-        }
-    }
-
     private fun startEncodingLoop(record: AudioRecord, encoder: MediaCodec, bufferSize: Int) {
         encodingJob = serviceScope.launch(Dispatchers.Default) {
             val buffer = ByteArray(bufferSize)
@@ -579,7 +484,6 @@ class RecordingService : Service() {
                     // Since we are in a separate coroutine, we can safely join (wait) for it,
                     // even if safelyStopRecorder was called FROM encodingJob (because that call returns immediately).
                     encodingJob?.cancelAndJoin()
-                    streamJob?.cancelAndJoin()
                 } catch (e: Exception) { e.printStackTrace() }
 
                 // 4. Deterministic Resource Release
@@ -631,9 +535,6 @@ class RecordingService : Service() {
                     } else {
                         showToast("Stream recording requires Android Q+")
                     }
-                }
-                is PendingStart.WebStream -> {
-                    startDirectStreamRecording(nextStart.fileName, nextStart.url, nextStart.category)
                 }
                 null -> Unit
             }
@@ -694,7 +595,7 @@ class RecordingService : Service() {
         tickerJob = serviceScope.launch(Dispatchers.IO) {
             while (isActive && isRecording) {
                 try {
-                    val maxAmp = if (isInternalRecording || isStreamRecording) {
+                    val maxAmp = if (isInternalRecording) {
                         currentMaxAmplitude
                     } else {
                         mediaRecorder?.maxAmplitude ?: 0
