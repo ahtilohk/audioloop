@@ -284,8 +284,9 @@ fun TrimAudioDialog(
                                       } else {
                                           // Remove Mode: Skip the selection STRICTLY
                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
-                                               previewPlayer.seekTo(selectionEndMs.toInt())
-                                               previewPositionMs = selectionEndMs.toLong()
+                                               val seekPos = (selectionEndMs + 10).toInt().coerceAtMost(durationMs.toInt())
+                                               previewPlayer.seekTo(seekPos)
+                                               previewPositionMs = seekPos.toLong()
                                           }
                                       }
                                       delay(30)
@@ -317,9 +318,9 @@ fun TrimAudioDialog(
                                     val barHeight = (amplitude / 100f) * size.height * 0.8f // 80% height
                                     val isSelected = x >= selectionStartX && x <= selectionEndX
                                     val barColor = if (trimMode == TrimMode.Keep) {
-                                        if (isSelected) themeColors.primary400 else Zinc800
+                                        if (isSelected) themeColors.primary400 else Zinc700
                                     } else {
-                                        if (isSelected) Zinc800 else themeColors.primary400
+                                        if (isSelected) Zinc700 else themeColors.primary400
                                     }
                                     drawLine(
                                         color = barColor,
@@ -332,7 +333,7 @@ fun TrimAudioDialog(
                             }
                             
                             // Dimming layers
-                            val dimColor = Color.Black.copy(alpha = 0.7f)
+                            val dimColor = Color.Black.copy(alpha = 0.4f)
                             if (trimMode == TrimMode.Keep) {
                                 drawRect(dimColor, size = Size(selectionStartX, size.height))
                                 drawRect(dimColor, topLeft = Offset(selectionEndX, 0f), size = Size(size.width - selectionEndX, size.height))
