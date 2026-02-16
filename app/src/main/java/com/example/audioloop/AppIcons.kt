@@ -727,4 +727,29 @@ object AppIcons {
         }
     private var _sleep: ImageVector? = null
 
+    // Replay (Reset/Restart)
+    val Replay: ImageVector
+        get() {
+            if (_replay != null) return _replay!!
+            _replay = materialIcon(name = "Replay") {
+                materialPath {
+                    moveTo(12.0f, 5.0f)
+                    verticalLineTo(1.0f)
+                    lineTo(7.0f, 6.0f)
+                    lineToRelative(5.0f, 5.0f)
+                    verticalLineTo(7.0f)
+                    curveToRelative(3.31f, 0.0f, 6.0f, 2.69f, 6.0f, 6.0f)
+                    reflectiveCurveToRelative(-2.69f, 6.0f, -6.0f, 6.0f)
+                    reflectiveCurveToRelative(-6.0f, -2.69f, -6.0f, -6.0f)
+                    horizontalLineTo(4.0f)
+                    curveToRelative(0.0f, 4.42f, 3.58f, 8.0f, 8.0f, 8.0f)
+                    reflectiveCurveToRelative(8.0f, -3.58f, 8.0f, -8.0f)
+                    reflectiveCurveToRelative(-3.58f, -8.0f, -8.0f, -8.0f)
+                    close()
+                }
+            }
+            return _replay!!
+        }
+    private var _replay: ImageVector? = null
+
 }

@@ -362,12 +362,16 @@ fun TrimAudioDialog(
                                 cornerRadius = CornerRadius(4.dp.toPx())
                             )
                             
-                            // Playhead
-                             val playheadX = if (totalDuration > 0f) {
-                                ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
-                            } else 0f
-                            drawLine(Color.White, Offset(playheadX, 0f), Offset(playheadX, size.height), strokeWidth = 2.dp.toPx())
-                         }
+                             // Playhead
+                              val playheadX = if (totalDuration > 0f) {
+                                 ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
+                             } else 0f
+                             drawLine(Color.White.copy(alpha = 0.8f), Offset(playheadX, 0f), Offset(playheadX, size.height), strokeWidth = 2.dp.toPx())
+                             
+                             // Playhead handles (dots)
+                             drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playheadX, 0f))
+                             drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playheadX, size.height))
+                          }
                         
                          // Touch Logic
                          Canvas(
@@ -455,8 +459,16 @@ fun TrimAudioDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Current Position
-                        Column {
+                         // Current Position
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    previewPositionMs = 0L
+                                    previewPlayer.seekTo(0)
+                                }
+                                .padding(4.dp)
+                        ) {
                             Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                             Text(
                                 formatDuration(previewPositionMs),
@@ -501,48 +513,70 @@ fun TrimAudioDialog(
                             )
                         }
                         
-                        // Center Play Control
-                         Box(
-                            modifier = Modifier
-                                .size(48.dp) // Slightly smaller
-                                .shadow(8.dp, CircleShape)
-                                .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
-                                .border(1.dp, Zinc700, CircleShape)
-                                .clickable {
-                                     val start = range.start.toLong()
-                                     val end = range.endInclusive.toLong()
-                                     
-                                     if (isPreviewPlaying) {
-                                         previewPlayer.pause()
-                                         isPreviewPlaying = false
-                                     } else {
-                                         // Smart Start Logic
-                                         if (trimMode == TrimMode.Keep) {
-                                             if (previewPositionMs < start || previewPositionMs >= end) {
-                                                  previewPositionMs = start
-                                             }
-                                         } else {
-                                             // Cut Mode
-                                             if (previewPositionMs >= start && previewPositionMs < end) {
-                                                  previewPositionMs = end
-                                             } else if (previewPositionMs >= durationMs) {
-                                                  previewPositionMs = 0L
-                                             }
-                                         }
+                         // Center Play & Reset Controls
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // Reset Button
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(Zinc800, CircleShape)
+                                    .border(1.dp, Zinc700, CircleShape)
+                                    .clickable {
+                                        previewPositionMs = 0L
+                                        previewPlayer.seekTo(0)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Replay,
+                                    contentDescription = "Reset",
+                                    tint = Zinc400,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                             Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .shadow(8.dp, CircleShape)
+                                    .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
+                                    .border(1.dp, Zinc700, CircleShape)
+                                    .clickable {
+                                         val start = range.start.toLong()
+                                         val end = range.endInclusive.toLong()
                                          
-                                         previewPlayer.seekTo(previewPositionMs.toInt())
-                                         previewPlayer.start()
-                                         isPreviewPlaying = true
-                                     }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
+                                         if (isPreviewPlaying) {
+                                             previewPlayer.pause()
+                                             isPreviewPlaying = false
+                                         } else {
+                                             // Smart Start Logic
+                                             if (trimMode == TrimMode.Keep) {
+                                                 if (previewPositionMs < start || previewPositionMs >= end) {
+                                                      previewPositionMs = start
+                                                 }
+                                             } else {
+                                                 // Cut Mode
+                                                 if (previewPositionMs >= start && previewPositionMs < end) {
+                                                      previewPositionMs = end
+                                                 } else if (previewPositionMs >= durationMs) {
+                                                      previewPositionMs = 0L
+                                                 }
+                                             }
+                                             
+                                             previewPlayer.seekTo(previewPositionMs.toInt())
+                                             previewPlayer.start()
+                                             isPreviewPlaying = true
+                                         }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                         
                         Column(horizontalAlignment = Alignment.End) {
