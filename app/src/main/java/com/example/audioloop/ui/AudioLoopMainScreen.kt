@@ -143,9 +143,11 @@ fun AudioLoopMainScreen(
     onPublicStorageChange: (Boolean) -> Unit,
     sleepTimerRemainingMs: Long = 0L,
     selectedSleepMinutes: Int = 0,
-    onSleepTimerChange: (Int) -> Unit = {},
-    currentTheme: com.example.audioloop.ui.theme.AppTheme = com.example.audioloop.ui.theme.AppTheme.SLATE,
-    onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit = {}
+    onSleepTimerChange: (Int) -> Unit,
+    streamUrl: String,
+    onStreamUrlChange: (String) -> Unit,
+    currentTheme: com.example.audioloop.ui.theme.AppTheme,
+    onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit
 ) {
     // Get theme colors
     val themeColors = currentTheme.palette
@@ -358,7 +360,7 @@ fun AudioLoopMainScreen(
                             .padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        listOf("Speech" to AppIcons.Mic, "Stream" to AppIcons.Radio).forEach { (m, icon) ->
+                        listOf("Speech" to AppIcons.Mic, "Stream" to AppIcons.Stream).forEach { (m, icon) ->
                             val active = mode == m
                             Surface(
                                 onClick = { mode = m },
@@ -804,6 +806,34 @@ fun AudioLoopMainScreen(
                                     modifier = Modifier.clickable { onSleepTimerChange(0) }
                                 )
                             }
+                        }
+
+                        // Stream URL Input
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text("Stream URL:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            BasicTextField(
+                                value = streamUrl,
+                                onValueChange = onStreamUrlChange,
+                                textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.None),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Zinc800)
+                                            .border(1.dp, Zinc700, RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    ) {
+                                        if (streamUrl.isEmpty()) {
+                                            Text("Enter stream URL (e.g., radio.mp3)", style = TextStyle(color = Zinc500, fontSize = 14.sp))
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
                         }
 
                         // Theme Selector

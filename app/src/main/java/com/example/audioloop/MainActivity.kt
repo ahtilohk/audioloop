@@ -233,6 +233,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var selectedSleepMinutes by mutableIntStateOf(0)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
     private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
+    private var streamUrl by mutableStateOf("")
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -244,6 +245,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
         
         currentTheme = getThemePref(this)
+        streamUrl = getStreamUrlPref(this)
 
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
@@ -515,11 +517,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onStartRecord = { name, useRaw ->
                             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                                 if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    pendingRecordingName = name
-                                    pendingCategory = uiCategory
-                                    val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
-                                    screenCaptureLauncher.launch(captureIntent)
-                                    true
+                                    if (streamUrl.isNotBlank()) {
+                                        startStreamRecording(name, streamUrl, uiCategory)
+                                        true
+                                    } else {
+                                        pendingRecordingName = name
+                                        pendingCategory = uiCategory
+                                        val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
+                                        screenCaptureLauncher.launch(captureIntent)
+                                        true
+                                    }
                                 } else {
                                     startRecording(name, uiCategory, false)
                                     true
@@ -582,6 +589,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
                         selectedSleepMinutes = selectedSleepMinutes,
                         onSleepTimerChange = { minutes -> setSleepTimer(minutes) },
+                        streamUrl = streamUrl,
+                        onStreamUrlChange = { url -> 
+                            streamUrl = url
+                            saveStreamUrlPref(this@MainActivity, url)
+                        },
                         currentTheme = currentTheme,
                         onThemeChange = { theme ->
                             currentTheme = theme
@@ -734,6 +746,26 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             putExtra(RecordingService.EXTRA_AUDIO_SOURCE, source)
         }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+    }
+
+    private fun startStreamRecording(fileName: String, url: String, category: String) {
+        val intent = Intent(this, RecordingService::class.java).apply {
+            action = RecordingService.ACTION_START_STREAM
+            putExtra(RecordingService.EXTRA_FILENAME, fileName)
+            putExtra(RecordingService.EXTRA_STREAM_URL, url)
+            putExtra(RecordingService.EXTRA_CATEGORY, category)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+    }
+
+    private fun getStreamUrlPref(context: Context): String {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("stream_url", "") ?: ""
+    }
+
+    private fun saveStreamUrlPref(context: Context, url: String) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("stream_url", url).apply()
     }
 
     private fun startInternalAudioService(serviceIntent: Intent) {
