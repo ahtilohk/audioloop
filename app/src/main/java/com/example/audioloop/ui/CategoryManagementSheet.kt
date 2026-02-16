@@ -97,41 +97,70 @@ fun CategoryManagementSheet(
     var editingId by remember { mutableStateOf<String?>(null) }
     var editName by remember { mutableStateOf("") }
     val uiCategories = remember { mutableStateListOf<String>() }
+    val scrollState = rememberLazyListState()
+    
+    // Drag State
+    var draggingCategoryIndex by remember { mutableIntStateOf(-1) }
+    var draggingCategory by remember { mutableStateOf<String?>(null) }
+    var overlayOffsetY by remember { mutableFloatStateOf(0f) }
+    var grabOffsetY by remember { mutableFloatStateOf(0f) }
+    var overscrollSpeed by remember { mutableFloatStateOf(0f) }
+    var draggingItemSizePx by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(categories) {
         uiCategories.clear()
         uiCategories.addAll(categories)
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.6f))
-            .clickable { onClose() },
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.8f)
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(Zinc900)
-                .clickable(enabled = false) {} // Prevent click through
-        ) {
-            // Drag Handle
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(Zinc600, CircleShape)
-                )
+    fun checkForSwap() {
+        val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
+        if (currentVisibleItems.isEmpty()) return
+
+        val overlayCenterY = overlayOffsetY + (draggingItemSizePx / 2f)
+        var targetIndex = -1
+
+        val hoveredItem = currentVisibleItems.find {
+            overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
+        }
+
+        if (hoveredItem != null) {
+            targetIndex = hoveredItem.index
+        } else {
+            val firstVisible = currentVisibleItems.first()
+            val lastVisible = currentVisibleItems.last()
+            if (overlayCenterY < firstVisible.offset) targetIndex = firstVisible.index
+            else if (overlayCenterY > lastVisible.offset + lastVisible.size) targetIndex = lastVisible.index
+        }
+
+        // Prevent swapping "General" (index 0)
+        if (targetIndex >= 0 && targetIndex != draggingCategoryIndex) {
+            // Logic to keep "General" at index 0
+            if (targetIndex == 0) {
+                if (draggingCategoryIndex != 0) {
+                     return 
+                }
             }
+            
+            if (draggingCategoryIndex == 0 && targetIndex > 0) {
+                 return
+            }
+
+            if (draggingCategoryIndex in uiCategories.indices && targetIndex in uiCategories.indices) {
+                val itemToMove = uiCategories.removeAt(draggingCategoryIndex)
+                uiCategories.add(targetIndex, itemToMove)
+                draggingCategoryIndex = targetIndex
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .border(1.dp, Zinc800.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+            .padding(vertical = 8.dp)
+    ) {
+        // Header Row with modern title and close button
 
             // Header
             Row(
@@ -141,17 +170,23 @@ fun CategoryManagementSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Categories",
-                    style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                )
+                Column {
+                    Text(
+                        text = "Categories",
+                        style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    )
+                    Text(
+                        text = "Manage and reorder your groups",
+                        style = TextStyle(color = Zinc500, fontSize = 12.sp)
+                    )
+                }
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .background(Zinc800, CircleShape)
                 ) {
-                    Icon(AppIcons.Close, contentDescription = "Close", tint = Zinc400, modifier = Modifier.size(18.dp))
+                    Icon(AppIcons.Close, contentDescription = "Close", tint = Zinc400, modifier = Modifier.size(20.dp))
                 }
             }
 
@@ -223,6 +258,7 @@ fun CategoryManagementSheet(
 
                 val overlayCenterY = overlayOffsetY + (draggingItemSizePx / 2f)
                 var targetIndex = -1
+                
                 val hoveredItem = currentVisibleItems.find {
                     overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
                 }
@@ -239,11 +275,25 @@ fun CategoryManagementSheet(
                     }
                 }
 
-                if (targetIndex == 0) {
-                    targetIndex = 1
-                }
+                // Prevent swapping "General" (index 0)
+                if (targetIndex >= 0 && targetIndex != draggingCategoryIndex) {
+                    // Logic to keep "General" at index 0
+                    if (targetIndex == 0) {
+                        // If we drag something to index 0, move it to index 1 instead
+                        // or just don't allow it if draggingCategory is not General
+                        if (draggingCategoryIndex != 0) {
+                             // effectively we can't move anything into index 0
+                             // but we should allow moving General out of 0? No, usually not.
+                             // Let's just snap to 1 if trying to move above General.
+                             return 
+                        }
+                    }
+                    
+                    if (draggingCategoryIndex == 0 && targetIndex > 0) {
+                         // Don't allow General to move
+                         return
+                    }
 
-                if (targetIndex != -1 && targetIndex != draggingCategoryIndex) {
                     if (draggingCategoryIndex in uiCategories.indices && targetIndex in uiCategories.indices) {
                         val itemToMove = uiCategories.removeAt(draggingCategoryIndex)
                         uiCategories.add(targetIndex, itemToMove)
@@ -267,7 +317,7 @@ fun CategoryManagementSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .heightIn(max = 400.dp) // Maintain a reasonable height when embedded
                     .pointerInput(Unit) {
                         val gripWidth = 60.dp.toPx()
                         awaitEachGesture {
@@ -280,7 +330,7 @@ fun CategoryManagementSheet(
 
                             if (hitItem != null && x <= gripWidth) {
                                 val index = hitItem.index
-                                if (index in uiCategories.indices && uiCategories[index] != "General") {
+                                if (index in uiCategories.indices) {
                                     down.consume()
                                     draggingCategoryIndex = index
                                     draggingCategory = uiCategories[index]
@@ -329,20 +379,11 @@ fun CategoryManagementSheet(
                     }
             ) {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .navigationBarsPadding(),
+                    modifier = Modifier.fillMaxWidth(),
                     state = scrollState,
-                    contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 40.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item {
-                        Text(
-                            text = "Manage your categories",
-                            style = TextStyle(color = Zinc500, fontSize = 12.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
                     itemsIndexed(uiCategories, key = { _, cat -> cat }) { index, cat ->
                         val isEditing = editingId == cat
                         val isDragging = draggingCategoryIndex == index
@@ -474,6 +515,5 @@ fun CategoryManagementSheet(
                     }
                 }
             }
-        }
     }
 }

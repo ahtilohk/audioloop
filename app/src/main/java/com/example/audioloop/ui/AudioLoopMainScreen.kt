@@ -343,7 +343,7 @@ fun AudioLoopMainScreen(
             )
 
             // Recording Section - Modern MD3 Design
-            AnimatedVisibility(visible = !isSelectionMode) {
+            AnimatedVisibility(visible = !isSelectionMode && !showCategorySheet) {
                 Column(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -816,7 +816,7 @@ fun AudioLoopMainScreen(
                                 .padding(top = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            com.example.audioloop.ui.theme.AppTheme.entries.forEach { theme ->
+                            com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
                                 val isSelected = currentTheme == theme
                                 Box(
                                     modifier = Modifier
@@ -845,7 +845,7 @@ fun AudioLoopMainScreen(
                             modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            com.example.audioloop.ui.theme.AppTheme.entries.forEach { theme ->
+                            com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
                                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                                     Text(
                                         theme.displayName,
@@ -861,288 +861,247 @@ fun AudioLoopMainScreen(
                     }
                 }
             }
-            }
 
-            HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 8.dp)
-            ) {
-                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isSelectionMode && selectedFiles.isNotEmpty()) {
-                        Button(
-                            onClick = {
-                                // Sort files by selection order
-                                val orderedSelection = selectedFiles.toList()
-                                val filesToPlay = orderedSelection.mapNotNull { name ->
-                                    recordingItems.find { it.name == name }
-                                }
-                                if (filesToPlay.isNotEmpty()) {
-                                    // Track playlist files for visual indication
-                                    playingPlaylistFiles = filesToPlay.map { it.name }
-                                    onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed) {
-                                        // Clear playlist tracking when playback completes
-                                        playingPlaylistFiles = emptyList()
-                                    }
-                                    isSelectionMode = false
-                                    selectedFiles = emptySet()
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("PLAY ${selectedFiles.size} SELECTED", color = Color.White, fontWeight = FontWeight.Bold)
-                        }
-                    } else {
-                        Text(
-                            text = "Files ($currentCategory):",
-                            style = TextStyle(color = Zinc200, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        )
-                        if (!isSelectionMode) {
-                            Button(
-                                onClick = { filePickerLauncher.launch("audio/*") },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.height(32.dp)
-                            ) {
-                                Text("+ Add file", fontSize = 12.sp, color = Color.White)
-                            }
-                        }
-                    }
-                } // End of Category Row
-                
-                val density = LocalDensity.current
-                val scrollState = rememberLazyListState()
-                val scope = rememberCoroutineScope()
-                
-                // Drag State - Overlay Approach
-                var draggingItemIndex by remember { mutableIntStateOf(-1) }
-                var draggingItem by remember { mutableStateOf<RecordingItem?>(null) }
-                var overlayOffsetY by remember { mutableFloatStateOf(0f) }
-                var grabOffsetY by remember { mutableFloatStateOf(0f) }
-                
-                // Auto-scroll logic
-                var overscrollSpeed by remember { mutableFloatStateOf(0f) }
-                
-                fun checkForSwap() {
-                    val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
-                    if (currentVisibleItems.isEmpty()) return
-                    
-                    val overlayCenterY = overlayOffsetY + (with(density) { 36.dp.toPx() }) // Approx center
-
-                    var targetIndex = -1
-                    
-                    // 1. Try exact match (Hover)
-                    val hoveredItem = currentVisibleItems.find { 
-                        overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
-                    }
-                    
-                    if (hoveredItem != null) {
-                        targetIndex = hoveredItem.index
-                    } else {
-                        // 2. Fallback: Check for out-of-bounds (Too high or Too low)
-                        // This handles fast drags where the overlay flies past the items
-                        val firstVisible = currentVisibleItems.first()
-                        val lastVisible = currentVisibleItems.last()
-                        
-                        if (overlayCenterY < firstVisible.offset) {
-                            targetIndex = firstVisible.index
-                        } else if (overlayCenterY > lastVisible.offset + lastVisible.size) {
-                            targetIndex = lastVisible.index
-                        }
-                    }
-                    
-                    if (targetIndex != -1 && targetIndex != draggingItemIndex) {
-                        if (draggingItemIndex in uiRecordingItems.indices && targetIndex in uiRecordingItems.indices) {
-                            val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
-                            uiRecordingItems.add(targetIndex, itemToMove)
-                            draggingItemIndex = targetIndex
-                        }
-                    }
-                }
-
-                LaunchedEffect(overscrollSpeed) {
-                    if (overscrollSpeed != 0f) {
-                        while (true) {
-                            val scrolled = scrollState.scrollBy(overscrollSpeed)
-                            if (scrolled != 0f) {
-                                checkForSwap()
-                            }
-                            kotlinx.coroutines.delay(10)
-                        }
-                    }
-                }
-    
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .pointerInput(Unit) {
-                        val gripWidth = 60.dp.toPx()
-                        awaitEachGesture {
-                            val down = awaitFirstDown(requireUnconsumed = false)
-                            val y = down.position.y
-                            val x = down.position.x
-                            
-                            val hitItem = scrollState.layoutInfo.visibleItemsInfo.find { 
-                                y >= it.offset && y <= it.offset + it.size
-                            }
-                            
-                            if (hitItem != null && x <= gripWidth) {
-                                down.consume()
-                                
-                                val index = hitItem.index
-                                if (index in uiRecordingItems.indices) {
-                                    draggingItemIndex = index
-                                    draggingItem = uiRecordingItems[index]
-                                    draggingItemName = draggingItem?.name
-                                    
-                                    val itemTop = hitItem.offset.toFloat()
-                                    overlayOffsetY = itemTop
-                                    grabOffsetY = y - itemTop
-                                    
-                                    var isDragging = true
-                                    while (isDragging) {
-                                        val event = awaitPointerEvent()
-                                        val change = event.changes.firstOrNull { it.id == down.id }
-                                        
-                                        if (change == null || !change.pressed) {
-                                            isDragging = false
-                                            break
-                                        }
-                                        
-                                        if (change.positionChanged()) {
-                                            change.consume()
-                                            val newY = change.position.y
-                                            overlayOffsetY = newY - grabOffsetY
-                                            
-                                            val viewportHeight = size.height.toFloat()
-                                            val threshold = 60.dp.toPx()
-                                            val maxSpeed = 20.dp.toPx() // Faster scroll
-                                            
-                                            if (newY < threshold) {
-                                                overscrollSpeed = -maxSpeed * ((threshold - newY) / threshold).coerceIn(0.1f, 1f)
-                                            } else if (newY > viewportHeight - threshold) {
-                                                overscrollSpeed = maxSpeed * ((newY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
-                                            } else {
-                                                overscrollSpeed = 0f
-                                            }
-                                            checkForSwap()
-                                        }
-                                    }
-                                    
-                                    // End Drag
-                                    overscrollSpeed = 0f
-                                    onReorderFinished(uiRecordingItems.map { it.file })
-                                    draggingItemIndex = -1
-                                    draggingItem = null
-                                    draggingItemName = null
-                                }
-                            }
-                        }
-                    }
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = scrollState,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                   itemsIndexed(uiRecordingItems, key = { _: Int, item: RecordingItem -> item.name }) { index, item ->
-                        val isPlaying = item.file.name == playingFileName
-                        val isSelected = selectedFiles.contains(item.name)
-                        
-                        val alpha = if (draggingItemIndex == index) 0f else 1f
-                        
-                        FileItem(
-                            modifier = Modifier.alpha(alpha),
-                            item = item,
-                            isPlaying = isPlaying,
-                            isPaused = if (isPlaying) isPaused else false,
-                            isSelectionMode = isSelectionMode,
-                            isSelected = isSelected,
-                            selectionOrder = selectedFiles.indexOf(item.name) + 1,
-                            onPlay = {
-                                onStartPlaylist(listOf(item), selectedLoopCount == -1, selectedSpeed, { /* onComplete */ })
-                            },
-                            onPause = onPausePlay,
-                            onResume = onResumePlay,
-                            onStop = { playingPlaylistFiles = emptyList(); onStopPlay() },
-                            onToggleSelect = { toggleSelection(item.name) },
-                            onRename = { itemToModify = item; showRenameDialog = true },
-                            onTrim = { recordingToTrim = item; showTrimDialog = true },
-                            onMove = { itemToModify = item; showMoveDialog = true },
-                            onShare = { onShareFile(item) },
-                            onDelete = { recordingToDelete = item; showDeleteDialog = true },
-                            currentProgress = if (isPlaying) currentProgress else 0f,
-                            currentTimeString = if (isPlaying) currentTimeString else "00:00",
-                            onSeek = onSeekTo,
-                            onReorder = { /* Legacy disabled */ },
-                            isDragging = draggingItemIndex == index,
-                            themeColors = themeColors,
-                            playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
-                        )
-                   }
-                   item { Spacer(modifier = Modifier.height(80.dp)) }
-                }
-
-                // Drag Overlay
-                if (draggingItem != null) {
-                    val item = draggingItem!!
-                    FileItem(
-                        modifier = Modifier
-                            .offset { IntOffset(0, overlayOffsetY.roundToInt()) }
-                            .shadow(8.dp, RoundedCornerShape(12.dp)),
-                        item = item,
-                        isPlaying = item.file.name == playingFileName,
-                        isPaused = if (item.file.name == playingFileName) isPaused else false,
-                        isSelectionMode = isSelectionMode,
-                        isSelected = selectedFiles.contains(item.name),
-                        selectionOrder = selectedFiles.indexOf(item.name) + 1,
-                        currentProgress = if (item.file.name == playingFileName) currentProgress else 0f,
-                        currentTimeString = if (item.file.name == playingFileName) currentTimeString else "00:00",
-                        onPlay = {},
-                        onPause = {},
-                        onResume = {},
-                        onStop = {},
-                        onToggleSelect = {},
-                        onRename = {},
-                        onTrim = {},
-                        onMove = {},
-                        onShare = {},
-                        onDelete = {},
-                        onSeek = {},
-                        onReorder = {},
-                        isDragging = true,
-                        themeColors = themeColors,
-                        playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
+            // Categories Management Embedded Frame
+            AnimatedVisibility(visible = showCategorySheet) {
+                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                    CategoryManagementSheet(
+                        categories = categories,
+                        currentCategory = currentCategory,
+                        onSelect = onCategoryChange,
+                        onAdd = onAddCategory,
+                        onRename = onRenameCategory,
+                        onDelete = onDeleteCategory,
+                        onReorder = onReorderCategories,
+                        onClose = { showCategorySheet = false },
+                        themeColors = themeColors
                     )
                 }
             }
+
+            if (!showCategorySheet) {
+                HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (isSelectionMode && selectedFiles.isNotEmpty()) {
+                            Button(
+                                onClick = {
+                                    val orderedSelection = selectedFiles.toList()
+                                    val filesToPlay = orderedSelection.mapNotNull { name ->
+                                        recordingItems.find { it.name == name }
+                                    }
+                                    if (filesToPlay.isNotEmpty()) {
+                                        playingPlaylistFiles = filesToPlay.map { it.name }
+                                        onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed) {
+                                            playingPlaylistFiles = emptyList()
+                                        }
+                                        isSelectionMode = false
+                                        selectedFiles = emptySet()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("PLAY ${selectedFiles.size} SELECTED", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            Text(
+                                text = "Files ($currentCategory):",
+                                style = TextStyle(color = Zinc200, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            )
+                            if (!isSelectionMode) {
+                                Button(
+                                    onClick = { filePickerLauncher.launch("audio/*") },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.height(32.dp)
+                                ) {
+                                    Text("+ Add file", fontSize = 12.sp, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+
+                    val density = LocalDensity.current
+                    val scrollState = rememberLazyListState()
+                    val scope = rememberCoroutineScope()
+                    var draggingItemIndex by remember { mutableIntStateOf(-1) }
+                    var draggingItem by remember { mutableStateOf<RecordingItem?>(null) }
+                    var overlayOffsetY by remember { mutableFloatStateOf(0f) }
+                    var grabOffsetY by remember { mutableFloatStateOf(0f) }
+                    var overscrollSpeed by remember { mutableFloatStateOf(0f) }
+
+                    fun checkForSwap() {
+                        val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
+                        if (currentVisibleItems.isEmpty()) return
+                        val overlayCenterY = overlayOffsetY + (with(density) { 36.dp.toPx() })
+                        var targetIndex = -1
+                        val hoveredItem = currentVisibleItems.find { overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size }
+                        if (hoveredItem != null) {
+                            targetIndex = hoveredItem.index
+                        } else {
+                            val firstVisible = currentVisibleItems.first()
+                            val lastVisible = currentVisibleItems.last()
+                            if (overlayCenterY < firstVisible.offset) targetIndex = firstVisible.index
+                            else if (overlayCenterY > lastVisible.offset + lastVisible.size) targetIndex = lastVisible.index
+                        }
+                        if (targetIndex != -1 && targetIndex != draggingItemIndex) {
+                            if (draggingItemIndex in uiRecordingItems.indices && targetIndex in uiRecordingItems.indices) {
+                                val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
+                                uiRecordingItems.add(targetIndex, itemToMove)
+                                draggingItemIndex = targetIndex
+                            }
+                        }
+                    }
+
+                    LaunchedEffect(overscrollSpeed) {
+                        if (overscrollSpeed != 0f) {
+                            while (true) {
+                                val scrolled = scrollState.scrollBy(overscrollSpeed)
+                                if (scrolled != 0f) checkForSwap()
+                                kotlinx.coroutines.delay(10)
+                            }
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .pointerInput(Unit) {
+                                val gripWidth = 60.dp.toPx()
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    val y = down.position.y
+                                    val x = down.position.x
+                                    val hitItem = scrollState.layoutInfo.visibleItemsInfo.find { y >= it.offset && y <= it.offset + it.size }
+                                    if (hitItem != null && x <= gripWidth) {
+                                        down.consume()
+                                        val index = hitItem.index
+                                        if (index in uiRecordingItems.indices) {
+                                            draggingItemIndex = index
+                                            draggingItem = uiRecordingItems[index]
+                                            val itemTop = hitItem.offset.toFloat()
+                                            overlayOffsetY = itemTop
+                                            grabOffsetY = y - itemTop
+                                            var isDragging = true
+                                            while (isDragging) {
+                                                val event = awaitPointerEvent()
+                                                val change = event.changes.firstOrNull { it.id == down.id }
+                                                if (change == null || !change.pressed) {
+                                                    isDragging = false
+                                                    break
+                                                }
+                                                if (change.positionChanged()) {
+                                                    change.consume()
+                                                    val newY = change.position.y
+                                                    overlayOffsetY = newY - grabOffsetY
+                                                    val viewportHeight = size.height.toFloat()
+                                                    val threshold = 60.dp.toPx()
+                                                    val maxSpeed = 20.dp.toPx()
+                                                    if (newY < threshold) overscrollSpeed = -maxSpeed * ((threshold - newY) / threshold).coerceIn(0.1f, 1f)
+                                                    else if (newY > viewportHeight - threshold) overscrollSpeed = maxSpeed * ((newY - (viewportHeight - threshold)) / threshold).coerceIn(0.1f, 1f)
+                                                    else overscrollSpeed = 0f
+                                                    checkForSwap()
+                                                }
+                                            }
+                                            overscrollSpeed = 0f
+                                            onReorderFinished(uiRecordingItems.map { it.file })
+                                            draggingItemIndex = -1
+                                            draggingItem = null
+                                        }
+                                    }
+                                }
+                            }
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            state = scrollState,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
+                                val isPlaying = item.file.name == playingFileName
+                                val isSelected = selectedFiles.contains(item.name)
+                                val alpha = if (draggingItemIndex == index) 0f else 1f
+                                FileItem(
+                                    modifier = Modifier.alpha(alpha),
+                                    item = item,
+                                    isPlaying = isPlaying,
+                                    isPaused = if (isPlaying) isPaused else false,
+                                    isSelectionMode = isSelectionMode,
+                                    isSelected = isSelected,
+                                    selectionOrder = selectedFiles.indexOf(item.name) + 1,
+                                    onPlay = { onStartPlaylist(listOf(item), selectedLoopCount == -1, selectedSpeed, {}) },
+                                    onPause = onPausePlay,
+                                    onResume = onResumePlay,
+                                    onStop = { playingPlaylistFiles = emptyList(); onStopPlay() },
+                                    onToggleSelect = { toggleSelection(item.name) },
+                                    onRename = { itemToModify = item; showRenameDialog = true },
+                                    onTrim = { recordingToTrim = item; showTrimDialog = true },
+                                    onMove = { itemToModify = item; showMoveDialog = true },
+                                    onShare = { onShareFile(item) },
+                                    onDelete = { recordingToDelete = item; showDeleteDialog = true },
+                                    currentProgress = if (isPlaying) currentProgress else 0f,
+                                    currentTimeString = if (isPlaying) currentTimeString else "00:00",
+                                    onSeek = onSeekTo,
+                                    onReorder = { },
+                                    isDragging = draggingItemIndex == index,
+                                    themeColors = themeColors,
+                                    playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(80.dp)) }
+                        }
+
+                        if (draggingItem != null) {
+                            val item = draggingItem!!
+                            FileItem(
+                                modifier = Modifier
+                                    .offset { IntOffset(0, overlayOffsetY.roundToInt()) }
+                                    .shadow(8.dp, RoundedCornerShape(12.dp)),
+                                item = item,
+                                isPlaying = item.file.name == playingFileName,
+                                isPaused = if (item.file.name == playingFileName) isPaused else false,
+                                isSelectionMode = isSelectionMode,
+                                isSelected = selectedFiles.contains(item.name),
+                                selectionOrder = selectedFiles.indexOf(item.name) + 1,
+                                currentProgress = if (item.file.name == playingFileName) currentProgress else 0f,
+                                currentTimeString = if (item.file.name == playingFileName) currentTimeString else "00:00",
+                                onPlay = {},
+                                onPause = {},
+                                onResume = {},
+                                onStop = {},
+                                onToggleSelect = {},
+                                onRename = {},
+                                onTrim = {},
+                                onMove = {},
+                                onShare = {},
+                                onDelete = {},
+                                onSeek = {},
+                                onReorder = {},
+                                isDragging = true,
+                                themeColors = themeColors,
+                                playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
+                            )
+                        }
+                    }
+                }
+            }
         }
-        
-        if (showCategorySheet) {
-            CategoryManagementSheet(
-                categories = categories,
-                currentCategory = currentCategory,
-                onSelect = onCategoryChange,
-                onAdd = onAddCategory,
-                onRename = onRenameCategory,
-                onDelete = onDeleteCategory,
-                onReorder = onReorderCategories,
-                onClose = { showCategorySheet = false },
-                themeColors = themeColors
-            )
-        }
+
         
         // Dialogs
         if (showRenameDialog && itemToModify != null) {
@@ -1185,7 +1144,7 @@ fun AudioLoopMainScreen(
              )
         }
     }
-    }
+}
 }
 // Dialog Helpers adapted from MainActivity
 
