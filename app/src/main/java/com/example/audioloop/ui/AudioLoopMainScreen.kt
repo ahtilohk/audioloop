@@ -860,7 +860,8 @@ fun AudioLoopMainScreen(
                         }
                     }
                 }
-            }
+            } // End Column inside Surface
+            } // End Surface (Playback Settings)
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -1145,7 +1146,6 @@ fun AudioLoopMainScreen(
         }
 
     }
-}
 }
 // Dialog Helpers adapted from MainActivity
 
