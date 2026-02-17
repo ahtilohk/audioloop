@@ -346,7 +346,10 @@ fun TrimAudioDialog(
                             // Handles - Premium
                             val handleY = 0f
                             val handleH = size.height
-                            
+                            val gripLineWidth = 1.dp.toPx()
+                            val gripLineLength = 16.dp.toPx()
+                            val gripSpacing = 3.dp.toPx()
+
                             // Start Handle
                             drawRoundRect(
                                 color = themeColors.primary500,
@@ -354,6 +357,19 @@ fun TrimAudioDialog(
                                 size = Size(handleBarWidth, handleH),
                                 cornerRadius = CornerRadius(4.dp.toPx())
                             )
+                            // Start Handle grip lines
+                            val startCenterY = handleH / 2
+                            for (i in -1..1) {
+                                val ly = startCenterY + i * gripSpacing
+                                drawLine(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    start = Offset(startX - gripLineLength / 2, ly),
+                                    end = Offset(startX + gripLineLength / 2, ly),
+                                    strokeWidth = gripLineWidth,
+                                    cap = StrokeCap.Round
+                                )
+                            }
+
                             // End Handle
                             drawRoundRect(
                                 color = Red500,
@@ -361,6 +377,17 @@ fun TrimAudioDialog(
                                 size = Size(handleBarWidth, handleH),
                                 cornerRadius = CornerRadius(4.dp.toPx())
                             )
+                            // End Handle grip lines
+                            for (i in -1..1) {
+                                val ly = startCenterY + i * gripSpacing
+                                drawLine(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    start = Offset(endX - gripLineLength / 2, ly),
+                                    end = Offset(endX + gripLineLength / 2, ly),
+                                    strokeWidth = gripLineWidth,
+                                    cap = StrokeCap.Round
+                                )
+                            }
                             
                              // Playhead
                               val playheadX = if (totalDuration > 0f) {
@@ -452,185 +479,225 @@ fun TrimAudioDialog(
                     }
                     
                     Spacer(modifier = Modifier.height(20.dp))
-                    
-                    // Time Displays - digital & projected
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+
+                    // Time Info Card Container
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Zinc800.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                            .border(1.dp, Zinc600.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                         // Current Position
-                        Column(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable {
-                                    previewPositionMs = 0L
-                                    previewPlayer.seekTo(0)
-                                }
-                                .padding(4.dp)
+                        // Top row: CURRENT + NEW LENGTH
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            Text(
-                                formatDuration(previewPositionMs),
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
-                            )
-                        }
-
-                        // Projected Duration
-                        Column(horizontalAlignment = Alignment.End) {
-                            val start = range.start.toLong()
-                            val end = range.endInclusive.toLong()
-                            val projectedDuration = if (trimMode == TrimMode.Keep) {
-                                (end - start).coerceAtLeast(0L)
-                            } else {
-                                (durationMs - (end - start)).coerceAtLeast(0L)
-                            }
-                            
-                            Text("NEW LENGTH", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            Text(
-                                formatDuration(projectedDuration),
-                                color = themeColors.primary200,
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Selection Range Displays
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            Text(
-                                formatDuration(range.start.toLong()),
-                                color = themeColors.primary200,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-                            )
-                        }
-                        
-                         // Center Play & Reset Controls
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            // Reset Button
-                            Box(
+                            // Current Position sub-card
+                            Column(
                                 modifier = Modifier
-                                    .size(36.dp)
-                                    .background(Zinc800, CircleShape)
-                                    .border(1.dp, Zinc600, CircleShape)
+                                    .weight(1f)
+                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .clip(RoundedCornerShape(10.dp))
                                     .clickable {
                                         previewPositionMs = 0L
                                         previewPlayer.seekTo(0)
-                                    },
-                                contentAlignment = Alignment.Center
+                                    }
+                                    .padding(12.dp)
                             ) {
-                                Icon(
-                                    imageVector = AppIcons.Replay,
-                                    contentDescription = "Reset",
-                                    tint = Zinc400,
-                                    modifier = Modifier.size(18.dp)
+                                Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    formatDuration(previewPositionMs),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
                                 )
                             }
 
-                             Box(
+                            // New Length sub-card
+                            Column(
                                 modifier = Modifier
-                                    .size(48.dp)
-                                    .shadow(8.dp, CircleShape)
-                                    .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
-                                    .border(1.dp, Zinc600, CircleShape)
-                                    .clickable {
-                                         val start = range.start.toLong()
-                                         val end = range.endInclusive.toLong()
-                                         
-                                         if (isPreviewPlaying) {
-                                             previewPlayer.pause()
-                                             isPreviewPlaying = false
-                                         } else {
-                                             // Smart Start Logic
-                                             if (trimMode == TrimMode.Keep) {
-                                                 if (previewPositionMs < start || previewPositionMs >= end) {
-                                                      previewPositionMs = start
-                                                 }
-                                             } else {
-                                                 // Cut Mode
-                                                 if (previewPositionMs >= start && previewPositionMs < end) {
-                                                      previewPositionMs = end
-                                                 } else if (previewPositionMs >= durationMs) {
-                                                      previewPositionMs = 0L
-                                                 }
-                                             }
-                                             
-                                             previewPlayer.seekTo(previewPositionMs.toInt())
-                                             previewPlayer.start()
-                                             isPreviewPlaying = true
-                                         }
-                                    },
-                                contentAlignment = Alignment.Center
+                                    .weight(1f)
+                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .padding(12.dp),
+                                horizontalAlignment = Alignment.End
                             ) {
-                                Icon(
-                                    imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
+                                val start = range.start.toLong()
+                                val end = range.endInclusive.toLong()
+                                val projectedDuration = if (trimMode == TrimMode.Keep) {
+                                    (end - start).coerceAtLeast(0L)
+                                } else {
+                                    (durationMs - (end - start)).coerceAtLeast(0L)
+                                }
+
+                                Text("NEW LENGTH", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    formatDuration(projectedDuration),
+                                    color = themeColors.primary200,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
                                 )
                             }
                         }
-                        
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            Text(
-                                formatDuration(range.endInclusive.toLong()),
-                                color = Red200,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-                            )
+
+                        // Bottom row: START + Controls + END
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Start sub-card
+                            Column(
+                                modifier = Modifier
+                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    formatDuration(range.start.toLong()),
+                                    color = themeColors.primary200,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                                )
+                            }
+
+                            // Center Play & Reset Controls
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                // Reset Button
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .background(Zinc800, CircleShape)
+                                        .border(1.dp, Zinc600, CircleShape)
+                                        .clickable {
+                                            previewPositionMs = 0L
+                                            previewPlayer.seekTo(0)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Replay,
+                                        contentDescription = "Reset",
+                                        tint = Zinc400,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                // Play Button
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .shadow(
+                                            elevation = if (isPreviewPlaying) 16.dp else 8.dp,
+                                            shape = CircleShape,
+                                            spotColor = if (isPreviewPlaying) themeColors.primary500 else Color.Black
+                                        )
+                                        .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
+                                        .border(1.dp, if (isPreviewPlaying) themeColors.primary400 else Zinc600, CircleShape)
+                                        .clickable {
+                                             val start = range.start.toLong()
+                                             val end = range.endInclusive.toLong()
+
+                                             if (isPreviewPlaying) {
+                                                 previewPlayer.pause()
+                                                 isPreviewPlaying = false
+                                             } else {
+                                                 // Smart Start Logic
+                                                 if (trimMode == TrimMode.Keep) {
+                                                     if (previewPositionMs < start || previewPositionMs >= end) {
+                                                          previewPositionMs = start
+                                                     }
+                                                 } else {
+                                                     // Cut Mode
+                                                     if (previewPositionMs >= start && previewPositionMs < end) {
+                                                          previewPositionMs = end
+                                                     } else if (previewPositionMs >= durationMs) {
+                                                          previewPositionMs = 0L
+                                                     }
+                                                 }
+
+                                                 previewPlayer.seekTo(previewPositionMs.toInt())
+                                                 previewPlayer.start()
+                                                 isPreviewPlaying = true
+                                             }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
+
+                            // End sub-card
+                            Column(
+                                modifier = Modifier
+                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    formatDuration(range.endInclusive.toLong()),
+                                    color = Red200,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                                )
+                            }
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    HorizontalDivider(color = Zinc800)
+
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     // Footer Actions
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                         OutlinedButton(
+                        OutlinedButton(
                             onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(48.dp),
+                            modifier = Modifier.weight(1f).height(52.dp),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, Zinc600),
-                            contentPadding = PaddingValues(horizontal = 4.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc200)
+                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc300)
                         ) {
+                            Icon(AppIcons.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text("Cancel", maxLines = 1, style = MaterialTheme.typography.labelLarge)
                         }
-                        
-                         Button(
-                            onClick = { 
-                                val start = range.start.toLong()
-                                val end = range.endInclusive.toLong()
-                                onConfirm(start, end, false, trimMode == TrimMode.Remove) 
-                            },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White)
-                        ) {
-                            Text("Save Copy", maxLines = 1, style = MaterialTheme.typography.labelLarge)
-                        }
-                        
+
                         Button(
-                            onClick = { 
+                            onClick = {
                                 val start = range.start.toLong()
                                 val end = range.endInclusive.toLong()
-                                onConfirm(start, end, true, trimMode == TrimMode.Remove) 
+                                onConfirm(start, end, false, trimMode == TrimMode.Remove)
                             },
-                            modifier = Modifier.weight(1f).height(48.dp),
+                            modifier = Modifier.weight(1f).height(52.dp),
                             shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White),
+                            border = BorderStroke(1.dp, Zinc600)
+                        ) {
+                            Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Copy", maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                        }
+
+                        Button(
+                            onClick = {
+                                val start = range.start.toLong()
+                                val end = range.endInclusive.toLong()
+                                onConfirm(start, end, true, trimMode == TrimMode.Remove)
+                            },
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White)
                         ) {
+                            Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text("Replace", maxLines = 1, style = MaterialTheme.typography.labelLarge)
                         }
                     }
