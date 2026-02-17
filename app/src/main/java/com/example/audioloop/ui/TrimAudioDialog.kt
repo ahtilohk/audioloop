@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import android.media.MediaPlayer
 import android.net.Uri
 import java.io.File
@@ -143,13 +144,16 @@ fun TrimAudioDialog(
         }
     }
     
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             colors = CardDefaults.cardColors(containerColor = Zinc900),
             shape = RoundedCornerShape(24.dp), // More modern rounding
             border = BorderStroke(1.dp, Zinc600),
             elevation = CardDefaults.cardElevation(defaultElevation = 16.dp), // Higher elevation
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
         ) {
             if (playerReady) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -462,12 +466,22 @@ fun TrimAudioDialog(
                                              val touchX = offset.x
                                              val distStart = kotlin.math.abs(touchX - startX)
                                              val distEnd = kotlin.math.abs(touchX - endX)
-                                             
-                                             // Hit test handles with priority
-                                             if (distStart < handleHitWidth && distStart <= distEnd) {
-                                                 dragTarget = TrimDragTarget.Start
-                                             } else if (distEnd < handleHitWidth) {
-                                                 dragTarget = TrimDragTarget.End
+                                             val playheadPx = if (totalDuration > 0f) {
+                                                 (previewPositionMs.toFloat() / totalDuration) * widthPx
+                                             } else 0f
+                                             val distPlayhead = kotlin.math.abs(touchX - playheadPx)
+                                             val playheadHitWidth = handleHitWidth
+
+                                             // Find the closest target among all three
+                                             data class HitCandidate(val target: TrimDragTarget, val dist: Float)
+                                             val candidates = mutableListOf<HitCandidate>()
+                                             if (distStart < handleHitWidth) candidates.add(HitCandidate(TrimDragTarget.Start, distStart))
+                                             if (distEnd < handleHitWidth) candidates.add(HitCandidate(TrimDragTarget.End, distEnd))
+                                             if (distPlayhead < playheadHitWidth) candidates.add(HitCandidate(TrimDragTarget.Playhead, distPlayhead))
+
+                                             val best = candidates.minByOrNull { it.dist }
+                                             if (best != null) {
+                                                 dragTarget = best.target
                                              } else {
                                                  dragTarget = TrimDragTarget.Playhead
                                                  // Snap playhead immediately on drag start if hitting body
