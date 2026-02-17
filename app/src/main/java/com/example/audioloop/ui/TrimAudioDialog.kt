@@ -152,7 +152,7 @@ fun TrimAudioDialog(
             modifier = Modifier.fillMaxWidth()
         ) {
             if (playerReady) {
-                Column(modifier = Modifier.padding(24.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     // Header
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -390,15 +390,50 @@ fun TrimAudioDialog(
                                 )
                             }
                             
-                             // Playhead
+                             // Playhead - Premium draggable design
                               val playheadX = if (totalDuration > 0f) {
                                  ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
                              } else 0f
-                             drawLine(Color.White.copy(alpha = 0.8f), Offset(playheadX, 0f), Offset(playheadX, size.height), strokeWidth = 2.dp.toPx())
-                             
-                             // Playhead handles (dots)
-                             drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playheadX, 0f))
-                             drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playheadX, size.height))
+                             val isDraggingPlayhead = dragTarget == TrimDragTarget.Playhead
+                             val playheadAlpha = if (isDraggingPlayhead) 1f else 0.85f
+                             val playheadLineWidth = if (isDraggingPlayhead) 2.5f.dp.toPx() else 2.dp.toPx()
+
+                             // Glow when dragging
+                             if (isDraggingPlayhead) {
+                                 drawLine(
+                                     color = Color.White.copy(alpha = 0.2f),
+                                     start = Offset(playheadX, 0f),
+                                     end = Offset(playheadX, size.height),
+                                     strokeWidth = 8.dp.toPx(),
+                                     cap = StrokeCap.Round
+                                 )
+                             }
+
+                             // Main playhead line
+                             drawLine(
+                                 color = Color.White.copy(alpha = playheadAlpha),
+                                 start = Offset(playheadX, 0f),
+                                 end = Offset(playheadX, size.height),
+                                 strokeWidth = playheadLineWidth
+                             )
+
+                             // Top pill handle
+                             val pillW = 10.dp.toPx()
+                             val pillH = 16.dp.toPx()
+                             val pillR = 3.dp.toPx()
+                             drawRoundRect(
+                                 color = Color.White.copy(alpha = playheadAlpha),
+                                 topLeft = Offset(playheadX - pillW / 2, 0f),
+                                 size = Size(pillW, pillH),
+                                 cornerRadius = CornerRadius(pillR)
+                             )
+                             // Bottom pill handle
+                             drawRoundRect(
+                                 color = Color.White.copy(alpha = playheadAlpha),
+                                 topLeft = Offset(playheadX - pillW / 2, size.height - pillH),
+                                 size = Size(pillW, pillH),
+                                 cornerRadius = CornerRadius(pillR)
+                             )
                           }
                         
                          // Touch Logic
@@ -487,13 +522,13 @@ fun TrimAudioDialog(
                             .fillMaxWidth()
                             .background(Zinc800.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                             .border(1.dp, Zinc600.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Top row: CURRENT + NEW LENGTH
+                        // Row 1: CURRENT + NEW LENGTH
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             // Current Position sub-card
                             Column(
@@ -505,14 +540,15 @@ fun TrimAudioDialog(
                                         previewPositionMs = 0L
                                         previewPlayer.seekTo(0)
                                     }
-                                    .padding(12.dp)
+                                    .padding(10.dp)
                             ) {
                                 Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(previewPositionMs),
                                     color = Color.White,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
+                                    maxLines = 1
                                 )
                             }
 
@@ -521,7 +557,7 @@ fun TrimAudioDialog(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(12.dp),
+                                    .padding(10.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
                                 val start = range.start.toLong()
@@ -537,23 +573,22 @@ fun TrimAudioDialog(
                                 Text(
                                     formatDuration(projectedDuration),
                                     color = themeColors.primary200,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace)
+                                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
+                                    maxLines = 1
                                 )
                             }
                         }
 
-                        // Bottom row: START + Controls + END
+                        // Row 2: START + END (full width, no controls competing)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // Start sub-card
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    .padding(10.dp)
                             ) {
                                 Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
@@ -565,8 +600,31 @@ fun TrimAudioDialog(
                                 )
                             }
 
-                            // Center Play & Reset Controls
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .padding(10.dp),
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    formatDuration(range.endInclusive.toLong()),
+                                    color = Red200,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        // Row 3: Centered Play & Reset Controls
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 // Reset Button
                                 Box(
                                     modifier = Modifier
@@ -634,24 +692,6 @@ fun TrimAudioDialog(
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
-                            }
-
-                            // End sub-card
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    formatDuration(range.endInclusive.toLong()),
-                                    color = Red200,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                                    maxLines = 1
-                                )
                             }
                         }
                     }
