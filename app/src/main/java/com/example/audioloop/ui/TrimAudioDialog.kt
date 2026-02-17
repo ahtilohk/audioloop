@@ -216,7 +216,8 @@ fun TrimAudioDialog(
                             .height(140.dp) // Taller
                             .background(Color.Black, RoundedCornerShape(16.dp)) // Black background for contrast
                             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
-                            .padding(vertical = 4.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .padding(horizontal = 6.dp, vertical = 4.dp)
                     ) {
                         val widthPx = constraints.maxWidth.toFloat()
                         val totalDuration = durationMs.toFloat()
@@ -544,26 +545,28 @@ fun TrimAudioDialog(
                         // Bottom row: START + Controls + END
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // Start sub-card
                             Column(
                                 modifier = Modifier
+                                    .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
                             ) {
                                 Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(range.start.toLong()),
                                     color = themeColors.primary200,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                    maxLines = 1
                                 )
                             }
 
                             // Center Play & Reset Controls
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 // Reset Button
                                 Box(
                                     modifier = Modifier
@@ -636,8 +639,9 @@ fun TrimAudioDialog(
                             // End sub-card
                             Column(
                                 modifier = Modifier
+                                    .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -645,7 +649,8 @@ fun TrimAudioDialog(
                                 Text(
                                     formatDuration(range.endInclusive.toLong()),
                                     color = Red200,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                    maxLines = 1
                                 )
                             }
                         }
@@ -657,15 +662,15 @@ fun TrimAudioDialog(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
                             onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, Zinc600),
-                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc300)
                         ) {
-                            Icon(AppIcons.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Cancel", maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                            Icon(AppIcons.Close, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("Cancel", maxLines = 1, style = MaterialTheme.typography.labelMedium)
                         }
 
                         Button(
@@ -674,15 +679,15 @@ fun TrimAudioDialog(
                                 val end = range.endInclusive.toLong()
                                 onConfirm(start, end, false, trimMode == TrimMode.Remove)
                             },
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White),
                             border = BorderStroke(1.dp, Zinc600)
                         ) {
-                            Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Copy", maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                            Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("Copy", maxLines = 1, style = MaterialTheme.typography.labelMedium)
                         }
 
                         Button(
@@ -691,14 +696,14 @@ fun TrimAudioDialog(
                                 val end = range.endInclusive.toLong()
                                 onConfirm(start, end, true, trimMode == TrimMode.Remove)
                             },
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White)
                         ) {
-                            Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Replace", maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                            Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("Replace", maxLines = 1, style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
