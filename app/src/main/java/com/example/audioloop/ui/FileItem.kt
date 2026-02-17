@@ -134,7 +134,7 @@ fun FileItem(
         },
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 20.dp)
+            .padding(vertical = 0.dp, horizontal = 20.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale

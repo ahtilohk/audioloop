@@ -1031,7 +1031,7 @@ fun AudioLoopMainScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             state = scrollState,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
                                 val isPlaying = item.file.name == playingFileName
