@@ -147,7 +147,7 @@ fun TrimAudioDialog(
         Card(
             colors = CardDefaults.cardColors(containerColor = Zinc900),
             shape = RoundedCornerShape(24.dp), // More modern rounding
-            border = BorderStroke(1.dp, Zinc800),
+            border = BorderStroke(1.dp, Zinc600),
             elevation = CardDefaults.cardElevation(defaultElevation = 16.dp), // Higher elevation
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -179,7 +179,7 @@ fun TrimAudioDialog(
                         Surface(
                             color = Zinc950,
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Zinc800)
+                            border = BorderStroke(1.dp, Zinc600)
                         ) {
                             Row(modifier = Modifier.padding(2.dp)) {
                                 val keepSelected = trimMode == TrimMode.Keep
@@ -215,7 +215,7 @@ fun TrimAudioDialog(
                             .fillMaxWidth()
                             .height(140.dp) // Taller
                             .background(Color.Black, RoundedCornerShape(16.dp)) // Black background for contrast
-                            .border(1.dp, Zinc800, RoundedCornerShape(16.dp))
+                            .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
                             .padding(vertical = 4.dp)
                     ) {
                         val widthPx = constraints.maxWidth.toFloat()
@@ -520,7 +520,7 @@ fun TrimAudioDialog(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .background(Zinc800, CircleShape)
-                                    .border(1.dp, Zinc700, CircleShape)
+                                    .border(1.dp, Zinc600, CircleShape)
                                     .clickable {
                                         previewPositionMs = 0L
                                         previewPlayer.seekTo(0)
@@ -540,7 +540,7 @@ fun TrimAudioDialog(
                                     .size(48.dp)
                                     .shadow(8.dp, CircleShape)
                                     .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
-                                    .border(1.dp, Zinc700, CircleShape)
+                                    .border(1.dp, Zinc600, CircleShape)
                                     .clickable {
                                          val start = range.start.toLong()
                                          val end = range.endInclusive.toLong()
@@ -599,7 +599,7 @@ fun TrimAudioDialog(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Zinc700),
+                            border = BorderStroke(1.dp, Zinc600),
                             contentPadding = PaddingValues(horizontal = 4.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc200)
                         ) {

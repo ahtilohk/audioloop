@@ -157,7 +157,7 @@ fun CategoryManagementSheet(
         modifier = Modifier
             .fillMaxWidth()
             .background(Zinc900, RoundedCornerShape(16.dp))
-            .border(1.dp, Zinc800.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+            .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp)
     ) {
         // Header Row with modern title and close button
@@ -208,7 +208,7 @@ fun CategoryManagementSheet(
                         .weight(1f)
                         .height(48.dp)
                         .background(Zinc800, RoundedCornerShape(12.dp))
-                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                         .padding(horizontal = 16.dp),
                     decorationBox = { innerTextField ->
                         Box(contentAlignment = Alignment.CenterStart) {
@@ -399,7 +399,7 @@ fun CategoryManagementSheet(
                                 .background(if (currentCategory == cat) themeColors.primary900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
                                 .border(
                                     1.dp,
-                                    if (currentCategory == cat) themeColors.primary500.copy(alpha = 0.5f) else Zinc700.copy(alpha = 0.5f),
+                                    if (currentCategory == cat) themeColors.primary500.copy(alpha = 0.8f) else Zinc600,
                                     RoundedCornerShape(12.dp)
                                 )
                                 .padding(12.dp),
@@ -501,7 +501,7 @@ fun CategoryManagementSheet(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(Zinc800.copy(alpha = 0.7f))
-                            .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                            .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)

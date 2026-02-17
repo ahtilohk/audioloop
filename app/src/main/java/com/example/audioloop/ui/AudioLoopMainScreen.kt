@@ -354,7 +354,7 @@ fun AudioLoopMainScreen(
                             .fillMaxWidth()
                             .height(48.dp)
                             .background(Zinc800.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                            .border(1.dp, Zinc700.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                            .border(1.dp, Zinc600, RoundedCornerShape(24.dp))
                             .padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -416,7 +416,7 @@ fun AudioLoopMainScreen(
                             )
                             .border(
                                 width = 2.dp, // Thicker border for premium look
-                                color = if (isRecording) Red500 else Red900.copy(alpha = 0.8f), // More visible red border
+                                color = if (isRecording) Red500 else Red800, // More visible red border
                                 shape = RoundedCornerShape(20.dp)
                             )
                             .clickable {
@@ -456,7 +456,7 @@ fun AudioLoopMainScreen(
                                     )
                                     .border(
                                         width = 1.dp,
-                                        color = if (isRecording) Red400 else Zinc700,
+                                        color = if (isRecording) Red400 else Zinc600,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -551,7 +551,7 @@ fun AudioLoopMainScreen(
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = Zinc800.copy(alpha = 0.3f),
-                border = BorderStroke(1.dp, Zinc700.copy(alpha = 0.3f))
+                border = BorderStroke(1.dp, Zinc600)
             ) {
                 Column {
                     // Settings Header (Collapsible)
@@ -685,7 +685,7 @@ fun AudioLoopMainScreen(
                             .padding(top = 12.dp)
                             .fillMaxWidth()
                             .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .border(1.dp, Zinc800, RoundedCornerShape(12.dp))
+                            .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                             .padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -825,7 +825,7 @@ fun AudioLoopMainScreen(
                                         .background(if (isSelected) theme.palette.primary600 else Zinc800)
                                         .border(
                                             width = if (isSelected) 2.dp else 1.dp,
-                                            color = if (isSelected) theme.palette.primary400 else Zinc700,
+                                            color = if (isSelected) theme.palette.primary400 else Zinc600,
                                             shape = RoundedCornerShape(8.dp)
                                         )
                                         .clickable { onThemeChange(theme) }

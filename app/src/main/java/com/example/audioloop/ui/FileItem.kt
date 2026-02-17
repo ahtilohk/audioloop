@@ -120,9 +120,9 @@ fun FileItem(
 
     val borderColor = when {
         isDragging -> themeColors.primary
-        isPlaying -> themeColors.primary.copy(alpha = 0.8f)
-        isSelected -> themeColors.secondary.copy(alpha = 0.6f)
-        else -> Zinc700.copy(alpha = 0.3f)
+        isPlaying -> themeColors.primary
+        isSelected -> themeColors.secondary.copy(alpha = 0.8f)
+        else -> Zinc600
     }
 
     val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
@@ -333,7 +333,7 @@ fun FileItem(
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(Zinc900).border(1.dp, Zinc800, RoundedCornerShape(4.dp))
+                        modifier = Modifier.background(Zinc900).border(1.dp, Zinc600, RoundedCornerShape(4.dp))
                     ) {
                         DropdownMenuItem(
                             text = { Text("Rename", color = Zinc200) },
