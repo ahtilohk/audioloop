@@ -102,7 +102,7 @@ fun FileItem(
     onDelete: () -> Unit,
     onSplit: () -> Unit = {},
     onNormalize: () -> Unit = {},
-    onFade: () -> Unit = {},
+    onAutoTrim: () -> Unit = {},
     currentProgress: Float = 0f,
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
@@ -111,7 +111,8 @@ fun FileItem(
     themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette,
     playlistPosition: Int = 0, // 0 means not in playlist, >0 is position in playlist
     waveformData: List<Int> = emptyList(),
-    onSeekAbsolute: (Int) -> Unit = {} // seek to absolute ms position
+    onSeekAbsolute: (Int) -> Unit = {}, // seek to absolute ms position
+    shadowCountdownText: String = "" // countdown text during Listen & Repeat pause
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -313,12 +314,22 @@ fun FileItem(
                         }
                     }
                 }
-                Text(
-                    text = "${if(isPlaying) "Playing \u2022 " else ""}${item.durationString}",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (isPlaying) themeColors.primary else Zinc500
+                if (isPlaying && shadowCountdownText.isNotEmpty()) {
+                    Text(
+                        text = "\u23F8 $shadowCountdownText",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = themeColors.primary300,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        text = "${if(isPlaying) "Playing \u2022 " else ""}${item.durationString}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = if (isPlaying) themeColors.primary else Zinc500
+                        )
+                    )
+                }
             }
 
             if (!isSelectionMode && !isPlaying) {
@@ -349,6 +360,11 @@ fun FileItem(
                             text = { Text("Trim", color = Zinc200) },
                             leadingIcon = { Icon(AppIcons.ContentCut, null, tint = Zinc400) },
                             onClick = { menuExpanded = false; onTrim() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Auto-trim Silence", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onAutoTrim() }
                         )
                         DropdownMenuItem(
                             text = { Text("Normalize", color = Zinc200) },

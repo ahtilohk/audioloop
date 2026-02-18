@@ -156,6 +156,23 @@ object SilenceSplitter {
     }
 
     /**
+     * Detects the first and last non-silent positions in an audio file.
+     * Returns a Pair of (startMs, endMs) representing the content boundaries.
+     * Returns null if detection fails or the file is entirely silent.
+     */
+    suspend fun detectContentBounds(
+        inputFile: File,
+        silenceThreshold: Int = 800
+    ): Pair<Long, Long>? = withContext(Dispatchers.IO) {
+        val segments = detectSegments(inputFile, silenceThreshold, minSilenceDurationMs = 100, minSegmentDurationMs = 50)
+        if (segments.isEmpty()) return@withContext null
+        val contentStart = segments.first().startMs
+        val contentEnd = segments.last().endMs
+        if (contentEnd <= contentStart) return@withContext null
+        Pair(contentStart, contentEnd)
+    }
+
+    /**
      * Splits a file into segments using AudioTrimmer for each segment.
      * Returns the list of created output files.
      */

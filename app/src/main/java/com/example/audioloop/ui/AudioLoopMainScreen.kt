@@ -138,11 +138,15 @@ fun AudioLoopMainScreen(
     selectedLoopCount: Int,
     isShadowing: Boolean,
     onShadowingChange: (Boolean) -> Unit,
+    shadowPauseSeconds: Int = 0, // 0 = auto (match duration)
+    onShadowPauseChange: (Int) -> Unit = {},
+    shadowCountdownText: String = "", // countdown text during Listen & Repeat pause
     
     waveformCache: Map<String, List<Int>> = emptyMap(),
     onSeekAbsolute: (Int) -> Unit = {},
     onSplitFile: (RecordingItem) -> Unit = {},
     onNormalizeFile: (RecordingItem) -> Unit = {},
+    onAutoTrimFile: (RecordingItem) -> Unit = {},
     onFadeFile: (RecordingItem, Long, Long) -> Unit = { _, _, _ -> },
     onMergeFiles: (List<RecordingItem>) -> Unit = {},
     usePublicStorage: Boolean,
@@ -734,11 +738,11 @@ fun AudioLoopMainScreen(
                             }
                         }
                         
-                        // Shadowing
+                        // Listen & Repeat
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
-                                Text("Shadowing Mode", style = TextStyle(color = Zinc300, fontSize = 14.sp))
-                                Text("Smart pause & auto-repeat", style = TextStyle(color = Zinc600, fontSize = 10.sp))
+                                Text("Listen & Repeat", style = TextStyle(color = Zinc300, fontSize = 14.sp))
+                                Text("Pause after playback to practice", style = TextStyle(color = Zinc600, fontSize = 10.sp))
                             }
                             Box(
                                 modifier = Modifier
@@ -757,6 +761,27 @@ fun AudioLoopMainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
+                                }
+                            }
+                        }
+
+                        // Pause duration (only show when Listen & Repeat is on)
+                        if (isShadowing) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("Pause:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    listOf(0 to "Auto", 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
+                                        val active = shadowPauseSeconds == secs
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(if (active) themeColors.primary600 else Zinc800)
+                                                .clickable { onShadowPauseChange(secs) }
+                                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1088,6 +1113,7 @@ fun AudioLoopMainScreen(
                                     onDelete = { recordingToDelete = item; showDeleteDialog = true },
                                     onSplit = { onSplitFile(item) },
                                     onNormalize = { onNormalizeFile(item) },
+                                    onAutoTrim = { onAutoTrimFile(item) },
                                     currentProgress = if (isPlaying) currentProgress else 0f,
                                     currentTimeString = if (isPlaying) currentTimeString else "00:00",
                                     onSeek = onSeekTo,
@@ -1096,7 +1122,8 @@ fun AudioLoopMainScreen(
                                     themeColors = themeColors,
                                     playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1,
                                     waveformData = waveformCache[item.file.absolutePath] ?: emptyList(),
-                                    onSeekAbsolute = onSeekAbsolute
+                                    onSeekAbsolute = onSeekAbsolute,
+                                    shadowCountdownText = if (isPlaying) shadowCountdownText else ""
                                 )
                             }
                             item { Spacer(modifier = Modifier.height(80.dp)) }

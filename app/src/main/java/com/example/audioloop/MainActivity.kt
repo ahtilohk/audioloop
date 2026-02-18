@@ -225,6 +225,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var playbackSpeed by mutableFloatStateOf(1.0f)
     private var loopMode by mutableIntStateOf(1) // 0=off, 1=one, -1=inf
     private var isShadowingMode by mutableStateOf(false)
+    private var shadowPauseSeconds by mutableIntStateOf(0) // 0 = auto
+    private var shadowCountdownText by mutableStateOf("") // countdown text during Listen & Repeat pause
     private var uiCategory by mutableStateOf("General")
     private var categories by mutableStateOf(listOf("General"))
     private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
@@ -576,6 +578,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it },
+                        shadowPauseSeconds = shadowPauseSeconds,
+                        onShadowPauseChange = { shadowPauseSeconds = it },
+                        shadowCountdownText = shadowCountdownText,
                         waveformCache = waveformCache,
                         onSeekAbsolute = { ms -> mediaPlayer?.seekTo(ms) },
                         onSplitFile = { item ->
@@ -583,6 +588,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 splitBySilence(item.file, uiCategory)
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
                                 savedItems.forEach { precomputeWaveformAsync(coroutineScope, it.file) }
+                            }
+                        },
+                        onAutoTrimFile = { item ->
+                            coroutineScope.launch {
+                                autoTrimSilence(item.file, uiCategory)
                             }
                         },
                         onNormalizeFile = { item ->
@@ -1253,14 +1263,26 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 }
                 setOnCompletionListener {
                     if (isShadowing) {
-                       // Shadowing Logic: Pause -> Repeat Same
+                       // Listen & Repeat: Pause -> Repeat Same
                        val duration = it.duration.toLong()
-                       val pauseDuration = if (duration < 15000L) duration else 5000L
+                       val pauseDuration = if (shadowPauseSeconds > 0) {
+                           shadowPauseSeconds * 1000L
+                       } else {
+                           // Auto: match duration, max 15s
+                           duration.coerceAtMost(15000L)
+                       }
 
-                       // Launch coroutine for delay
                        shadowingJob = launch(Dispatchers.Main) {
-                           onNext("Pausing for repeat...") // Visual cue?
-                           delay(pauseDuration)
+                           // Countdown display - keep playingFileName as the actual file
+                           isPaused = true // Show as paused during countdown
+                           var remaining = pauseDuration
+                           while (remaining > 0 && isActive) {
+                               val secs = (remaining / 1000) + 1
+                               shadowCountdownText = "Repeat in ${secs}s..."
+                               delay(1000L.coerceAtMost(remaining))
+                               remaining -= 1000L
+                           }
+                           shadowCountdownText = ""
                            if (isActive) {
                                playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                            }
@@ -1287,10 +1309,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private fun stopPlaying() {
         shadowingJob?.cancel()
         shadowingJob = null
+        shadowCountdownText = ""
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-        // Update isPaused state
         isPaused = false
     }
 
@@ -1336,18 +1358,28 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private fun pausePlaying() {
-        shadowingJob?.cancel() // Cancel wait if pending
+        val wasShadowCountdown = shadowCountdownText.isNotEmpty()
+        shadowingJob?.cancel()
         shadowingJob = null
+        shadowCountdownText = ""
         if (mediaPlayer?.isPlaying == true) {
             mediaPlayer?.pause()
-            // Update isPaused state
             isPaused = true
+        } else if (wasShadowCountdown) {
+            // Was in shadow countdown pause - stop fully
+            stopPlaying()
+            playingFileName = ""
         }
     }
-    fun resumePlaying() { 
+    fun resumePlaying() {
+        if (shadowCountdownText.isNotEmpty()) {
+            // During shadow countdown - skip wait and replay immediately
+            shadowingJob?.cancel()
+            shadowingJob = null
+            shadowCountdownText = ""
+        }
         if (mediaPlayer != null && !mediaPlayer!!.isPlaying) {
-            mediaPlayer?.start() 
-            // Update isPaused state
+            mediaPlayer?.start()
             isPaused = false
         }
     }
@@ -1386,6 +1418,63 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()
         }
     }
+    private suspend fun autoTrimSilence(file: File, category: String) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, "Detecting silence...", Toast.LENGTH_SHORT).show()
+        }
+        val bounds = SilenceSplitter.detectContentBounds(file)
+        if (bounds == null) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "No silence detected to trim", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        val (startMs, endMs) = bounds
+        val (_, totalMs) = getDuration(file)
+        // Only trim if there's significant silence (>100ms) at start or end
+        if (startMs < 100 && totalMs - endMs < 100) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "No significant silence to trim", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        withContext(Dispatchers.Main) {
+            stopPlaying()
+        }
+        val ext = file.extension
+        val isWav = ext.equals("wav", ignoreCase = true)
+        val tempFile = File(file.parent, "temp_autotrim_${System.currentTimeMillis()}.$ext")
+        val success = withContext(Dispatchers.IO) {
+            if (isWav) {
+                WavAudioTrimmer.trimWav(file, tempFile, startMs, endMs)
+            } else {
+                AudioTrimmer.trimAudio(file, tempFile, startMs, endMs)
+            }
+        }
+        withContext(Dispatchers.Main) {
+            if (success && tempFile.exists()) {
+                waveformCache.remove(file.absolutePath)
+                getWaveformFile(file).delete()
+                file.delete()
+                tempFile.renameTo(file)
+                precomputeWaveformAsync(this@MainActivity, file)
+                savedItems = getSavedRecordings(category, filesDir)
+                val trimmedStart = if (startMs > 100) "${startMs}ms" else ""
+                val trimmedEnd = if (totalMs - endMs > 100) "${totalMs - endMs}ms" else ""
+                val msg = buildString {
+                    append("Trimmed")
+                    if (trimmedStart.isNotEmpty()) append(" $trimmedStart from start")
+                    if (trimmedStart.isNotEmpty() && trimmedEnd.isNotEmpty()) append(",")
+                    if (trimmedEnd.isNotEmpty()) append(" $trimmedEnd from end")
+                }
+                Toast.makeText(this@MainActivity, msg, Toast.LENGTH_SHORT).show()
+            } else {
+                tempFile.delete()
+                Toast.makeText(this@MainActivity, "Auto-trim failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     /**
      * Processes an audio file in-place: runs the given processor, replaces the original,
      * refreshes file list and waveform cache.
