@@ -659,6 +659,40 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private fun getDuration(file: File): Pair<String, Long> {
         if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
         var millis = 0L
+
+        // WAV: arvuta kestus otse headerist (kõige usaldusväärsem)
+        if (file.extension.equals("wav", ignoreCase = true)) {
+            try {
+                java.io.RandomAccessFile(file, "r").use { raf ->
+                    raf.seek(22)
+                    val channels = raf.readShort().toInt().and(0xFFFF)
+                    raf.seek(24)
+                    val sampleRate = Integer.reverseBytes(raf.readInt())
+                    raf.seek(34)
+                    val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
+                    if (sampleRate > 0 && channels > 0 && bitsPerSample > 0) {
+                        val bytesPerSecond = sampleRate * channels * (bitsPerSample / 8)
+                        if (bytesPerSecond > 0) {
+                            // Otsi data chunk
+                            raf.seek(12)
+                            val chunkHeader = ByteArray(4)
+                            while (raf.read(chunkHeader) == 4) {
+                                val chunkId = String(chunkHeader)
+                                val chunkSize = Integer.reverseBytes(raf.readInt())
+                                if (chunkId == "data") {
+                                    millis = (chunkSize.toLong() * 1000L) / bytesPerSecond
+                                    break
+                                } else {
+                                    raf.skipBytes(chunkSize)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (millis > 0) return Pair(formatTime(millis), millis)
+            } catch (_: Exception) { }
+        }
+
         val mmr = MediaMetadataRetriever()
         try {
             mmr.setDataSource(file.absolutePath)
@@ -677,7 +711,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 mp.release()
             } catch (e: Exception) { }
         }
-        // Varuplaan 2: MediaExtractor (Kõige madalam tase, töötab ka siis kui metaandmed puuduvad)
+        // Varuplaan 2: MediaExtractor
         if (millis == 0L) {
             try {
                 val extractor = MediaExtractor()
@@ -687,7 +721,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     val mime = format.getString(MediaFormat.KEY_MIME)
                     if (mime?.startsWith("audio/") == true) {
                         if (format.containsKey(MediaFormat.KEY_DURATION)) {
-                            millis = format.getLong(MediaFormat.KEY_DURATION) / 1000 // algselt mikrosekundites
+                            millis = format.getLong(MediaFormat.KEY_DURATION) / 1000
                             break
                         }
                     }
@@ -1113,9 +1147,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                          // Let's filter by name?
                          if (items.any { it.name == name }) continue 
 
-                         val file = File(path) // Might not be readable directly, but OK for metadata holder
+                         val file = File(path)
                          val uri = android.content.ContentUris.withAppendedId(collection, id)
-                         items.add(RecordingItem(file, name, formatTime(durationMs), durationMs, uri))
+                         // Loe kestus failist otse, mitte MediaStore'i cache'ist
+                         val (durStr, durMs) = if (file.exists()) getDuration(file) else Pair(formatTime(durationMs), durationMs)
+                         items.add(RecordingItem(file, name, durStr, durMs, uri))
                      }
                 }
             } catch (e: Exception) { e.printStackTrace() }
