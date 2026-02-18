@@ -176,31 +176,31 @@ object WaveformGenerator {
 
     private fun downsample(data: List<Int>, targetSize: Int): List<Int> {
         if (data.isEmpty()) return List(targetSize) { 0 }
-        if (targetSize >= data.size) return data // Või padding?
+        if (targetSize >= data.size) return data
 
         val result = ArrayList<Int>(targetSize)
         val chunkSize = data.size.toDouble() / targetSize
 
+        val rawValues = ArrayList<Long>(targetSize)
         for (i in 0 until targetSize) {
             val start = (i * chunkSize).toInt()
             val end = ((i + 1) * chunkSize).toInt().coerceAtMost(data.size)
-            
+
             var sum = 0L
             var count = 0
             for (j in start until end) {
                 sum += data[j]
                 count++
             }
-            
-            val avg = if (count > 0) sum / count else 0L
-            
-            // Normaalime 0-100 (tavaliselt max PCM on ~32767)
-            // Kasutame ruutjuurt dünaamika parandamiseks või logaritmi?
-            // Lihtne lineaarne: 32768 -> 100
-            // Aga vaikne kõne on madal. Võimendame veidi.
-            
-            // Boost factor 3.0
-            val normalized = (avg / 32768.0 * 100 * 3.0).toInt().coerceIn(5, 100)
+            rawValues.add(if (count > 0) sum / count else 0L)
+        }
+
+        // Normaliseerime suhteliselt max väärtuse suhtes
+        // Nii säilib dünaamika alati, sõltumata absoluutsest amplituudist
+        val maxVal = rawValues.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+
+        for (v in rawValues) {
+            val normalized = (v.toDouble() / maxVal * 100).toInt().coerceIn(5, 100)
             result.add(normalized)
         }
         return result
