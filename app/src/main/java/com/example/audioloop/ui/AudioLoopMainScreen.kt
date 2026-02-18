@@ -133,7 +133,7 @@ fun AudioLoopMainScreen(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean, Boolean) -> Unit,
+    onTrimFile: (File, Long, Long, Boolean, Boolean, Long, Long) -> Unit,
     selectedSpeed: Float,
     selectedLoopCount: Int,
     isShadowing: Boolean,
@@ -143,7 +143,7 @@ fun AudioLoopMainScreen(
     onSeekAbsolute: (Int) -> Unit = {},
     onSplitFile: (RecordingItem) -> Unit = {},
     onNormalizeFile: (RecordingItem) -> Unit = {},
-    onFadeFile: (RecordingItem) -> Unit = {},
+    onFadeFile: (RecordingItem, Long, Long) -> Unit = { _, _, _ -> },
     onMergeFiles: (List<RecordingItem>) -> Unit = {},
     usePublicStorage: Boolean,
     onPublicStorageChange: (Boolean) -> Unit,
@@ -1088,7 +1088,6 @@ fun AudioLoopMainScreen(
                                     onDelete = { recordingToDelete = item; showDeleteDialog = true },
                                     onSplit = { onSplitFile(item) },
                                     onNormalize = { onNormalizeFile(item) },
-                                    onFade = { onFadeFile(item) },
                                     currentProgress = if (isPlaying) currentProgress else 0f,
                                     currentTimeString = if (isPlaying) currentTimeString else "00:00",
                                     onSeek = onSeekTo,
@@ -1173,8 +1172,8 @@ fun AudioLoopMainScreen(
                 uri = recordingToTrim!!.uri,
                 durationMs = recordingToTrim!!.durationMillis,
                 onDismiss = { showTrimDialog = false },
-                onConfirm = { start: Long, end: Long, replace: Boolean, removeSelection: Boolean ->
-                    onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection)
+                onConfirm = { start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long ->
+                    onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection, fadeInMs, fadeOutMs)
                     showTrimDialog = false
                 },
                 themeColors = themeColors

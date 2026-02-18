@@ -208,9 +208,14 @@ object AudioMerger {
     }
 
     private fun encodeToAac(samples: ShortArray, sampleRate: Int, channels: Int, outputFile: File): Boolean {
+        val totalFrames = samples.size / channels
+        val durationUs = totalFrames.toLong() * 1_000_000L / sampleRate
+
         val encoderFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channels)
         encoderFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, android.media.MediaCodecInfo.CodecProfileLevel.AACObjectLC)
         encoderFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128000)
+        encoderFormat.setLong(MediaFormat.KEY_DURATION, durationUs)
+        encoderFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16384)
 
         val encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
         encoder.configure(encoderFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)

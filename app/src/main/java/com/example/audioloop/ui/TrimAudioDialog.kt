@@ -64,7 +64,7 @@ fun TrimAudioDialog(
     uri: Uri,
     durationMs: Long,
     onDismiss: () -> Unit,
-    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean) -> Unit,
+    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long) -> Unit,
     themeColors: AppColorPalette = AppTheme.SLATE.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
@@ -76,7 +76,9 @@ fun TrimAudioDialog(
     var playerReady by remember { mutableStateOf(false) }
     var playerInitError by remember { mutableStateOf(false) }
     var isDraggingHandle by remember { mutableStateOf(false) }
-    
+    var fadeInEnabled by remember { mutableStateOf(false) }
+    var fadeOutEnabled by remember { mutableStateOf(false) }
+
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
         val clamped = rawMs.coerceIn(0f, total)
@@ -273,32 +275,59 @@ fun TrimAudioDialog(
                             }
                         }
 
-                        LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs) {
+                        LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs, fadeInEnabled, fadeOutEnabled) {
                              if (isPreviewPlaying) {
                                   while (isActive && previewPlayer.isPlaying) {
                                       val currentMs = previewPlayer.currentPosition.toLong()
                                       previewPositionMs = currentMs
-                                      
+
+                                      // Fade preview via volume
+                                      val effectiveStart: Long
+                                      val effectiveEnd: Long
                                       if (trimMode == TrimMode.Keep) {
-                                          // Keep Mode: Stop if we start exceeding selection
+                                          effectiveStart = selectionStartMs.toLong()
+                                          effectiveEnd = selectionEndMs.toLong()
+                                      } else {
+                                          effectiveStart = 0L
+                                          effectiveEnd = durationMs
+                                      }
+                                      val effectiveDuration = (effectiveEnd - effectiveStart).coerceAtLeast(1)
+                                      val fadeDurationMs = (effectiveDuration / 10).coerceIn(200, 3000)
+                                      var vol = 1f
+                                      if (fadeInEnabled) {
+                                          val elapsed = currentMs - effectiveStart
+                                          if (elapsed < fadeDurationMs) {
+                                              vol = (elapsed.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+                                          }
+                                      }
+                                      if (fadeOutEnabled) {
+                                          val remaining = effectiveEnd - currentMs
+                                          if (remaining < fadeDurationMs) {
+                                              val fadeOutVol = (remaining.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+                                              vol = min(vol, fadeOutVol)
+                                          }
+                                      }
+                                      try { previewPlayer.setVolume(vol, vol) } catch (_: Exception) {}
+
+                                      if (trimMode == TrimMode.Keep) {
                                           if (currentMs >= selectionEndMs) {
                                                 previewPlayer.pause()
+                                                previewPlayer.setVolume(1f, 1f)
                                                 previewPlayer.seekTo(selectionStartMs.toInt())
                                                 previewPositionMs = selectionStartMs.toLong()
                                                 isPreviewPlaying = false
                                           }
                                       } else {
-                                          // Remove Mode: Skip the selection STRICTLY
                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
                                                val seekPos = (selectionEndMs + 20).toInt().coerceAtMost(durationMs.toInt())
                                                previewPlayer.seekTo(seekPos)
                                                previewPositionMs = seekPos.toLong()
-                                               // Crucial: wait for seek to take effect so currentMs doesn't trigger again
-                                               delay(100) 
+                                               delay(100)
                                           }
                                       }
                                       delay(30)
                                   }
+                                  try { previewPlayer.setVolume(1f, 1f) } catch (_: Exception) {}
                                   isPreviewPlaying = false
                              }
                         }
@@ -631,12 +660,35 @@ fun TrimAudioDialog(
                             }
                         }
 
-                        // Row 3: Centered Play & Reset Controls
+                        // Row 3: Fade toggles + Play & Reset Controls
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Fade In toggle
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (fadeInEnabled) themeColors.primary700 else Zinc800,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (fadeInEnabled) themeColors.primary500 else Zinc600,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable { fadeInEnabled = !fadeInEnabled }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    "Fade In",
+                                    color = if (fadeInEnabled) Color.White else Zinc500,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 // Reset Button
                                 Box(
@@ -706,11 +758,34 @@ fun TrimAudioDialog(
                                     )
                                 }
                             }
+
+                            // Fade Out toggle
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (fadeOutEnabled) themeColors.primary700 else Zinc800,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (fadeOutEnabled) themeColors.primary500 else Zinc600,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable { fadeOutEnabled = !fadeOutEnabled }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    "Fade Out",
+                                    color = if (fadeOutEnabled) Color.White else Zinc500,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     // Footer Actions
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
@@ -730,7 +805,11 @@ fun TrimAudioDialog(
                             onClick = {
                                 val start = range.start.toLong()
                                 val end = range.endInclusive.toLong()
-                                onConfirm(start, end, false, trimMode == TrimMode.Remove)
+                                val resultDuration = if (trimMode == TrimMode.Keep) end - start else durationMs - (end - start)
+                                val fadeDur = (resultDuration / 10).coerceIn(200, 3000)
+                                val fadeIn = if (fadeInEnabled) fadeDur else 0L
+                                val fadeOut = if (fadeOutEnabled) fadeDur else 0L
+                                onConfirm(start, end, false, trimMode == TrimMode.Remove, fadeIn, fadeOut)
                             },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),
@@ -747,7 +826,11 @@ fun TrimAudioDialog(
                             onClick = {
                                 val start = range.start.toLong()
                                 val end = range.endInclusive.toLong()
-                                onConfirm(start, end, true, trimMode == TrimMode.Remove)
+                                val resultDuration = if (trimMode == TrimMode.Keep) end - start else durationMs - (end - start)
+                                val fadeDur = (resultDuration / 10).coerceIn(200, 3000)
+                                val fadeIn = if (fadeInEnabled) fadeDur else 0L
+                                val fadeOut = if (fadeOutEnabled) fadeDur else 0L
+                                onConfirm(start, end, true, trimMode == TrimMode.Remove, fadeIn, fadeOut)
                             },
                             modifier = Modifier.weight(1f).height(48.dp),
                             shape = RoundedCornerShape(12.dp),

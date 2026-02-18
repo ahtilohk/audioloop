@@ -561,15 +561,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                             savedItems.forEach { item -> precomputeWaveformAsync(coroutineScope, item.file) }
                         },
-                        onTrimFile = { file, start, end, replace, removeSelection ->
+                        onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs ->
                             trimAudioFile(file, start, end, replace, removeSelection) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                if (replace) precomputeWaveformAsync(coroutineScope, file)
-                                else {
-                                    // Uus fail tekkis, leiame selle
-                                    val files = getSavedRecordings(uiCategory, filesDir)
-                                    val newFile = files.firstOrNull()?.file // Eeldame et sorteeritud kuupäeva järgi (uusim ees)
-                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
+                                val targetFile = if (replace) file else {
+                                    val items = getSavedRecordings(uiCategory, filesDir)
+                                    items.firstOrNull()?.file
+                                }
+                                if (targetFile != null) {
+                                    if (fadeInMs > 0 || fadeOutMs > 0) {
+                                        coroutineScope.launch {
+                                            processFileInPlace(targetFile, uiCategory, "Applying fade...") { input, output ->
+                                                AudioProcessor.applyFade(input, output, fadeInMs, fadeOutMs)
+                                            }
+                                        }
+                                    } else {
+                                        precomputeWaveformAsync(coroutineScope, targetFile)
+                                    }
                                 }
                             }
                         },
@@ -593,12 +601,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 }
                             }
                         },
-                        onFadeFile = { item ->
+                        onFadeFile = { item, fadeInMs, fadeOutMs ->
                             coroutineScope.launch {
-                                val durationMs = item.durationMillis
-                                val fadeMs = (durationMs / 10).coerceIn(200, 3000)
                                 processFileInPlace(item.file, uiCategory, "Applying fade...") { input, output ->
-                                    AudioProcessor.applyFade(input, output, fadeInMs = fadeMs, fadeOutMs = fadeMs)
+                                    AudioProcessor.applyFade(input, output, fadeInMs = fadeInMs, fadeOutMs = fadeOutMs)
                                 }
                             }
                         },
