@@ -142,6 +142,9 @@ fun AudioLoopMainScreen(
     waveformCache: Map<String, List<Int>> = emptyMap(),
     onSeekAbsolute: (Int) -> Unit = {},
     onSplitFile: (RecordingItem) -> Unit = {},
+    onNormalizeFile: (RecordingItem) -> Unit = {},
+    onFadeFile: (RecordingItem) -> Unit = {},
+    onMergeFiles: (List<RecordingItem>) -> Unit = {},
     usePublicStorage: Boolean,
     onPublicStorageChange: (Boolean) -> Unit,
     sleepTimerRemainingMs: Long = 0L,
@@ -900,26 +903,51 @@ fun AudioLoopMainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isSelectionMode && selectedFiles.isNotEmpty()) {
-                            Button(
-                                onClick = {
-                                    val orderedSelection = selectedFiles.toList()
-                                    val filesToPlay = orderedSelection.mapNotNull { name ->
-                                        recordingItems.find { it.name == name }
-                                    }
-                                    if (filesToPlay.isNotEmpty()) {
-                                        playingPlaylistFiles = filesToPlay.map { it.name }
-                                        onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed) {
-                                            playingPlaylistFiles = emptyList()
-                                        }
-                                        isSelectionMode = false
-                                        selectedFiles = emptySet()
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("PLAY ${selectedFiles.size} SELECTED", color = Color.White, fontWeight = FontWeight.Bold)
+                                Button(
+                                    onClick = {
+                                        val orderedSelection = selectedFiles.toList()
+                                        val filesToPlay = orderedSelection.mapNotNull { name ->
+                                            recordingItems.find { it.name == name }
+                                        }
+                                        if (filesToPlay.isNotEmpty()) {
+                                            playingPlaylistFiles = filesToPlay.map { it.name }
+                                            onStartPlaylist(filesToPlay, selectedLoopCount == -1, selectedSpeed) {
+                                                playingPlaylistFiles = emptyList()
+                                            }
+                                            isSelectionMode = false
+                                            selectedFiles = emptySet()
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("PLAY ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                                if (selectedFiles.size >= 2) {
+                                    Button(
+                                        onClick = {
+                                            val orderedSelection = selectedFiles.toList()
+                                            val filesToMerge = orderedSelection.mapNotNull { name ->
+                                                recordingItems.find { it.name == name }
+                                            }
+                                            if (filesToMerge.size >= 2) {
+                                                onMergeFiles(filesToMerge)
+                                                isSelectionMode = false
+                                                selectedFiles = emptySet()
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.secondary),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("MERGE ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    }
+                                }
                             }
                         } else {
                             Text(
@@ -1059,6 +1087,8 @@ fun AudioLoopMainScreen(
                                     onShare = { onShareFile(item) },
                                     onDelete = { recordingToDelete = item; showDeleteDialog = true },
                                     onSplit = { onSplitFile(item) },
+                                    onNormalize = { onNormalizeFile(item) },
+                                    onFade = { onFadeFile(item) },
                                     currentProgress = if (isPlaying) currentProgress else 0f,
                                     currentTimeString = if (isPlaying) currentTimeString else "00:00",
                                     onSeek = onSeekTo,

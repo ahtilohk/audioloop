@@ -586,6 +586,27 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 savedItems.forEach { precomputeWaveformAsync(coroutineScope, it.file) }
                             }
                         },
+                        onNormalizeFile = { item ->
+                            coroutineScope.launch {
+                                processFileInPlace(item.file, uiCategory, "Normalizing...") { input, output ->
+                                    AudioProcessor.normalize(input, output)
+                                }
+                            }
+                        },
+                        onFadeFile = { item ->
+                            coroutineScope.launch {
+                                val durationMs = item.durationMillis
+                                val fadeMs = (durationMs / 10).coerceIn(200, 3000)
+                                processFileInPlace(item.file, uiCategory, "Applying fade...") { input, output ->
+                                    AudioProcessor.applyFade(input, output, fadeInMs = fadeMs, fadeOutMs = fadeMs)
+                                }
+                            }
+                        },
+                        onMergeFiles = { items ->
+                            coroutineScope.launch {
+                                mergeFiles(items.map { it.file }, uiCategory)
+                            }
+                        },
                         usePublicStorage = usePublicStorage,
                         onPublicStorageChange = { }, // Storage always public now
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
@@ -1320,6 +1341,68 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()
         }
     }
+    /**
+     * Processes an audio file in-place: runs the given processor, replaces the original,
+     * refreshes file list and waveform cache.
+     */
+    private suspend fun processFileInPlace(
+        file: File,
+        category: String,
+        toastMsg: String,
+        processor: suspend (File, File) -> Boolean
+    ) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
+        }
+        val ext = file.extension
+        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
+        val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
+        withContext(Dispatchers.Main) {
+            if (success && tempFile.exists()) {
+                if (file.delete()) {
+                    tempFile.renameTo(file)
+                    waveformCache.remove(file.absolutePath)
+                    getWaveformFile(file).delete()
+                    precomputeWaveformAsync(this@MainActivity, file)
+                    savedItems = getSavedRecordings(category, filesDir)
+                    Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
+                } else {
+                    tempFile.delete()
+                    Toast.makeText(this@MainActivity, "Could not replace file", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                tempFile.delete()
+                Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private suspend fun mergeFiles(files: List<File>, category: String) {
+        if (files.size < 2) return
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, "Merging ${files.size} files...", Toast.LENGTH_SHORT).show()
+        }
+        val ext = if (files.all { it.extension.equals("wav", ignoreCase = true) }) "wav" else "m4a"
+        val baseName = files.first().nameWithoutExtension
+        val outputDir = if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
+        var counter = 1
+        var outputFile = File(outputDir, "${baseName}_merged.$ext")
+        while (outputFile.exists()) {
+            counter++
+            outputFile = File(outputDir, "${baseName}_merged_$counter.$ext")
+        }
+        val success = withContext(Dispatchers.IO) { AudioMerger.mergeFiles(files, outputFile) }
+        withContext(Dispatchers.Main) {
+            if (success) {
+                precomputeWaveformAsync(this@MainActivity, outputFile)
+                savedItems = getSavedRecordings(category, filesDir)
+                Toast.makeText(this@MainActivity, "Merged into ${outputFile.name}", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, "Merge failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     fun updatePlaybackSpeed(speed: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed) }

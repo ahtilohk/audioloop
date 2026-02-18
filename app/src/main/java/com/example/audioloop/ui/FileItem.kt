@@ -101,6 +101,8 @@ fun FileItem(
     onShare: () -> Unit,
     onDelete: () -> Unit,
     onSplit: () -> Unit = {},
+    onNormalize: () -> Unit = {},
+    onFade: () -> Unit = {},
     currentProgress: Float = 0f,
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
@@ -352,6 +354,16 @@ fun FileItem(
                             text = { Text("Split by Silence", color = Zinc200) },
                             leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = Zinc400) },
                             onClick = { menuExpanded = false; onSplit() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Normalize", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onNormalize() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Fade In/Out", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.Speed, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onFade() }
                         )
                         DropdownMenuItem(
                             text = { Text("Move", color = Zinc200) },
