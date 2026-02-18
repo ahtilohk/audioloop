@@ -5,8 +5,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -440,90 +441,98 @@ fun TrimAudioDialog(
                              )
                           }
                         
-                         // Touch Logic
+                         // Touch Logic - unified gesture handler
                          Canvas(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .pointerInput(Unit) {
-                                    detectTapGestures(onTap = { offset ->
-                                        val tapMs = (offset.x / widthPx) * totalDuration
-                                        var newMs = tapMs.toLong().coerceIn(0L, durationMs)
-                                        
-                                        // Enforce Cut Mode constraints
-                                        if (trimMode == TrimMode.Remove) {
-                                            if (newMs >= selectionStartMs && newMs < selectionEndMs) {
-                                                newMs = selectionEndMs.toLong()
-                                            }
-                                        }
-                                        
-                                        previewPositionMs = newMs
-                                        previewPlayer.seekTo(previewPositionMs.toInt())
-                                    })
-                                }
-                                .pointerInput(Unit) {
-                                    detectDragGestures(
-                                        onDragStart = { offset ->
-                                             val touchX = offset.x
-                                             val distStart = kotlin.math.abs(touchX - startX)
-                                             val distEnd = kotlin.math.abs(touchX - endX)
-                                             val playheadPx = if (totalDuration > 0f) {
-                                                 (previewPositionMs.toFloat() / totalDuration) * widthPx
-                                             } else 0f
-                                             val distPlayhead = kotlin.math.abs(touchX - playheadPx)
-                                             val playheadHitWidth = handleHitWidth
+                                    val slop = viewConfiguration.touchSlop
+                                    awaitEachGesture {
+                                        val down = awaitFirstDown(requireUnconsumed = false)
+                                        val downX = down.position.x
+                                        val downY = down.position.y
 
-                                             // Find the closest target among all three
-                                             data class HitCandidate(val target: TrimDragTarget, val dist: Float)
-                                             val candidates = mutableListOf<HitCandidate>()
-                                             if (distStart < handleHitWidth) candidates.add(HitCandidate(TrimDragTarget.Start, distStart))
-                                             if (distEnd < handleHitWidth) candidates.add(HitCandidate(TrimDragTarget.End, distEnd))
-                                             if (distPlayhead < playheadHitWidth) candidates.add(HitCandidate(TrimDragTarget.Playhead, distPlayhead))
+                                        // Hit test at INITIAL touch position (before any slop movement)
+                                        val distStart = kotlin.math.abs(downX - startX)
+                                        val distEnd = kotlin.math.abs(downX - endX)
+                                        val playheadPx = if (totalDuration > 0f) {
+                                            (previewPositionMs.toFloat() / totalDuration) * widthPx
+                                        } else 0f
+                                        val distPlayhead = kotlin.math.abs(downX - playheadPx)
 
-                                             val best = candidates.minByOrNull { it.dist }
-                                             if (best != null) {
-                                                 dragTarget = best.target
-                                             } else {
-                                                 dragTarget = TrimDragTarget.Playhead
-                                                 // Snap playhead immediately on drag start if hitting body
-                                                 val newMs = (touchX / widthPx) * totalDuration
-                                                 previewPositionMs = newMs.toLong().coerceIn(0L, durationMs)
-                                                 previewPlayer.seekTo(previewPositionMs.toInt())
-                                             }
-                                             isDraggingHandle = (dragTarget != TrimDragTarget.Playhead)
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            val touchX = change.position.x
-                                            
-                                            when(dragTarget) {
-                                                TrimDragTarget.Start -> {
-                                                     startX = (startX + dragAmount.x).coerceIn(0f, widthPx)
-                                                }
-                                                TrimDragTarget.End -> {
-                                                     endX = (endX + dragAmount.x).coerceIn(0f, widthPx)
-                                                }
-                                                TrimDragTarget.Playhead -> {
-                                                     val rawMs = (touchX / widthPx) * totalDuration
-                                                     var newMs = rawMs.toLong().coerceIn(0L, durationMs)
-                                                     
-                                                     // Enforce Cut Mode constraints
-                                                     if (trimMode == TrimMode.Remove) {
-                                                         if (newMs >= selectionStartMs && newMs < selectionEndMs) {
-                                                             newMs = selectionEndMs.toLong()
-                                                         }
-                                                     }
-                                                     
-                                                     previewPositionMs = newMs
-                                                     previewPlayer.seekTo(previewPositionMs.toInt())
-                                                }
-                                                null -> {}
-                                            }
-                                        },
-                                        onDragEnd = { 
-                                            dragTarget = null 
-                                            isDraggingHandle = false
+                                        // Determine target: playhead pills are at top/bottom 20dp
+                                        val pillZone = 20.dp.toPx()
+                                        val inPillZone = downY < pillZone || downY > (heightPx - pillZone)
+
+                                        val target = if (inPillZone && distPlayhead < handleHitWidth) {
+                                            // Touch is on playhead pill handles - always grab playhead
+                                            TrimDragTarget.Playhead
+                                        } else {
+                                            // Find closest among trim handles only (playhead moves via body drag/tap)
+                                            val handleCandidates = mutableListOf<Pair<TrimDragTarget, Float>>()
+                                            if (distStart < handleHitWidth) handleCandidates.add(TrimDragTarget.Start to distStart)
+                                            if (distEnd < handleHitWidth) handleCandidates.add(TrimDragTarget.End to distEnd)
+                                            // Also consider playhead if close
+                                            if (distPlayhead < handleHitWidth) handleCandidates.add(TrimDragTarget.Playhead to distPlayhead)
+                                            handleCandidates.minByOrNull { it.second }?.first ?: TrimDragTarget.Playhead
                                         }
-                                    )
+
+                                        // Try to detect drag vs tap
+                                        var wasDragged = false
+                                        var prevX = downX
+
+                                        val dragSuccess = drag(down.id) { change ->
+                                            val dx = change.position.x - downX
+                                            val dy = change.position.y - downY
+                                            if (!wasDragged && (kotlin.math.abs(dx) > slop || kotlin.math.abs(dy) > slop)) {
+                                                wasDragged = true
+                                                dragTarget = target
+                                                isDraggingHandle = (target != TrimDragTarget.Playhead)
+                                            }
+
+                                            if (wasDragged) {
+                                                change.consume()
+                                                val dragDelta = change.position.x - prevX
+                                                when (target) {
+                                                    TrimDragTarget.Start -> {
+                                                        startX = (startX + dragDelta).coerceIn(0f, widthPx)
+                                                    }
+                                                    TrimDragTarget.End -> {
+                                                        endX = (endX + dragDelta).coerceIn(0f, widthPx)
+                                                    }
+                                                    TrimDragTarget.Playhead -> {
+                                                        val rawMs = (change.position.x / widthPx) * totalDuration
+                                                        var newMs = rawMs.toLong().coerceIn(0L, durationMs)
+                                                        if (trimMode == TrimMode.Remove) {
+                                                            if (newMs >= selectionStartMs && newMs < selectionEndMs) {
+                                                                newMs = selectionEndMs.toLong()
+                                                            }
+                                                        }
+                                                        previewPositionMs = newMs
+                                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                                    }
+                                                }
+                                            }
+                                            prevX = change.position.x
+                                        }
+
+                                        // Drag ended or was a tap
+                                        dragTarget = null
+                                        isDraggingHandle = false
+
+                                        if (!wasDragged) {
+                                            // It was a tap - move playhead to tap position
+                                            val tapMs = (downX / widthPx) * totalDuration
+                                            var newMs = tapMs.toLong().coerceIn(0L, durationMs)
+                                            if (trimMode == TrimMode.Remove) {
+                                                if (newMs >= selectionStartMs && newMs < selectionEndMs) {
+                                                    newMs = selectionEndMs.toLong()
+                                                }
+                                            }
+                                            previewPositionMs = newMs
+                                            previewPlayer.seekTo(previewPositionMs.toInt())
+                                        }
+                                    }
                                 }
                         ) {}
                     }

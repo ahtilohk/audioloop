@@ -686,7 +686,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     
     fun getPublicStoragePref(context: Context): Boolean {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("use_public_storage", false)
+        return prefs.getBoolean("use_public_storage", true)
     }
 
     fun saveThemePref(context: Context, theme: com.example.audioloop.ui.theme.AppTheme) {
