@@ -562,22 +562,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems.forEach { item -> precomputeWaveformAsync(coroutineScope, item.file) }
                         },
                         onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs ->
-                            trimAudioFile(file, start, end, replace, removeSelection) {
+                            trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                val targetFile = if (replace) file else {
+                                if (replace) precomputeWaveformAsync(coroutineScope, file)
+                                else {
                                     val items = getSavedRecordings(uiCategory, filesDir)
-                                    items.firstOrNull()?.file
-                                }
-                                if (targetFile != null) {
-                                    if (fadeInMs > 0 || fadeOutMs > 0) {
-                                        coroutineScope.launch {
-                                            processFileInPlace(targetFile, uiCategory, "Applying fade...") { input, output ->
-                                                AudioProcessor.applyFade(input, output, fadeInMs, fadeOutMs)
-                                            }
-                                        }
-                                    } else {
-                                        precomputeWaveformAsync(coroutineScope, targetFile)
-                                    }
+                                    val newFile = items.firstOrNull()?.file
+                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
                                 }
                             }
                         },
@@ -982,15 +973,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         end: Long,
         replace: Boolean,
         removeSelection: Boolean,
+        fadeInMs: Long = 0,
+        fadeOutMs: Long = 0,
         onSuccess: () -> Unit
     ) {
         stopPlaying()
         val ext = file.extension
         val isWav = ext.equals("wav", ignoreCase = true)
         val tempFile = File(file.parent, "temp_trim_${System.currentTimeMillis()}.$ext")
-        
+
         launch(Dispatchers.IO) {
-            val success = if (isWav) {
+            var success = if (isWav) {
                 if (removeSelection) {
                     WavAudioTrimmer.removeSegmentWav(file, tempFile, start, end)
                 } else {
@@ -1003,11 +996,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     AudioTrimmer.trimAudio(file, tempFile, start, end)
                 }
             }
-            
+
+            // Apply fade to trimmed result if requested
+            if (success && (fadeInMs > 0 || fadeOutMs > 0)) {
+                val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.wav")
+                val fadeSuccess = AudioProcessor.applyFade(tempFile, fadeTemp, fadeInMs, fadeOutMs)
+                if (fadeSuccess) {
+                    tempFile.delete()
+                    fadeTemp.renameTo(tempFile)
+                } else {
+                    fadeTemp.delete()
+                    // Fade failed but trim succeeded - continue without fade
+                }
+            }
+
             withContext(Dispatchers.Main) {
                 if (success) {
                     if (replace) {
-                        // Kustuta algne, nimeta temp ümber
                         if (file.delete()) {
                             tempFile.renameTo(file)
                             waveformCache.remove(file.absolutePath)
@@ -1018,19 +1023,17 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             Toast.makeText(this@MainActivity, "Could not replace original file!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        // Incremental naming: File_trim_1.m4a, File_trim_2.m4a...
                         val originalName = file.nameWithoutExtension
-                        // Strip existing "_trim_X" if present to avoid "Song_trim_1_trim_2"
                         val baseName = if (originalName.contains("_trim_")) {
                              originalName.substringBeforeLast("_trim_")
                         } else {
                              originalName
                         }
-                        
+
                         var counter = 1
                         var newName = "${baseName}_trim_$counter.$ext"
                         var newFile = File(file.parent, newName)
-                        
+
                         while (newFile.exists()) {
                             counter++
                             newName = "${baseName}_trim_$counter.$ext"
@@ -1360,22 +1363,19 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         withContext(Dispatchers.Main) {
             Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
         }
-        val ext = file.extension
-        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
+        // Always output WAV to avoid MPEG-4 duration metadata issues
+        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.wav")
         val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
         withContext(Dispatchers.Main) {
             if (success && tempFile.exists()) {
-                if (file.delete()) {
-                    tempFile.renameTo(file)
-                    waveformCache.remove(file.absolutePath)
-                    getWaveformFile(file).delete()
-                    precomputeWaveformAsync(this@MainActivity, file)
-                    savedItems = getSavedRecordings(category, filesDir)
-                    Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
-                } else {
-                    tempFile.delete()
-                    Toast.makeText(this@MainActivity, "Could not replace file", Toast.LENGTH_SHORT).show()
-                }
+                val finalFile = File(file.parent, "${file.nameWithoutExtension}.wav")
+                waveformCache.remove(file.absolutePath)
+                getWaveformFile(file).delete()
+                file.delete()
+                tempFile.renameTo(finalFile)
+                precomputeWaveformAsync(this@MainActivity, finalFile)
+                savedItems = getSavedRecordings(category, filesDir)
+                Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
             } else {
                 tempFile.delete()
                 Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
