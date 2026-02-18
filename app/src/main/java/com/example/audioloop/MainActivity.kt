@@ -577,6 +577,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it },
+                        waveformCache = waveformCache,
+                        onSeekAbsolute = { ms -> mediaPlayer?.seekTo(ms) },
+                        onSplitFile = { item ->
+                            coroutineScope.launch {
+                                splitBySilence(item.file, uiCategory)
+                                savedItems = getSavedRecordings(uiCategory, filesDir)
+                                savedItems.forEach { precomputeWaveformAsync(coroutineScope, it.file) }
+                            }
+                        },
                         usePublicStorage = usePublicStorage,
                         onPublicStorageChange = { }, // Storage always public now
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
@@ -1277,6 +1286,40 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
     fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
+
+    private suspend fun splitBySilence(file: File, category: String) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, "Splitting by silence...", Toast.LENGTH_SHORT).show()
+        }
+        val segments = withContext(Dispatchers.IO) {
+            SilenceSplitter.detectSegments(file)
+        }
+        if (segments.size <= 1) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "No silence gaps found to split on", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        val baseName = file.nameWithoutExtension
+        val usePublic = getPublicStoragePref(this@MainActivity)
+        val outputDir = if (usePublic) {
+            // For public storage, write to internal first, then they get picked up
+            if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
+        } else {
+            if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
+        }
+
+        val created = withContext(Dispatchers.IO) {
+            SilenceSplitter.splitFile(file, outputDir, segments, baseName)
+        }
+
+        // Pre-compute waveforms for new files
+        created.forEach { precomputeWaveformAsync(this, it) }
+
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()
+        }
+    }
     fun updatePlaybackSpeed(speed: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed) }

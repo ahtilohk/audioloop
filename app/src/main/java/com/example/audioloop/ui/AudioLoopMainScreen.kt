@@ -139,6 +139,9 @@ fun AudioLoopMainScreen(
     isShadowing: Boolean,
     onShadowingChange: (Boolean) -> Unit,
     
+    waveformCache: Map<String, List<Int>> = emptyMap(),
+    onSeekAbsolute: (Int) -> Unit = {},
+    onSplitFile: (RecordingItem) -> Unit = {},
     usePublicStorage: Boolean,
     onPublicStorageChange: (Boolean) -> Unit,
     sleepTimerRemainingMs: Long = 0L,
@@ -1055,13 +1058,16 @@ fun AudioLoopMainScreen(
                                     onMove = { itemToModify = item; showMoveDialog = true },
                                     onShare = { onShareFile(item) },
                                     onDelete = { recordingToDelete = item; showDeleteDialog = true },
+                                    onSplit = { onSplitFile(item) },
                                     currentProgress = if (isPlaying) currentProgress else 0f,
                                     currentTimeString = if (isPlaying) currentTimeString else "00:00",
                                     onSeek = onSeekTo,
                                     onReorder = { },
                                     isDragging = draggingItemIndex == index,
                                     themeColors = themeColors,
-                                    playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1
+                                    playlistPosition = playingPlaylistFiles.indexOf(item.name) + 1,
+                                    waveformData = waveformCache[item.file.absolutePath] ?: emptyList(),
+                                    onSeekAbsolute = onSeekAbsolute
                                 )
                             }
                             item { Spacer(modifier = Modifier.height(80.dp)) }

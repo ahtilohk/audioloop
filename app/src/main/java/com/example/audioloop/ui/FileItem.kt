@@ -100,13 +100,16 @@ fun FileItem(
     onMove: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
+    onSplit: () -> Unit = {},
     currentProgress: Float = 0f,
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
     onReorder: (Int) -> Unit = {},
     isDragging: Boolean = false,
     themeColors: com.example.audioloop.ui.theme.AppColorPalette = com.example.audioloop.ui.theme.AppTheme.SLATE.palette,
-    playlistPosition: Int = 0 // 0 means not in playlist, >0 is position in playlist
+    playlistPosition: Int = 0, // 0 means not in playlist, >0 is position in playlist
+    waveformData: List<Int> = emptyList(),
+    onSeekAbsolute: (Int) -> Unit = {} // seek to absolute ms position
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -346,6 +349,11 @@ fun FileItem(
                             onClick = { menuExpanded = false; onTrim() }
                         )
                         DropdownMenuItem(
+                            text = { Text("Split by Silence", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onSplit() }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Move", color = Zinc200) },
                             leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = Zinc400) },
                             onClick = { menuExpanded = false; onMove() }
@@ -367,6 +375,19 @@ fun FileItem(
         }
 
         if (isPlaying) {
+            // A-B Loop state
+            var abLoopA by remember { mutableFloatStateOf(-1f) } // -1 = not set, 0..1 = position
+            var abLoopB by remember { mutableFloatStateOf(-1f) }
+            val abActive = abLoopA >= 0f && abLoopB >= 0f && abLoopB > abLoopA
+
+            // A-B Loop enforcement
+            if (abActive && currentProgress >= abLoopB) {
+                LaunchedEffect(currentProgress) {
+                    val targetMs = (abLoopA * item.durationMillis).toInt()
+                    onSeekAbsolute(targetMs)
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
@@ -378,52 +399,132 @@ fun FileItem(
                         .clip(RoundedCornerShape(8.dp))
                         .background(themeColors.primary900.copy(alpha = 0.3f))
                         .padding(8.dp)
-                    // Waveform placeholder logic retained...
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-                         // Waveform visual
-                         Row(
-                             modifier = Modifier
-                                 .fillMaxWidth()
-                                 .height(24.dp),
-                             horizontalArrangement = Arrangement.SpaceBetween,
-                             verticalAlignment = Alignment.Bottom
-                         ) {
-                             repeat(30) {
-                                 Box(
-                                     modifier = Modifier
-                                         .weight(1f)
-                                         .padding(horizontal = 0.5.dp)
-                                         .fillMaxHeight(0.3f + (Math.random() * 0.7f).toFloat())
-                                         .background(themeColors.primary400, CircleShape)
-                                 )
-                             }
-                         }
-                         
-                         Spacer(modifier = Modifier.height(4.dp))
-                         
-                         // Slider & Time
-                         Row(
-                             modifier = Modifier.fillMaxWidth(),
-                             verticalAlignment = Alignment.CenterVertically,
-                             horizontalArrangement = Arrangement.spacedBy(8.dp)
-                         ) {
-                             Text(
-                                 text = "$currentTimeString / ${item.durationString}",
-                                 style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium),
-                                 modifier = Modifier.width(80.dp)
-                             )
-                             Slider(
-                                 value = currentProgress,
-                                 onValueChange = onSeek,
-                                 colors = SliderDefaults.colors(
-                                     thumbColor = themeColors.primary200,
-                                     activeTrackColor = themeColors.primary500,
-                                     inactiveTrackColor = Zinc700.copy(alpha = 0.5f)
-                                 ),
-                                 modifier = Modifier.weight(1f).height(20.dp)
-                             )
-                         }
+                    Column(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
+                        // Interactive Waveform with progress + A-B markers
+                        val bars = if (waveformData.isNotEmpty()) waveformData else List(60) { (10..80).random() }
+                        val barCount = bars.size
+
+                        androidx.compose.foundation.Canvas(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .pointerInput(Unit) {
+                                    val slop = viewConfiguration.touchSlop
+                                    awaitEachGesture {
+                                        val down = awaitFirstDown(requireUnconsumed = false)
+                                        val pos = (down.position.x / size.width.toFloat()).coerceIn(0f, 1f)
+                                        onSeek(pos)
+                                        drag(down.id) { change ->
+                                            change.consume()
+                                            val dragPos = (change.position.x / size.width.toFloat()).coerceIn(0f, 1f)
+                                            onSeek(dragPos)
+                                        }
+                                    }
+                                }
+                        ) {
+                            val w = size.width
+                            val h = size.height
+                            val barW = w / barCount
+                            val gap = 1.dp.toPx()
+
+                            // A-B loop region highlight
+                            if (abActive) {
+                                drawRect(
+                                    color = themeColors.primary500.copy(alpha = 0.15f),
+                                    topLeft = Offset(abLoopA * w, 0f),
+                                    size = androidx.compose.ui.geometry.Size((abLoopB - abLoopA) * w, h)
+                                )
+                            }
+
+                            // Waveform bars
+                            bars.forEachIndexed { i, amp ->
+                                val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
+                                val barH = barFraction * h
+                                val x = i * barW + gap / 2
+                                val barProgress = (i + 0.5f) / barCount
+
+                                val color = when {
+                                    barProgress <= currentProgress -> themeColors.primary400
+                                    else -> Zinc600.copy(alpha = 0.5f)
+                                }
+                                drawRoundRect(
+                                    color = color,
+                                    topLeft = Offset(x, (h - barH) / 2),
+                                    size = androidx.compose.ui.geometry.Size(barW - gap, barH),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                                )
+                            }
+
+                            // A marker line
+                            if (abLoopA >= 0f) {
+                                val ax = abLoopA * w
+                                drawLine(themeColors.primary300, Offset(ax, 0f), Offset(ax, h), strokeWidth = 2.dp.toPx())
+                            }
+                            // B marker line
+                            if (abLoopB >= 0f) {
+                                val bx = abLoopB * w
+                                drawLine(themeColors.primary300, Offset(bx, 0f), Offset(bx, h), strokeWidth = 2.dp.toPx())
+                            }
+
+                            // Playhead
+                            val px = currentProgress * w
+                            drawLine(Color.White, Offset(px, 0f), Offset(px, h), strokeWidth = 2.dp.toPx())
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Controls row: time + A-B buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "$currentTimeString / ${item.durationString}",
+                                style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                            )
+
+                            // A-B Loop controls
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                // Set A
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(if (abLoopA >= 0f) themeColors.primary700 else Zinc700.copy(alpha = 0.5f))
+                                        .clickable { abLoopA = if (abLoopA >= 0f) -1f else currentProgress }
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text("A", style = TextStyle(color = if (abLoopA >= 0f) themeColors.primary200 else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                                }
+                                // Set B
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(if (abLoopB >= 0f) themeColors.primary700 else Zinc700.copy(alpha = 0.5f))
+                                        .clickable { abLoopB = if (abLoopB >= 0f) -1f else currentProgress }
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text("B", style = TextStyle(color = if (abLoopB >= 0f) themeColors.primary200 else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                                }
+                                // Clear A-B
+                                if (abActive) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Zinc700.copy(alpha = 0.5f))
+                                            .clickable { abLoopA = -1f; abLoopB = -1f }
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Icon(AppIcons.Close, contentDescription = "Clear", tint = Zinc400, modifier = Modifier.size(12.dp))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
