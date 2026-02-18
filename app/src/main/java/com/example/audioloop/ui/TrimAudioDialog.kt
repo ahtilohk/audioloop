@@ -502,12 +502,7 @@ fun TrimAudioDialog(
                                                     }
                                                     TrimDragTarget.Playhead -> {
                                                         val rawMs = (change.position.x / widthPx) * totalDuration
-                                                        var newMs = rawMs.toLong().coerceIn(0L, durationMs)
-                                                        if (trimMode == TrimMode.Remove) {
-                                                            if (newMs >= selectionStartMs && newMs < selectionEndMs) {
-                                                                newMs = selectionEndMs.toLong()
-                                                            }
-                                                        }
+                                                        val newMs = rawMs.toLong().coerceIn(0L, durationMs)
                                                         previewPositionMs = newMs
                                                         previewPlayer.seekTo(previewPositionMs.toInt())
                                                     }
@@ -523,12 +518,7 @@ fun TrimAudioDialog(
                                         if (!wasDragged) {
                                             // It was a tap - move playhead to tap position
                                             val tapMs = (downX / widthPx) * totalDuration
-                                            var newMs = tapMs.toLong().coerceIn(0L, durationMs)
-                                            if (trimMode == TrimMode.Remove) {
-                                                if (newMs >= selectionStartMs && newMs < selectionEndMs) {
-                                                    newMs = selectionEndMs.toLong()
-                                                }
-                                            }
+                                            val newMs = tapMs.toLong().coerceIn(0L, durationMs)
                                             previewPositionMs = newMs
                                             previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
