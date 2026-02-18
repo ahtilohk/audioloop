@@ -171,7 +171,7 @@ object SilenceSplitter {
         segments.forEachIndexed { index, segment ->
             val outputFile = File(outputDir, "${baseName}_${index + 1}.$ext")
             val success = if (ext.equals("wav", ignoreCase = true)) {
-                WavAudioTrimmer.trimAudio(inputFile, outputFile, segment.startMs, segment.endMs)
+                WavAudioTrimmer.trimWav(inputFile, outputFile, segment.startMs, segment.endMs)
             } else {
                 AudioTrimmer.trimAudio(inputFile, outputFile, segment.startMs, segment.endMs)
             }
