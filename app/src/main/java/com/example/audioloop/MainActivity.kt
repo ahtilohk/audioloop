@@ -108,24 +108,6 @@ private fun getWaveformFile(audioFile: java.io.File): java.io.File {
     return java.io.File(audioFile.parent, "${audioFile.name}.wave")
 }
 
-private fun getNoteFile(audioFile: java.io.File): java.io.File {
-    return java.io.File(audioFile.parent, "${audioFile.name}.note.txt")
-}
-
-private fun getNoteForFile(audioFile: java.io.File): String {
-    val noteFile = getNoteFile(audioFile)
-    return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
-}
-
-private fun saveNoteForFile(audioFile: java.io.File, note: String) {
-    val noteFile = getNoteFile(audioFile)
-    if (note.isBlank()) {
-        noteFile.delete()
-    } else {
-        try { noteFile.writeText(note) } catch (_: Exception) {}
-    }
-}
-
 private fun saveWaveformToDisk(audioFile: java.io.File, waveform: List<Int>) {
     try {
         val waveFile = getWaveformFile(audioFile)
@@ -203,6 +185,31 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var pendingRecordingName = ""
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
+
+    // --- Notes storage (always in internal .notes/ directory) ---
+    private fun getNotesDir(): File {
+        val dir = File(filesDir, ".notes")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
+    fun getNoteFile(audioFile: File): File {
+        return File(getNotesDir(), "${audioFile.name}.note.txt")
+    }
+
+    private fun getNoteForFile(audioFile: File): String {
+        val noteFile = getNoteFile(audioFile)
+        return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
+    }
+
+    private fun saveNoteForFile(audioFile: File, note: String) {
+        val noteFile = getNoteFile(audioFile)
+        if (note.isBlank()) {
+            noteFile.delete()
+        } else {
+            noteFile.writeText(note)
+        }
+    }
 
 
 
