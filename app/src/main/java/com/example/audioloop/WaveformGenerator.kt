@@ -143,34 +143,25 @@ object WaveformGenerator {
     }
 
     private fun processOutputBuffer(buffer: ByteBuffer, info: MediaCodec.BufferInfo, list: ArrayList<Int>) {
-        // PCM 16-bit on 2 baiti proovi kohta (Little Endian)
+        // PCM 16-bit: 2 bytes per sample (Little Endian)
         val shortBuffer = buffer.asShortBuffer()
-        
-        // Loeme bufferist (limit on piiratud info.size-ga)
         val limit = info.size / 2
-        
-        var sum = 0.0
-        var count = 0
-        
-        // Optimeerimine: ei loe iga proovi, vaid võtame sammuga, et säästa mälu/aega
-        // Kui fail on suur, siis piisab vähemast
-        val step = 100 // Võtame iga 100-nda sample-i (umbes 440 samplet sekundis @ 44.1kHz)
-        
-        for (i in 0 until limit step step) {
-            var sample = shortBuffer.get(i).toInt()
-            
-            // NOISE GATE: Kui signaal on väga nõrk (taustamüra), loeme selle nulliks (vaikus)
-            // See teeb joone sirgeks nagu "Voog" salvestuse puhul
-            if (kotlin.math.abs(sample) < 150) {
-                sample = 0
+
+        // Process in fixed-size windows (~50ms at 44.1kHz = 2205 samples)
+        // This ensures consistent resolution regardless of buffer size (WAV vs AAC)
+        val windowSize = 2000
+        val step = 4 // Sample every 4th sample within the window for speed
+
+        var i = 0
+        while (i < limit) {
+            var peak = 0
+            val windowEnd = minOf(i + windowSize, limit)
+            for (j in i until windowEnd step step) {
+                val amp = kotlin.math.abs(shortBuffer.get(j).toInt())
+                if (amp > peak) peak = amp
             }
-            
-            sum += kotlin.math.abs(sample)
-            count++
-        }
-        
-        if (count > 0) {
-            list.add((sum / count).toInt())
+            list.add(peak)
+            i = windowEnd
         }
     }
 
