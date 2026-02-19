@@ -14,23 +14,24 @@ object WavAudioTrimmer {
         try {
             val rafVal = RandomAccessFile(inputFile, "r")
             rafVal.use { raf ->
-                // Basic WAV Header parsing
-                raf.seek(22) // Num Channels
-                val channels = raf.readShort().toInt().and(0xFFFF) // Unsigned short
-                
-                raf.seek(24) // Sample Rate
-                val sampleRate = raf.readInt().let { Integer.reverseBytes(it) } // Little endian
-                
-                raf.seek(34) // Bits Per Sample
-                val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
-                
+                // Read WAV header fields in little-endian
+                val headerBytes = ByteArray(36)
+                raf.read(headerBytes)
+                val hdr = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
+                hdr.position(22)
+                val channels = hdr.getShort().toInt().and(0xFFFF)
+                val sampleRate = hdr.getInt() // offset 24
+                hdr.position(34)
+                val bitsPerSample = hdr.getShort().toInt().and(0xFFFF)
+
                 // Find 'data' chunk
                 raf.seek(12) // Skip RIFF header
-                // Search for 'data'
-                var chunkHeader = ByteArray(4)
+                val chunkHeader = ByteArray(4)
+                val sizeBuf = ByteArray(4)
                 while (raf.read(chunkHeader) != -1) {
                     val chunkId = String(chunkHeader)
-                    val chunkSize = raf.readInt().let { Integer.reverseBytes(it) }
+                    raf.read(sizeBuf)
+                    val chunkSize = ByteBuffer.wrap(sizeBuf).order(ByteOrder.LITTLE_ENDIAN).getInt()
                     
                     if (chunkId == "data") {
                         val dataStartPos = raf.filePointer
@@ -106,20 +107,23 @@ object WavAudioTrimmer {
         try {
             val rafVal = RandomAccessFile(inputFile, "r")
             rafVal.use { raf ->
-                raf.seek(22)
-                val channels = raf.readShort().toInt().and(0xFFFF)
-
-                raf.seek(24)
-                val sampleRate = raf.readInt().let { Integer.reverseBytes(it) }
-
-                raf.seek(34)
-                val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
+                // Read WAV header fields in little-endian
+                val headerBytes = ByteArray(36)
+                raf.read(headerBytes)
+                val hdr = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
+                hdr.position(22)
+                val channels = hdr.getShort().toInt().and(0xFFFF)
+                val sampleRate = hdr.getInt() // offset 24
+                hdr.position(34)
+                val bitsPerSample = hdr.getShort().toInt().and(0xFFFF)
 
                 raf.seek(12)
                 val chunkHeader = ByteArray(4)
+                val sizeBuf = ByteArray(4)
                 while (raf.read(chunkHeader) != -1) {
                     val chunkId = String(chunkHeader)
-                    val chunkSize = raf.readInt().let { Integer.reverseBytes(it) }
+                    raf.read(sizeBuf)
+                    val chunkSize = ByteBuffer.wrap(sizeBuf).order(ByteOrder.LITTLE_ENDIAN).getInt()
 
                     if (chunkId == "data") {
                         val dataStartPos = raf.filePointer
