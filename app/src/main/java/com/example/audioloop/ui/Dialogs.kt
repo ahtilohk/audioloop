@@ -102,6 +102,85 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
 }
 
 @Composable
+fun NoteEditDialog(
+    currentNote: String,
+    fileName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    themeColors: AppColorPalette = AppTheme.SLATE.palette
+) {
+    var textState by remember { mutableStateOf(TextFieldValue(text = currentNote, selection = TextRange(currentNote.length))) }
+    val focusRequester = remember { FocusRequester() }
+    val hasNote = currentNote.isNotBlank()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp).widthIn(max = 400.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    if (hasNote) "Edit Note" else "Add Note",
+                    style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    fileName,
+                    style = TextStyle(color = Zinc500, fontSize = 12.sp),
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = textState,
+                    onValueChange = { textState = it },
+                    label = { Text("Lyrics, verse, translation...") },
+                    minLines = 4,
+                    maxLines = 12,
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Zinc300,
+                        focusedBorderColor = themeColors.primary500,
+                        unfocusedBorderColor = Zinc600,
+                        focusedLabelColor = themeColors.primary500,
+                        unfocusedLabelColor = Zinc500
+                    ),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                )
+
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (hasNote) {
+                        TextButton(onClick = { onConfirm("") }) {
+                            Text("Remove", color = Red400)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.width(1.dp))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
+                        Button(
+                            onClick = { onConfirm(textState.text) },
+                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                        ) { Text("Save") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,

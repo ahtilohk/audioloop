@@ -103,6 +103,7 @@ fun FileItem(
     onSplit: () -> Unit = {},
     onNormalize: () -> Unit = {},
     onAutoTrim: () -> Unit = {},
+    onEditNote: () -> Unit = {},
     currentProgress: Float = 0f,
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
@@ -291,6 +292,23 @@ fun FileItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
+                    // Note indicator
+                    if (item.note.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = themeColors.primary900.copy(alpha = 0.6f)
+                        ) {
+                            Text(
+                                text = "Aa",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = themeColors.primary300,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp
+                                ),
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                     // Selection/Playlist position badge
                     val badgeNumber = when {
                         isSelectionMode && isSelected -> selectionOrder
@@ -373,6 +391,11 @@ fun FileItem(
                             text = { Text("Normalize", color = Zinc200) },
                             leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = Zinc400) },
                             onClick = { menuExpanded = false; onNormalize() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(if (item.note.isNotBlank()) "Edit Note" else "Add Note", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.Edit, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onEditNote() }
                         )
                         DropdownMenuItem(
                             text = { Text("Move", color = Zinc200) },
@@ -546,6 +569,41 @@ fun FileItem(
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // Note text display during playback
+            if (item.note.isNotBlank()) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Zinc900.copy(alpha = 0.6f))
+                        .border(1.dp, themeColors.primary900.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Note",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = themeColors.primary400,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 9.sp,
+                                letterSpacing = 1.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = item.note,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Zinc200,
+                                lineHeight = 18.sp
+                            ),
+                            maxLines = 10,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }

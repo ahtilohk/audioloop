@@ -147,6 +147,7 @@ fun AudioLoopMainScreen(
     onSplitFile: (RecordingItem) -> Unit = {},
     onNormalizeFile: (RecordingItem) -> Unit = {},
     onAutoTrimFile: (RecordingItem) -> Unit = {},
+    onSaveNote: (RecordingItem, String) -> Unit = { _, _ -> },
     onFadeFile: (RecordingItem, Long, Long) -> Unit = { _, _, _ -> },
     onMergeFiles: (List<RecordingItem>) -> Unit = {},
     usePublicStorage: Boolean,
@@ -183,10 +184,12 @@ fun AudioLoopMainScreen(
     var showMoveDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showTrimDialog by remember { mutableStateOf(false) }
-    
+    var showNoteDialog by remember { mutableStateOf(false) }
+
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToTrim by remember { mutableStateOf<RecordingItem?>(null) }
+    var recordingToNote by remember { mutableStateOf<RecordingItem?>(null) }
     var draggingItemName by remember { mutableStateOf<String?>(null) }
     var draggingItemIndex by remember { androidx.compose.runtime.mutableIntStateOf(-1) }
     var dragOffsetPx by remember { mutableFloatStateOf(0f) }
@@ -1114,6 +1117,7 @@ fun AudioLoopMainScreen(
                                     onSplit = { onSplitFile(item) },
                                     onNormalize = { onNormalizeFile(item) },
                                     onAutoTrim = { onAutoTrimFile(item) },
+                                    onEditNote = { recordingToNote = item; showNoteDialog = true },
                                     currentProgress = if (isPlaying) currentProgress else 0f,
                                     currentTimeString = if (isPlaying) currentTimeString else "00:00",
                                     onSeek = onSeekTo,
@@ -1205,6 +1209,20 @@ fun AudioLoopMainScreen(
                 },
                 themeColors = themeColors
              )
+        }
+
+        if (showNoteDialog && recordingToNote != null) {
+            NoteEditDialog(
+                currentNote = recordingToNote!!.note,
+                fileName = recordingToNote!!.name.substringBeforeLast(".")
+                    .replace(Regex("(\\d{2})_(\\d{2})_(\\d{2})"), "$1:$2:$3"),
+                onDismiss = { showNoteDialog = false },
+                onConfirm = { note ->
+                    onSaveNote(recordingToNote!!, note)
+                    showNoteDialog = false
+                },
+                themeColors = themeColors
+            )
         }
 
     }

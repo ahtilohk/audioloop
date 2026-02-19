@@ -108,6 +108,24 @@ private fun getWaveformFile(audioFile: java.io.File): java.io.File {
     return java.io.File(audioFile.parent, "${audioFile.name}.wave")
 }
 
+private fun getNoteFile(audioFile: java.io.File): java.io.File {
+    return java.io.File(audioFile.parent, "${audioFile.name}.note.txt")
+}
+
+private fun getNoteForFile(audioFile: java.io.File): String {
+    val noteFile = getNoteFile(audioFile)
+    return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
+}
+
+private fun saveNoteForFile(audioFile: java.io.File, note: String) {
+    val noteFile = getNoteFile(audioFile)
+    if (note.isBlank()) {
+        noteFile.delete()
+    } else {
+        try { noteFile.writeText(note) } catch (_: Exception) {}
+    }
+}
+
 private fun saveWaveformToDisk(audioFile: java.io.File, waveform: List<Int>) {
     try {
         val waveFile = getWaveformFile(audioFile)
@@ -551,6 +569,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             playingFileName = "" 
                         },
                         onDeleteFile = { item ->
+                            getNoteFile(item.file).delete()
+                            getWaveformFile(item.file).delete()
                             if (item.file.delete()) savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
                         onShareFile = { item -> shareFile(item) },
@@ -594,6 +614,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             coroutineScope.launch {
                                 autoTrimSilence(item.file, uiCategory)
                             }
+                        },
+                        onSaveNote = { item, note ->
+                            saveNoteForFile(item.file, note)
+                            savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
                         onNormalizeFile = { item ->
                             coroutineScope.launch {
@@ -912,7 +936,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         
         // Ensure name conflict resolution if needed, but for now simple rename
         val targetFile = File(targetDir, file.name)
+        // Move associated files (note, waveform)
+        val noteFile = getNoteFile(file)
+        val waveFile = getWaveformFile(file)
         if (file.renameTo(targetFile)) {
+            if (noteFile.exists()) noteFile.renameTo(getNoteFile(targetFile))
+            if (waveFile.exists()) waveFile.renameTo(getWaveformFile(targetFile))
              // Remove from old order
              val oldOrder = loadFileOrder(uiCategory).toMutableList()
              oldOrder.remove(file.name)
@@ -983,7 +1012,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val ext = oldFile.extension
         val newFileName = if (newName.endsWith(".$ext")) newName else "$newName.$ext"
         val newFile = File(oldFile.parent, newFileName)
+        // Rename associated files (note, waveform)
+        val oldNote = getNoteFile(oldFile)
+        val oldWave = getWaveformFile(oldFile)
         oldFile.renameTo(newFile)
+        if (oldNote.exists()) oldNote.renameTo(getNoteFile(newFile))
+        if (oldWave.exists()) oldWave.renameTo(getWaveformFile(newFile))
     }
 
     private fun shareFile(item: RecordingItem) {
@@ -1123,7 +1157,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     val uri = try {
                         FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
                     } catch (e: Exception) { Uri.EMPTY }
-                    items.add(RecordingItem(file, file.name, aegTekst, aegNumber, uri))
+                    val note = getNoteForFile(file)
+                    items.add(RecordingItem(file, file.name, aegTekst, aegNumber, uri, note))
                 }
             }
         } catch (e: Exception) { e.printStackTrace() }
@@ -1166,7 +1201,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                          val uri = android.content.ContentUris.withAppendedId(collection, id)
                          // Loe kestus failist otse, mitte MediaStore'i cache'ist
                          val (durStr, durMs) = if (file.exists()) getDuration(file) else Pair(formatTime(durationMs), durationMs)
-                         items.add(RecordingItem(file, name, durStr, durMs, uri))
+                         val note = getNoteForFile(file)
+                         items.add(RecordingItem(file, name, durStr, durMs, uri, note))
                      }
                 }
             } catch (e: Exception) { e.printStackTrace() }
