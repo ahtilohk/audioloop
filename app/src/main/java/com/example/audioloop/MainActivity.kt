@@ -674,23 +674,28 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         if (file.extension.equals("wav", ignoreCase = true)) {
             try {
                 java.io.RandomAccessFile(file, "r").use { raf ->
-                    raf.seek(22)
-                    val channels = raf.readShort().toInt().and(0xFFFF)
-                    raf.seek(24)
-                    val sampleRate = Integer.reverseBytes(raf.readInt())
-                    raf.seek(34)
-                    val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
+                    // Read WAV header fields in little-endian
+                    val headerBytes = ByteArray(36)
+                    raf.read(headerBytes)
+                    val hdr = java.nio.ByteBuffer.wrap(headerBytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+                    hdr.position(22)
+                    val channels = hdr.getShort().toInt().and(0xFFFF)
+                    val sampleRate = hdr.getInt() // offset 24
+                    hdr.position(34)
+                    val bitsPerSample = hdr.getShort().toInt().and(0xFFFF)
                     if (sampleRate > 0 && channels > 0 && bitsPerSample > 0) {
-                        val bytesPerSecond = sampleRate * channels * (bitsPerSample / 8)
+                        val bytesPerSecond = sampleRate.toLong() * channels * (bitsPerSample / 8)
                         if (bytesPerSecond > 0) {
                             // Otsi data chunk
                             raf.seek(12)
                             val chunkHeader = ByteArray(4)
+                            val sizeBuf = ByteArray(4)
                             while (raf.read(chunkHeader) == 4) {
                                 val chunkId = String(chunkHeader)
-                                val chunkSize = Integer.reverseBytes(raf.readInt())
+                                raf.read(sizeBuf)
+                                val chunkSize = java.nio.ByteBuffer.wrap(sizeBuf).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt()
                                 if (chunkId == "data") {
-                                    millis = (chunkSize.toLong() * 1000L) / bytesPerSecond
+                                    millis = (chunkSize.toLong().and(0xFFFFFFFFL) * 1000L) / bytesPerSecond
                                     break
                                 } else {
                                     raf.skipBytes(chunkSize)

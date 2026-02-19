@@ -278,8 +278,11 @@ fun FileItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // Restore colons in time portion (sanitizeName replaces : with _ for filesystem)
+                    val displayName = item.name.substringBeforeLast(".")
+                        .replace(Regex("(\\d{2})_(\\d{2})_(\\d{2})"), "$1:$2:$3")
                     Text(
-                        text = item.name.substringBeforeLast("."),
+                        text = displayName,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = if (isPlaying) Color.White else Zinc200,
                             fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Medium

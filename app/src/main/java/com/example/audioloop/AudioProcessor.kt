@@ -152,21 +152,26 @@ object AudioProcessor {
         try {
             val raf = RandomAccessFile(inputFile, "r")
             raf.use {
-                raf.seek(22)
-                val channels = raf.readShort().toInt().and(0xFFFF)
-                raf.seek(24)
-                val sampleRate = Integer.reverseBytes(raf.readInt())
-                raf.seek(34)
-                val bitsPerSample = raf.readShort().toInt().and(0xFFFF)
+                // Read WAV header fields in little-endian
+                val headerBytes = ByteArray(36)
+                raf.read(headerBytes)
+                val hdr = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
+                hdr.position(22)
+                val channels = hdr.getShort().toInt().and(0xFFFF)
+                val sampleRate = hdr.getInt() // offset 24
+                hdr.position(34)
+                val bitsPerSample = hdr.getShort().toInt().and(0xFFFF)
 
                 if (bitsPerSample != 16) return false // Only 16-bit supported
 
                 // Find data chunk
                 raf.seek(12)
                 val chunkHeader = ByteArray(4)
+                val sizeBuf = ByteArray(4)
                 while (raf.read(chunkHeader) != -1) {
                     val chunkId = String(chunkHeader)
-                    val chunkSize = Integer.reverseBytes(raf.readInt())
+                    raf.read(sizeBuf)
+                    val chunkSize = ByteBuffer.wrap(sizeBuf).order(ByteOrder.LITTLE_ENDIAN).getInt()
 
                     if (chunkId == "data") {
                         val dataPos = raf.filePointer
