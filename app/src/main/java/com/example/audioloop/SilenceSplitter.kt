@@ -157,19 +157,116 @@ object SilenceSplitter {
 
     /**
      * Detects the first and last non-silent positions in an audio file.
+     * Directly scans decoded PCM to find content boundaries.
      * Returns a Pair of (startMs, endMs) representing the content boundaries.
      * Returns null if detection fails or the file is entirely silent.
      */
     suspend fun detectContentBounds(
         inputFile: File,
-        silenceThreshold: Int = 800
+        silenceThreshold: Int = 1500
     ): Pair<Long, Long>? = withContext(Dispatchers.IO) {
-        val segments = detectSegments(inputFile, silenceThreshold, minSilenceDurationMs = 100, minSegmentDurationMs = 50)
-        if (segments.isEmpty()) return@withContext null
-        val contentStart = segments.first().startMs
-        val contentEnd = segments.last().endMs
-        if (contentEnd <= contentStart) return@withContext null
-        Pair(contentStart, contentEnd)
+        val extractor = MediaExtractor()
+        var codec: MediaCodec? = null
+
+        try {
+            extractor.setDataSource(inputFile.absolutePath)
+
+            var audioTrackIndex = -1
+            var audioFormat: MediaFormat? = null
+            for (i in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(i)
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
+                if (mime.startsWith("audio/")) {
+                    audioTrackIndex = i
+                    audioFormat = format
+                    break
+                }
+            }
+
+            if (audioTrackIndex == -1 || audioFormat == null) return@withContext null
+
+            extractor.selectTrack(audioTrackIndex)
+            val mime = audioFormat.getString(MediaFormat.KEY_MIME) ?: return@withContext null
+            val sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            val channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+
+            codec = MediaCodec.createDecoderByType(mime)
+            codec.configure(audioFormat, null, null, 0)
+            codec.start()
+
+            val bufferInfo = MediaCodec.BufferInfo()
+            var isEos = false
+            val samplesPerMs = (sampleRate * channels) / 1000.0
+            val chunkMs = 20L
+
+            var firstContentMs = -1L
+            var lastContentMs = -1L
+            var totalSamplesDecoded = 0L
+
+            while (!isEos) {
+                val inputIndex = codec.dequeueInputBuffer(10000)
+                if (inputIndex >= 0) {
+                    val inputBuffer = codec.getInputBuffer(inputIndex) ?: continue
+                    val sampleSize = extractor.readSampleData(inputBuffer, 0)
+                    if (sampleSize < 0) {
+                        codec.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                        isEos = true
+                    } else {
+                        val pts = extractor.sampleTime
+                        codec.queueInputBuffer(inputIndex, 0, sampleSize, pts, 0)
+                        extractor.advance()
+                    }
+                }
+
+                var outputIndex = codec.dequeueOutputBuffer(bufferInfo, 10000)
+                while (outputIndex >= 0) {
+                    val outputBuffer = codec.getOutputBuffer(outputIndex) ?: break
+                    val shortCount = bufferInfo.size / 2
+                    if (shortCount > 0) {
+                        outputBuffer.position(bufferInfo.offset)
+                        val samplesPerChunk = (chunkMs * samplesPerMs).toInt().coerceAtLeast(1)
+
+                        var i = 0
+                        while (i < shortCount) {
+                            var maxAmp = 0
+                            val end = minOf(i + samplesPerChunk, shortCount)
+                            for (j in i until end) {
+                                val sample = outputBuffer.getShort(bufferInfo.offset + j * 2).toInt()
+                                val abs = kotlin.math.abs(sample)
+                                if (abs > maxAmp) maxAmp = abs
+                            }
+                            if (maxAmp >= silenceThreshold) {
+                                val timeMs = ((totalSamplesDecoded + i) / samplesPerMs).toLong()
+                                if (firstContentMs < 0) firstContentMs = timeMs
+                                lastContentMs = timeMs + chunkMs
+                            }
+                            i = end
+                        }
+                        totalSamplesDecoded += shortCount
+                    }
+                    codec.releaseOutputBuffer(outputIndex, false)
+                    outputIndex = codec.dequeueOutputBuffer(bufferInfo, 0)
+                }
+            }
+
+            codec.stop()
+            codec.release()
+            codec = null
+            extractor.release()
+
+            if (firstContentMs < 0 || lastContentMs < 0) return@withContext null
+            // Add small margin (50ms) to avoid cutting content edges
+            val safeStart = (firstContentMs - 50).coerceAtLeast(0)
+            val safeEnd = lastContentMs + 50
+            Pair(safeStart, safeEnd)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        } finally {
+            try { codec?.stop() } catch (_: Exception) {}
+            try { codec?.release() } catch (_: Exception) {}
+            try { extractor.release() } catch (_: Exception) {}
+        }
     }
 
     /**

@@ -1429,8 +1429,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
             return
         }
-        val (startMs, endMs) = bounds
+        val (contentStart, contentEnd) = bounds
         val (_, totalMs) = getDuration(file)
+        val startMs = contentStart
+        val endMs = contentEnd.coerceAtMost(totalMs) // don't exceed file duration
         // Only trim if there's significant silence (>100ms) at start or end
         if (startMs < 100 && totalMs - endMs < 100) {
             withContext(Dispatchers.Main) {
