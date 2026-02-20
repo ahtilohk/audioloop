@@ -104,6 +104,7 @@ fun FileItem(
     onNormalize: () -> Unit = {},
     onAutoTrim: () -> Unit = {},
     onEditNote: () -> Unit = {},
+    onShowInfo: () -> Unit = {},
     currentProgress: Float = 0f,
     currentTimeString: String = "00:00",
     onSeek: (Float) -> Unit = {},
@@ -406,6 +407,11 @@ fun FileItem(
                             text = { Text("Share", color = Zinc200) },
                             leadingIcon = { Icon(AppIcons.Share, null, tint = Zinc400) },
                             onClick = { menuExpanded = false; onShare() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Info", color = Zinc200) },
+                            leadingIcon = { Icon(AppIcons.Info, null, tint = Zinc400) },
+                            onClick = { menuExpanded = false; onShowInfo() }
                         )
                         HorizontalDivider(color = Zinc800)
                         DropdownMenuItem(

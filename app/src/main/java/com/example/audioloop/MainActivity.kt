@@ -1089,7 +1089,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
             // Apply fade to trimmed result if requested
             if (success && (fadeInMs > 0 || fadeOutMs > 0)) {
-                val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.wav")
+                val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.$ext")
                 val fadeSuccess = AudioProcessor.applyFade(tempFile, fadeTemp, fadeInMs, fadeOutMs)
                 if (fadeSuccess) {
                     tempFile.delete()
@@ -1538,12 +1538,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         withContext(Dispatchers.Main) {
             Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
         }
-        // Always output WAV to avoid MPEG-4 duration metadata issues
-        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.wav")
+        val ext = file.extension.ifEmpty { "m4a" }
+        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
         val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
         withContext(Dispatchers.Main) {
             if (success && tempFile.exists()) {
-                val finalFile = File(file.parent, "${file.nameWithoutExtension}.wav")
+                val finalFile = File(file.parent, "${file.nameWithoutExtension}.$ext")
                 waveformCache.remove(file.absolutePath)
                 getWaveformFile(file).delete()
                 file.delete()

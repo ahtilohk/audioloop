@@ -1,8 +1,10 @@
 package com.example.audioloop
 
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMuxer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -259,8 +261,8 @@ object AudioProcessor {
             // Step 2: Process PCM
             val processed = process(pcmSamples, sampleRate, channels)
 
-            // Step 3: Write as WAV (reliable duration, no AAC re-encode issues)
-            return writeWavOutput(processed, sampleRate, channels, outputFile)
+            // Step 3: Re-encode to M4A (AAC)
+            return encodeToM4a(processed, sampleRate, channels, outputFile)
         } catch (e: Exception) {
             e.printStackTrace()
             outputFile.delete()
@@ -310,6 +312,103 @@ object AudioProcessor {
         decoder.stop()
         decoder.release()
         return ShortArray(allSamples.size) { allSamples[it] }
+    }
+
+    private fun encodeToM4a(samples: ShortArray, sampleRate: Int, channels: Int, outputFile: File): Boolean {
+        var encoder: MediaCodec? = null
+        var muxer: MediaMuxer? = null
+        try {
+            val mime = MediaFormat.MIMETYPE_AUDIO_AAC
+            val format = MediaFormat.createAudioFormat(mime, sampleRate, channels)
+            format.setInteger(MediaFormat.KEY_BIT_RATE, 192000)
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16384)
+
+            encoder = MediaCodec.createEncoderByType(mime)
+            encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            encoder.start()
+
+            muxer = MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            var muxerTrackIndex = -1
+            var muxerStarted = false
+
+            val bufferInfo = MediaCodec.BufferInfo()
+            val pcmBytes = ByteBuffer.allocate(samples.size * 2).order(ByteOrder.LITTLE_ENDIAN)
+            for (s in samples) pcmBytes.putShort(s)
+            pcmBytes.flip()
+
+            var inputDone = false
+            var outputDone = false
+            val bytesPerFrame = channels * 2
+            var totalFramesSent = 0L
+
+            while (!outputDone) {
+                if (!inputDone) {
+                    val inputIndex = encoder.dequeueInputBuffer(10000)
+                    if (inputIndex >= 0) {
+                        val inputBuffer = encoder.getInputBuffer(inputIndex)!!
+                        val remaining = pcmBytes.remaining()
+                        if (remaining > 0) {
+                            val toWrite = minOf(remaining, inputBuffer.capacity())
+                            // Align to frame boundary
+                            val aligned = toWrite - (toWrite % bytesPerFrame)
+                            if (aligned > 0) {
+                                val oldLimit = pcmBytes.limit()
+                                pcmBytes.limit(pcmBytes.position() + aligned)
+                                inputBuffer.put(pcmBytes)
+                                pcmBytes.limit(oldLimit)
+                                val framesWritten = aligned / bytesPerFrame
+                                val pts = totalFramesSent * 1_000_000L / sampleRate
+                                encoder.queueInputBuffer(inputIndex, 0, aligned, pts, 0)
+                                totalFramesSent += framesWritten
+                            } else {
+                                encoder.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                                inputDone = true
+                            }
+                        } else {
+                            encoder.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                            inputDone = true
+                        }
+                    }
+                }
+
+                val outputIndex = encoder.dequeueOutputBuffer(bufferInfo, 10000)
+                if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    if (!muxerStarted) {
+                        muxerTrackIndex = muxer.addTrack(encoder.outputFormat)
+                        muxer.start()
+                        muxerStarted = true
+                    }
+                } else if (outputIndex >= 0) {
+                    val outputBuffer = encoder.getOutputBuffer(outputIndex)!!
+                    if (muxerStarted && bufferInfo.size > 0) {
+                        outputBuffer.position(bufferInfo.offset)
+                        outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
+                        muxer.writeSampleData(muxerTrackIndex, outputBuffer, bufferInfo)
+                    }
+                    encoder.releaseOutputBuffer(outputIndex, false)
+                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                        outputDone = true
+                    }
+                }
+            }
+
+            encoder.stop()
+            encoder.release()
+            encoder = null
+            muxer.stop()
+            muxer.release()
+            muxer = null
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            try { encoder?.stop() } catch (_: Exception) {}
+            try { encoder?.release() } catch (_: Exception) {}
+            try { muxer?.stop() } catch (_: Exception) {}
+            try { muxer?.release() } catch (_: Exception) {}
+            outputFile.delete()
+            return false
+        }
     }
 
     private fun writeWavOutput(samples: ShortArray, sampleRate: Int, channels: Int, outputFile: File): Boolean {
