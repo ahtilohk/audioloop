@@ -332,7 +332,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 LaunchedEffect(uiCategory) {
                     withContext(Dispatchers.IO) {
                         // Update categories from internal storage
-                        val realDirs = filesDir.listFiles()?.filter { it.isDirectory }?.map { it.name } ?: emptyList()
+                        val realDirs = filesDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }?.map { it.name } ?: emptyList()
                         val savedOrder = loadCategoryOrder()
                         
                         val newOrder = ArrayList<String>()
