@@ -312,6 +312,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                             // }
                                         }
                                         withContext(Dispatchers.Main) { savedItems = secondTry }
+                                        // Update widget with latest file info
+                                        val latestItem = secondTry.firstOrNull()
+                                        com.example.audioloop.widget.WidgetStateHelper.updateWidget(
+                                            ctx,
+                                            category = uiCategory,
+                                            lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
+                                            lastFileDuration = latestItem?.durationString ?: ""
+                                        )
                                     } catch (e: Exception) { e.printStackTrace() }
                                 }
                             }
@@ -472,7 +480,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         playingFileName = playingFileName,
                         isPaused = isPaused,
                         onPlayingFileNameChange = { playingFileName = it },
-                        onCategoryChange = { newCat -> uiCategory = newCat },
+                        onCategoryChange = { newCat ->
+                            uiCategory = newCat
+                            com.example.audioloop.widget.WidgetStateHelper.updateWidget(this, category = newCat)
+                        },
                         onAddCategory = { catName ->
                             val dir = File(filesDir, catName)
                             if (!dir.exists()) dir.mkdirs()
@@ -654,6 +665,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onThemeChange = { theme ->
                             currentTheme = theme
                             saveThemePref(this@MainActivity, theme)
+                            com.example.audioloop.widget.WidgetStateHelper.updateWidget(this@MainActivity, themeName = theme.name)
                         }
                     )
                 }

@@ -24,4 +24,5 @@
     <string name="toast_error">Error</string>
     <string name="settings_loop">Loop</string>
     <string name="settings_speed">Speed</string>
+    <string name="widget_description">Quick record and play from your home screen</string>
 </resources>
