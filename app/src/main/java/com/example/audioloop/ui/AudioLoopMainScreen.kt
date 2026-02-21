@@ -717,7 +717,7 @@ fun AudioLoopMainScreen(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f, 3.0f).forEach { s ->
+                                listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f, 3.0f).forEach { s ->
                                     val active = selectedSpeed == s
                                     Box(
                                         modifier = Modifier
@@ -733,18 +733,6 @@ fun AudioLoopMainScreen(
                                     }
                                 }
                             }
-                            // Continuous speed slider
-                            Slider(
-                                value = selectedSpeed,
-                                onValueChange = { onSpeedChange((it * 20).toInt() / 20f) }, // snap to 0.05 increments
-                                valueRange = 0.25f..3.0f,
-                                modifier = Modifier.fillMaxWidth().height(24.dp),
-                                colors = SliderDefaults.colors(
-                                    thumbColor = themeColors.primary400,
-                                    activeTrackColor = themeColors.primary600,
-                                    inactiveTrackColor = Zinc700
-                                )
-                            )
                             // Pitch-preserved label
                             Row(
                                 Modifier.fillMaxWidth(),
@@ -809,21 +797,6 @@ fun AudioLoopMainScreen(
                                 ) {
                                     Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 14.sp, fontWeight = FontWeight.Bold))
                                 }
-                            }
-                            // Slider for fine-grained repeat count (2-20)
-                            if (selectedLoopCount != 1 && selectedLoopCount != -1) {
-                                Slider(
-                                    value = selectedLoopCount.toFloat(),
-                                    onValueChange = { onLoopCountChange(it.toInt()) },
-                                    valueRange = 2f..20f,
-                                    steps = 17, // 18 values: 2,3,...,20 → 17 steps between
-                                    modifier = Modifier.fillMaxWidth().height(24.dp),
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = themeColors.primary400,
-                                        activeTrackColor = themeColors.primary600,
-                                        inactiveTrackColor = Zinc700
-                                    )
-                                )
                             }
                         }
                         
