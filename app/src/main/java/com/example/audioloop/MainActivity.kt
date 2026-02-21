@@ -1389,18 +1389,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             sleepTimerRemainingMs = 0L
             return
         }
-        val endTime = System.currentTimeMillis() + minutes * 60_000L
         sleepTimerRemainingMs = minutes * 60_000L
         sleepTimerJob = launch(Dispatchers.Main) {
-            while (isActive) {
+            while (isActive && sleepTimerRemainingMs > 0L) {
                 delay(1000L)
-                val remaining = endTime - System.currentTimeMillis()
-                if (remaining <= 0L) {
+                sleepTimerRemainingMs -= 1000L
+                if (sleepTimerRemainingMs <= 0L) {
                     sleepTimerRemainingMs = 0L
                     fadeOutAndStop()
                     break
                 }
-                sleepTimerRemainingMs = remaining
             }
         }
     }
