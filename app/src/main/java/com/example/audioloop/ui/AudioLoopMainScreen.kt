@@ -915,7 +915,7 @@ fun AudioLoopMainScreen(
                         ) {
                             com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
                                 val isSelected = currentTheme == theme
-                                Column(
+                                Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
@@ -926,27 +926,37 @@ fun AudioLoopMainScreen(
                                             shape = RoundedCornerShape(8.dp)
                                         )
                                         .clickable { onThemeChange(theme) }
-                                        .padding(vertical = 6.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(14.dp)
+                                            .size(16.dp)
                                             .clip(CircleShape)
                                             .background(theme.palette.primary500)
                                     )
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
+                                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                                     Text(
                                         theme.displayName,
                                         style = TextStyle(
-                                            color = if (isSelected) Color.White else Zinc500,
-                                            fontSize = 8.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            color = if (currentTheme == theme) theme.palette.primary300 else Zinc500,
+                                            fontSize = 9.sp,
+                                            fontWeight = if (currentTheme == theme) FontWeight.Bold else FontWeight.Normal
                                         )
                                     )
                                 }
                             }
                         }
+                        // Extra bottom padding so theme names aren't hidden behind Android nav bar
+                        Spacer(Modifier.height(16.dp))
                     }
                 }
             } // End Column inside Surface
