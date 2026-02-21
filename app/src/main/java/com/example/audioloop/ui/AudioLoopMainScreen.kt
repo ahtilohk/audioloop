@@ -631,28 +631,6 @@ fun AudioLoopMainScreen(
                                         )
                                     }
 
-                                    // Pitch (only show if ≠ 1.0)
-                                    if (selectedPitch != 1.0f) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = "♪",
-                                                style = MaterialTheme.typography.bodySmall.copy(
-                                                    color = themeColors.primary,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(Modifier.width(4.dp))
-                                            Text(
-                                                text = "${String.format("%.2f", selectedPitch)}x",
-                                                style = MaterialTheme.typography.bodySmall.copy(
-                                                    color = themeColors.primary,
-                                                    fontWeight = FontWeight.SemiBold
-                                                )
-                                            )
-                                        }
-                                    }
-
                                     // Loop Count
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
@@ -778,75 +756,74 @@ fun AudioLoopMainScreen(
                             }
                         }
 
-                        // Pitch
+                        // Repeats
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Pitch:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("${String.format("%.2f", selectedPitch)}x", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-                                }
-                                if (selectedPitch != 1.0f) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(Zinc800)
-                                            .clickable { onPitchChange(1.0f) }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Text("Reset", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
-                                    }
-                                }
+                                Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                                Text(
+                                    if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x",
+                                    style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                )
                             }
+                            // Quick buttons: 1x, specific count (2-20 via slider), ∞
                             Row(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f).forEach { p ->
-                                    val active = selectedPitch == p
+                                // 1x button
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (selectedLoopCount == 1) themeColors.primary600 else Zinc800)
+                                        .clickable { onLoopCountChange(1) }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("1x", style = TextStyle(color = if (selectedLoopCount == 1) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                }
+                                // Presets 2-20
+                                listOf(2, 3, 5, 10, 15, 20).forEach { r ->
+                                    val active = selectedLoopCount == r
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(6.dp))
                                             .background(if (active) themeColors.primary600 else Zinc800)
-                                            .clickable { onPitchChange(p) }
+                                            .clickable { onLoopCountChange(r) }
                                             .padding(vertical = 6.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("${p}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                        Text("${r}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                     }
+                                }
+                                // ∞ button
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (selectedLoopCount == -1) themeColors.primary600 else Zinc800)
+                                        .clickable { onLoopCountChange(-1) }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 14.sp, fontWeight = FontWeight.Bold))
                                 }
                             }
-                            Slider(
-                                value = selectedPitch,
-                                onValueChange = { onPitchChange((it * 20).toInt() / 20f) }, // snap to 0.05
-                                valueRange = 0.5f..2.0f,
-                                modifier = Modifier.fillMaxWidth().height(24.dp),
-                                colors = SliderDefaults.colors(
-                                    thumbColor = themeColors.primary400,
-                                    activeTrackColor = themeColors.primary600,
-                                    inactiveTrackColor = Zinc700
+                            // Slider for fine-grained repeat count (2-20)
+                            if (selectedLoopCount != 1 && selectedLoopCount != -1) {
+                                Slider(
+                                    value = selectedLoopCount.toFloat(),
+                                    onValueChange = { onLoopCountChange(it.toInt()) },
+                                    valueRange = 2f..20f,
+                                    steps = 17, // 18 values: 2,3,...,20 → 17 steps between
+                                    modifier = Modifier.fillMaxWidth().height(24.dp),
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = themeColors.primary400,
+                                        activeTrackColor = themeColors.primary600,
+                                        inactiveTrackColor = Zinc700
+                                    )
                                 )
-                            )
-                        }
-
-                        // Repeats
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(1, 5, -1).forEach { r ->
-                                    val active = selectedLoopCount == r
-                                    val label = if (r == -1) "\u221E" else "${r}x"
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) themeColors.primary600 else Zinc800)
-                                            .clickable { onLoopCountChange(r) }
-                                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                                    ) {
-                                        Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                    }
-                                }
                             }
                         }
                         
