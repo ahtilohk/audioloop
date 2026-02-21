@@ -124,6 +124,7 @@ fun AudioLoopMainScreen(
     onPlaylistUpdate: () -> Unit,
     
     onSpeedChange: (Float) -> Unit,
+    onPitchChange: (Float) -> Unit,
     onLoopCountChange: (Int) -> Unit,
     onSeekTo: (Float) -> Unit,
     onPausePlay: () -> Unit,
@@ -135,6 +136,7 @@ fun AudioLoopMainScreen(
     onImportFile: (Uri) -> Unit,
     onTrimFile: (File, Long, Long, Boolean, Boolean, Long, Long) -> Unit,
     selectedSpeed: Float,
+    selectedPitch: Float,
     selectedLoopCount: Int,
     isShadowing: Boolean,
     onShadowingChange: (Boolean) -> Unit,
@@ -621,12 +623,34 @@ fun AudioLoopMainScreen(
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         Text(
-                                            text = "${selectedSpeed}x",
+                                            text = "${String.format("%.2f", selectedSpeed)}x",
                                             style = MaterialTheme.typography.bodySmall.copy(
                                                 color = themeColors.primary,
                                                 fontWeight = FontWeight.SemiBold
                                             )
                                         )
+                                    }
+
+                                    // Pitch (only show if ≠ 1.0)
+                                    if (selectedPitch != 1.0f) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "♪",
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    color = themeColors.primary,
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(Modifier.width(4.dp))
+                                            Text(
+                                                text = "${String.format("%.2f", selectedPitch)}x",
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    color = themeColors.primary,
+                                                    fontWeight = FontWeight.SemiBold
+                                                )
+                                            )
+                                        }
                                     }
 
                                     // Loop Count
@@ -705,22 +729,105 @@ fun AudioLoopMainScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Speed
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(0.5f, 0.75f, 1.0f, 1.5f, 2.0f).forEach { s ->
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                                Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                            }
+                            // Preset buttons
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f, 3.0f).forEach { s ->
                                     val active = selectedSpeed == s
                                     Box(
                                         modifier = Modifier
+                                            .weight(1f)
                                             .clip(RoundedCornerShape(6.dp))
                                             .background(if (active) themeColors.primary600 else Zinc800)
                                             .clickable { onSpeedChange(s) }
-                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                            .padding(vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text("${s}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        val label = if (s == s.toInt().toFloat()) "${s.toInt()}" else "$s"
+                                        Text("${label}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                     }
                                 }
                             }
+                            // Continuous speed slider
+                            Slider(
+                                value = selectedSpeed,
+                                onValueChange = { onSpeedChange((it * 20).toInt() / 20f) }, // snap to 0.05 increments
+                                valueRange = 0.25f..3.0f,
+                                modifier = Modifier.fillMaxWidth().height(24.dp),
+                                colors = SliderDefaults.colors(
+                                    thumbColor = themeColors.primary400,
+                                    activeTrackColor = themeColors.primary600,
+                                    inactiveTrackColor = Zinc700
+                                )
+                            )
+                            // Pitch-preserved label
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🔒 ", style = TextStyle(fontSize = 10.sp))
+                                Text("Pitch preserved", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                            }
+                        }
+
+                        // Pitch
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Pitch:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("${String.format("%.2f", selectedPitch)}x", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                                }
+                                if (selectedPitch != 1.0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Zinc800)
+                                            .clickable { onPitchChange(1.0f) }
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text("Reset", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    }
+                                }
+                            }
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f).forEach { p ->
+                                    val active = selectedPitch == p
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (active) themeColors.primary600 else Zinc800)
+                                            .clickable { onPitchChange(p) }
+                                            .padding(vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("${p}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                    }
+                                }
+                            }
+                            Slider(
+                                value = selectedPitch,
+                                onValueChange = { onPitchChange((it * 20).toInt() / 20f) }, // snap to 0.05
+                                valueRange = 0.5f..2.0f,
+                                modifier = Modifier.fillMaxWidth().height(24.dp),
+                                colors = SliderDefaults.colors(
+                                    thumbColor = themeColors.primary400,
+                                    activeTrackColor = themeColors.primary600,
+                                    inactiveTrackColor = Zinc700
+                                )
+                            )
                         }
 
                         // Repeats

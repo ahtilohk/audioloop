@@ -248,6 +248,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var currentProgress by mutableFloatStateOf(0f)
     private var currentTimeString by mutableStateOf("00:00")
     private var playbackSpeed by mutableFloatStateOf(1.0f)
+    private var playbackPitch by mutableFloatStateOf(1.0f)
     private var loopMode by mutableIntStateOf(1) // 0=off, 1=one, -1=inf
     private var isShadowingMode by mutableStateOf(false)
     private var shadowPauseSeconds by mutableIntStateOf(0) // 0 = auto
@@ -570,14 +571,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onStopRecord = { stopRecording() },
                         onStartPlaylist = { files, loop, speed, onComplete ->
                            // Use providers to access fresh state
-                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { isShadowingMode }, { playingFileName = it; isPaused = false }) {
+                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { playbackPitch }, { isShadowingMode }, { playingFileName = it; isPaused = false }) {
                                 playingFileName = ""
                                 isPaused = false
                                 onComplete()
                             }
                         },
                         onPlaylistUpdate = { },
-                        onSpeedChange = { speed -> playbackSpeed = speed; updatePlaybackSpeed(speed) },
+                        onSpeedChange = { speed -> playbackSpeed = speed; updatePlaybackParams(speed, playbackPitch) },
+                        onPitchChange = { pitch -> playbackPitch = pitch; updatePlaybackParams(playbackSpeed, pitch) },
                         onLoopCountChange = { loops -> loopMode = loops },
                         onSeekTo = { pos -> seekTo(pos) },
                         onPausePlay = { pausePlaying() },
@@ -613,6 +615,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         selectedSpeed = playbackSpeed,
+                        selectedPitch = playbackPitch,
                         selectedLoopCount = loopMode,
                         isShadowing = isShadowingMode,
                         onShadowingChange = { isShadowingMode = it },
@@ -1260,6 +1263,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         currentIndex: Int,
         loopCountProvider: () -> Int,
         speedProvider: () -> Float,
+        pitchProvider: () -> Float,
         shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
         currentIteration: Int = 1,
@@ -1270,6 +1274,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         // Dynamically fetch current settings
         val loopCount = loopCountProvider()
         val speed = speedProvider()
+        val pitch = pitchProvider()
         val isShadowing = shadowingProvider()
 
         if (currentIndex >= allFiles.size) {
@@ -1277,11 +1282,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             when {
                 loopCount == -1 -> {
                     // Infinite loop - restart from beginning
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                 }
                 currentIteration < loopCount -> {
                     // More iterations remaining - restart with incremented counter
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration + 1) { onComplete() }
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration + 1) { onComplete() }
                 }
                 else -> {
                     // All iterations complete
@@ -1314,7 +1319,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                 setOnPreparedListener { mp ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        try { mp.playbackParams = mp.playbackParams.setSpeed(speed) } catch (e: Exception) { }
+                        try { mp.playbackParams = mp.playbackParams.setSpeed(speed).setPitch(pitch) } catch (e: Exception) { }
                     }
                     mp.isLooping = false
                     mp.start()
@@ -1344,23 +1349,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                            }
                            shadowCountdownText = ""
                            if (isActive) {
-                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                            }
                        }
                     } else {
-                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                     }
                 }
                 setOnErrorListener { _, what, extra ->
                     Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
                     true
                 }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
         }
     }
 
@@ -1596,9 +1601,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    fun updatePlaybackSpeed(speed: Float) {
+    fun updatePlaybackParams(speed: Float, pitch: Float) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed) }
+            mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
         }
     }
 }
