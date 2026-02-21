@@ -18,6 +18,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -701,9 +703,11 @@ fun AudioLoopMainScreen(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth()
+                            .heightIn(max = 400.dp)
                             .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
-                            .padding(12.dp),
+                            .padding(12.dp)
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Speed
