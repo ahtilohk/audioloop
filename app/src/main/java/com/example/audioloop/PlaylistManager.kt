@@ -60,52 +60,30 @@ class PlaylistManager(private val context: Context) {
 
     // --- File Resolution ---
 
-    fun resolveFiles(playlist: Playlist): List<RecordingItem> {
-        val filesDir = context.filesDir
+    fun resolveFiles(playlist: Playlist, allRecordings: List<RecordingItem>): List<RecordingItem> {
+        val fileList = if (playlist.shuffle) playlist.files.shuffled() else playlist.files
         val items = mutableListOf<RecordingItem>()
 
-        val fileList = if (playlist.shuffle) playlist.files.shuffled() else playlist.files
-
         for (relativePath in fileList) {
-            val file = if (relativePath.contains("/")) {
-                // Category/filename.mp3
-                File(filesDir, relativePath)
-            } else {
-                // Root (General) file
-                File(filesDir, relativePath)
+            val fileName = relativePath.substringAfter("/")
+            val item = allRecordings.find { 
+                it.name == fileName || it.file.absolutePath.replace("\\", "/").endsWith("/$relativePath")
             }
-
-            if (!file.exists()) continue
-
-            val durationMs = getFileDuration(file)
-            val durationStr = formatDuration(durationMs)
-            val uri = try {
-                FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-            } catch (_: Exception) { Uri.EMPTY }
-
-            val noteFile = File(File(filesDir, ".notes"), "${file.name}.note.txt")
-            val note = if (noteFile.exists()) noteFile.readText() else ""
-
-            items.add(RecordingItem(file, file.name, durationStr, durationMs, uri, note))
+            if (item != null) items.add(item)
         }
-
         return items
     }
 
     // --- Duration Helpers ---
 
-    fun totalDuration(playlist: Playlist): Long {
-        val filesDir = context.filesDir
+    fun totalDuration(playlist: Playlist, allRecordings: List<RecordingItem>): Long {
         var total = 0L
         for (relativePath in playlist.files) {
-            val file = if (relativePath.contains("/")) {
-                File(filesDir, relativePath)
-            } else {
-                File(filesDir, relativePath)
+            val fileName = relativePath.substringAfter("/")
+            val item = allRecordings.find { 
+                it.name == fileName || it.file.absolutePath.replace("\\", "/").endsWith("/$relativePath")
             }
-            if (file.exists()) {
-                total += getFileDuration(file)
-            }
+            if (item != null) total += item.durationMillis
         }
         // Add gaps
         if (playlist.files.size > 1) {
@@ -114,8 +92,8 @@ class PlaylistManager(private val context: Context) {
         return total
     }
 
-    fun formatTotalDuration(playlist: Playlist): String {
-        val ms = totalDuration(playlist)
+    fun formatTotalDuration(playlist: Playlist, allRecordings: List<RecordingItem>): String {
+        val ms = totalDuration(playlist, allRecordings)
         if (ms <= 0) return "0 min"
         val totalSeconds = ms / 1000
         val minutes = totalSeconds / 60

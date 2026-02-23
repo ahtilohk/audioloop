@@ -786,9 +786,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         // Playlists
                         playlists = playlists,
                         onPlayPlaylist = { playlist ->
-                            currentlyPlayingPlaylistId = playlist.id
-                            val resolvedItems = playlistManager.resolveFiles(playlist)
+                            val resolvedItems = playlistManager.resolveFiles(playlist, categories.flatMap { cat -> getSavedRecordings(cat, filesDir) })
                             if (resolvedItems.isNotEmpty()) {
+                                currentlyPlayingPlaylistId = playlist.id
                                 playPlaylist(
                                     allFiles = resolvedItems,
                                     currentIndex = 0,
@@ -807,6 +807,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     }
                                 )
                             } else {
+                                currentlyPlayingPlaylistId = null
                                 Toast.makeText(this@MainActivity, "Playlist is empty or files missing", Toast.LENGTH_SHORT).show()
                             }
                         },

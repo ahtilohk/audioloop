@@ -1518,6 +1518,7 @@ fun AudioLoopMainScreen(
                             onPlayPlaylist(it)
                             showPlaylistSheet = false
                         },
+                        onPause = onPausePlay,
                         onDelete = onDeletePlaylist,
                         onClose = { showPlaylistSheet = false },
                         themeColors = themeColors,

@@ -50,6 +50,7 @@ fun PlaylistListSheet(
     onCreateNew: () -> Unit,
     onEdit: (Playlist) -> Unit,
     onPlay: (Playlist) -> Unit,
+    onPause: () -> Unit,
     onDelete: (Playlist) -> Unit,
     onClose: () -> Unit,
     themeColors: AppColorPalette = AppTheme.SLATE.palette,
@@ -278,7 +279,7 @@ fun PlaylistListSheet(
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 // Play button
                                 IconButton(
-                                    onClick = { onPlay(playlist) },
+                                    onClick = { if (isPlaying) onPause() else onPlay(playlist) },
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(
