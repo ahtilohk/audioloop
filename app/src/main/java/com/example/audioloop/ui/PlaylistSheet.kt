@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -39,7 +39,7 @@ import com.example.audioloop.ui.theme.*
 import kotlin.math.roundToInt
 
 // ============================================================
-// PLAYLIST LIST VIEW — Shows all playlists with premium cards
+// PLAYLIST LIST VIEW â€” Shows all playlists with premium cards
 // ============================================================
 
 @Composable
@@ -62,7 +62,7 @@ fun PlaylistListSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // ── Gradient Header ──
+        // â”€â”€ Gradient Header â”€â”€
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,7 +84,7 @@ fun PlaylistListSheet(
             ) {
                 Column {
                     Text(
-                        "🎵 Playlists",
+                        "ðŸŽµ Playlists",
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -134,7 +134,7 @@ fun PlaylistListSheet(
             }
         }
 
-        // ── Playlist Cards ──
+        // â”€â”€ Playlist Cards â”€â”€
         if (playlists.isEmpty()) {
             // Empty state
             Column(
@@ -144,7 +144,7 @@ fun PlaylistListSheet(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("🎶", fontSize = 48.sp)
+                Text("ðŸŽ¶", fontSize = 48.sp)
                 Text(
                     "No playlists yet",
                     style = TextStyle(
@@ -165,7 +165,7 @@ fun PlaylistListSheet(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("➕ Create Playlist", color = Color.White)
+                    Text("âž• Create Playlist", color = Color.White)
                 }
             }
         } else {
@@ -202,16 +202,36 @@ fun PlaylistListSheet(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isPlaying)
-                                themeColors.primary900.copy(alpha = 0.3f)
+                                themeColors.primary900.copy(alpha = 0.4f)
                             else Zinc800.copy(alpha = 0.7f)
                         )
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            if (isPlaying) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(themeColors.primary700.copy(alpha = 0.3f))
+                                        .padding(vertical = 4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "NOW PLAYING",
+                                        style = TextStyle(
+                                            color = themeColors.primary300,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.sp
+                                        )
+                                    )
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                             // Left: Playlist info
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -239,7 +259,7 @@ fun PlaylistListSheet(
                                     )
                                     // Duration
                                     Text(
-                                        "⏱ ${formatDuration(playlist)}",
+                                        "â± ${formatDuration(playlist)}",
                                         style = TextStyle(
                                             color = themeColors.primary400,
                                             fontSize = 12.sp
@@ -256,7 +276,7 @@ fun PlaylistListSheet(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                "🔄 ${playlist.playCount}×",
+                                                "ðŸ”„ ${playlist.playCount}Ã—",
                                                 style = TextStyle(
                                                     color = themeColors.primary300,
                                                     fontSize = 11.sp,
@@ -268,7 +288,7 @@ fun PlaylistListSheet(
                                     // Shuffle indicator
                                     if (playlist.shuffle) {
                                         Text(
-                                            "🔀",
+                                            "ðŸ”€",
                                             fontSize = 12.sp
                                         )
                                     }
@@ -319,6 +339,7 @@ fun PlaylistListSheet(
                 }
             }
         }
+        }
 
         Spacer(Modifier.height(8.dp))
     }
@@ -326,7 +347,7 @@ fun PlaylistListSheet(
 
 
 // ============================================================
-// PLAYLIST EDITOR — Edit playlist name, files, settings
+// PLAYLIST EDITOR â€” Edit playlist name, files, settings
 // ============================================================
 
 @Composable
@@ -345,6 +366,12 @@ fun PlaylistEditorSheet(
     var files by remember { mutableStateOf(playlist.files.toMutableList()) }
     var gapSeconds by remember { mutableStateOf(playlist.gapSeconds) }
     var shuffle by remember { mutableStateOf(playlist.shuffle) }
+    
+    var speed by remember { mutableStateOf(playlist.speed) }
+    var pitch by remember { mutableStateOf(playlist.pitch) }
+    var loopCount by remember { mutableStateOf(playlist.loopCount) }
+    var sleepMinutes by remember { mutableStateOf(playlist.sleepMinutes) }
+
     var showFilePicker by remember { mutableStateOf(false) }
 
     if (showFilePicker) {
@@ -366,7 +393,7 @@ fun PlaylistEditorSheet(
                 .background(Zinc900, RoundedCornerShape(16.dp))
                 .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
         ) {
-            // ── Header ──
+            // â”€â”€ Header â”€â”€
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -412,7 +439,11 @@ fun PlaylistEditorSheet(
                                     name = name.ifBlank { "Untitled" },
                                     files = files,
                                     gapSeconds = gapSeconds,
-                                    shuffle = shuffle
+                                    shuffle = shuffle,
+                                    speed = speed,
+                                    pitch = pitch,
+                                    loopCount = loopCount,
+                                    sleepMinutes = sleepMinutes
                                 )
                             )
                         },
@@ -423,12 +454,12 @@ fun PlaylistEditorSheet(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text("💾 Save", color = Color.White, fontSize = 13.sp)
+                        Text("ðŸ’¾ Save", color = Color.White, fontSize = 13.sp)
                     }
                 }
             }
 
-            // ── Name Field ──
+            // â”€â”€ Name Field â”€â”€
             BasicTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -461,78 +492,172 @@ fun PlaylistEditorSheet(
                 )
             )
 
-            // ── Settings Row: Gap + Shuffle ──
+            // â”€â”€ Settings Row 1: Gap + Shuffle â”€â”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = 20.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Gap selector
                 Row(
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1.5f)
                         .background(Zinc800, RoundedCornerShape(10.dp))
                         .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("⏸", fontSize = 14.sp)
-                    Text("Gap:", color = Zinc300, fontSize = 13.sp)
+                    Text("â¸", fontSize = 12.sp)
+                    Text("Gap:", color = Zinc300, fontSize = 12.sp)
                     val gapOptions = listOf(0, 2, 5, 10)
                     gapOptions.forEach { gap ->
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(
-                                    if (gapSeconds == gap) themeColors.primary600
-                                    else Zinc700
-                                )
+                                .background(if (gapSeconds == gap) themeColors.primary600 else Zinc700)
                                 .clickable { gapSeconds = gap }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                .padding(horizontal = 6.dp, vertical = 3.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                "${gap}s",
-                                color = if (gapSeconds == gap) Color.White else Zinc400,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Text("${gap}s", color = if (gapSeconds == gap) Color.White else Zinc400, fontSize = 11.sp)
+                        }
+                    }
+                }
+
+                // Loop Selector
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Zinc800, RoundedCornerShape(10.dp))
+                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("ðŸ”„", fontSize = 12.sp)
+                    val loopOptions = listOf(1, -1)
+                    loopOptions.forEach { count ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (loopCount == count) themeColors.primary600 else Zinc700)
+                                .clickable { loopCount = count }
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(if (count == -1) "âˆž" else "1x", color = if (loopCount == count) Color.White else Zinc400, fontSize = 11.sp)
                         }
                     }
                 }
 
                 // Shuffle toggle
-                Row(
+                IconButton(
+                    onClick = { shuffle = !shuffle },
                     modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            if (shuffle) themeColors.primary800.copy(alpha = 0.5f)
-                            else Zinc800
-                        )
-                        .border(
-                            1.dp,
-                            if (shuffle) themeColors.primary500 else Zinc700,
-                            RoundedCornerShape(10.dp)
-                        )
-                        .clickable { shuffle = !shuffle }
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        .size(36.dp)
+                        .background(if (shuffle) themeColors.primary700.copy(alpha=0.3f) else Zinc800, RoundedCornerShape(10.dp))
+                        .border(1.dp, if (shuffle) themeColors.primary500 else Zinc700, RoundedCornerShape(10.dp))
                 ) {
-                    Text("🔀", fontSize = 14.sp)
-                    Text(
-                        if (shuffle) "On" else "Off",
-                        color = if (shuffle) themeColors.primary300 else Zinc400,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                    Text("ðŸ”€", fontSize = 14.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.5f))
+                }
+            }
+
+            // â”€â”€ Settings Row 2: Speed + Pitch (Compact) â”€â”€
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Speed Slider
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Zinc800, RoundedCornerShape(10.dp))
+                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("â© Speed", color = Zinc400, fontSize = 11.sp)
+                        Text("${String.format("%.2f", speed)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = speed,
+                        onValueChange = { speed = it },
+                        valueRange = 0.5f..2.0f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = themeColors.primary400,
+                            activeTrackColor = themeColors.primary600,
+                            inactiveTrackColor = Zinc700
+                        ),
+                        modifier = Modifier.height(20.dp)
+                    )
+                }
+
+                // Pitch Slider
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Zinc800, RoundedCornerShape(10.dp))
+                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("ðŸŽµ Pitch", color = Zinc400, fontSize = 11.sp)
+                        Text("${String.format("%.2f", pitch)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Slider(
+                        value = pitch,
+                        onValueChange = { pitch = it },
+                        valueRange = 0.5f..1.5f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = themeColors.primary400,
+                            activeTrackColor = themeColors.primary600,
+                            inactiveTrackColor = Zinc700
+                        ),
+                        modifier = Modifier.height(20.dp)
                     )
                 }
             }
 
-            // ── Add Files Button ──
+            // â”€â”€ Row 3: Sleep Timer (Compact) â”€â”€
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 4.dp)
+                    .background(Zinc800, RoundedCornerShape(10.dp))
+                    .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("ðŸŒ™", fontSize = 14.sp)
+                Text("Playlist Sleep Timer:", color = Zinc300, fontSize = 12.sp)
+                val sleepOptions = listOf(0, 15, 30, 60)
+                sleepOptions.forEach { mins ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (sleepMinutes == mins) themeColors.primary600 else Zinc700)
+                            .clickable { sleepMinutes = mins }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(if (mins == 0) "Off" else "${mins}m", color = if (sleepMinutes == mins) Color.White else Zinc400, fontSize = 11.sp)
+                    }
+                }
+            }
+
+            // â”€â”€ Add Files Button â”€â”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -563,7 +688,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // ── Track Count ──
+            // â”€â”€ Track Count â”€â”€
             if (files.isNotEmpty()) {
                 Text(
                     "${files.size} tracks",
@@ -575,7 +700,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // ── File List with drag reorder ──
+            // â”€â”€ File List with drag reorder â”€â”€
             val uiFiles = remember { mutableStateListOf<String>() }
             LaunchedEffect(files.toList()) {
                 uiFiles.clear()
@@ -812,7 +937,7 @@ fun PlaylistEditorSheet(
 
 
 // ============================================================
-// FILE PICKER — Multi-select files from all categories
+// FILE PICKER â€” Multi-select files from all categories
 // ============================================================
 
 @Composable
@@ -834,7 +959,7 @@ fun FilePickerSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // ── Header ──
+        // â”€â”€ Header â”€â”€
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -888,7 +1013,7 @@ fun FilePickerSheet(
             }
         }
 
-        // ── Category Tabs ──
+        // â”€â”€ Category Tabs â”€â”€
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -922,7 +1047,7 @@ fun FilePickerSheet(
             }
         }
 
-        // ── File List ──
+        // â”€â”€ File List â”€â”€
         if (categoryFiles.isEmpty()) {
             Text(
                 "No files in this category",

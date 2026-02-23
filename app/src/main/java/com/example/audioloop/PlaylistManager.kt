@@ -34,6 +34,10 @@ class PlaylistManager(private val context: Context) {
             put("gapSeconds", playlist.gapSeconds)
             put("shuffle", playlist.shuffle)
             put("playCount", playlist.playCount)
+            put("speed", playlist.speed.toDouble())
+            put("pitch", playlist.pitch.toDouble())
+            put("loopCount", playlist.loopCount)
+            put("sleepMinutes", playlist.sleepMinutes)
             put("files", JSONArray(playlist.files))
         }
         File(playlistDir, "${playlist.id}.json").writeText(json.toString(2))
@@ -129,7 +133,11 @@ class PlaylistManager(private val context: Context) {
                 createdAt = json.getLong("createdAt"),
                 gapSeconds = json.optInt("gapSeconds", 0),
                 shuffle = json.optBoolean("shuffle", false),
-                playCount = json.optInt("playCount", 0)
+                playCount = json.optInt("playCount", 0),
+                speed = json.optDouble("speed", 1.0).toFloat(),
+                pitch = json.optDouble("pitch", 1.0).toFloat(),
+                loopCount = json.optInt("loopCount", 1),
+                sleepMinutes = json.optInt("sleepMinutes", 0)
             )
         } catch (e: Exception) {
             e.printStackTrace()

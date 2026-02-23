@@ -1,4 +1,4 @@
-﻿package com.example.audioloop
+package com.example.audioloop
 
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -314,6 +314,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
                 val coroutineScope = rememberCoroutineScope()
+
+                val getAllRecordings = {
+                    categories.flatMap { cat -> getSavedRecordings(cat, filesDir) }
+                }
 
                 // First launch welcome dialog
                 var showWelcomeDialog by remember { mutableStateOf(isFirstLaunch(this)) }
@@ -786,15 +790,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         // Playlists
                         playlists = playlists,
                         onPlayPlaylist = { playlist ->
-                            val resolvedItems = playlistManager.resolveFiles(playlist, categories.flatMap { cat -> getSavedRecordings(cat, filesDir) })
+                            val resolvedItems = playlistManager.resolveFiles(playlist, getAllRecordings())
                             if (resolvedItems.isNotEmpty()) {
                                 currentlyPlayingPlaylistId = playlist.id
                                 playPlaylist(
                                     allFiles = resolvedItems,
                                     currentIndex = 0,
-                                    loopCountProvider = { loopMode },
-                                    speedProvider = { playbackSpeed },
-                                    pitchProvider = { playbackPitch },
+                                    loopCountProvider = { playlist.loopCount },
+                                    speedProvider = { playlist.speed },
+                                    pitchProvider = { playlist.pitch },
                                     shadowingProvider = { isShadowingMode },
                                     onNext = { playingFileName = it },
                                     gapSeconds = playlist.gapSeconds,
@@ -806,6 +810,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                         playlists = playlistManager.loadAll()
                                     }
                                 )
+                                // Apply playlist-specific sleep timer if set
+                                if (playlist.sleepMinutes > 0) {
+                                    setSleepTimer(playlist.sleepMinutes)
+                                }
                             } else {
                                 currentlyPlayingPlaylistId = null
                                 Toast.makeText(this@MainActivity, "Playlist is empty or files missing", Toast.LENGTH_SHORT).show()
@@ -820,9 +828,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             playlists = playlistManager.loadAll()
                         },
                         currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
-                        onGetAllRecordings = {
-                             categories.flatMap { cat -> getSavedRecordings(cat, filesDir) }
-                        }
+                        onGetAllRecordings = getAllRecordings
                     )
                 }
             }
@@ -1765,8 +1771,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     fun updatePlaybackParams(speed: Float, pitch: Float) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
         }
     }
 }
+
