@@ -827,4 +827,76 @@ object AppIcons {
         }
     private var _stream: ImageVector? = null
 
+    // QueueMusic Icon
+    val QueueMusic: ImageVector
+        get() {
+            if (_queueMusic != null) return _queueMusic!!
+            _queueMusic = materialIcon(name = "QueueMusic") {
+                materialPath {
+                    moveTo(15.0f, 6.0f)
+                    horizontalLineTo(3.0f)
+                    verticalLineToRelative(2.0f)
+                    horizontalLineToRelative(12.0f)
+                    verticalLineTo(6.0f)
+                    close()
+                    moveTo(15.0f, 10.0f)
+                    horizontalLineTo(3.0f)
+                    verticalLineToRelative(2.0f)
+                    horizontalLineToRelative(12.0f)
+                    verticalLineTo(10.0f)
+                    close()
+                    moveTo(3.0f, 16.0f)
+                    horizontalLineToRelative(8.0f)
+                    verticalLineToRelative(-2.0f)
+                    horizontalLineTo(3.0f)
+                    verticalLineTo(16.0f)
+                    close()
+                    moveTo(17.0f, 6.0f)
+                    verticalLineToRelative(8.18f)
+                    curveToRelative(-0.31f, -0.11f, -0.65f, -0.18f, -1.0f, -0.18f)
+                    curveToRelative(-1.66f, 0.0f, -3.0f, 1.34f, -3.0f, 3.0f)
+                    reflectiveCurveToRelative(1.34f, 3.0f, 3.0f, 3.0f)
+                    reflectiveCurveToRelative(3.0f, -1.34f, 3.0f, -3.0f)
+                    verticalLineTo(8.0f)
+                    horizontalLineToRelative(3.0f)
+                    verticalLineTo(6.0f)
+                    horizontalLineTo(17.0f)
+                    close()
+                }
+            }
+            return _queueMusic!!
+        }
+    private var _queueMusic: ImageVector? = null
+
+    // DoneAll Icon
+    val DoneAll: ImageVector
+        get() {
+            if (_doneAll != null) return _doneAll!!
+            _doneAll = materialIcon(name = "DoneAll") {
+                materialPath {
+                    moveTo(18.0f, 7.0f)
+                    lineToRelative(-1.41f, -1.41f)
+                    lineToRelative(-6.34f, 6.34f)
+                    lineTo(11.66f, 13.34f)
+                    lineTo(18.0f, 7.0f)
+                    close()
+                    moveTo(22.24f, 7.0f)
+                    lineToRelative(-1.41f, -1.41f)
+                    lineToRelative(-9.34f, 9.34f)
+                    lineToRelative(-4.24f, -4.24f)
+                    lineToRelative(-1.41f, 1.41f)
+                    lineToRelative(5.66f, 5.66f)
+                    lineTo(22.24f, 7.0f)
+                    close()
+                    moveTo(0.41f, 12.41f)
+                    lineTo(6.07f, 18.07f)
+                    lineToRelative(1.41f, -1.41f)
+                    lineTo(1.83f, 11.0f)
+                    lineTo(0.41f, 12.41f)
+                    close()
+                }
+            }
+            return _doneAll!!
+        }
+    private var _doneAll: ImageVector? = null
 }

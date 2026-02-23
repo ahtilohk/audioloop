@@ -83,7 +83,7 @@ fun PlaylistListSheet(
             ) {
                 Column {
                     Text(
-                        "🎵 Esitusloendid",
+                        "🎵 Playlists",
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,

@@ -265,50 +265,61 @@ fun AudioLoopMainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, 
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false) // Allow logo to shrink a bit if needed
+                ) {
                     Icon(
                         imageVector = AppIcons.GraphicEq, 
                         contentDescription = "Logo", 
                         tint = themeColors.primary400,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = "Loop & Learn",
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleLarge.copy(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(themeColors.primary300, themeColors.primary400)
                             ),
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.5.sp
-                        )
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.5).sp
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), 
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.wrapContentWidth()
+                ) {
                     // Premium Playlists Button
                     Surface(
                         onClick = { showPlaylistSheet = true },
-                        shape = RoundedCornerShape(12.dp),
-                        color = themeColors.primaryContainer.copy(alpha = 0.2f),
-                        border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.5f))
+                        shape = RoundedCornerShape(14.dp),
+                        color = themeColors.primaryContainer.copy(alpha = 0.25f),
+                        border = BorderStroke(1.2.dp, themeColors.primary.copy(alpha = 0.6f))
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = AppIcons.Replay, // Reuse replay for "playlists" feel or find better
+                                imageVector = AppIcons.QueueMusic, // Use better icon if available
                                 contentDescription = null,
                                 tint = themeColors.primary,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "Esitusloendid",
+                                text = "Playlists",
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     color = themeColors.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                    fontWeight = FontWeight.ExtraBold
+                                ),
+                                maxLines = 1
                             )
                         }
                     }
@@ -319,33 +330,34 @@ fun AudioLoopMainScreen(
                             isSelectionMode = !isSelectionMode
                             if (!isSelectionMode) selectedFiles = emptySet()
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         color = if (isSelectionMode)
-                            Red500.copy(alpha = 0.15f)
+                            Red500.copy(alpha = 0.2f)
                         else
-                            Zinc800.copy(alpha = 0.3f),
+                            Zinc800.copy(alpha = 0.4f),
                         border = BorderStroke(
-                            1.dp,
-                            if (isSelectionMode) Red400 else Zinc600
+                            1.2.dp,
+                            if (isSelectionMode) Red400 else Zinc600.copy(alpha = 0.8f)
                         )
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.PlayArrow,
+                                imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.DoneAll,
                                 contentDescription = null,
-                                tint = if (isSelectionMode) Red400 else Zinc400,
+                                tint = if (isSelectionMode) Red400 else Zinc300,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = if (isSelectionMode) "Cancel" else "Select",
                                 style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (isSelectionMode) Red400 else Zinc400,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                    color = if (isSelectionMode) Red400 else Zinc300,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                maxLines = 1
                             )
                         }
                     }
