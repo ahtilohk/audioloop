@@ -262,6 +262,28 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
     private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
 
+    // Backup & Restore state
+    private lateinit var driveBackupManager: DriveBackupManager
+    private var isBackupSignedIn by mutableStateOf(false)
+    private var backupEmail by mutableStateOf("")
+    private var backupProgress by mutableStateOf("")
+    private var isBackupRunning by mutableStateOf(false)
+    private var backupList by mutableStateOf<List<BackupInfo>>(emptyList())
+    private val signInLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+            driveBackupManager.handleSignInResult(account)
+            isBackupSignedIn = true
+            backupEmail = account?.email ?: ""
+        } catch (e: Exception) {
+            e.printStackTrace()
+            backupProgress = "Sign-in failed: ${e.localizedMessage}"
+        }
+    }
+
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -272,6 +294,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
         
         currentTheme = getThemePref(this)
+
+        // Init backup manager
+        driveBackupManager = DriveBackupManager(this)
+        if (driveBackupManager.initFromLastAccount()) {
+            isBackupSignedIn = true
+            backupEmail = driveBackupManager.getSignedInEmail() ?: ""
+        }
 
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
@@ -669,6 +698,79 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             currentTheme = theme
                             saveThemePref(this@MainActivity, theme)
                             com.example.audioloop.widget.WidgetStateHelper.updateWidget(this@MainActivity, themeName = theme.name)
+                        },
+                        // Backup & Restore
+                        isBackupSignedIn = isBackupSignedIn,
+                        backupEmail = backupEmail,
+                        backupProgress = backupProgress,
+                        isBackupRunning = isBackupRunning,
+                        onBackupSignIn = {
+                            signInLauncher.launch(driveBackupManager.getSignInIntent())
+                        },
+                        onBackupSignOut = {
+                            coroutineScope.launch {
+                                driveBackupManager.signOut()
+                                isBackupSignedIn = false
+                                backupEmail = ""
+                                backupList = emptyList()
+                                backupProgress = ""
+                            }
+                        },
+                        onBackupCreate = {
+                            coroutineScope.launch {
+                                isBackupRunning = true
+                                val result = driveBackupManager.createAndUploadBackup { progress ->
+                                    backupProgress = progress
+                                }
+                                result.onSuccess { name ->
+                                    backupProgress = "✅ Backup saved: $name"
+                                }.onFailure { e ->
+                                    backupProgress = "❌ Backup failed: ${e.localizedMessage}"
+                                }
+                                isBackupRunning = false
+                            }
+                        },
+                        onBackupList = {
+                            coroutineScope.launch {
+                                isBackupRunning = true
+                                backupProgress = "Loading backups..."
+                                val result = driveBackupManager.listBackups()
+                                result.onSuccess { list ->
+                                    backupList = list
+                                    backupProgress = if (list.isEmpty()) "No backups found" else ""
+                                }.onFailure { e ->
+                                    backupProgress = "❌ ${e.localizedMessage}"
+                                }
+                                isBackupRunning = false
+                            }
+                        },
+                        backupList = backupList,
+                        onRestoreFromBackup = { backupId ->
+                            coroutineScope.launch {
+                                isBackupRunning = true
+                                backupList = emptyList()
+                                val result = driveBackupManager.downloadAndRestore(backupId) { progress ->
+                                    backupProgress = progress
+                                }
+                                result.onSuccess {
+                                    backupProgress = "✅ Restore complete! Refreshing..."
+                                    // Reload theme
+                                    currentTheme = getThemePref(this@MainActivity)
+                                    // Reload categories and files
+                                    val newOrder = loadCategoryOrder()
+                                    categories = if ("General" in newOrder) newOrder else listOf("General") + newOrder
+                                    savedItems = getSavedRecordings(uiCategory, filesDir)
+                                }.onFailure { e ->
+                                    backupProgress = "❌ Restore failed: ${e.localizedMessage}"
+                                }
+                                isBackupRunning = false
+                            }
+                        },
+                        onDeleteBackup = { backupId ->
+                            coroutineScope.launch {
+                                driveBackupManager.deleteBackup(backupId)
+                                backupList = backupList.filter { it.id != backupId }
+                            }
                         }
                     )
                 }

@@ -37,6 +37,16 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE.md"
+            )
+        }
+    }
 }
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -59,4 +69,6 @@ dependencies {
     implementation("com.github.lincollincol:compose-audiowaveform:1.1.1")
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
+    // Google Drive Backup & Restore (lightweight — auth only + REST calls)
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 }
