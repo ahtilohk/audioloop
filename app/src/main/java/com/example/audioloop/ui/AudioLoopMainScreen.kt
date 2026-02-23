@@ -1530,9 +1530,16 @@ fun AudioLoopMainScreen(
                         allCategories = categories,
                         getFilesForCategory = { cat -> 
                             onGetAllRecordings().filter { item ->
-                                // Match category
-                                val itemCat = if (!item.file.absolutePath.contains("Music/AudioLoop/")) "General"
-                                             else item.file.parentFile?.name ?: "General"
+                                val path = item.file.absolutePath.replace("\\", "/")
+                                val itemCat = if (path.contains("Music/AudioLoop/")) {
+                                    val subPath = path.substringAfter("Music/AudioLoop/")
+                                    if (subPath.contains("/")) subPath.substringBefore("/") else "General"
+                                } else {
+                                    // Private storage: /data/.../files/CategoryName/file.m4a
+                                    val parentName = item.file.parentFile?.name
+                                    if (parentName == "files" || parentName == "audioloop" || parentName == null) "General"
+                                    else parentName
+                                }
                                 itemCat == cat
                             }
                         },
