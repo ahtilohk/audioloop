@@ -8,6 +8,9 @@ import com.example.audioloop.ui.formatDuration
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
+import com.example.audioloop.Playlist
+import com.example.audioloop.PlaylistManager
+import java.util.UUID
 import kotlinx.coroutines.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -94,6 +97,7 @@ import android.graphics.Paint
 import androidx.compose.runtime.mutableFloatStateOf
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioLoopMainScreen(
     context: android.content.Context,
@@ -173,7 +177,15 @@ fun AudioLoopMainScreen(
     onBackupList: () -> Unit = {},
     backupList: List<com.example.audioloop.BackupInfo> = emptyList(),
     onRestoreFromBackup: (String) -> Unit = {},
-    onDeleteBackup: (String) -> Unit = {}
+    onDeleteBackup: (String) -> Unit = {},
+
+    // Playlists
+    playlists: List<Playlist> = emptyList(),
+    onSavePlaylist: (Playlist) -> Unit = {},
+    onDeletePlaylist: (Playlist) -> Unit = {},
+    onPlayPlaylist: (Playlist) -> Unit = {},
+    currentlyPlayingPlaylistId: String? = null,
+    onGetAllRecordings: () -> List<RecordingItem> = { emptyList() }
 ) {
     // Get theme colors
     val themeColors = currentTheme.palette
@@ -203,6 +215,8 @@ fun AudioLoopMainScreen(
     var showTrimDialog by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
+    var showPlaylistSheet by remember { mutableStateOf(false) }
+    var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
 
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
@@ -270,40 +284,70 @@ fun AudioLoopMainScreen(
                     )
                 }
 
-                // Playlist Selection Button
-                Surface(
-                    onClick = {
-                        isSelectionMode = !isSelectionMode
-                        if (!isSelectionMode) selectedFiles = emptySet()
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelectionMode)
-                        Red500.copy(alpha = 0.15f)
-                    else
-                        themeColors.primaryContainer.copy(alpha = 0.3f),
-                    border = BorderStroke(
-                        1.dp,
-                        if (isSelectionMode) Red400 else themeColors.primary
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Premium Playlists Button
+                    Surface(
+                        onClick = { showPlaylistSheet = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = themeColors.primaryContainer.copy(alpha = 0.2f),
+                        border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.5f))
                     ) {
-                        Icon(
-                            imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.PlayArrow,
-                            contentDescription = null,
-                            tint = if (isSelectionMode) Red400 else themeColors.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = if (isSelectionMode) "Cancel" else "Select Playlist",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = if (isSelectionMode) Red400 else themeColors.primary,
-                                fontWeight = FontWeight.SemiBold
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Replay, // Reuse replay for "playlists" feel or find better
+                                contentDescription = null,
+                                tint = themeColors.primary,
+                                modifier = Modifier.size(16.dp)
                             )
+                            Text(
+                                text = "Esitusloendid",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = themeColors.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+
+                    // Selection Mode Button
+                    Surface(
+                        onClick = {
+                            isSelectionMode = !isSelectionMode
+                            if (!isSelectionMode) selectedFiles = emptySet()
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelectionMode)
+                            Red500.copy(alpha = 0.15f)
+                        else
+                            Zinc800.copy(alpha = 0.3f),
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelectionMode) Red400 else Zinc600
                         )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.PlayArrow,
+                                contentDescription = null,
+                                tint = if (isSelectionMode) Red400 else Zinc400,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = if (isSelectionMode) "Cancel" else "Select",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = if (isSelectionMode) Red400 else Zinc400,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -1425,6 +1469,76 @@ fun AudioLoopMainScreen(
                 onDismiss = { showInfoDialog = false },
                 themeColors = themeColors
             )
+        }
+
+        // ── Playlist Sheets ──
+        if (showPlaylistSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showPlaylistSheet = false },
+                containerColor = Zinc900,
+                dragHandle = null,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                if (editingPlaylist == null) {
+                    // List View
+                    PlaylistListSheet(
+                        playlists = playlists,
+                        formatDuration = { p -> 
+                           val resolved = onGetAllRecordings().filter { item -> 
+                               p.files.any { it.endsWith("/${item.name}") || it == item.name } 
+                           }
+                           val totalMs = resolved.sumOf { it.durationMillis }
+                           val minutes = (totalMs / 1000) / 60
+                           val seconds = (totalMs / 1000) % 60
+                           if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
+                        },
+                        getCategoryForFile = { path -> path.substringBefore("/", "General") },
+                        onCreateNew = {
+                            editingPlaylist = Playlist(
+                                id = java.util.UUID.randomUUID().toString(),
+                                name = "",
+                                files = emptyList(),
+                                createdAt = System.currentTimeMillis()
+                            )
+                        },
+                        onEdit = { editingPlaylist = it },
+                        onPlay = { 
+                            onPlayPlaylist(it)
+                            showPlaylistSheet = false
+                        },
+                        onDelete = onDeletePlaylist,
+                        onClose = { showPlaylistSheet = false },
+                        themeColors = themeColors,
+                        currentlyPlayingPlaylistId = currentlyPlayingPlaylistId
+                    )
+                } else {
+                    // Editor View
+                    PlaylistEditorSheet(
+                        playlist = editingPlaylist!!,
+                        allCategories = categories,
+                        getFilesForCategory = { cat -> 
+                            onGetAllRecordings().filter { item ->
+                                // Match category
+                                val itemCat = if (!item.file.absolutePath.contains("Music/AudioLoop/")) "General"
+                                             else item.file.parentFile?.name ?: "General"
+                                itemCat == cat
+                            }
+                        },
+                        getCategoryForFile = { path -> path.substringBefore("/", "General") },
+                        resolveFileName = { path -> path.substringAfter("/") },
+                        resolveFileDuration = { path -> 
+                            val fileName = path.substringAfter("/")
+                            onGetAllRecordings().find { it.name == fileName }?.durationString ?: "00:00"
+                        },
+                        onSave = { 
+                            onSavePlaylist(it)
+                            editingPlaylist = null
+                        },
+                        onClose = { editingPlaylist = null },
+                        themeColors = themeColors
+                    )
+                }
+            }
         }
 
     }

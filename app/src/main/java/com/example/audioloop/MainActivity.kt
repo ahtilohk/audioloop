@@ -261,6 +261,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var selectedSleepMinutes by mutableIntStateOf(0)
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
     private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
+    
+    // Playlists state
+    private lateinit var playlistManager: PlaylistManager
+    private var playlists by mutableStateOf<List<Playlist>>(emptyList())
+    private var currentlyPlayingPlaylistId by mutableStateOf<String?>(null)
 
     // Backup & Restore state
     private lateinit var driveBackupManager: DriveBackupManager
@@ -301,6 +306,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             isBackupSignedIn = true
             backupEmail = driveBackupManager.getSignedInEmail() ?: ""
         }
+
+        // Init playlist manager
+        playlistManager = PlaylistManager(this)
+        playlists = playlistManager.loadAll()
 
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
@@ -769,8 +778,49 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onDeleteBackup = { backupId ->
                             coroutineScope.launch {
                                 driveBackupManager.deleteBackup(backupId)
-                                backupList = backupList.filter { it.id != backupId }
+                                backupList = driveBackupManager.listBackups().getOrDefault(emptyList())
+                                backupProgress = "Backup deleted"
                             }
+                        },
+
+                        // Playlists
+                        playlists = playlists,
+                        onPlayPlaylist = { playlist ->
+                            currentlyPlayingPlaylistId = playlist.id
+                            val resolvedItems = playlistManager.resolveFiles(playlist)
+                            if (resolvedItems.isNotEmpty()) {
+                                playPlaylist(
+                                    allFiles = resolvedItems,
+                                    currentIndex = 0,
+                                    loopCountProvider = { loopMode },
+                                    speedProvider = { playbackSpeed },
+                                    pitchProvider = { playbackPitch },
+                                    shadowingProvider = { isShadowingMode },
+                                    onNext = { playingFileName = it },
+                                    gapSeconds = playlist.gapSeconds,
+                                    onComplete = {
+                                        currentlyPlayingPlaylistId = null
+                                        playingFileName = ""
+                                        // Increment play count
+                                        playlistManager.incrementPlayCount(playlist.id)
+                                        playlists = playlistManager.loadAll()
+                                    }
+                                )
+                            } else {
+                                Toast.makeText(this@MainActivity, "Playlist is empty or files missing", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onSavePlaylist = { playlist ->
+                            playlistManager.save(playlist)
+                            playlists = playlistManager.loadAll()
+                        },
+                        onDeletePlaylist = { playlist ->
+                            playlistManager.delete(playlist.id)
+                            playlists = playlistManager.loadAll()
+                        },
+                        currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+                        onGetAllRecordings = {
+                             categories.flatMap { cat -> getSavedRecordings(cat, filesDir) }
                         }
                     )
                 }
@@ -1369,6 +1419,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
         currentIteration: Int = 1,
+        gapSeconds: Int = 0,
         onComplete: () -> Unit
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
@@ -1384,12 +1435,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             when {
                 loopCount == -1 -> {
                     // Infinite loop - restart from beginning
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
-                }
-                currentIteration < loopCount -> {
-                    // More iterations remaining - restart with incremented counter
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration + 1) { onComplete() }
-                }
+                playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+            }
+            currentIteration < loopCount -> {
+                // More iterations remaining - restart with incremented counter
+                playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration + 1, gapSeconds) { onComplete() }
+            }
                 else -> {
                     // All iterations complete
                     onComplete()
@@ -1451,23 +1502,34 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                            }
                            shadowCountdownText = ""
                            if (isActive) {
-                               playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
-                           }
-                       }
-                    } else {
-                       playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+                            playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                        }
                     }
-                }
-                setOnErrorListener { _, what, extra ->
-                    Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
-                    true
-                }
+                 } else {
+                    // Normal transition - handle gapSeconds if any
+                    if (gapSeconds > 0 && currentIndex + 1 < allFiles.size) {
+                        shadowingJob = launch(Dispatchers.Main) {
+                            isPaused = true
+                            delay(gapSeconds * 1000L)
+                            if (isActive) {
+                                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                            }
+                        }
+                    } else {
+                        playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                    }
+                 }
+            }
+            setOnErrorListener { _, what, extra ->
+                Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
+                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                true
+            }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration) { onComplete() }
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
         }
     }
 
