@@ -471,14 +471,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     fontWeight = FontWeight.Medium
                                 )
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("🎤", fontSize = 16.sp)
+                                    Text("��", fontSize = 16.sp)
                                     Column {
                                         Text("Speech", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
                                         Text("Records your voice using the microphone.", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)
                                     }
                                 }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("🔊", fontSize = 16.sp)
+                                    Text("��", fontSize = 16.sp)
                                     Column {
                                         Text("Stream", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
                                         Text("Records audio playing on your device (music, videos, etc).", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)

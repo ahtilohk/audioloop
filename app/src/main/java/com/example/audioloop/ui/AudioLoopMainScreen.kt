@@ -857,7 +857,7 @@ fun AudioLoopMainScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("🔒 ", style = TextStyle(fontSize = 10.sp))
+                                Text("�� ", style = TextStyle(fontSize = 10.sp))
                                 Text("Pitch preserved", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
@@ -1133,7 +1133,7 @@ fun AudioLoopMainScreen(
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("📥 Restore", style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+                                    Text("�� Restore", style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
                                 }
                             }
 

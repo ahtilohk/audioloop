@@ -1,4 +1,4 @@
-﻿package com.example.audioloop.ui
+package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -39,7 +39,7 @@ import com.example.audioloop.ui.theme.*
 import kotlin.math.roundToInt
 
 // ============================================================
-// PLAYLIST LIST VIEW â€” Shows all playlists with premium cards
+// PLAYLIST LIST VIEW œ€” Shows all playlists with premium cards
 // ============================================================
 
 @Composable
@@ -62,7 +62,7 @@ fun PlaylistListSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // â”€â”€ Gradient Header â”€â”€
+        // œ”€œ”€ Gradient Header œ”€œ”€
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,7 +84,7 @@ fun PlaylistListSheet(
             ) {
                 Column {
                     Text(
-                        "ðŸŽµ Playlists",
+                        "🎵 Playlists",
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -134,7 +134,7 @@ fun PlaylistListSheet(
             }
         }
 
-        // â”€â”€ Playlist Cards â”€â”€
+        // œ”€œ”€ Playlist Cards œ”€œ”€
         if (playlists.isEmpty()) {
             // Empty state
             Column(
@@ -144,7 +144,7 @@ fun PlaylistListSheet(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("ðŸŽ¶", fontSize = 48.sp)
+                Text("🎶", fontSize = 48.sp)
                 Text(
                     "No playlists yet",
                     style = TextStyle(
@@ -165,7 +165,7 @@ fun PlaylistListSheet(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("âž• Create Playlist", color = Color.White)
+                    Text("œž• Create Playlist", color = Color.White)
                 }
             }
         } else {
@@ -259,7 +259,7 @@ fun PlaylistListSheet(
                                     )
                                     // Duration
                                     Text(
-                                        "â± ${formatDuration(playlist)}",
+                                        "œ± ${formatDuration(playlist)}",
                                         style = TextStyle(
                                             color = themeColors.primary400,
                                             fontSize = 12.sp
@@ -276,7 +276,7 @@ fun PlaylistListSheet(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                "ðŸ”„ ${playlist.playCount}Ã—",
+                                                "ŸŸ”„ ${playlist.playCount}Ã—",
                                                 style = TextStyle(
                                                     color = themeColors.primary300,
                                                     fontSize = 11.sp,
@@ -288,7 +288,7 @@ fun PlaylistListSheet(
                                     // Shuffle indicator
                                     if (playlist.shuffle) {
                                         Text(
-                                            "ðŸ”€",
+                                            "🔀",
                                             fontSize = 12.sp
                                         )
                                     }
@@ -347,7 +347,7 @@ fun PlaylistListSheet(
 
 
 // ============================================================
-// PLAYLIST EDITOR â€” Edit playlist name, files, settings
+// PLAYLIST EDITOR œ€” Edit playlist name, files, settings
 // ============================================================
 
 @Composable
@@ -393,7 +393,7 @@ fun PlaylistEditorSheet(
                 .background(Zinc900, RoundedCornerShape(16.dp))
                 .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
         ) {
-            // â”€â”€ Header â”€â”€
+            // œ”€œ”€ Header œ”€œ”€
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -454,12 +454,12 @@ fun PlaylistEditorSheet(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text("ðŸ’¾ Save", color = Color.White, fontSize = 13.sp)
+                        Text("ŸŸ’¾ Save", color = Color.White, fontSize = 13.sp)
                     }
                 }
             }
 
-            // â”€â”€ Name Field â”€â”€
+            // œ”€œ”€ Name Field œ”€œ”€
             BasicTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -492,7 +492,7 @@ fun PlaylistEditorSheet(
                 )
             )
 
-            // â”€â”€ Settings Row 1: Gap + Shuffle â”€â”€
+            // œ”€œ”€ Settings Row 1: Gap + Shuffle œ”€œ”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -510,7 +510,7 @@ fun PlaylistEditorSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("â¸", fontSize = 12.sp)
+                    Text("œ¸", fontSize = 12.sp)
                     Text("Gap:", color = Zinc300, fontSize = 12.sp)
                     val gapOptions = listOf(0, 2, 5, 10)
                     gapOptions.forEach { gap ->
@@ -537,7 +537,7 @@ fun PlaylistEditorSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("ðŸ”„", fontSize = 12.sp)
+                    Text("ŸŸ”„", fontSize = 12.sp)
                     val loopOptions = listOf(1, -1)
                     loopOptions.forEach { count ->
                         Box(
@@ -548,7 +548,7 @@ fun PlaylistEditorSheet(
                                 .padding(horizontal = 8.dp, vertical = 3.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(if (count == -1) "âˆž" else "1x", color = if (loopCount == count) Color.White else Zinc400, fontSize = 11.sp)
+                            Text(if (count == -1) "œˆž" else "1x", color = if (loopCount == count) Color.White else Zinc400, fontSize = 11.sp)
                         }
                     }
                 }
@@ -561,11 +561,11 @@ fun PlaylistEditorSheet(
                         .background(if (shuffle) themeColors.primary700.copy(alpha=0.3f) else Zinc800, RoundedCornerShape(10.dp))
                         .border(1.dp, if (shuffle) themeColors.primary500 else Zinc700, RoundedCornerShape(10.dp))
                 ) {
-                    Text("ðŸ”€", fontSize = 14.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.5f))
+                    Text("🔀", fontSize = 14.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.5f))
                 }
             }
 
-            // â”€â”€ Settings Row 2: Speed + Pitch (Compact) â”€â”€
+            // œ”€œ”€ Settings Row 2: Speed + Pitch (Compact) œ”€œ”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -584,7 +584,7 @@ fun PlaylistEditorSheet(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("â© Speed", color = Zinc400, fontSize = 11.sp)
+                        Text("œ© Speed", color = Zinc400, fontSize = 11.sp)
                         Text("${String.format("%.2f", speed)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     Slider(
@@ -612,7 +612,7 @@ fun PlaylistEditorSheet(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("ðŸŽµ Pitch", color = Zinc400, fontSize = 11.sp)
+                        Text("🎵 Pitch", color = Zinc400, fontSize = 11.sp)
                         Text("${String.format("%.2f", pitch)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     Slider(
@@ -629,7 +629,7 @@ fun PlaylistEditorSheet(
                 }
             }
 
-            // â”€â”€ Row 3: Sleep Timer (Compact) â”€â”€
+            // œ”€œ”€ Row 3: Sleep Timer (Compact) œ”€œ”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -640,7 +640,7 @@ fun PlaylistEditorSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("ðŸŒ™", fontSize = 14.sp)
+                Text("🌙", fontSize = 14.sp)
                 Text("Playlist Sleep Timer:", color = Zinc300, fontSize = 12.sp)
                 val sleepOptions = listOf(0, 15, 30, 60)
                 sleepOptions.forEach { mins ->
@@ -657,7 +657,7 @@ fun PlaylistEditorSheet(
                 }
             }
 
-            // â”€â”€ Add Files Button â”€â”€
+            // œ”€œ”€ Add Files Button œ”€œ”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -688,7 +688,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // â”€â”€ Track Count â”€â”€
+            // œ”€œ”€ Track Count œ”€œ”€
             if (files.isNotEmpty()) {
                 Text(
                     "${files.size} tracks",
@@ -700,7 +700,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // â”€â”€ File List with drag reorder â”€â”€
+            // œ”€œ”€ File List with drag reorder œ”€œ”€
             val uiFiles = remember { mutableStateListOf<String>() }
             LaunchedEffect(files.toList()) {
                 uiFiles.clear()
@@ -937,7 +937,7 @@ fun PlaylistEditorSheet(
 
 
 // ============================================================
-// FILE PICKER â€” Multi-select files from all categories
+// FILE PICKER œ€” Multi-select files from all categories
 // ============================================================
 
 @Composable
@@ -959,7 +959,7 @@ fun FilePickerSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // â”€â”€ Header â”€â”€
+        // œ”€œ”€ Header œ”€œ”€
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1013,7 +1013,7 @@ fun FilePickerSheet(
             }
         }
 
-        // â”€â”€ Category Tabs â”€â”€
+        // œ”€œ”€ Category Tabs œ”€œ”€
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1047,7 +1047,7 @@ fun FilePickerSheet(
             }
         }
 
-        // â”€â”€ File List â”€â”€
+        // œ”€œ”€ File List œ”€œ”€
         if (categoryFiles.isEmpty()) {
             Text(
                 "No files in this category",

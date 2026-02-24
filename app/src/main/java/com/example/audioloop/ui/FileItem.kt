@@ -1,4 +1,4 @@
-﻿package com.example.audioloop.ui
+package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import kotlinx.coroutines.*
