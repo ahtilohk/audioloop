@@ -165,7 +165,7 @@ fun PlaylistListSheet(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("œž• Create Playlist", color = Color.White)
+                    Text("➕ Create Playlist", color = Color.White)
                 }
             }
         } else {
@@ -259,7 +259,7 @@ fun PlaylistListSheet(
                                     )
                                     // Duration
                                     Text(
-                                        "œ± ${formatDuration(playlist)}",
+                                        "⏱ ${formatDuration(playlist)}",
                                         style = TextStyle(
                                             color = themeColors.primary400,
                                             fontSize = 12.sp
@@ -276,7 +276,7 @@ fun PlaylistListSheet(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                "🔄 ${playlist.playCount}Ã—",
+                                                "🔄 ${playlist.playCount}×",
                                                 style = TextStyle(
                                                     color = themeColors.primary300,
                                                     fontSize = 11.sp,
@@ -637,18 +637,17 @@ fun PlaylistEditorSheet(
                 }
             }
 
-            // ── Speed + Pitch row ──
+            // ── Speed row ──
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .padding(bottom = 10.dp)
             ) {
                 // Speed Slider card
                 Column(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
                             RoundedCornerShape(12.dp)
@@ -677,47 +676,6 @@ fun PlaylistEditorSheet(
                         value = speed,
                         onValueChange = { speed = it },
                         valueRange = 0.5f..2.0f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = themeColors.primary400,
-                            activeTrackColor = themeColors.primary500,
-                            inactiveTrackColor = Zinc700
-                        ),
-                        modifier = Modifier.height(28.dp)
-                    )
-                }
-
-                // Pitch Slider card
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text("🎵", fontSize = 13.sp)
-                            Text("Pitch", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .background(themeColors.primary900.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text("${String.format("%.2f", pitch)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Slider(
-                        value = pitch,
-                        onValueChange = { pitch = it },
-                        valueRange = 0.5f..1.5f,
                         colors = SliderDefaults.colors(
                             thumbColor = themeColors.primary400,
                             activeTrackColor = themeColors.primary500,
