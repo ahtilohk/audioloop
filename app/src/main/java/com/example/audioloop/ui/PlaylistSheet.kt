@@ -62,7 +62,7 @@ fun PlaylistListSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // œ”€œ”€ Gradient Header œ”€œ”€
+        //  Gradient Header 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,7 +134,7 @@ fun PlaylistListSheet(
             }
         }
 
-        // œ”€œ”€ Playlist Cards œ”€œ”€
+        //  Playlist Cards 
         if (playlists.isEmpty()) {
             // Empty state
             Column(
@@ -276,7 +276,7 @@ fun PlaylistListSheet(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                "ŸŸ”„ ${playlist.playCount}Ã—",
+                                                "🔄 ${playlist.playCount}Ã—",
                                                 style = TextStyle(
                                                     color = themeColors.primary300,
                                                     fontSize = 11.sp,
@@ -393,17 +393,17 @@ fun PlaylistEditorSheet(
                 .background(Zinc900, RoundedCornerShape(16.dp))
                 .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
         ) {
-            // œ”€œ”€ Header œ”€œ”€
+            // ── Header ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(themeColors.primary900.copy(alpha = 0.3f), Zinc900)
+                            listOf(themeColors.primary800.copy(alpha = 0.45f), Zinc900.copy(alpha = 0f))
                         ),
                         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                     )
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -451,15 +451,17 @@ fun PlaylistEditorSheet(
                             containerColor = themeColors.primary600
                         ),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text("ŸŸ’¾ Save", color = Color.White, fontSize = 13.sp)
+                        Text("✓", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Save", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
-            // œ”€œ”€ Name Field œ”€œ”€
+            // ── Name Field ──
             BasicTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -472,10 +474,13 @@ fun PlaylistEditorSheet(
                 cursorBrush = SolidColor(themeColors.primary500),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                    .background(Zinc800, RoundedCornerShape(12.dp))
-                    .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                    .background(
+                        Brush.horizontalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.8f))),
+                        RoundedCornerShape(14.dp)
+                    )
+                    .border(1.dp, themeColors.primary800.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 18.dp, vertical = 16.dp),
                 decorationBox = { innerTextField ->
                     Box {
                         if (name.isEmpty()) Text(
@@ -492,100 +497,181 @@ fun PlaylistEditorSheet(
                 )
             )
 
-            // œ”€œ”€ Settings Row 1: Gap + Shuffle œ”€œ”€
+            // ── Playback Settings Section ──
+            Text(
+                "PLAYBACK",
+                color = themeColors.primary500,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
+                modifier = Modifier.padding(horizontal = 22.dp, vertical = 4.dp)
+            )
+
+            // Settings Row 1: Gap | Loop | Shuffle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Gap selector
-                Row(
+                // Gap selector card
+                Column(
                     modifier = Modifier
-                        .weight(1.5f)
-                        .background(Zinc800, RoundedCornerShape(10.dp))
-                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        .weight(1.6f)
+                        .background(
+                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 10.dp, vertical = 10.dp)
                 ) {
-                    Text("œ¸", fontSize = 12.sp)
-                    Text("Gap:", color = Zinc300, fontSize = 12.sp)
-                    val gapOptions = listOf(0, 2, 5, 10)
-                    gapOptions.forEach { gap ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (gapSeconds == gap) themeColors.primary600 else Zinc700)
-                                .clickable { gapSeconds = gap }
-                                .padding(horizontal = 6.dp, vertical = 3.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("${gap}s", color = if (gapSeconds == gap) Color.White else Zinc400, fontSize = 11.sp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("⏱", fontSize = 13.sp)
+                        Text("Gap", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        val gapOptions = listOf(0, 2, 5, 10)
+                        gapOptions.forEach { gap ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(7.dp))
+                                    .background(
+                                        if (gapSeconds == gap)
+                                            Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
+                                        else
+                                            Brush.verticalGradient(listOf(Zinc700, Zinc700))
+                                    )
+                                    .clickable { gapSeconds = gap }
+                                    .padding(vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "${gap}s",
+                                    color = if (gapSeconds == gap) Color.White else Zinc400,
+                                    fontSize = 10.sp,
+                                    fontWeight = if (gapSeconds == gap) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
                         }
                     }
                 }
 
-                // Loop Selector
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(Zinc800, RoundedCornerShape(10.dp))
-                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text("ŸŸ”„", fontSize = 12.sp)
-                    val loopOptions = listOf(1, -1)
-                    loopOptions.forEach { count ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (loopCount == count) themeColors.primary600 else Zinc700)
-                                .clickable { loopCount = count }
-                                .padding(horizontal = 8.dp, vertical = 3.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(if (count == -1) "œˆž" else "1x", color = if (loopCount == count) Color.White else Zinc400, fontSize = 11.sp)
-                        }
-                    }
-                }
-
-                // Shuffle toggle
-                IconButton(
-                    onClick = { shuffle = !shuffle },
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(if (shuffle) themeColors.primary700.copy(alpha=0.3f) else Zinc800, RoundedCornerShape(10.dp))
-                        .border(1.dp, if (shuffle) themeColors.primary500 else Zinc700, RoundedCornerShape(10.dp))
-                ) {
-                    Text("🔀", fontSize = 14.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.5f))
-                }
-            }
-
-            // œ”€œ”€ Settings Row 2: Speed + Pitch (Compact) œ”€œ”€
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Speed Slider
+                // Loop selector card
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .background(Zinc800, RoundedCornerShape(10.dp))
-                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .background(
+                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 10.dp, vertical = 10.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("🔄", fontSize = 13.sp)
+                        Text("Loop", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        listOf(1 to "1x", -1 to "∞").forEach { (count, label) ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(7.dp))
+                                    .background(
+                                        if (loopCount == count)
+                                            Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
+                                        else
+                                            Brush.verticalGradient(listOf(Zinc700, Zinc700))
+                                    )
+                                    .clickable { loopCount = count }
+                                    .padding(vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    label,
+                                    color = if (loopCount == count) Color.White else Zinc400,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (loopCount == count) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Shuffle toggle card
+                Column(
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .background(
+                            if (shuffle)
+                                Brush.verticalGradient(listOf(themeColors.primary900.copy(alpha = 0.5f), themeColors.primary900.copy(alpha = 0.2f)))
+                            else
+                                Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, if (shuffle) themeColors.primary600 else Zinc700, RoundedCornerShape(12.dp))
+                        .clickable { shuffle = !shuffle }
+                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("🔀", fontSize = 18.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.45f))
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        if (shuffle) "ON" else "OFF",
+                        color = if (shuffle) themeColors.primary400 else Zinc500,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
+            }
+
+            // ── Speed + Pitch row ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Speed Slider card
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("œ© Speed", color = Zinc400, fontSize = 11.sp)
-                        Text("${String.format("%.2f", speed)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text("🎚", fontSize = 13.sp)
+                            Text("Speed", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(themeColors.primary900.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text("${String.format("%.2f", speed)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                     Slider(
                         value = speed,
@@ -593,27 +679,40 @@ fun PlaylistEditorSheet(
                         valueRange = 0.5f..2.0f,
                         colors = SliderDefaults.colors(
                             thumbColor = themeColors.primary400,
-                            activeTrackColor = themeColors.primary600,
+                            activeTrackColor = themeColors.primary500,
                             inactiveTrackColor = Zinc700
                         ),
-                        modifier = Modifier.height(20.dp)
+                        modifier = Modifier.height(28.dp)
                     )
                 }
 
-                // Pitch Slider
+                // Pitch Slider card
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .background(Zinc800, RoundedCornerShape(10.dp))
-                        .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .background(
+                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🎵 Pitch", color = Zinc400, fontSize = 11.sp)
-                        Text("${String.format("%.2f", pitch)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text("🎵", fontSize = 13.sp)
+                            Text("Pitch", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(themeColors.primary900.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text("${String.format("%.2f", pitch)}x", color = themeColors.primary400, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                     Slider(
                         value = pitch,
@@ -621,43 +720,57 @@ fun PlaylistEditorSheet(
                         valueRange = 0.5f..1.5f,
                         colors = SliderDefaults.colors(
                             thumbColor = themeColors.primary400,
-                            activeTrackColor = themeColors.primary600,
+                            activeTrackColor = themeColors.primary500,
                             inactiveTrackColor = Zinc700
                         ),
-                        modifier = Modifier.height(20.dp)
+                        modifier = Modifier.height(28.dp)
                     )
                 }
             }
 
-            // œ”€œ”€ Row 3: Sleep Timer (Compact) œ”€œ”€
+            // ── Sleep Timer row ──
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp)
-                    .background(Zinc800, RoundedCornerShape(10.dp))
-                    .border(1.dp, Zinc700, RoundedCornerShape(10.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 10.dp)
+                    .background(
+                        Brush.horizontalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.75f))),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("🌙", fontSize = 14.sp)
-                Text("Playlist Sleep Timer:", color = Zinc300, fontSize = 12.sp)
-                val sleepOptions = listOf(0, 15, 30, 60)
-                sleepOptions.forEach { mins ->
+                Text("🌙", fontSize = 15.sp)
+                Text("Sleep Timer", color = Zinc300, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                val sleepOptions = listOf(0 to "Off", 15 to "15m", 30 to "30m", 60 to "1h")
+                sleepOptions.forEach { (mins, label) ->
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (sleepMinutes == mins) themeColors.primary600 else Zinc700)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (sleepMinutes == mins)
+                                    Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
+                                else
+                                    Brush.verticalGradient(listOf(Zinc700, Zinc700))
+                            )
                             .clickable { sleepMinutes = mins }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(if (mins == 0) "Off" else "${mins}m", color = if (sleepMinutes == mins) Color.White else Zinc400, fontSize = 11.sp)
+                        Text(
+                            label,
+                            color = if (sleepMinutes == mins) Color.White else Zinc400,
+                            fontSize = 11.sp,
+                            fontWeight = if (sleepMinutes == mins) FontWeight.Bold else FontWeight.Normal
+                        )
                     }
                 }
             }
 
-            // œ”€œ”€ Add Files Button œ”€œ”€
+            //  Add Files Button 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -688,7 +801,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // œ”€œ”€ Track Count œ”€œ”€
+            //  Track Count 
             if (files.isNotEmpty()) {
                 Text(
                     "${files.size} tracks",
@@ -700,7 +813,7 @@ fun PlaylistEditorSheet(
                 )
             }
 
-            // œ”€œ”€ File List with drag reorder œ”€œ”€
+            //  File List with drag reorder 
             val uiFiles = remember { mutableStateListOf<String>() }
             LaunchedEffect(files.toList()) {
                 uiFiles.clear()
@@ -959,7 +1072,7 @@ fun FilePickerSheet(
             .background(Zinc900, RoundedCornerShape(16.dp))
             .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
     ) {
-        // œ”€œ”€ Header œ”€œ”€
+        //  Header 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1013,7 +1126,7 @@ fun FilePickerSheet(
             }
         }
 
-        // œ”€œ”€ Category Tabs œ”€œ”€
+        //  Category Tabs 
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1047,7 +1160,7 @@ fun FilePickerSheet(
             }
         }
 
-        // œ”€œ”€ File List œ”€œ”€
+        //  File List 
         if (categoryFiles.isEmpty()) {
             Text(
                 "No files in this category",
