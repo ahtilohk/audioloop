@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -39,7 +39,7 @@ import com.example.audioloop.ui.theme.*
 import kotlin.math.roundToInt
 
 // ============================================================
-// PLAYLIST LIST VIEW œ€” Shows all playlists with premium cards
+// PLAYLIST LIST VIEW Å“â‚¬â€ Shows all playlists with premium cards
 // ============================================================
 
 @Composable
@@ -85,10 +85,9 @@ fun PlaylistListSheet(
                     Brush.verticalGradient(
                         listOf(
                             themeColors.primary900.copy(alpha = 0.4f),
-                            Zinc900
+                            Zinc950
                         )
-                    ),
-                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
                 )
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
@@ -99,7 +98,7 @@ fun PlaylistListSheet(
             ) {
                 Column {
                     Text(
-                        "🎵 Playlists",
+                        "ðŸŽµ Playlists",
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -159,7 +158,7 @@ fun PlaylistListSheet(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("🎶", fontSize = 48.sp)
+                Text("ðŸŽ¶", fontSize = 48.sp)
                 Text(
                     "No playlists yet",
                     style = TextStyle(
@@ -180,14 +179,14 @@ fun PlaylistListSheet(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("➕ Create Playlist", color = Color.White)
+                    Text("âž• Create Playlist", color = Color.White)
                 }
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 400.dp),
+                    .weight(1f),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -255,7 +254,7 @@ fun PlaylistListSheet(
                                     )
                                     // Duration
                                     Text(
-                                        "⏱ ${formatDuration(playlist)}",
+                                        "â± ${formatDuration(playlist)}",
                                         style = TextStyle(
                                             color = themeColors.primary400,
                                             fontSize = 12.sp
@@ -272,7 +271,7 @@ fun PlaylistListSheet(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                "🔄 ${playlist.playCount}×",
+                                                "ðŸ”„ ${playlist.playCount}Ã—",
                                                 style = TextStyle(
                                                     color = themeColors.primary300,
                                                     fontSize = 11.sp,
@@ -284,7 +283,7 @@ fun PlaylistListSheet(
                                     // Shuffle indicator
                                     if (playlist.shuffle) {
                                         Text(
-                                            "🔀",
+                                            "ðŸ”€",
                                             fontSize = 12.sp
                                         )
                                     }
@@ -374,7 +373,7 @@ fun PlaylistListSheet(
 
 
 // ============================================================
-// FILE PICKER œ€” Multi-select files from all categories
+// FILE PICKER Å“â‚¬â€ Multi-select files from all categories
 // ============================================================
 
 @Composable

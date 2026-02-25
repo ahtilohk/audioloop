@@ -1288,14 +1288,17 @@ fun AudioLoopMainScreen(
         }
 
         // ── Playlist Sheets ──
-        if (showPlaylistSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showPlaylistSheet = false },
-                containerColor = Zinc900,
-                dragHandle = null,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-            ) {
-                // List View (Editor is handled by full-screen overlay now)
+        // ── Playlist List overlay (Full-Screen) ──
+        AnimatedContent(
+            targetState = showPlaylistSheet,
+            transitionSpec = {
+                slideInVertically { it } togetherWith slideOutVertically { it }
+            },
+            label = "playlistList"
+        ) { visible ->
+            if (visible) {
+                BackHandler { showPlaylistSheet = false }
+                
                 PlaylistListSheet(
                     playlists = playlists,
                     formatDuration = { p -> 
@@ -1315,8 +1318,12 @@ fun AudioLoopMainScreen(
                             files = emptyList(),
                             createdAt = System.currentTimeMillis()
                         )
+                        showPlaylistSheet = false // Hide list to show editor
                     },
-                    onEdit = { editingPlaylist = it },
+                    onEdit = { 
+                        editingPlaylist = it 
+                        showPlaylistSheet = false // Hide list to show editor
+                    },
                     onView = {
                         viewingPlaylistId = it.id
                         showPlaylistView = true
