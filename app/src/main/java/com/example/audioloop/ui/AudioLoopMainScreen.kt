@@ -655,402 +655,33 @@ fun AudioLoopMainScreen(
                 }
             }
 
-            // Settings Section - Modern MD3 Card Design
-            Surface(
+            // Settings Section - Reusable Card
+            PlaybackSettingsCard(
+                settingsOpen = settingsOpen,
+                onToggleSettings = { settingsOpen = !settingsOpen },
+                selectedSpeed = selectedSpeed,
+                onSpeedChange = onSpeedChange,
+                selectedLoopCount = selectedLoopCount,
+                onLoopCountChange = onLoopCountChange,
+                isShadowing = isShadowing,
+                onShadowingChange = onShadowingChange,
+                shadowPauseSeconds = shadowPauseSeconds,
+                onShadowPauseChange = onShadowPauseChange,
+                selectedSleepMinutes = selectedSleepMinutes,
+                onSleepTimerChange = onSleepTimerChange,
+                sleepTimerRemainingMs = sleepTimerRemainingMs,
+                gapSeconds = 0, // Main screen doesn't use global gap yet
+                onGapChange = {},
+                themeColors = themeColors,
+                currentTheme = currentTheme,
+                onThemeChange = onThemeChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = Zinc800.copy(alpha = 0.3f),
-                border = BorderStroke(1.dp, Zinc600)
-            ) {
-                Column {
-                    // Settings Header (Collapsible)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { settingsOpen = !settingsOpen }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.Settings,
-                            contentDescription = null,
-                            tint = if (settingsOpen) themeColors.primary else Zinc400,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            )
+            )
 
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Playback Settings",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (settingsOpen) themeColors.onPrimaryContainer else Zinc300,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-
-                            // Quick preview when collapsed
-                            if (!settingsOpen) {
-                                val loopText = if (selectedLoopCount == -1) "\u221E" else "${selectedLoopCount}x"
-                                val sleepText = if (sleepTimerRemainingMs > 0L) {
-                                    val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                                    val minutes = totalSec / 60
-                                    val seconds = totalSec % 60
-                                    String.format("%02d:%02d", minutes, seconds)
-                                } else "Off"
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Speed
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = AppIcons.Speed,
-                                            contentDescription = "Speed",
-                                            tint = themeColors.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            text = "${String.format("%.2f", selectedSpeed)}x",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = themeColors.primary,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        )
-                                    }
-
-                                    // Loop Count
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = AppIcons.Loop,
-                                            contentDescription = "Loop Count",
-                                            tint = themeColors.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            text = loopText,
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = themeColors.primary,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        )
-                                    }
-
-                                    // Shadowing
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = AppIcons.Shadow,
-                                            contentDescription = "Shadowing",
-                                            tint = themeColors.primary,
-                                            modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            text = if (isShadowing) "On" else "Off",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = themeColors.primary,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        )
-                                    }
-
-                                    // Sleep Timer
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = AppIcons.Sleep,
-                                            contentDescription = "Sleep Timer",
-                                            tint = themeColors.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            text = sleepText,
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = themeColors.primary,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        Icon(
-                            imageVector = if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
-                            contentDescription = null,
-                            tint = if (settingsOpen) themeColors.primary else Zinc500,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                AnimatedVisibility(visible = settingsOpen) {
-                    Column(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .fillMaxWidth()
-                            .heightIn(max = 400.dp)
-                            .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
-                            .padding(12.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Speed
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                                Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-                            }
-                            // Preset buttons
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f, 3.0f).forEach { s ->
-                                    val active = selectedSpeed == s
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) themeColors.primary600 else Zinc800)
-                                            .clickable { onSpeedChange(s) }
-                                            .padding(vertical = 6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        val label = if (s == s.toInt().toFloat()) "${s.toInt()}" else "$s"
-                                        Text("${label}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
-                                    }
-                                }
-                            }
-                            // Pitch-preserved label
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("�� ", style = TextStyle(fontSize = 10.sp))
-                                Text("Pitch preserved", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
-                            }
-                        }
-
-                        // Repeats
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                                Text(
-                                    if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x",
-                                    style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                )
-                            }
-                            // Quick buttons: 1x, specific count (2-20 via slider), ∞
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                // 1x button
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (selectedLoopCount == 1) themeColors.primary600 else Zinc800)
-                                        .clickable { onLoopCountChange(1) }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("1x", style = TextStyle(color = if (selectedLoopCount == 1) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                }
-                                // Presets 2-20
-                                listOf(2, 3, 5, 10, 15, 20).forEach { r ->
-                                    val active = selectedLoopCount == r
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) themeColors.primary600 else Zinc800)
-                                            .clickable { onLoopCountChange(r) }
-                                            .padding(vertical = 6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("${r}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
-                                    }
-                                }
-                                // ∞ button
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (selectedLoopCount == -1) themeColors.primary600 else Zinc800)
-                                        .clickable { onLoopCountChange(-1) }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-                                }
-                            }
-                        }
-                        
-                        // Listen & Repeat
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Column {
-                                Text("Listen & Repeat", style = TextStyle(color = Zinc300, fontSize = 14.sp))
-                                Text("Pause after playback to practice", style = TextStyle(color = Zinc600, fontSize = 10.sp))
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .width(44.dp)
-                                    .height(24.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isShadowing) themeColors.primary600 else Zinc700)
-                                    .clickable { onShadowingChange(!isShadowing) }
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .offset(x = if (isShadowing) 22.dp else 2.dp, y = 2.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
-                                }
-                            }
-                        }
-
-                        // Pause duration (only show when Listen & Repeat is on)
-                        if (isShadowing) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Pause:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    listOf(0 to "Auto", 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
-                                        val active = shadowPauseSeconds == secs
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(if (active) themeColors.primary600 else Zinc800)
-                                                .clickable { onShadowPauseChange(secs) }
-                                                .padding(horizontal = 8.dp, vertical = 6.dp)
-                                        ) {
-                                            Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Sleep Timer
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Sleep:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                val timerActive = sleepTimerRemainingMs > 0L
-                                val isOffSelected = selectedSleepMinutes == 0
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isOffSelected) themeColors.primary600 else Zinc800)
-                                        .clickable { onSleepTimerChange(0) }
-                                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                                ) {
-                                    Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                }
-                                listOf(5, 15, 30, 45, 60).forEach { m ->
-                                    val isSelected = selectedSleepMinutes == m && timerActive
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (isSelected) themeColors.primary600 else Zinc800)
-                                            .clickable { onSleepTimerChange(m) }
-                                            .padding(horizontal = 8.dp, vertical = 6.dp)
-                                    ) {
-                                        Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                    }
-                                }
-                            }
-                        }
-                        if (sleepTimerRemainingMs > 0L) {
-                            val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                            val min = totalSec / 60
-                            val sec = totalSec % 60
-                            val remaining = String.format("%d:%02d", min, sec)
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Stops in $remaining",
-                                    style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                                )
-                                Text(
-                                    "Cancel",
-                                    style = TextStyle(color = Red400, fontSize = 12.sp, fontWeight = FontWeight.Medium),
-                                    modifier = Modifier.clickable { onSleepTimerChange(0) }
-                                )
-                            }
-                        }
-
-
-
-                        // Theme Selector
-                        Text("Theme:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
-                                val isSelected = currentTheme == theme
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isSelected) theme.palette.primary600 else Zinc800)
-                                        .border(
-                                            width = if (isSelected) 2.dp else 1.dp,
-                                            color = if (isSelected) theme.palette.primary400 else Zinc600,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .clickable { onThemeChange(theme) }
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .clip(CircleShape)
-                                            .background(theme.palette.primary500)
-                                    )
-                                }
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            com.example.audioloop.ui.theme.AppTheme.values().forEach { theme ->
-                                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        theme.displayName,
-                                        style = TextStyle(
-                                            color = if (currentTheme == theme) theme.palette.primary300 else Zinc500,
-                                            fontSize = 9.sp,
-                                            fontWeight = if (currentTheme == theme) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        // Extra bottom padding so theme names aren't hidden behind Android nav bar
-                        Spacer(Modifier.height(8.dp))
-
-                        // --- Backup & Restore ---
+            // --- Backup & Restore ---
                         Text("Backup:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
 
                         if (!isBackupSignedIn) {
@@ -1677,53 +1308,38 @@ fun AudioLoopMainScreen(
                                 files = emptyList(),
                                 createdAt = System.currentTimeMillis()
                             )
-                        },
-                        onEdit = { editingPlaylist = it },
-                        onPlay = {
-                            onPlayPlaylist(it)
-                            showPlaylistSheet = false
-                            showPlaylistView = true
-                        },
-                        onPause = onPausePlay,
-                        onDelete = onDeletePlaylist,
-                        onClose = { showPlaylistSheet = false },
-                        themeColors = themeColors,
-                        currentlyPlayingPlaylistId = currentlyPlayingPlaylistId
-                    )
-                } else {
-                    // Editor View
-                    PlaylistEditorSheet(
-                        playlist = editingPlaylist!!,
-                        allCategories = categories,
-                        getFilesForCategory = { cat -> 
-                            onGetAllRecordings().filter { item ->
-                                val path = item.file.absolutePath.replace("\\", "/")
-                                val itemCat = if (path.contains("Music/AudioLoop/")) {
-                                    val subPath = path.substringAfter("Music/AudioLoop/")
-                                    if (subPath.contains("/")) subPath.substringBefore("/") else "General"
-                                } else {
-                                    // Private storage: /data/.../files/CategoryName/file.m4a
-                                    val parentName = item.file.parentFile?.name
-                                    if (parentName == "files" || parentName == "audioloop" || parentName == null) "General"
-                                    else parentName
-                                }
-                                itemCat == cat
-                            }
-                        },
-                        getCategoryForFile = { path -> path.substringBefore("/", "General") },
-                        resolveFileName = { path -> path.substringAfter("/") },
-                        resolveFileDuration = { path -> 
-                            val fileName = path.substringAfter("/")
-                            onGetAllRecordings().find { it.name == fileName }?.durationString ?: "00:00"
-                        },
-                        onSave = { 
-                            onSavePlaylist(it)
-                            editingPlaylist = null
-                        },
-                        onClose = { editingPlaylist = null },
-                        themeColors = themeColors
-                    )
-                }
+                PlaylistListSheet(
+                    playlists = playlists,
+                    formatDuration = { p -> 
+                        val totalMs = p.files.sumOf { path ->
+                            val name = path.substringAfter("/")
+                            onGetAllRecordings().find { it.name == name }?.durationMillis ?: 0L
+                        }
+                        val mins = (totalMs / 1000) / 60
+                        val secs = (totalMs / 1000) % 60
+                        if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
+                    },
+                    getCategoryForFile = { path -> path.substringBefore("/", "General") },
+                    onCreateNew = {
+                        editingPlaylist = Playlist(
+                            id = "new_" + UUID.randomUUID().toString(),
+                            name = "",
+                            files = emptyList(),
+                            createdAt = System.currentTimeMillis()
+                        )
+                    },
+                    onEdit = { editingPlaylist = it },
+                    onPlay = {
+                        onPlayPlaylist(it)
+                        showPlaylistSheet = false
+                        showPlaylistView = true
+                    },
+                    onPause = onPausePlay,
+                    onDelete = onDeletePlaylist,
+                    onClose = { showPlaylistSheet = false },
+                    themeColors = themeColors,
+                    currentlyPlayingPlaylistId = currentlyPlayingPlaylistId
+                )
             }
         }
     }
@@ -1754,8 +1370,52 @@ fun AudioLoopMainScreen(
                             onStopPlay()
                             showPlaylistView = false
                         }
-                    )
+            )
                 }
+            }
+        }
+
+        // ── Playlist Editor overlay ──
+        AnimatedContent(
+            targetState = editingPlaylist,
+            transitionSpec = {
+                slideInVertically { it } togetherWith slideOutVertically { it }
+            },
+            label = "playlistEditor"
+        ) { targetPlaylist ->
+            if (targetPlaylist != null) {
+                // Ensure system back gesture exits the editor
+                BackHandler { editingPlaylist = null }
+
+                PlaylistEditorScreen(
+                    playlist = targetPlaylist,
+                    allCategories = categories,
+                    getFilesForCategory = { cat -> 
+                        onGetAllRecordings().filter { item ->
+                            val path = item.file.absolutePath.replace("\\", "/")
+                            val itemCat = if (path.contains("Music/AudioLoop/")) {
+                                val subPath = path.substringAfter("Music/AudioLoop/")
+                                if (subPath.contains("/")) subPath.substringBefore("/") else "General"
+                            } else {
+                                val parentName = item.file.parentFile?.name
+                                if (parentName == "files" || parentName == null) "General" else parentName
+                            }
+                            itemCat == cat
+                        }
+                    },
+                    getCategoryForFile = { path -> path.substringBefore("/", "General") },
+                    resolveFileName = { path -> path.substringAfter("/") },
+                    resolveFileDuration = { path -> 
+                        val fileName = path.substringAfter("/")
+                        onGetAllRecordings().find { it.name == fileName }?.durationString ?: "00:00"
+                    },
+                    onSave = { 
+                        onSavePlaylist(it)
+                        editingPlaylist = null
+                    },
+                    onClose = { editingPlaylist = null },
+                    themeColors = themeColors
+                )
             }
         }
     }

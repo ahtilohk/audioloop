@@ -341,22 +341,6 @@ fun PlaylistListSheet(
 }
 
 
-// ============================================================
-// PLAYLIST EDITOR œ€” Edit playlist name, files, settings
-// ============================================================
-
-@Composable
-fun PlaylistEditorSheet(
-    playlist: Playlist,
-    allCategories: List<String>,
-    getFilesForCategory: (String) -> List<RecordingItem>,
-    getCategoryForFile: (String) -> String,
-    resolveFileName: (String) -> String,
-    resolveFileDuration: (String) -> String,
-    onSave: (Playlist) -> Unit,
-    onClose: () -> Unit,
-    themeColors: AppColorPalette = AppTheme.SLATE.palette
-) {
     var name by remember { mutableStateOf(playlist.name) }
     var files by remember { mutableStateOf(playlist.files.toMutableList()) }
     var gapSeconds by remember { mutableStateOf(playlist.gapSeconds) }
