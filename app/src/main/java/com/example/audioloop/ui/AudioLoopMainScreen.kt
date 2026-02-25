@@ -679,7 +679,6 @@ fun AudioLoopMainScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             )
-            )
 
             // --- Backup & Restore ---
                         Text("Backup:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
@@ -795,10 +794,6 @@ fun AudioLoopMainScreen(
                         }
 
                         Spacer(Modifier.height(16.dp))
-                    }
-                }
-            } // End Column inside Surface
-            } // End Surface (Playback Settings)
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -1244,13 +1239,14 @@ fun AudioLoopMainScreen(
         }
         
         if (showTrimDialog && recordingToTrim != null) {
+             val trimItem = recordingToTrim!!
              TrimAudioDialog(
-                file = recordingToTrim!!.file,
-                uri = recordingToTrim!!.uri,
-                durationMs = recordingToTrim!!.durationMillis,
+                file = trimItem.file,
+                uri = trimItem.uri,
+                durationMs = trimItem.durationMillis,
                 onDismiss = { showTrimDialog = false },
                 onConfirm = { start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long ->
-                    onTrimFile(recordingToTrim!!.file, start, end, replace, removeSelection, fadeInMs, fadeOutMs)
+                    onTrimFile(trimItem.file, start, end, replace, removeSelection, fadeInMs, fadeOutMs)
                     showTrimDialog = false
                 },
                 themeColors = themeColors
@@ -1287,27 +1283,7 @@ fun AudioLoopMainScreen(
                 dragHandle = null,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
-                if (editingPlaylist == null) {
-                    // List View
-                    PlaylistListSheet(
-                        playlists = playlists,
-                        formatDuration = { p -> 
-                           val resolved = onGetAllRecordings().filter { item -> 
-                               p.files.any { it.endsWith("/${item.name}") || it == item.name } 
-                           }
-                           val totalMs = resolved.sumOf { it.durationMillis }
-                           val minutes = (totalMs / 1000) / 60
-                           val seconds = (totalMs / 1000) % 60
-                           if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-                        },
-                        getCategoryForFile = { path -> path.substringBefore("/", "General") },
-                        onCreateNew = {
-                            editingPlaylist = Playlist(
-                                id = java.util.UUID.randomUUID().toString(),
-                                name = "",
-                                files = emptyList(),
-                                createdAt = System.currentTimeMillis()
-                            )
+                // List View (Editor is handled by full-screen overlay now)
                 PlaylistListSheet(
                     playlists = playlists,
                     formatDuration = { p -> 
@@ -1322,7 +1298,7 @@ fun AudioLoopMainScreen(
                     getCategoryForFile = { path -> path.substringBefore("/", "General") },
                     onCreateNew = {
                         editingPlaylist = Playlist(
-                            id = "new_" + UUID.randomUUID().toString(),
+                            id = "new_" + java.util.UUID.randomUUID().toString(),
                             name = "",
                             files = emptyList(),
                             createdAt = System.currentTimeMillis()
@@ -1342,8 +1318,6 @@ fun AudioLoopMainScreen(
                 )
             }
         }
-    }
-}
         
 // ── Playlist View overlay ──
         AnimatedContent(
@@ -1419,6 +1393,8 @@ fun AudioLoopMainScreen(
             }
         }
     }
+}
+}
 }
 // Dialog Helpers adapted from MainActivity
 

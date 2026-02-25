@@ -243,7 +243,7 @@ fun PlaylistEditorScreen(
                             onClick = { showFilePicker = true },
                             colors = ButtonDefaults.textButtonColors(contentColor = themeColors.primary400)
                         ) {
-                            Icon(AppIcons.Add, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("Add Tracks", fontWeight = FontWeight.Bold)
                         }
