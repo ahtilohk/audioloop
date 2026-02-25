@@ -435,50 +435,6 @@ fun AudioLoopMainScreen(
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            // Active Playlist Indicator
-            AnimatedVisibility(visible = currentlyPlayingPlaylistId != null && !showCategorySheet) {
-                val activePlaylist = playlists.find { it.id == currentlyPlayingPlaylistId }
-                if (activePlaylist != null) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = themeColors.primary.copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.4f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.GraphicEq,
-                                contentDescription = null,
-                                tint = themeColors.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Column {
-                                Text(
-                                    text = "PLAYING PLAYLIST",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        color = themeColors.primary,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.sp
-                                    )
-                                )
-                                Text(
-                                    text = activePlaylist.name,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // Recording Section - Modern MD3 Design
             AnimatedVisibility(visible = !isSelectionMode && !showCategorySheet) {
@@ -1411,6 +1367,19 @@ fun AudioLoopMainScreen(
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
                                         Text("⏱ ${activePlaylist.gapSeconds}s gap",
+                                            color = Zinc300, fontSize = 12.sp)
+                                    }
+                                }
+                                // Shuffle pill
+                                if (activePlaylist.shuffle) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(Zinc700.copy(alpha = 0.7f))
+                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text("🔀 Shuffle",
                                             color = Zinc300, fontSize = 12.sp)
                                     }
                                 }
