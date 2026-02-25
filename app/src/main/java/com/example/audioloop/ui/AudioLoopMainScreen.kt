@@ -12,6 +12,7 @@ import com.example.audioloop.Playlist
 import com.example.audioloop.PlaylistManager
 import java.util.UUID
 import kotlinx.coroutines.*
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -20,6 +21,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -221,6 +226,7 @@ fun AudioLoopMainScreen(
     var showNoteDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var showPlaylistSheet by remember { mutableStateOf(false) }
+    var showPlaylistView by remember { mutableStateOf(false) }
     var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
 
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
@@ -251,12 +257,23 @@ fun AudioLoopMainScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .background(themeColors.primary900.copy(alpha = 0.4f)) // Subtle themed surface tint
-    ) {
+    // Close playlist view if playlist stops externally
+    LaunchedEffect(currentlyPlayingPlaylistId) {
+        if (currentlyPlayingPlaylistId == null) showPlaylistView = false
+    }
+
+    // Back handler: exit playlist view without stopping playback
+    BackHandler(enabled = showPlaylistView) {
+        showPlaylistView = false
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .background(themeColors.primary900.copy(alpha = 0.4f))
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1662,9 +1679,10 @@ fun AudioLoopMainScreen(
                             )
                         },
                         onEdit = { editingPlaylist = it },
-                        onPlay = { 
+                        onPlay = {
                             onPlayPlaylist(it)
                             showPlaylistSheet = false
+                            showPlaylistView = true
                         },
                         onPause = onPausePlay,
                         onDelete = onDeletePlaylist,
@@ -1708,6 +1726,37 @@ fun AudioLoopMainScreen(
                 }
             }
         }
+    }
+}
+        
+// ── Playlist View overlay ──
+        AnimatedContent(
+            targetState = showPlaylistView,
+            transitionSpec = {
+                slideInVertically { it } togetherWith slideOutVertically { it }
+            },
+            label = "playlistView"
+        ) { visible ->
+            if (visible) {
+                val activePlaylist = playlists.find { it.id == currentlyPlayingPlaylistId }
+                if (activePlaylist != null) {
+                    PlaylistViewScreen(
+                        playlist = activePlaylist,
+                        playingFileName = playingFileName,
+                        currentIteration = currentPlaylistIteration,
+                        isPaused = isPaused,
+                        allRecordings = onGetAllRecordings(),
+                        themeColors = themeColors,
+                        onBack = { showPlaylistView = false },
+                        onPause = onPausePlay,
+                        onResume = onResumePlay,
+                        onStop = {
+                            onStopPlay()
+                            showPlaylistView = false
+                        }
+                    )
+                }
+            }
         }
     }
 }
