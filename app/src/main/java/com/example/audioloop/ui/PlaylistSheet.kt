@@ -49,6 +49,7 @@ fun PlaylistListSheet(
     getCategoryForFile: (String) -> String,
     onCreateNew: () -> Unit,
     onEdit: (Playlist) -> Unit,
+    onView: (Playlist) -> Unit,
     onPlay: (Playlist) -> Unit,
     onPause: () -> Unit,
     onDelete: (Playlist) -> Unit,
@@ -212,7 +213,7 @@ fun PlaylistListSheet(
                                     1.dp, Zinc700, RoundedCornerShape(14.dp)
                                 )
                             )
-                            .clickable { onEdit(playlist) },
+                            .clickable { onView(playlist) },
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isPlaying)
@@ -312,6 +313,20 @@ fun PlaylistListSheet(
                                         contentDescription = if (isPlaying) "Pause" else "Play",
                                         tint = Color.White,
                                         modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                                // Edit button
+                                IconButton(
+                                    onClick = { onEdit(playlist) },
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(Zinc700.copy(alpha = 0.3f), CircleShape)
+                                ) {
+                                    Icon(
+                                        AppIcons.Edit,
+                                        contentDescription = "Edit",
+                                        tint = Zinc400,
+                                        modifier = Modifier.size(18.dp)
                                     )
                                 }
                                 // Delete button

@@ -228,6 +228,14 @@ fun AudioLoopMainScreen(
     var showPlaylistSheet by remember { mutableStateOf(false) }
     var showPlaylistView by remember { mutableStateOf(false) }
     var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
+    var viewingPlaylistId by remember { mutableStateOf<String?>(null) } // To allow viewing without playing
+
+    // Auto-close playlist view when playback stops (if not manually viewing)
+    LaunchedEffect(currentlyPlayingPlaylistId) {
+        if (currentlyPlayingPlaylistId == null && viewingPlaylistId == null) {
+            showPlaylistView = false
+        }
+    }
 
     var itemToModify by remember { mutableStateOf<RecordingItem?>(null) }
     var recordingToDelete by remember { mutableStateOf<RecordingItem?>(null) }
@@ -924,6 +932,10 @@ fun AudioLoopMainScreen(
                                     themeColors.primary500.copy(alpha = 0.4f + 0.3f * glowAlpha),
                                     RoundedCornerShape(14.dp)
                                 )
+                                .clickable { 
+                                    viewingPlaylistId = currentlyPlayingPlaylistId
+                                    showPlaylistView = true 
+                                }
                         ) {
                             Row(
                                 modifier = Modifier
@@ -1305,6 +1317,11 @@ fun AudioLoopMainScreen(
                         )
                     },
                     onEdit = { editingPlaylist = it },
+                    onView = {
+                        viewingPlaylistId = it.id
+                        showPlaylistView = true
+                        showPlaylistSheet = false
+                    },
                     onPlay = {
                         onPlayPlaylist(it)
                         showPlaylistSheet = false
@@ -1328,23 +1345,32 @@ fun AudioLoopMainScreen(
             label = "playlistView"
         ) { visible ->
             if (visible) {
-                val activePlaylist = playlists.find { it.id == currentlyPlayingPlaylistId }
+                val activePlaylist = playlists.find { it.id == (viewingPlaylistId ?: currentlyPlayingPlaylistId) }
                 if (activePlaylist != null) {
+                    BackHandler { 
+                        showPlaylistView = false
+                        viewingPlaylistId = null
+                    }
+
                     PlaylistViewScreen(
                         playlist = activePlaylist,
-                        playingFileName = playingFileName,
-                        currentIteration = currentPlaylistIteration,
+                        playingFileName = if (activePlaylist.id == currentlyPlayingPlaylistId) playingFileName else "",
+                        currentIteration = if (activePlaylist.id == currentlyPlayingPlaylistId) currentPlaylistIteration else 1,
                         isPaused = isPaused,
                         allRecordings = onGetAllRecordings(),
                         themeColors = themeColors,
-                        onBack = { showPlaylistView = false },
+                        onBack = { 
+                            showPlaylistView = false
+                            viewingPlaylistId = null
+                        },
                         onPause = onPausePlay,
                         onResume = onResumePlay,
                         onStop = {
                             onStopPlay()
                             showPlaylistView = false
+                            viewingPlaylistId = null
                         }
-            )
+                    )
                 }
             }
         }
