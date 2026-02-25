@@ -231,8 +231,8 @@ fun AudioLoopMainScreen(
     val itemHeightPx = 72 * density // Approximate height of an item
 
 
-    val filePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) onImportFile(uri)
+    val filePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+        uris.forEach { uri -> onImportFile(uri) }
     }
     
     // val context = LocalContext.current // Using parameter instead

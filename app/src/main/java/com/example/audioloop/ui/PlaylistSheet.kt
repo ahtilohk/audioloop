@@ -632,7 +632,7 @@ fun PlaylistEditorSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    listOf(1 to "1x", 2 to "2x", 5 to "5x", -1 to "∞").forEach { (count, label) ->
+                    listOf(1 to "1x", 2 to "2x", 5 to "5x", 10 to "10x", -1 to "∞").forEach { (count, label) ->
                         Box(
                             modifier = Modifier
                                 .weight(1f)
