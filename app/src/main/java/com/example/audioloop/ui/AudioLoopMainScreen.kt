@@ -16,6 +16,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -1285,72 +1289,138 @@ fun AudioLoopMainScreen(
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.height(32.dp)
                                 ) {
-                                    Text("+ Add file", fontSize = 12.sp, color = Color.White)
+                                    Text("+ Add file(s)", fontSize = 12.sp, color = Color.White)
                                 }
                             }
                         }
                     }
 
-                    // ── Playlist info banner ──
+                    // ── Premium Playlist Playback Banner ──
                     val activePlaylist = if (currentlyPlayingPlaylistId != null)
                         playlists.find { it.id == currentlyPlayingPlaylistId } else null
                     if (activePlaylist != null) {
-                        Row(
+                        val glowAlpha by animateFloatAsState(
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "bannerGlow"
+                        )
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 6.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .padding(top = 8.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(themeColors.primary900.copy(alpha = 0.55f), themeColors.primary900.copy(alpha = 0.2f))
+                                        listOf(
+                                            themeColors.primary900.copy(alpha = 0.75f),
+                                            themeColors.primary800.copy(alpha = 0.45f)
+                                        )
                                     )
                                 )
-                                .border(1.dp, themeColors.primary700.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                                .padding(horizontal = 12.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                .border(
+                                    1.5.dp,
+                                    themeColors.primary500.copy(alpha = 0.4f + 0.3f * glowAlpha),
+                                    RoundedCornerShape(14.dp)
+                                )
                         ) {
-                            Text("▶", fontSize = 10.sp)
-                            Text(
-                                activePlaylist.name,
-                                color = themeColors.primary300,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                // Animated play dot
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(themeColors.primary400.copy(alpha = 0.6f + 0.4f * glowAlpha))
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "NOW PLAYING",
+                                        style = TextStyle(
+                                            color = themeColors.primary400,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.5.sp
+                                        )
+                                    )
+                                    Text(
+                                        activePlaylist.name,
+                                        style = TextStyle(
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp
+                                        ),
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                            // Pills row
                             val loopText = when (activePlaylist.loopCount) {
                                 -1 -> "∞"
-                                else -> "$currentPlaylistIteration/${activePlaylist.loopCount}×"
+                                else -> "$currentPlaylistIteration / ${activePlaylist.loopCount}×"
                             }
-                            Box(
+                            Row(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(themeColors.primary800.copy(alpha = 0.5f))
-                                    .padding(horizontal = 7.dp, vertical = 2.dp)
+                                    .fillMaxWidth()
+                                    .padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("🔁 $loopText", color = themeColors.primary300, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            if (activePlaylist.speed != 1.0f) {
+                                // Loop pill — always visible
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(Zinc800)
-                                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(themeColors.primary700.copy(alpha = 0.55f))
+                                        .border(1.dp, themeColors.primary500.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
-                                    Text("⏱ ${String.format("%.1f", activePlaylist.speed)}x", color = Zinc400, fontSize = 11.sp)
+                                    Text("🔁 $loopText",
+                                        color = themeColors.primary200,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
-                            }
-                            if (activePlaylist.gapSeconds > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(Zinc800)
-                                        .padding(horizontal = 7.dp, vertical = 2.dp)
-                                ) {
-                                    Text("⏸ ${activePlaylist.gapSeconds}s", color = Zinc400, fontSize = 11.sp)
+                                // Speed pill
+                                if (activePlaylist.speed != 1.0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(Zinc700.copy(alpha = 0.7f))
+                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text("🎚 ${String.format("%.1f", activePlaylist.speed)}×",
+                                            color = Zinc300, fontSize = 12.sp)
+                                    }
                                 }
+                                // Gap pill
+                                if (activePlaylist.gapSeconds > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(Zinc700.copy(alpha = 0.7f))
+                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text("⏱ ${activePlaylist.gapSeconds}s gap",
+                                            color = Zinc300, fontSize = 12.sp)
+                                    }
+                                }
+                                // Track count
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    "${activePlaylist.files.size} tracks",
+                                    color = Zinc500,
+                                    fontSize = 11.sp
+                                )
                             }
                         }
                     }

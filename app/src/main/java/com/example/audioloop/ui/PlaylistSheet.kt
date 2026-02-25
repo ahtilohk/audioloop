@@ -221,25 +221,6 @@ fun PlaylistListSheet(
                         )
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            if (isPlaying) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(themeColors.primary700.copy(alpha = 0.3f))
-                                        .padding(vertical = 4.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        "NOW PLAYING",
-                                        style = TextStyle(
-                                            color = themeColors.primary300,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            letterSpacing = 1.sp
-                                        )
-                                    )
-                                }
-                            }
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
