@@ -496,8 +496,8 @@ fun FileItem(
                                 val barProgress = (i + 0.5f) / barCount
 
                                 val color = when {
-                                    barProgress <= currentProgress -> themeColors.primary400
-                                    else -> Zinc600.copy(alpha = 0.5f)
+                                    barProgress <= currentProgress -> Zinc600.copy(alpha = 0.5f)
+                                    else -> themeColors.primary400
                                 }
                                 drawRoundRect(
                                     color = color,
