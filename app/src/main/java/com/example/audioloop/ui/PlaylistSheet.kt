@@ -507,19 +507,18 @@ fun PlaylistEditorSheet(
                 modifier = Modifier.padding(horizontal = 22.dp, vertical = 4.dp)
             )
 
-            // Settings Row 1: Gap | Loop | Shuffle
+            // Row 1: Gap + Shuffle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Gap selector card
+                // Gap card
                 Column(
                     modifier = Modifier
-                        .weight(1.6f)
+                        .weight(1f)
                         .background(
                             Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
                             RoundedCornerShape(12.dp)
@@ -536,8 +535,7 @@ fun PlaylistEditorSheet(
                         Text("Gap", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        val gapOptions = listOf(0, 2, 5, 10)
-                        gapOptions.forEach { gap ->
+                        listOf(0, 2, 5, 10).forEach { gap ->
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -563,56 +561,10 @@ fun PlaylistEditorSheet(
                     }
                 }
 
-                // Loop selector card
+                // Shuffle card
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .background(
-                            Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 10.dp, vertical = 10.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Text("🔄", fontSize = 13.sp)
-                        Text("Loop", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        listOf(1 to "1x", -1 to "∞").forEach { (count, label) ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(7.dp))
-                                    .background(
-                                        if (loopCount == count)
-                                            Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
-                                        else
-                                            Brush.verticalGradient(listOf(Zinc700, Zinc700))
-                                    )
-                                    .clickable { loopCount = count }
-                                    .padding(vertical = 5.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    label,
-                                    color = if (loopCount == count) Color.White else Zinc400,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (loopCount == count) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Shuffle toggle card
-                Column(
-                    modifier = Modifier
-                        .weight(0.7f)
                         .background(
                             if (shuffle)
                                 Brush.verticalGradient(listOf(themeColors.primary900.copy(alpha = 0.5f), themeColors.primary900.copy(alpha = 0.2f)))
@@ -621,19 +573,88 @@ fun PlaylistEditorSheet(
                             RoundedCornerShape(12.dp)
                         )
                         .border(1.dp, if (shuffle) themeColors.primary600 else Zinc700, RoundedCornerShape(12.dp))
-                        .clickable { shuffle = !shuffle }
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(horizontal = 10.dp, vertical = 10.dp)
                 ) {
-                    Text("🔀", fontSize = 18.sp, modifier = Modifier.alpha(if (shuffle) 1f else 0.45f))
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        if (shuffle) "ON" else "OFF",
-                        color = if (shuffle) themeColors.primary400 else Zinc500,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("🔀", fontSize = 13.sp)
+                        Text("Shuffle", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(7.dp))
+                            .background(
+                                if (shuffle)
+                                    Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
+                                else
+                                    Brush.verticalGradient(listOf(Zinc700, Zinc700))
+                            )
+                            .clickable { shuffle = !shuffle }
+                            .padding(vertical = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (shuffle) "ON" else "OFF",
+                            color = if (shuffle) Color.White else Zinc400,
+                            fontSize = 11.sp,
+                            fontWeight = if (shuffle) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+            }
+
+            // Row 2: Loop (full width, 4 options)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 10.dp)
+                    .background(
+                        Brush.verticalGradient(listOf(Zinc800, Zinc800.copy(alpha = 0.7f))),
+                        RoundedCornerShape(12.dp)
                     )
+                    .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 10.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Text("🔄", fontSize = 13.sp)
+                    Text("Loop", color = Zinc400, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf(1 to "1x", 2 to "2x", 5 to "5x", -1 to "∞").forEach { (count, label) ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(7.dp))
+                                .background(
+                                    if (loopCount == count)
+                                        Brush.verticalGradient(listOf(themeColors.primary600, themeColors.primary700))
+                                    else
+                                        Brush.verticalGradient(listOf(Zinc700, Zinc700))
+                                )
+                                .clickable { loopCount = count }
+                                .padding(vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                label,
+                                color = if (loopCount == count) Color.White else Zinc400,
+                                fontSize = 12.sp,
+                                fontWeight = if (loopCount == count) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
                 }
             }
 
