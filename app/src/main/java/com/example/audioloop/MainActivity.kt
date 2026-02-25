@@ -266,6 +266,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private lateinit var playlistManager: PlaylistManager
     private var playlists by mutableStateOf<List<Playlist>>(emptyList())
     private var currentlyPlayingPlaylistId by mutableStateOf<String?>(null)
+    private var currentPlaylistIteration by mutableStateOf(1)
 
     // Backup & Restore state
     private lateinit var driveBackupManager: DriveBackupManager
@@ -793,6 +794,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             val resolvedItems = playlistManager.resolveFiles(playlist, getAllRecordings())
                             if (resolvedItems.isNotEmpty()) {
                                 currentlyPlayingPlaylistId = playlist.id
+                                currentPlaylistIteration = 1
                                 playPlaylist(
                                     allFiles = resolvedItems,
                                     currentIndex = 0,
@@ -801,9 +803,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     pitchProvider = { playlist.pitch },
                                     shadowingProvider = { isShadowingMode },
                                     onNext = { playingFileName = it },
+                                    onIterationChange = { currentPlaylistIteration = it },
                                     gapSeconds = playlist.gapSeconds,
                                     onComplete = {
                                         currentlyPlayingPlaylistId = null
+                                        currentPlaylistIteration = 1
                                         playingFileName = ""
                                         // Increment play count
                                         playlistManager.incrementPlayCount(playlist.id)
@@ -828,6 +832,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             playlists = playlistManager.loadAll()
                         },
                         currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
+                        currentPlaylistIteration = currentPlaylistIteration,
                         onGetAllRecordings = getAllRecordings
                     )
                 }
@@ -1425,6 +1430,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         pitchProvider: () -> Float,
         shadowingProvider: () -> Boolean,
         onNext: (String) -> Unit,
+        onIterationChange: (Int) -> Unit = {},
         currentIteration: Int = 1,
         gapSeconds: Int = 0,
         onComplete: () -> Unit
@@ -1442,12 +1448,14 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             when {
                 loopCount == -1 -> {
                     // Infinite loop - restart from beginning
-                playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
-            }
-            currentIteration < loopCount -> {
-                // More iterations remaining - restart with incremented counter
-                playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration + 1, gapSeconds) { onComplete() }
-            }
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
+                }
+                currentIteration < loopCount -> {
+                    // More iterations remaining - restart with incremented counter
+                    val next = currentIteration + 1
+                    onIterationChange(next)
+                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, next, gapSeconds) { onComplete() }
+                }
                 else -> {
                     // All iterations complete
                     onComplete()
@@ -1509,7 +1517,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                            }
                            shadowCountdownText = ""
                            if (isActive) {
-                            playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                            playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
                         }
                     }
                  } else {
@@ -1519,24 +1527,24 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             isPaused = true
                             delay(gapSeconds * 1000L)
                             if (isActive) {
-                                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
                             }
                         }
                     } else {
-                        playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                        playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
                     }
                  }
             }
             setOnErrorListener { _, what, extra ->
                 Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
                 true
             }
                 prepareAsync()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, currentIteration, gapSeconds) { onComplete() }
+            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
         }
     }
 

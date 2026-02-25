@@ -185,6 +185,7 @@ fun AudioLoopMainScreen(
     onDeletePlaylist: (Playlist) -> Unit = {},
     onPlayPlaylist: (Playlist) -> Unit = {},
     currentlyPlayingPlaylistId: String? = null,
+    currentPlaylistIteration: Int = 1,
     onGetAllRecordings: () -> List<RecordingItem> = { emptyList() }
 ) {
     // Get theme colors
@@ -1285,6 +1286,70 @@ fun AudioLoopMainScreen(
                                     modifier = Modifier.height(32.dp)
                                 ) {
                                     Text("+ Add file", fontSize = 12.sp, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+
+                    // ── Playlist info banner ──
+                    val activePlaylist = if (currentlyPlayingPlaylistId != null)
+                        playlists.find { it.id == currentlyPlayingPlaylistId } else null
+                    if (activePlaylist != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(themeColors.primary900.copy(alpha = 0.55f), themeColors.primary900.copy(alpha = 0.2f))
+                                    )
+                                )
+                                .border(1.dp, themeColors.primary700.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 12.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("▶", fontSize = 10.sp)
+                            Text(
+                                activePlaylist.name,
+                                color = themeColors.primary300,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            val loopText = when (activePlaylist.loopCount) {
+                                -1 -> "∞"
+                                else -> "$currentPlaylistIteration/${activePlaylist.loopCount}×"
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(themeColors.primary800.copy(alpha = 0.5f))
+                                    .padding(horizontal = 7.dp, vertical = 2.dp)
+                            ) {
+                                Text("🔁 $loopText", color = themeColors.primary300, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            if (activePlaylist.speed != 1.0f) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(Zinc800)
+                                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                                ) {
+                                    Text("⏱ ${String.format("%.1f", activePlaylist.speed)}x", color = Zinc400, fontSize = 11.sp)
+                                }
+                            }
+                            if (activePlaylist.gapSeconds > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(Zinc800)
+                                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                                ) {
+                                    Text("⏸ ${activePlaylist.gapSeconds}s", color = Zinc400, fontSize = 11.sp)
                                 }
                             }
                         }

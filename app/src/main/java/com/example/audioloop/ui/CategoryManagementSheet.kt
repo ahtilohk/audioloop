@@ -96,11 +96,25 @@ fun CategoryManagementSheet(
     var newCategoryName by remember { mutableStateOf("") }
     var editingId by remember { mutableStateOf<String?>(null) }
     var editName by remember { mutableStateOf("") }
+    var categoryToDelete by remember { mutableStateOf<String?>(null) }
     val uiCategories = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(categories) {
         uiCategories.clear()
         uiCategories.addAll(categories)
+    }
+
+    // Delete confirmation dialog
+    categoryToDelete?.let { cat ->
+        DeleteConfirmDialog(
+            title = "Delete category?",
+            text = "Delete \"$cat\"? Files in this category will be moved to General.",
+            onDismiss = { categoryToDelete = null },
+            onConfirm = {
+                onDelete(cat)
+                categoryToDelete = null
+            }
+        )
     }
 
     Column(
@@ -396,7 +410,7 @@ fun CategoryManagementSheet(
                                     Icon(AppIcons.Edit, contentDescription = "Edit", tint = Zinc400, modifier = Modifier.size(14.dp))
                                 }
                                 IconButton(
-                                    onClick = { onDelete(cat) },
+                                    onClick = { categoryToDelete = cat },
                                     modifier = Modifier
                                         .size(32.dp)
                                         .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))

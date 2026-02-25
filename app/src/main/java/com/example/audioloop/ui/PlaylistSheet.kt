@@ -56,6 +56,20 @@ fun PlaylistListSheet(
     themeColors: AppColorPalette = AppTheme.SLATE.palette,
     currentlyPlayingPlaylistId: String? = null
 ) {
+    var playlistToDelete by remember { mutableStateOf<Playlist?>(null) }
+
+    // Delete confirmation dialog
+    playlistToDelete?.let { p ->
+        DeleteConfirmDialog(
+            title = "Delete playlist?",
+            text = "Delete \"${p.name}\"? This cannot be undone.",
+            onDismiss = { playlistToDelete = null },
+            onConfirm = {
+                onDelete(p)
+                playlistToDelete = null
+            }
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -321,7 +335,7 @@ fun PlaylistListSheet(
                                 }
                                 // Delete button
                                 IconButton(
-                                    onClick = { onDelete(playlist) },
+                                    onClick = { playlistToDelete = playlist },
                                     modifier = Modifier
                                         .size(40.dp)
                                         .background(Zinc700.copy(alpha = 0.5f), CircleShape)
