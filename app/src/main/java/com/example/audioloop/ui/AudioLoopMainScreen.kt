@@ -230,10 +230,11 @@ fun AudioLoopMainScreen(
     var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
     var viewingPlaylistId by remember { mutableStateOf<String?>(null) } // To allow viewing without playing
 
-    // Auto-close playlist view when playback stops (if not manually viewing)
+    // When playback stops, return to playlist list (stay in playlist mode)
     LaunchedEffect(currentlyPlayingPlaylistId) {
-        if (currentlyPlayingPlaylistId == null && viewingPlaylistId == null) {
+        if (currentlyPlayingPlaylistId == null && showPlaylistView) {
             showPlaylistView = false
+            showPlaylistSheet = true  // Go back to playlist list, not main screen
         }
     }
 
@@ -265,12 +266,11 @@ fun AudioLoopMainScreen(
         }
     }
 
-    // Note: playlist-view auto-close is already handled by the LaunchedEffect above
-    // that checks both currentlyPlayingPlaylistId and viewingPlaylistId
-
-    // Back handler: exit playlist view without stopping playback
+    // Back handler: return from playlist view to playlist list
     BackHandler(enabled = showPlaylistView) {
         showPlaylistView = false
+        viewingPlaylistId = null
+        showPlaylistSheet = true  // Go back to playlist list
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -1287,115 +1287,111 @@ fun AudioLoopMainScreen(
 
         // ── Playlist Sheets ──
         // ── Playlist List overlay (Full-Screen) ──
-        AnimatedContent(
-            targetState = showPlaylistSheet,
-            transitionSpec = {
-                slideInVertically { it } togetherWith slideOutVertically { it }
-            },
-            label = "playlistList"
-        ) { visible ->
-            if (visible) {
-                BackHandler { showPlaylistSheet = false }
-                
-                PlaylistListSheet(
-                    playlists = playlists,
-                    formatDuration = { p -> 
-                        val totalMs = p.files.sumOf { path ->
-                            val name = path.substringAfter("/")
-                            onGetAllRecordings().find { it.name == name }?.durationMillis ?: 0L
-                        }
-                        val mins = (totalMs / 1000) / 60
-                        val secs = (totalMs / 1000) % 60
-                        if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
-                    },
-                    getCategoryForFile = { path -> path.substringBefore("/", "General") },
-                    onCreateNew = {
-                        editingPlaylist = Playlist(
-                            id = "new_" + java.util.UUID.randomUUID().toString(),
-                            name = "",
-                            files = emptyList(),
-                            createdAt = System.currentTimeMillis()
-                        )
-                        showPlaylistSheet = false // Hide list to show editor
-                    },
-                    onEdit = { 
-                        editingPlaylist = it 
-                        showPlaylistSheet = false // Hide list to show editor
-                    },
-                    onView = {
-                        viewingPlaylistId = it.id
-                        showPlaylistView = true
-                        showPlaylistSheet = false
-                    },
-                    onPlay = {
-                        onPlayPlaylist(it)
-                        showPlaylistSheet = false
-                        showPlaylistView = true
+        AnimatedVisibility(
+            visible = showPlaylistSheet,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            BackHandler { showPlaylistSheet = false }
+
+            PlaylistListSheet(
+                playlists = playlists,
+                formatDuration = { p ->
+                    val totalMs = p.files.sumOf { path ->
+                        val name = path.substringAfter("/")
+                        onGetAllRecordings().find { it.name == name }?.durationMillis ?: 0L
+                    }
+                    val mins = (totalMs / 1000) / 60
+                    val secs = (totalMs / 1000) % 60
+                    if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
+                },
+                getCategoryForFile = { path -> path.substringBefore("/", "General") },
+                onCreateNew = {
+                    editingPlaylist = Playlist(
+                        id = "new_" + java.util.UUID.randomUUID().toString(),
+                        name = "",
+                        files = emptyList(),
+                        createdAt = System.currentTimeMillis()
+                    )
+                    showPlaylistSheet = false // Hide list to show editor
+                },
+                onEdit = {
+                    editingPlaylist = it
+                    showPlaylistSheet = false // Hide list to show editor
+                },
+                onView = {
+                    viewingPlaylistId = it.id
+                    showPlaylistView = true
+                    showPlaylistSheet = false
+                },
+                onPlay = {
+                    onPlayPlaylist(it)
+                    showPlaylistSheet = false
+                    showPlaylistView = true
+                },
+                onPause = onPausePlay,
+                onDelete = onDeletePlaylist,
+                onClose = { showPlaylistSheet = false },
+                themeColors = themeColors,
+                currentlyPlayingPlaylistId = currentlyPlayingPlaylistId
+            )
+        }
+
+        // ── Playlist View overlay (Full-Screen) ──
+        AnimatedVisibility(
+            visible = showPlaylistView,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            val activePlaylist = playlists.find { it.id == (viewingPlaylistId ?: currentlyPlayingPlaylistId) }
+            if (activePlaylist != null) {
+                BackHandler {
+                    showPlaylistView = false
+                    viewingPlaylistId = null
+                    showPlaylistSheet = true  // Return to playlist list
+                }
+
+                PlaylistViewScreen(
+                    playlist = activePlaylist,
+                    playingFileName = if (activePlaylist.id == currentlyPlayingPlaylistId) playingFileName else "",
+                    currentIteration = if (activePlaylist.id == currentlyPlayingPlaylistId) currentPlaylistIteration else 1,
+                    isPaused = isPaused,
+                    allRecordings = onGetAllRecordings(),
+                    themeColors = themeColors,
+                    onBack = {
+                        showPlaylistView = false
+                        viewingPlaylistId = null
+                        showPlaylistSheet = true  // Return to playlist list
                     },
                     onPause = onPausePlay,
-                    onDelete = onDeletePlaylist,
-                    onClose = { showPlaylistSheet = false },
-                    themeColors = themeColors,
-                    currentlyPlayingPlaylistId = currentlyPlayingPlaylistId
+                    onResume = onResumePlay,
+                    onStop = {
+                        onStopPlay()
+                        showPlaylistView = false
+                        viewingPlaylistId = null
+                        showPlaylistSheet = true  // Return to playlist list
+                    }
                 )
             }
         }
-        
-// ── Playlist View overlay ──
-        AnimatedContent(
-            targetState = showPlaylistView,
-            transitionSpec = {
-                slideInVertically { it } togetherWith slideOutVertically { it }
-            },
-            label = "playlistView"
-        ) { visible ->
-            if (visible) {
-                val activePlaylist = playlists.find { it.id == (viewingPlaylistId ?: currentlyPlayingPlaylistId) }
-                if (activePlaylist != null) {
-                    BackHandler { 
-                        showPlaylistView = false
-                        viewingPlaylistId = null
-                    }
 
-                    PlaylistViewScreen(
-                        playlist = activePlaylist,
-                        playingFileName = if (activePlaylist.id == currentlyPlayingPlaylistId) playingFileName else "",
-                        currentIteration = if (activePlaylist.id == currentlyPlayingPlaylistId) currentPlaylistIteration else 1,
-                        isPaused = isPaused,
-                        allRecordings = onGetAllRecordings(),
-                        themeColors = themeColors,
-                        onBack = { 
-                            showPlaylistView = false
-                            viewingPlaylistId = null
-                        },
-                        onPause = onPausePlay,
-                        onResume = onResumePlay,
-                        onStop = {
-                            onStopPlay()
-                            showPlaylistView = false
-                            viewingPlaylistId = null
-                        }
-                    )
-                }
-            }
-        }
-
-        // ── Playlist Editor overlay ──
-        AnimatedContent(
-            targetState = editingPlaylist,
-            transitionSpec = {
-                slideInVertically { it } togetherWith slideOutVertically { it }
-            },
-            label = "playlistEditor"
-        ) { targetPlaylist ->
+        // ── Playlist Editor overlay (Full-Screen) ──
+        AnimatedVisibility(
+            visible = editingPlaylist != null,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            val targetPlaylist = editingPlaylist
             if (targetPlaylist != null) {
-                // Ensure system back gesture exits the editor
-                BackHandler { editingPlaylist = null }
+                BackHandler {
+                    editingPlaylist = null
+                    showPlaylistSheet = true  // Return to playlist list
+                }
 
                 PlaylistEditorScreen(
                     playlist = targetPlaylist,
                     allCategories = categories,
-                    getFilesForCategory = { cat -> 
+                    getFilesForCategory = { cat ->
                         onGetAllRecordings().filter { item ->
                             val path = item.file.absolutePath.replace("\\", "/")
                             val itemCat = if (path.contains("Music/AudioLoop/")) {
@@ -1410,15 +1406,19 @@ fun AudioLoopMainScreen(
                     },
                     getCategoryForFile = { path -> path.substringBefore("/", "General") },
                     resolveFileName = { path -> path.substringAfter("/") },
-                    resolveFileDuration = { path -> 
+                    resolveFileDuration = { path ->
                         val fileName = path.substringAfter("/")
                         onGetAllRecordings().find { it.name == fileName }?.durationString ?: "00:00"
                     },
-                    onSave = { 
+                    onSave = {
                         onSavePlaylist(it)
                         editingPlaylist = null
+                        showPlaylistSheet = true  // Return to playlist list after save
                     },
-                    onClose = { editingPlaylist = null },
+                    onClose = {
+                        editingPlaylist = null
+                        showPlaylistSheet = true  // Return to playlist list
+                    },
                     themeColors = themeColors
                 )
             }
