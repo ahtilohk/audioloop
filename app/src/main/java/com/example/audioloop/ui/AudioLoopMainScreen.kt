@@ -1289,6 +1289,7 @@ fun AudioLoopMainScreen(
         // ── Playlist List overlay (Full-Screen) ──
         AnimatedVisibility(
             visible = showPlaylistSheet,
+            modifier = Modifier.fillMaxSize(),
             enter = slideInVertically { it },
             exit = slideOutVertically { it }
         ) {
@@ -1340,6 +1341,7 @@ fun AudioLoopMainScreen(
         // ── Playlist View overlay (Full-Screen) ──
         AnimatedVisibility(
             visible = showPlaylistView,
+            modifier = Modifier.fillMaxSize(),
             enter = slideInVertically { it },
             exit = slideOutVertically { it }
         ) {
@@ -1378,6 +1380,7 @@ fun AudioLoopMainScreen(
         // ── Playlist Editor overlay (Full-Screen) ──
         AnimatedVisibility(
             visible = editingPlaylist != null,
+            modifier = Modifier.fillMaxSize(),
             enter = slideInVertically { it },
             exit = slideOutVertically { it }
         ) {
