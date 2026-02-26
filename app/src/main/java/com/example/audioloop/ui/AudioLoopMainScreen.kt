@@ -319,7 +319,7 @@ fun AudioLoopMainScreen(
                 }
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp), 
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.wrapContentWidth()
                 ) {
@@ -336,7 +336,7 @@ fun AudioLoopMainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = AppIcons.QueueMusic, // Use better icon if available
+                                imageVector = AppIcons.QueueMusic,
                                 contentDescription = null,
                                 tint = themeColors.primary,
                                 modifier = Modifier.size(18.dp)
@@ -346,44 +346,6 @@ fun AudioLoopMainScreen(
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     color = themeColors.primary,
                                     fontWeight = FontWeight.ExtraBold
-                                ),
-                                maxLines = 1
-                            )
-                        }
-                    }
-
-                    // Selection Mode Button
-                    Surface(
-                        onClick = {
-                            isSelectionMode = !isSelectionMode
-                            if (!isSelectionMode) selectedFiles = emptySet()
-                        },
-                        shape = RoundedCornerShape(14.dp),
-                        color = if (isSelectionMode)
-                            Red500.copy(alpha = 0.2f)
-                        else
-                            Zinc800.copy(alpha = 0.4f),
-                        border = BorderStroke(
-                            1.2.dp,
-                            if (isSelectionMode) Red400 else Zinc600.copy(alpha = 0.8f)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = if (isSelectionMode) AppIcons.Close else AppIcons.DoneAll,
-                                contentDescription = null,
-                                tint = if (isSelectionMode) Red400 else Zinc300,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(
-                                text = if (isSelectionMode) "Cancel" else "Select",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (isSelectionMode) Red400 else Zinc300,
-                                    fontWeight = FontWeight.Bold
                                 ),
                                 maxLines = 1
                             )
@@ -835,10 +797,12 @@ fun AudioLoopMainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isSelectionMode && selectedFiles.isNotEmpty()) {
+                            // ── Selection Action Bar ──
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
+                                // Play selected
                                 Button(
                                     onClick = {
                                         val orderedSelection = selectedFiles.toList()
@@ -856,10 +820,48 @@ fun AudioLoopMainScreen(
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
                                     shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("PLAY ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Icon(AppIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("PLAY ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                                 }
+                                // Save as Playlist
+                                Button(
+                                    onClick = {
+                                        val orderedSelection = selectedFiles.toList()
+                                        val relativePaths = orderedSelection.map { name ->
+                                            val item = recordingItems.find { it.name == name }
+                                            if (item != null) {
+                                                val path = item.file.absolutePath.replace("\\", "/")
+                                                val cat = if (path.contains("Music/AudioLoop/")) {
+                                                    val subPath = path.substringAfter("Music/AudioLoop/")
+                                                    if (subPath.contains("/")) subPath.substringBefore("/") else ""
+                                                } else ""
+                                                if (cat.isNotEmpty()) "$cat/$name" else name
+                                            } else name
+                                        }
+                                        editingPlaylist = Playlist(
+                                            id = "new_" + java.util.UUID.randomUUID().toString(),
+                                            name = "",
+                                            files = relativePaths,
+                                            createdAt = System.currentTimeMillis()
+                                        )
+                                        isSelectionMode = false
+                                        selectedFiles = emptySet()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary800),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, themeColors.primary600),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(AppIcons.QueueMusic, contentDescription = null, modifier = Modifier.size(16.dp), tint = themeColors.primary300)
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("PLAYLIST", color = themeColors.primary300, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                }
+                                // Merge (2+ files)
                                 if (selectedFiles.size >= 2) {
                                     Button(
                                         onClick = {
@@ -875,18 +877,20 @@ fun AudioLoopMainScreen(
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = themeColors.secondary),
                                         shape = RoundedCornerShape(12.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("MERGE ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text("MERGE ${selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                                     }
                                 }
                             }
                         } else {
+                            // ── Normal file list header with Select button ──
                             Text(
                                 text = "Files ($currentCategory):",
                                 style = TextStyle(color = Zinc200, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             )
-                            if (!isSelectionMode) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(
                                     onClick = { filePickerLauncher.launch("audio/*") },
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
@@ -894,7 +898,65 @@ fun AudioLoopMainScreen(
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.height(32.dp)
                                 ) {
-                                    Text("+ Add file(s)", fontSize = 12.sp, color = Color.White)
+                                    Text("+ Add", fontSize = 12.sp, color = Color.White)
+                                }
+                                Surface(
+                                    onClick = {
+                                        isSelectionMode = true
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Zinc800.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, Zinc600),
+                                    modifier = Modifier.height(32.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            AppIcons.DoneAll,
+                                            contentDescription = "Select",
+                                            tint = Zinc300,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Text("Select", fontSize = 12.sp, color = Zinc300)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Cancel hint when in selection mode with empty selection
+                    if (isSelectionMode && selectedFiles.isEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Tap files to select",
+                                style = TextStyle(color = Zinc500, fontSize = 13.sp)
+                            )
+                            Surface(
+                                onClick = {
+                                    isSelectionMode = false
+                                    selectedFiles = emptySet()
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                color = Red500.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, Red400.copy(alpha = 0.5f)),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(AppIcons.Close, contentDescription = null, tint = Red400, modifier = Modifier.size(14.dp))
+                                    Text("Cancel", fontSize = 12.sp, color = Red400, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
