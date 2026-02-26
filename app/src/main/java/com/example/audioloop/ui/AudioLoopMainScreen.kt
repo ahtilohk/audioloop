@@ -265,10 +265,8 @@ fun AudioLoopMainScreen(
         }
     }
 
-    // Close playlist view if playlist stops externally
-    LaunchedEffect(currentlyPlayingPlaylistId) {
-        if (currentlyPlayingPlaylistId == null) showPlaylistView = false
-    }
+    // Note: playlist-view auto-close is already handled by the LaunchedEffect above
+    // that checks both currentlyPlayingPlaylistId and viewingPlaylistId
 
     // Back handler: exit playlist view without stopping playback
     BackHandler(enabled = showPlaylistView) {
