@@ -1285,7 +1285,10 @@ fun AudioLoopMainScreen(
             )
         }
 
-        // ── Playlist Sheets ──
+        } // end inner Column
+        } // end outer Column
+
+        // ── Playlist Sheets (direct Box children for fullscreen overlay) ──
         // ── Playlist List overlay (Full-Screen) ──
         AnimatedVisibility(
             visible = showPlaylistSheet,
@@ -1426,10 +1429,8 @@ fun AudioLoopMainScreen(
                 )
             }
         }
-    }
-}
-}
-}
+    } // end Box
+} // end AudioLoopMainScreen
 // Dialog Helpers adapted from MainActivity
 
 // Dialog Definitions moved to ui/Dialogs.kt
