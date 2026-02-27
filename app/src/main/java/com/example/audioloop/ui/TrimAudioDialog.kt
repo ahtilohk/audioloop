@@ -230,7 +230,9 @@ fun TrimAudioDialog(
                         val totalDuration = durationMs.toFloat()
                         val heightPx = constraints.maxHeight.toFloat()
                         val handleHitWidth = with(LocalDensity.current) { 48.dp.toPx() }
-                        val handleBarWidth = with(LocalDensity.current) { 12.dp.toPx() } // Thicker handles
+                        val handleLineWidth = with(LocalDensity.current) { 2.dp.toPx() } // Thin precise line
+                        val handleTabWidth = with(LocalDensity.current) { 14.dp.toPx() } // Tab grip width
+                        val handleTabHeight = with(LocalDensity.current) { 20.dp.toPx() } // Tab grip height
                         val waveTop = 0f
                         val waveBottom = heightPx
                         
@@ -378,48 +380,101 @@ fun TrimAudioDialog(
                                 drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size(selectionEndX - selectionStartX, size.height))
                             }
 
-                            // Handles - Premium
-                            val handleY = 0f
+                            // ── Handles - Premium Precise Design ──
                             val handleH = size.height
-                            val gripLineWidth = 1.dp.toPx()
-                            val gripLineLength = 16.dp.toPx()
-                            val gripSpacing = 3.dp.toPx()
+                            val gripLineCount = 3
+                            val gripLineSpacing = 2.5.dp.toPx()
+                            val gripLineH = 8.dp.toPx()
+                            val tabCorner = CornerRadius(3.dp.toPx())
 
-                            // Start Handle
+                            // Start Handle - thin vertical line
+                            drawLine(
+                                color = themeColors.primary400,
+                                start = Offset(startX, 0f),
+                                end = Offset(startX, handleH),
+                                strokeWidth = handleLineWidth
+                            )
+                            // Start Handle - top tab
                             drawRoundRect(
                                 color = themeColors.primary500,
-                                topLeft = Offset(startX - handleBarWidth/2, handleY),
-                                size = Size(handleBarWidth, handleH),
-                                cornerRadius = CornerRadius(4.dp.toPx())
+                                topLeft = Offset(startX - handleTabWidth / 2, 0f),
+                                size = Size(handleTabWidth, handleTabHeight),
+                                cornerRadius = tabCorner
                             )
-                            // Start Handle grip lines
-                            val startCenterY = handleH / 2
-                            for (i in -1..1) {
-                                val ly = startCenterY + i * gripSpacing
+                            // Grip lines on top tab
+                            val startTabCenterY = handleTabHeight / 2
+                            for (i in 0 until gripLineCount) {
+                                val ly = startTabCenterY + (i - 1) * gripLineSpacing
                                 drawLine(
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    start = Offset(startX - gripLineLength / 2, ly),
-                                    end = Offset(startX + gripLineLength / 2, ly),
-                                    strokeWidth = gripLineWidth,
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    start = Offset(startX - gripLineH / 2, ly),
+                                    end = Offset(startX + gripLineH / 2, ly),
+                                    strokeWidth = 1.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                            // Start Handle - bottom tab
+                            drawRoundRect(
+                                color = themeColors.primary500,
+                                topLeft = Offset(startX - handleTabWidth / 2, handleH - handleTabHeight),
+                                size = Size(handleTabWidth, handleTabHeight),
+                                cornerRadius = tabCorner
+                            )
+                            // Grip lines on bottom tab
+                            val startBotCenterY = handleH - handleTabHeight / 2
+                            for (i in 0 until gripLineCount) {
+                                val ly = startBotCenterY + (i - 1) * gripLineSpacing
+                                drawLine(
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    start = Offset(startX - gripLineH / 2, ly),
+                                    end = Offset(startX + gripLineH / 2, ly),
+                                    strokeWidth = 1.dp.toPx(),
                                     cap = StrokeCap.Round
                                 )
                             }
 
-                            // End Handle
+                            // End Handle - thin vertical line
+                            drawLine(
+                                color = Red400,
+                                start = Offset(endX, 0f),
+                                end = Offset(endX, handleH),
+                                strokeWidth = handleLineWidth
+                            )
+                            // End Handle - top tab
                             drawRoundRect(
                                 color = Red500,
-                                topLeft = Offset(endX - handleBarWidth/2, handleY),
-                                size = Size(handleBarWidth, handleH),
-                                cornerRadius = CornerRadius(4.dp.toPx())
+                                topLeft = Offset(endX - handleTabWidth / 2, 0f),
+                                size = Size(handleTabWidth, handleTabHeight),
+                                cornerRadius = tabCorner
                             )
-                            // End Handle grip lines
-                            for (i in -1..1) {
-                                val ly = startCenterY + i * gripSpacing
+                            // Grip lines on top tab
+                            val endTabCenterY = handleTabHeight / 2
+                            for (i in 0 until gripLineCount) {
+                                val ly = endTabCenterY + (i - 1) * gripLineSpacing
                                 drawLine(
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    start = Offset(endX - gripLineLength / 2, ly),
-                                    end = Offset(endX + gripLineLength / 2, ly),
-                                    strokeWidth = gripLineWidth,
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    start = Offset(endX - gripLineH / 2, ly),
+                                    end = Offset(endX + gripLineH / 2, ly),
+                                    strokeWidth = 1.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                            // End Handle - bottom tab
+                            drawRoundRect(
+                                color = Red500,
+                                topLeft = Offset(endX - handleTabWidth / 2, handleH - handleTabHeight),
+                                size = Size(handleTabWidth, handleTabHeight),
+                                cornerRadius = tabCorner
+                            )
+                            // Grip lines on bottom tab
+                            val endBotCenterY = handleH - handleTabHeight / 2
+                            for (i in 0 until gripLineCount) {
+                                val ly = endBotCenterY + (i - 1) * gripLineSpacing
+                                drawLine(
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    start = Offset(endX - gripLineH / 2, ly),
+                                    end = Offset(endX + gripLineH / 2, ly),
+                                    strokeWidth = 1.dp.toPx(),
                                     cap = StrokeCap.Round
                                 )
                             }
