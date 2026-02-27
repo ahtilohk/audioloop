@@ -216,6 +216,11 @@ fun TrimAudioDialog(
                     
                     Spacer(modifier = Modifier.height(24.dp))
                     
+                    // Shared state for trim handles (accessible by nudge buttons below)
+                    var startX by remember { mutableFloatStateOf(0f) }
+                    var endX by remember { mutableFloatStateOf(0f) }
+                    var waveformWidthPx by remember { mutableFloatStateOf(0f) }
+
                     // Visual Trimmer with Waveform - Premium Look
                     BoxWithConstraints(
                         modifier = Modifier
@@ -235,9 +240,9 @@ fun TrimAudioDialog(
                         val handleTabHeight = with(LocalDensity.current) { 20.dp.toPx() } // Tab grip height
                         val waveTop = 0f
                         val waveBottom = heightPx
-                        
-                        var startX by remember { mutableFloatStateOf(0f) }
-                        var endX by remember { mutableFloatStateOf(widthPx) }
+
+                        // Sync widthPx to outer scope
+                        LaunchedEffect(widthPx) { waveformWidthPx = widthPx }
                         
                         // State for drag target
                         var dragTarget by remember { mutableStateOf<TrimDragTarget?>(null) }
@@ -251,7 +256,7 @@ fun TrimAudioDialog(
                         val selectionEndMs = max(startHandleMs, endHandleMs)
 
                         LaunchedEffect(widthPx) {
-                             if (widthPx > 0) {
+                             if (widthPx > 0 && endX == 0f) {
                                   startX = 0f
                                   endX = widthPx
                              }
@@ -676,42 +681,124 @@ fun TrimAudioDialog(
                             }
                         }
 
-                        // Row 2: START + END (full width, no controls competing)
+                        // Row 2: START + END with nudge arrows for precision
+                        val nudgeMs = 100f // 100ms per tap
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column(
+                            // START card with nudge arrows
+                            Row(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(10.dp)
+                                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    formatDuration(range.start.toLong()),
-                                    color = themeColors.primary200,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                                    maxLines = 1
-                                )
+                                // Left arrow (decrease start)
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(Zinc800, RoundedCornerShape(6.dp))
+                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            if (waveformWidthPx > 0f) {
+                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
+                                                startX = (startX - nudgeMs * pxPerMs).coerceAtLeast(0f)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(AppIcons.ArrowBack, contentDescription = "Start earlier", tint = themeColors.primary300, modifier = Modifier.size(16.dp))
+                                }
+                                // Time display
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        formatDuration(range.start.toLong()),
+                                        color = themeColors.primary200,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                        maxLines = 1
+                                    )
+                                }
+                                // Right arrow (increase start)
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(Zinc800, RoundedCornerShape(6.dp))
+                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            if (waveformWidthPx > 0f) {
+                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
+                                                startX = (startX + nudgeMs * pxPerMs).coerceAtMost(waveformWidthPx)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(AppIcons.ArrowForward, contentDescription = "Start later", tint = themeColors.primary300, modifier = Modifier.size(16.dp))
+                                }
                             }
 
-                            Column(
+                            // END card with nudge arrows
+                            Row(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .padding(10.dp),
-                                horizontalAlignment = Alignment.End
+                                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    formatDuration(range.endInclusive.toLong()),
-                                    color = Red200,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                                    maxLines = 1
-                                )
+                                // Left arrow (decrease end)
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(Zinc800, RoundedCornerShape(6.dp))
+                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            if (waveformWidthPx > 0f) {
+                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
+                                                endX = (endX - nudgeMs * pxPerMs).coerceAtLeast(0f)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(AppIcons.ArrowBack, contentDescription = "End earlier", tint = Red200, modifier = Modifier.size(16.dp))
+                                }
+                                // Time display
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        formatDuration(range.endInclusive.toLong()),
+                                        color = Red200,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                                        maxLines = 1
+                                    )
+                                }
+                                // Right arrow (increase end)
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(Zinc800, RoundedCornerShape(6.dp))
+                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            if (waveformWidthPx > 0f) {
+                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
+                                                endX = (endX + nudgeMs * pxPerMs).coerceAtMost(waveformWidthPx)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(AppIcons.ArrowForward, contentDescription = "End later", tint = Red200, modifier = Modifier.size(16.dp))
+                                }
                             }
                         }
 
