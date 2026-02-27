@@ -45,6 +45,8 @@ private val Red100 = Color(0xFFFFE5E5)
 private val Red200 = Color(0xFFFECACA)
 private val Red500 = Color(0xFFEF4444)
 private val Red900 = Color(0xFF7F1D1D)
+private val Amber500 = Color(0xFFF59E0B)
+private val Amber700 = Color(0xFFB45309)
 
 
 private enum class TrimDragTarget {
@@ -78,6 +80,7 @@ fun TrimAudioDialog(
     var isDraggingHandle by remember { mutableStateOf(false) }
     var fadeInEnabled by remember { mutableStateOf(false) }
     var fadeOutEnabled by remember { mutableStateOf(false) }
+    var autoTrimSilence by remember { mutableStateOf(false) }
 
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
@@ -262,6 +265,25 @@ fun TrimAudioDialog(
                              }
                         }
 
+                        // Auto-trim Silence: snap handles to first/last non-silent bar
+                        LaunchedEffect(autoTrimSilence, waveform.value, widthPx) {
+                            val bars = waveform.value
+                            if (autoTrimSilence && bars != null && bars.isNotEmpty() && widthPx > 0f) {
+                                val silenceThreshold = 10
+                                val firstLoud = bars.indexOfFirst { it > silenceThreshold }
+                                val lastLoud = bars.indexOfLast { it > silenceThreshold }
+                                if (firstLoud >= 0 && lastLoud >= firstLoud) {
+                                    val barWidth = widthPx / bars.size
+                                    startX = (firstLoud * barWidth).coerceAtLeast(0f)
+                                    endX = ((lastLoud + 1) * barWidth).coerceAtMost(widthPx)
+                                }
+                            } else if (!autoTrimSilence) {
+                                // Reset to full range when toggled off
+                                startX = 0f
+                                endX = widthPx
+                            }
+                        }
+
                         LaunchedEffect(selectionStartMs, selectionEndMs) {
                              range = selectionStartMs..selectionEndMs
                         }
@@ -318,11 +340,10 @@ fun TrimAudioDialog(
 
                                       if (trimMode == TrimMode.Keep) {
                                           if (currentMs >= selectionEndMs) {
-                                                previewPlayer.pause()
+                                                // Loop back to selection start
                                                 previewPlayer.setVolume(1f, 1f)
                                                 previewPlayer.seekTo(selectionStartMs.toInt())
                                                 previewPositionMs = selectionStartMs.toLong()
-                                                isPreviewPlaying = false
                                           }
                                       } else {
                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
@@ -334,7 +355,15 @@ fun TrimAudioDialog(
                                       }
                                       delay(30)
                                   }
+                                  // Playback ended naturally - loop back
                                   try { previewPlayer.setVolume(1f, 1f) } catch (_: Exception) {}
+                                  if (trimMode == TrimMode.Keep) {
+                                      previewPlayer.seekTo(selectionStartMs.toInt())
+                                      previewPositionMs = selectionStartMs.toLong()
+                                  } else {
+                                      previewPlayer.seekTo(0)
+                                      previewPositionMs = 0L
+                                  }
                                   isPreviewPlaying = false
                              }
                         }
@@ -354,18 +383,50 @@ fun TrimAudioDialog(
                                 )
                             }
                             
+                            // Calculate fade zone boundaries in pixels for visual overlay
+                            val effectiveSelWidth = (selectionEndX - selectionStartX).coerceAtLeast(1f)
+                            val fadeFraction = 0.10f // 10% of effective selection
+                            val fadeInPx = if (fadeInEnabled) effectiveSelWidth * fadeFraction else 0f
+                            val fadeOutPx = if (fadeOutEnabled) effectiveSelWidth * fadeFraction else 0f
+                            val silenceThreshold = 10
+
                             if (waveform.value != null) {
                                 val bars = waveform.value!!
                                 val barWidth = widthPx / bars.size
                                 bars.forEachIndexed { index, amplitude ->
                                     val x = index * barWidth
-                                    val barHeight = (amplitude / 100f) * size.height * 0.8f // 80% height
                                     val isSelected = x >= selectionStartX && x <= selectionEndX
-                                    val barColor = if (trimMode == TrimMode.Keep) {
-                                        if (isSelected) themeColors.primary400 else Zinc600
-                                    } else {
-                                        if (isSelected) Zinc600 else themeColors.primary400
+                                    val isSilent = amplitude <= silenceThreshold
+
+                                    // Calculate fade volume multiplier for this bar
+                                    var fadeMultiplier = 1f
+                                    if (trimMode == TrimMode.Keep && isSelected) {
+                                        val posInSelection = x - selectionStartX
+                                        if (fadeInEnabled && posInSelection < fadeInPx && fadeInPx > 0f) {
+                                            fadeMultiplier = (posInSelection / fadeInPx).coerceIn(0f, 1f)
+                                        }
+                                        val posFromEnd = selectionEndX - x
+                                        if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
+                                            fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
+                                        }
                                     }
+
+                                    // Apply fade multiplier to bar height for visual representation
+                                    val rawHeight = (amplitude / 100f) * size.height * 0.8f
+                                    val barHeight = rawHeight * fadeMultiplier
+
+                                    val barColor = if (trimMode == TrimMode.Keep) {
+                                        if (isSelected) {
+                                            if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
+                                            else themeColors.primary400
+                                        } else Zinc600
+                                    } else {
+                                        if (isSelected) {
+                                            if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
+                                            else Zinc600
+                                        } else themeColors.primary400
+                                    }
+
                                     drawLine(
                                         color = barColor,
                                         start = Offset(x, (size.height - barHeight) / 2),
@@ -375,7 +436,7 @@ fun TrimAudioDialog(
                                     )
                                 }
                             }
-                            
+
                             // Dimming layers
                             val dimColor = Color.Black.copy(alpha = 0.3f)
                             if (trimMode == TrimMode.Keep) {
@@ -383,6 +444,38 @@ fun TrimAudioDialog(
                                 drawRect(dimColor, topLeft = Offset(selectionEndX, 0f), size = Size(size.width - selectionEndX, size.height))
                             } else {
                                 drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size(selectionEndX - selectionStartX, size.height))
+                            }
+
+                            // Fade In gradient overlay (visible on waveform)
+                            if (fadeInEnabled && trimMode == TrimMode.Keep) {
+                                val fadeStartX = selectionStartX
+                                val fadeEndX = selectionStartX + fadeInPx
+                                for (px in fadeStartX.toInt()..fadeEndX.toInt()) {
+                                    val progress = ((px - fadeStartX) / fadeInPx).coerceIn(0f, 1f)
+                                    val alpha = (1f - progress) * 0.4f
+                                    drawLine(
+                                        color = themeColors.primary900.copy(alpha = alpha),
+                                        start = Offset(px.toFloat(), 0f),
+                                        end = Offset(px.toFloat(), size.height),
+                                        strokeWidth = 1f
+                                    )
+                                }
+                            }
+
+                            // Fade Out gradient overlay (visible on waveform)
+                            if (fadeOutEnabled && trimMode == TrimMode.Keep) {
+                                val fadeStartX = selectionEndX - fadeOutPx
+                                val fadeEndX = selectionEndX
+                                for (px in fadeStartX.toInt()..fadeEndX.toInt()) {
+                                    val progress = ((px - fadeStartX) / fadeOutPx).coerceIn(0f, 1f)
+                                    val alpha = progress * 0.4f
+                                    drawLine(
+                                        color = themeColors.primary900.copy(alpha = alpha),
+                                        start = Offset(px.toFloat(), 0f),
+                                        end = Offset(px.toFloat(), size.height),
+                                        strokeWidth = 1f
+                                    )
+                                }
                             }
 
                             // ── Handles - Premium Precise Design ──
@@ -802,15 +895,15 @@ fun TrimAudioDialog(
                             }
                         }
 
-                        // Row 3: Fade toggles + Play & Reset Controls
+                        // Row 3: Effect toggles
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             // Fade In toggle
                             Box(
                                 modifier = Modifier
+                                    .weight(1f)
                                     .background(
                                         if (fadeInEnabled) themeColors.primary700 else Zinc800,
                                         RoundedCornerShape(10.dp)
@@ -821,7 +914,8 @@ fun TrimAudioDialog(
                                         RoundedCornerShape(10.dp)
                                     )
                                     .clickable { fadeInEnabled = !fadeInEnabled }
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     "Fade In",
@@ -830,7 +924,62 @@ fun TrimAudioDialog(
                                     fontWeight = FontWeight.Bold
                                 )
                             }
+                            // Auto-trim Silence toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        if (autoTrimSilence) Amber700 else Zinc800,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (autoTrimSilence) Amber500 else Zinc600,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable { autoTrimSilence = !autoTrimSilence }
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "Silence",
+                                    color = if (autoTrimSilence) Color.White else Zinc500,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            // Fade Out toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        if (fadeOutEnabled) themeColors.primary700 else Zinc800,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (fadeOutEnabled) themeColors.primary500 else Zinc600,
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable { fadeOutEnabled = !fadeOutEnabled }
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "Fade Out",
+                                    color = if (fadeOutEnabled) Color.White else Zinc500,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
 
+                        // Row 4: Play & Reset Controls
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 // Reset Button
                                 Box(
@@ -899,29 +1048,6 @@ fun TrimAudioDialog(
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
-                            }
-
-                            // Fade Out toggle
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        if (fadeOutEnabled) themeColors.primary700 else Zinc800,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .border(
-                                        1.dp,
-                                        if (fadeOutEnabled) themeColors.primary500 else Zinc600,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { fadeOutEnabled = !fadeOutEnabled }
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    "Fade Out",
-                                    color = if (fadeOutEnabled) Color.White else Zinc500,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
                             }
                         }
                     }
