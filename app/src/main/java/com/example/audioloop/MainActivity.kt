@@ -278,15 +278,49 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private val signInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
-            driveBackupManager.handleSignInResult(account)
-            isBackupSignedIn = true
-            backupEmail = account?.email ?: ""
-        } catch (e: Exception) {
-            e.printStackTrace()
-            backupProgress = "Sign-in failed: ${e.localizedMessage}"
+        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
+            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+                driveBackupManager.handleSignInResult(account)
+                isBackupSignedIn = true
+                backupEmail = account?.email ?: ""
+                backupProgress = "Signed in as $backupEmail"
+            } catch (e: com.google.android.gms.common.api.ApiException) {
+                e.printStackTrace()
+                // Status code 12501 = user cancelled, 12500 = sign-in failed
+                val msg = when (e.statusCode) {
+                    12501 -> "Sign-in cancelled"
+                    12500 -> "Sign-in failed. Check Google Play Services."
+                    10 -> "Developer error: SHA-1 fingerprint not configured in Google Cloud Console"
+                    else -> "Sign-in failed (code ${e.statusCode}): ${e.localizedMessage}"
+                }
+                backupProgress = msg
+            } catch (e: Exception) {
+                e.printStackTrace()
+                backupProgress = "Sign-in failed: ${e.localizedMessage}"
+            }
+        } else if (result.resultCode == android.app.Activity.RESULT_CANCELED) {
+            // User may have selected account but scope consent was needed
+            // Try silentSignIn as fallback
+            val gso = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
+                com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
+            )
+                .requestEmail()
+                .requestScopes(com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/drive.appdata"))
+                .build()
+            val client = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(this, gso)
+            client.silentSignIn().addOnSuccessListener { account ->
+                driveBackupManager.handleSignInResult(account)
+                isBackupSignedIn = true
+                backupEmail = account?.email ?: ""
+                backupProgress = "Signed in as $backupEmail"
+            }.addOnFailureListener { e ->
+                e.printStackTrace()
+                backupProgress = "Sign-in cancelled or failed: ${e.localizedMessage}"
+            }
+        } else {
+            backupProgress = "Sign-in returned unexpected result"
         }
     }
 
