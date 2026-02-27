@@ -651,18 +651,30 @@ fun AudioLoopMainScreen(
             // --- Backup & Restore ---
                         Text("Backup:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
 
+                        // Progress text (Show errors here BEFORE sign-in)
+                        if (backupProgress.isNotEmpty() && !isBackupSignedIn) {
+                            Text(
+                                text = backupProgress,
+                                style = TextStyle(color = Sunset400, fontSize = 11.sp),
+                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                            )
+                        }
+
                         if (!isBackupSignedIn) {
                             // Sign-in button
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(themeColors.primary600)
-                                    .clickable { onBackupSignIn() }
+                                    .background(themeColors.primary600.copy(alpha = if (isBackupRunning) 0.5f else 1f))
+                                    .clickable(enabled = !isBackupRunning) { onBackupSignIn() }
                                     .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Sign in with Google", style = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold))
+                                Text(
+                                    if (isBackupRunning) "Signing in..." else "Sign in with Google",
+                                    style = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                )
                             }
                         } else {
                             // Signed-in info

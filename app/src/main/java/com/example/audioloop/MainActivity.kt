@@ -753,6 +753,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         backupProgress = backupProgress,
                         isBackupRunning = isBackupRunning,
                         onBackupSignIn = {
+                            isBackupRunning = true
                             signInLauncher.launch(driveBackupManager.getSignInIntent())
                         },
                         onBackupSignOut = {
