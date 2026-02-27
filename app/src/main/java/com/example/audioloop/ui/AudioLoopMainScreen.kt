@@ -676,6 +676,14 @@ fun AudioLoopMainScreen(
                                     style = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                                 )
                             }
+                            // Show sign-in error/status below button
+                            if (backupProgress.isNotEmpty()) {
+                                Text(
+                                    backupProgress,
+                                    style = TextStyle(color = Red400, fontSize = 11.sp),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         } else {
                             // Signed-in info
                             Row(

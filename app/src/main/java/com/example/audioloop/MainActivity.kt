@@ -278,49 +278,43 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private val signInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
-            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+        // Always try to extract account from intent - don't rely on resultCode
+        val data = result.data
+        if (data != null) {
+            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(data)
+            if (task.isSuccessful) {
+                val account = task.result
                 driveBackupManager.handleSignInResult(account)
                 isBackupSignedIn = true
                 backupEmail = account?.email ?: ""
                 backupProgress = "Signed in as $backupEmail"
-            } catch (e: com.google.android.gms.common.api.ApiException) {
-                e.printStackTrace()
-                // Status code 12501 = user cancelled, 12500 = sign-in failed
-                val msg = when (e.statusCode) {
-                    12501 -> "Sign-in cancelled"
-                    12500 -> "Sign-in failed. Check Google Play Services."
-                    10 -> "Developer error: SHA-1 fingerprint not configured in Google Cloud Console"
-                    else -> "Sign-in failed (code ${e.statusCode}): ${e.localizedMessage}"
+            } else {
+                val e = task.exception
+                if (e is com.google.android.gms.common.api.ApiException) {
+                    val msg = when (e.statusCode) {
+                        12501 -> "Sign-in cancelled"
+                        12500 -> "Sign-in failed. Check Google Play Services."
+                        10 -> "Developer error: check SHA-1 in Google Cloud Console"
+                        4 -> "Sign-in interrupted"
+                        else -> "Sign-in error (code ${e.statusCode})"
+                    }
+                    backupProgress = msg
+                } else {
+                    backupProgress = "Sign-in failed: ${e?.localizedMessage ?: "unknown error"}"
                 }
-                backupProgress = msg
-            } catch (e: Exception) {
-                e.printStackTrace()
-                backupProgress = "Sign-in failed: ${e.localizedMessage}"
-            }
-        } else if (result.resultCode == android.app.Activity.RESULT_CANCELED) {
-            // User may have selected account but scope consent was needed
-            // Try silentSignIn as fallback
-            val gso = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
-                com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
-            )
-                .requestEmail()
-                .requestScopes(com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/drive.appdata"))
-                .build()
-            val client = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(this, gso)
-            client.silentSignIn().addOnSuccessListener { account ->
-                driveBackupManager.handleSignInResult(account)
-                isBackupSignedIn = true
-                backupEmail = account?.email ?: ""
-                backupProgress = "Signed in as $backupEmail"
-            }.addOnFailureListener { e ->
-                e.printStackTrace()
-                backupProgress = "Sign-in cancelled or failed: ${e.localizedMessage}"
             }
         } else {
-            backupProgress = "Sign-in returned unexpected result"
+            // No intent data - try silentSignIn as last resort
+            driveBackupManager.getSignInClient().silentSignIn()
+                .addOnSuccessListener { account ->
+                    driveBackupManager.handleSignInResult(account)
+                    isBackupSignedIn = true
+                    backupEmail = account?.email ?: ""
+                    backupProgress = "Signed in as $backupEmail"
+                }
+                .addOnFailureListener { e ->
+                    backupProgress = "Sign-in failed: ${e.localizedMessage}"
+                }
         }
     }
 
