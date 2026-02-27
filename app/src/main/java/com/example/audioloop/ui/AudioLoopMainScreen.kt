@@ -228,6 +228,7 @@ fun AudioLoopMainScreen(
     var showPlaylistSheet by remember { mutableStateOf(false) }
     var showPlaylistView by remember { mutableStateOf(false) }
     var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
+    var restoreConfirmBackup by remember { mutableStateOf<com.example.audioloop.BackupInfo?>(null) }
     var viewingPlaylistId by remember { mutableStateOf<String?>(null) } // To allow viewing without playing
 
     // When playback stops, return to playlist list (stay in playlist mode)
@@ -874,7 +875,7 @@ fun AudioLoopMainScreen(
                                         verticalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         Text(
-                                            "Available backups:",
+                                            "Tap a backup to restore:",
                                             style = TextStyle(
                                                 color = Zinc400,
                                                 fontSize = 11.sp,
@@ -886,7 +887,7 @@ fun AudioLoopMainScreen(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 shape = RoundedCornerShape(10.dp),
                                                 color = Zinc800,
-                                                onClick = { onRestoreFromBackup(backup.id) }
+                                                onClick = { restoreConfirmBackup = backup }
                                             ) {
                                                 Row(
                                                     Modifier
@@ -1521,6 +1522,80 @@ fun AudioLoopMainScreen(
                 item = recordingToInfo!!,
                 onDismiss = { showInfoDialog = false },
                 themeColors = themeColors
+            )
+        }
+
+        // Restore confirmation dialog
+        if (restoreConfirmBackup != null) {
+            val backup = restoreConfirmBackup!!
+            AlertDialog(
+                onDismissRequest = { restoreConfirmBackup = null },
+                containerColor = Zinc900,
+                titleContentColor = Color.White,
+                textContentColor = Zinc300,
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.CloudDownload,
+                            contentDescription = null,
+                            tint = themeColors.primary400,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Text("Restore Backup?")
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            backup.date,
+                            style = TextStyle(color = Color.White, fontWeight = FontWeight.Medium)
+                        )
+                        Text(
+                            backup.name,
+                            style = TextStyle(color = Zinc400, fontSize = 12.sp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (backup.sizeBytes > 0) {
+                            val mb = backup.sizeBytes / (1024.0 * 1024.0)
+                            Text(
+                                String.format("%.1f MB", mb),
+                                style = TextStyle(color = Zinc500, fontSize = 12.sp)
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "This will replace your current files, categories, and settings with the backup contents.",
+                            style = TextStyle(color = Sunset400, fontSize = 12.sp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            onRestoreFromBackup(backup.id)
+                            restoreConfirmBackup = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.CloudDownload,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Restore")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { restoreConfirmBackup = null }) {
+                        Text("Cancel", color = Zinc400)
+                    }
+                }
             )
         }
 

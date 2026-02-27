@@ -770,8 +770,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 }
                                 result.onSuccess { name ->
                                     backupProgress = "✅ Backup saved: $name"
+                                    delay(3000)
+                                    backupProgress = ""
                                 }.onFailure { e ->
                                     backupProgress = "❌ Backup failed: ${e.localizedMessage}"
+                                    delay(5000)
+                                    backupProgress = ""
                                 }
                                 isBackupRunning = false
                             }
@@ -799,15 +803,20 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                     backupProgress = progress
                                 }
                                 result.onSuccess {
-                                    backupProgress = "✅ Restore complete! Refreshing..."
+                                    backupProgress = "✅ Restoring settings..."
                                     // Reload theme
                                     currentTheme = getThemePref(this@MainActivity)
                                     // Reload categories and files
                                     val newOrder = loadCategoryOrder()
                                     categories = if ("General" in newOrder) newOrder else listOf("General") + newOrder
                                     savedItems = getSavedRecordings(uiCategory, filesDir)
+                                    backupProgress = "✅ Restore complete!"
+                                    delay(3000)
+                                    backupProgress = ""
                                 }.onFailure { e ->
                                     backupProgress = "❌ Restore failed: ${e.localizedMessage}"
+                                    delay(5000)
+                                    backupProgress = ""
                                 }
                                 isBackupRunning = false
                             }
@@ -817,6 +826,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 driveBackupManager.deleteBackup(backupId)
                                 backupList = driveBackupManager.listBackups().getOrDefault(emptyList())
                                 backupProgress = "Backup deleted"
+                                delay(2000)
+                                backupProgress = ""
                             }
                         },
 
