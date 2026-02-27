@@ -265,10 +265,10 @@ fun TrimAudioDialog(
                              }
                         }
 
-                        // Auto-trim Silence: snap handles to first/last non-silent bar
-                        LaunchedEffect(autoTrimSilence, waveform.value, widthPx) {
+                        // Auto-trim Silence: only snap handles in Keep mode
+                        LaunchedEffect(autoTrimSilence, waveform.value, widthPx, trimMode) {
                             val bars = waveform.value
-                            if (autoTrimSilence && bars != null && bars.isNotEmpty() && widthPx > 0f) {
+                            if (autoTrimSilence && trimMode == TrimMode.Keep && bars != null && bars.isNotEmpty() && widthPx > 0f) {
                                 val silenceThreshold = 5
                                 val firstLoud = bars.indexOfFirst { it > silenceThreshold }
                                 val lastLoud = bars.indexOfLast { it > silenceThreshold }
