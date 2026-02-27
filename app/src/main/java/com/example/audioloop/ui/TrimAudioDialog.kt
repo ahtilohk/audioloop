@@ -269,7 +269,7 @@ fun TrimAudioDialog(
                         LaunchedEffect(autoTrimSilence, waveform.value, widthPx) {
                             val bars = waveform.value
                             if (autoTrimSilence && bars != null && bars.isNotEmpty() && widthPx > 0f) {
-                                val silenceThreshold = 10
+                                val silenceThreshold = 5
                                 val firstLoud = bars.indexOfFirst { it > silenceThreshold }
                                 val lastLoud = bars.indexOfLast { it > silenceThreshold }
                                 if (firstLoud >= 0 && lastLoud >= firstLoud) {
@@ -340,10 +340,12 @@ fun TrimAudioDialog(
 
                                       if (trimMode == TrimMode.Keep) {
                                           if (currentMs >= selectionEndMs) {
-                                                // Loop back to selection start
+                                                // Stop and jump back to selection start
+                                                previewPlayer.pause()
                                                 previewPlayer.setVolume(1f, 1f)
                                                 previewPlayer.seekTo(selectionStartMs.toInt())
                                                 previewPositionMs = selectionStartMs.toLong()
+                                                isPreviewPlaying = false
                                           }
                                       } else {
                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
@@ -383,12 +385,18 @@ fun TrimAudioDialog(
                                 )
                             }
                             
-                            // Calculate fade zone boundaries in pixels for visual overlay
-                            val effectiveSelWidth = (selectionEndX - selectionStartX).coerceAtLeast(1f)
-                            val fadeFraction = 0.10f // 10% of effective selection
-                            val fadeInPx = if (fadeInEnabled) effectiveSelWidth * fadeFraction else 0f
-                            val fadeOutPx = if (fadeOutEnabled) effectiveSelWidth * fadeFraction else 0f
-                            val silenceThreshold = 10
+                            // Calculate fade zone boundaries for visual overlay
+                            // Keep mode: fade applies within selection
+                            // Cut mode: fade applies to the kept parts (0..selStart + selEnd..width)
+                            val fadeFraction = 0.10f
+                            val silenceThreshold = 5
+                            val effectiveWidth = if (trimMode == TrimMode.Keep) {
+                                (selectionEndX - selectionStartX).coerceAtLeast(1f)
+                            } else {
+                                (size.width - (selectionEndX - selectionStartX)).coerceAtLeast(1f)
+                            }
+                            val fadeInPx = if (fadeInEnabled) effectiveWidth * fadeFraction else 0f
+                            val fadeOutPx = if (fadeOutEnabled) effectiveWidth * fadeFraction else 0f
 
                             if (waveform.value != null) {
                                 val bars = waveform.value!!
@@ -398,34 +406,40 @@ fun TrimAudioDialog(
                                     val isSelected = x >= selectionStartX && x <= selectionEndX
                                     val isSilent = amplitude <= silenceThreshold
 
+                                    // Is this bar part of the "kept" audio?
+                                    val isKept = if (trimMode == TrimMode.Keep) isSelected else !isSelected
+
                                     // Calculate fade volume multiplier for this bar
                                     var fadeMultiplier = 1f
-                                    if (trimMode == TrimMode.Keep && isSelected) {
-                                        val posInSelection = x - selectionStartX
-                                        if (fadeInEnabled && posInSelection < fadeInPx && fadeInPx > 0f) {
-                                            fadeMultiplier = (posInSelection / fadeInPx).coerceIn(0f, 1f)
-                                        }
-                                        val posFromEnd = selectionEndX - x
-                                        if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
-                                            fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
+                                    if (isKept) {
+                                        if (trimMode == TrimMode.Keep) {
+                                            val posInSelection = x - selectionStartX
+                                            if (fadeInEnabled && posInSelection < fadeInPx && fadeInPx > 0f) {
+                                                fadeMultiplier = (posInSelection / fadeInPx).coerceIn(0f, 1f)
+                                            }
+                                            val posFromEnd = selectionEndX - x
+                                            if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
+                                                fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
+                                            }
+                                        } else {
+                                            // Cut mode: kept = before selection + after selection
+                                            if (fadeInEnabled && x < fadeInPx && fadeInPx > 0f) {
+                                                fadeMultiplier = (x / fadeInPx).coerceIn(0f, 1f)
+                                            }
+                                            val posFromEnd = size.width - x
+                                            if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
+                                                fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
+                                            }
                                         }
                                     }
 
-                                    // Apply fade multiplier to bar height for visual representation
                                     val rawHeight = (amplitude / 100f) * size.height * 0.8f
                                     val barHeight = rawHeight * fadeMultiplier
 
-                                    val barColor = if (trimMode == TrimMode.Keep) {
-                                        if (isSelected) {
-                                            if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
-                                            else themeColors.primary400
-                                        } else Zinc600
-                                    } else {
-                                        if (isSelected) {
-                                            if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
-                                            else Zinc600
-                                        } else themeColors.primary400
-                                    }
+                                    val barColor = if (isKept) {
+                                        if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
+                                        else themeColors.primary400
+                                    } else Zinc600
 
                                     drawLine(
                                         color = barColor,
@@ -446,12 +460,12 @@ fun TrimAudioDialog(
                                 drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size(selectionEndX - selectionStartX, size.height))
                             }
 
-                            // Fade In gradient overlay (visible on waveform)
-                            if (fadeInEnabled && trimMode == TrimMode.Keep) {
-                                val fadeStartX = selectionStartX
-                                val fadeEndX = selectionStartX + fadeInPx
-                                for (px in fadeStartX.toInt()..fadeEndX.toInt()) {
-                                    val progress = ((px - fadeStartX) / fadeInPx).coerceIn(0f, 1f)
+                            // Fade In gradient overlay
+                            if (fadeInEnabled) {
+                                val fadeStart = if (trimMode == TrimMode.Keep) selectionStartX else 0f
+                                val fadeEnd = fadeStart + fadeInPx
+                                for (px in fadeStart.toInt()..fadeEnd.toInt()) {
+                                    val progress = ((px - fadeStart) / fadeInPx).coerceIn(0f, 1f)
                                     val alpha = (1f - progress) * 0.4f
                                     drawLine(
                                         color = themeColors.primary900.copy(alpha = alpha),
@@ -462,12 +476,12 @@ fun TrimAudioDialog(
                                 }
                             }
 
-                            // Fade Out gradient overlay (visible on waveform)
-                            if (fadeOutEnabled && trimMode == TrimMode.Keep) {
-                                val fadeStartX = selectionEndX - fadeOutPx
-                                val fadeEndX = selectionEndX
-                                for (px in fadeStartX.toInt()..fadeEndX.toInt()) {
-                                    val progress = ((px - fadeStartX) / fadeOutPx).coerceIn(0f, 1f)
+                            // Fade Out gradient overlay
+                            if (fadeOutEnabled) {
+                                val fadeEnd = if (trimMode == TrimMode.Keep) selectionEndX else size.width
+                                val fadeStart = fadeEnd - fadeOutPx
+                                for (px in fadeStart.toInt()..fadeEnd.toInt()) {
+                                    val progress = ((px - fadeStart) / fadeOutPx).coerceIn(0f, 1f)
                                     val alpha = progress * 0.4f
                                     drawLine(
                                         color = themeColors.primary900.copy(alpha = alpha),
