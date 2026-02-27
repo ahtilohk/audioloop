@@ -868,6 +868,99 @@ object AppIcons {
         }
     private var _queueMusic: ImageVector? = null
 
+    // CloudSync (Cloud with sync arrows)
+    val CloudSync: ImageVector
+        get() {
+            if (_cloudSync != null) return _cloudSync!!
+            _cloudSync = materialIcon(name = "CloudSync") {
+                materialPath {
+                    // Cloud shape
+                    moveTo(19.35f, 10.04f)
+                    curveTo(18.67f, 6.59f, 15.64f, 4.0f, 12.0f, 4.0f)
+                    curveToRelative(-2.72f, 0.0f, -5.09f, 1.44f, -6.42f, 3.58f)
+                    curveTo(2.37f, 7.93f, 0.0f, 10.55f, 0.0f, 13.7f)
+                    curveToRelative(0.0f, 3.36f, 2.73f, 6.09f, 6.1f, 6.09f)
+                    horizontalLineTo(19.0f)
+                    curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
+                    curveToRelative(0.0f, -2.64f, -2.05f, -4.78f, -4.65f, -4.96f)
+                    close()
+                    // Small sync arrow
+                    moveTo(14.0f, 13.0f)
+                    lineToRelative(-4.0f, 0.0f)
+                    lineToRelative(0.0f, -2.0f)
+                    lineToRelative(4.0f, 0.0f)
+                    lineToRelative(0.0f, -2.0f)
+                    lineToRelative(3.0f, 3.0f)
+                    lineToRelative(-3.0f, 3.0f)
+                    close()
+                }
+            }
+            return _cloudSync!!
+        }
+    private var _cloudSync: ImageVector? = null
+
+    // CloudUpload (Cloud with up arrow)
+    val CloudUpload: ImageVector
+        get() {
+            if (_cloudUpload != null) return _cloudUpload!!
+            _cloudUpload = materialIcon(name = "CloudUpload") {
+                materialPath {
+                    moveTo(19.35f, 10.04f)
+                    curveTo(18.67f, 6.59f, 15.64f, 4.0f, 12.0f, 4.0f)
+                    curveToRelative(-2.72f, 0.0f, -5.09f, 1.44f, -6.42f, 3.58f)
+                    curveTo(2.37f, 7.93f, 0.0f, 10.55f, 0.0f, 13.7f)
+                    curveToRelative(0.0f, 3.36f, 2.73f, 6.09f, 6.1f, 6.09f)
+                    horizontalLineTo(19.0f)
+                    curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
+                    curveToRelative(0.0f, -2.64f, -2.05f, -4.78f, -4.65f, -4.96f)
+                    close()
+                    // Up arrow
+                    moveTo(14.0f, 13.0f)
+                    verticalLineToRelative(4.0f)
+                    horizontalLineToRelative(-4.0f)
+                    verticalLineToRelative(-4.0f)
+                    horizontalLineTo(7.0f)
+                    lineToRelative(5.0f, -5.0f)
+                    lineToRelative(5.0f, 5.0f)
+                    horizontalLineTo(14.0f)
+                    close()
+                }
+            }
+            return _cloudUpload!!
+        }
+    private var _cloudUpload: ImageVector? = null
+
+    // CloudDownload (Cloud with down arrow)
+    val CloudDownload: ImageVector
+        get() {
+            if (_cloudDownload != null) return _cloudDownload!!
+            _cloudDownload = materialIcon(name = "CloudDownload") {
+                materialPath {
+                    moveTo(19.35f, 10.04f)
+                    curveTo(18.67f, 6.59f, 15.64f, 4.0f, 12.0f, 4.0f)
+                    curveToRelative(-2.72f, 0.0f, -5.09f, 1.44f, -6.42f, 3.58f)
+                    curveTo(2.37f, 7.93f, 0.0f, 10.55f, 0.0f, 13.7f)
+                    curveToRelative(0.0f, 3.36f, 2.73f, 6.09f, 6.1f, 6.09f)
+                    horizontalLineTo(19.0f)
+                    curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
+                    curveToRelative(0.0f, -2.64f, -2.05f, -4.78f, -4.65f, -4.96f)
+                    close()
+                    // Down arrow
+                    moveTo(17.0f, 13.0f)
+                    lineToRelative(-5.0f, 5.0f)
+                    lineToRelative(-5.0f, -5.0f)
+                    horizontalLineToRelative(3.0f)
+                    verticalLineTo(9.0f)
+                    horizontalLineToRelative(4.0f)
+                    verticalLineToRelative(4.0f)
+                    horizontalLineToRelative(3.0f)
+                    close()
+                }
+            }
+            return _cloudDownload!!
+        }
+    private var _cloudDownload: ImageVector? = null
+
     // DoneAll Icon
     val DoneAll: ImageVector
         get() {

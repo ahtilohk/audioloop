@@ -648,27 +648,58 @@ fun AudioLoopMainScreen(
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             )
 
-            // --- Backup & Restore ---
-                        Text("Backup:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
-
-                        // Progress text (Show errors here BEFORE sign-in)
-                        if (backupProgress.isNotEmpty() && !isBackupSignedIn) {
-                            Text(
-                                text = backupProgress,
-                                style = TextStyle(color = Sunset400, fontSize = 11.sp),
-                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+            // --- Backup & Restore Card ---
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Zinc800.copy(alpha = 0.3f),
+                border = BorderStroke(1.dp, Zinc600)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Card header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.CloudSync,
+                            contentDescription = null,
+                            tint = themeColors.primary400,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Backup & Restore",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = Zinc300,
+                                fontWeight = FontWeight.SemiBold
                             )
-                        }
+                        )
+                    }
 
-                        if (!isBackupSignedIn) {
-                            // Sign-in button
+                    Spacer(Modifier.height(12.dp))
+
+                    // Progress/error text (before sign-in)
+                    if (backupProgress.isNotEmpty() && !isBackupSignedIn) {
+                        Text(
+                            text = backupProgress,
+                            style = TextStyle(color = Sunset400, fontSize = 11.sp),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    if (!isBackupSignedIn) {
+                        // Sign-in button
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = themeColors.primary600.copy(alpha = if (isBackupRunning) 0.5f else 1f),
+                            onClick = { if (!isBackupRunning) onBackupSignIn() }
+                        ) {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(themeColors.primary600.copy(alpha = if (isBackupRunning) 0.5f else 1f))
-                                    .clickable(enabled = !isBackupRunning) { onBackupSignIn() }
-                                    .padding(vertical = 10.dp),
+                                modifier = Modifier.padding(vertical = 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -676,112 +707,203 @@ fun AudioLoopMainScreen(
                                     style = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                                 )
                             }
-                            // Show sign-in error/status below button
-                            if (backupProgress.isNotEmpty()) {
-                                Text(
-                                    backupProgress,
-                                    style = TextStyle(color = Red400, fontSize = 11.sp),
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        } else {
-                            // Signed-in info
+                        }
+                        if (backupProgress.isNotEmpty()) {
+                            Text(
+                                backupProgress,
+                                style = TextStyle(color = Red400, fontSize = 11.sp),
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                        }
+                    } else {
+                        // Signed-in info row
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Forest400)
+                                )
                                 Text(
                                     backupEmail,
                                     style = TextStyle(color = themeColors.primary300, fontSize = 11.sp),
                                     maxLines = 1
                                 )
-                                Text(
-                                    "Sign out",
-                                    style = TextStyle(color = Zinc500, fontSize = 10.sp),
-                                    modifier = Modifier.clickable { onBackupSignOut() }
-                                )
                             }
+                            Text(
+                                "Sign out",
+                                style = TextStyle(
+                                    color = Zinc500,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable { onBackupSignOut() }
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
 
-                            // Backup & Restore buttons
-                            Row(
-                                Modifier.fillMaxWidth().padding(top = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Spacer(Modifier.height(10.dp))
+
+                        // Backup & Restore action buttons
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            // Backup button
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isBackupRunning) Zinc700 else themeColors.primary600,
+                                onClick = { if (!isBackupRunning) onBackupCreate() }
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isBackupRunning) Zinc700 else themeColors.primary600)
-                                        .clickable(enabled = !isBackupRunning) { onBackupCreate() }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("☁️ Backup", style = TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isBackupRunning) Zinc700 else Zinc800)
-                                        .border(1.dp, themeColors.primary600, RoundedCornerShape(8.dp))
-                                        .clickable(enabled = !isBackupRunning) { onBackupList() }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("�� Restore", style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+                                    Icon(
+                                        imageVector = AppIcons.CloudUpload,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        "Backup",
+                                        style = TextStyle(
+                                            color = Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    )
                                 }
                             }
+                            // Restore button
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isBackupRunning) Zinc700 else Zinc800,
+                                border = BorderStroke(1.dp, themeColors.primary600.copy(alpha = 0.6f)),
+                                onClick = { if (!isBackupRunning) onBackupList() }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.CloudDownload,
+                                        contentDescription = null,
+                                        tint = themeColors.primary300,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        "Restore",
+                                        style = TextStyle(
+                                            color = themeColors.primary300,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    )
+                                }
+                            }
+                        }
 
-                            // Progress text
-                            if (backupProgress.isNotEmpty()) {
+                        // Progress text
+                        if (backupProgress.isNotEmpty()) {
+                            Text(
+                                backupProgress,
+                                style = TextStyle(color = themeColors.primary300, fontSize = 11.sp),
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+
+                        // Backup list (for restore)
+                        if (backupList.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Zinc900.copy(alpha = 0.6f))
+                                    .padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
                                 Text(
-                                    backupProgress,
-                                    style = TextStyle(color = themeColors.primary300, fontSize = 11.sp),
-                                    modifier = Modifier.padding(top = 4.dp)
+                                    "Available backups:",
+                                    style = TextStyle(
+                                        color = Zinc400,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
                                 )
-                            }
-
-                            // Backup list (for restore)
-                            if (backupList.isNotEmpty()) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 4.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Zinc800)
-                                        .padding(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text("Available backups:", style = TextStyle(color = Zinc400, fontSize = 11.sp))
-                                    backupList.forEach { backup ->
+                                backupList.forEach { backup ->
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = Zinc800,
+                                        onClick = { onRestoreFromBackup(backup.id) }
+                                    ) {
                                         Row(
-                                            Modifier.fillMaxWidth()
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(Zinc900)
-                                                .clickable { onRestoreFromBackup(backup.id) }
-                                                .padding(8.dp),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(10.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Column {
-                                                Text(backup.date, style = TextStyle(color = Zinc300, fontSize = 11.sp, fontWeight = FontWeight.Medium))
-                                                Text(backup.name, style = TextStyle(color = Zinc500, fontSize = 9.sp))
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    backup.date,
+                                                    style = TextStyle(
+                                                        color = Zinc200,
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                )
+                                                Text(
+                                                    backup.name,
+                                                    style = TextStyle(color = Zinc500, fontSize = 9.sp),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
                                             }
-                                            Text(
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
                                                 if (backup.sizeBytes > 0) {
                                                     val mb = backup.sizeBytes / (1024.0 * 1024.0)
-                                                    String.format("%.1f MB", mb)
-                                                } else "?",
-                                                style = TextStyle(color = Zinc500, fontSize = 10.sp)
-                                            )
+                                                    Text(
+                                                        String.format("%.1f MB", mb),
+                                                        style = TextStyle(color = Zinc500, fontSize = 10.sp)
+                                                    )
+                                                }
+                                                Icon(
+                                                    imageVector = AppIcons.CloudDownload,
+                                                    contentDescription = "Restore",
+                                                    tint = themeColors.primary400,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-
-                        Spacer(Modifier.height(16.dp))
+                    }
+                }
+            }
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {

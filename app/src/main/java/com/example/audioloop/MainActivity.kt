@@ -287,7 +287,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 driveBackupManager.handleSignInResult(account)
                 isBackupSignedIn = true
                 backupEmail = account?.email ?: ""
-                backupProgress = "Signed in as $backupEmail"
+                backupProgress = ""
             } else {
                 val e = task.exception
                 if (e is com.google.android.gms.common.api.ApiException) {
@@ -310,12 +310,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     driveBackupManager.handleSignInResult(account)
                     isBackupSignedIn = true
                     backupEmail = account?.email ?: ""
-                    backupProgress = "Signed in as $backupEmail"
+                    backupProgress = ""
+                    isBackupRunning = false
                 }
                 .addOnFailureListener { e ->
                     backupProgress = "Sign-in failed: ${e.localizedMessage}"
+                    isBackupRunning = false
                 }
         }
+        isBackupRunning = false
     }
 
     @OptIn(ExperimentalFoundationApi::class)
