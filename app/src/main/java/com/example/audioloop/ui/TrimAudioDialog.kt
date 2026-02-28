@@ -493,18 +493,6 @@ fun TrimAudioDialog(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .pointerInput(widthPx) {
-                                    detectTransformGestures { centroid, pan, zoom, _ ->
-                                        val oldScale = zoomScale
-                                        zoomScale = (zoomScale * zoom).coerceIn(1f, 15f)
-                                        val maxScroll = (widthPx * zoomScale - widthPx).coerceAtLeast(0f)
-                                        
-                                        // Center zoom on focus point
-                                        val focusFraction = (centroid.x + scrollOffsetPx) / (widthPx * oldScale)
-                                        scrollOffsetPx = (scrollOffsetPx - pan.x + focusFraction * widthPx * (zoomScale - oldScale))
-                                            .coerceIn(0f, maxScroll)
-                                    }
-                                }
                                 .pointerInput(widthPx, zoomScale, scrollOffsetPx, trimMode) {
                                     val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
@@ -534,7 +522,7 @@ fun TrimAudioDialog(
                                             if (distStart < handleHitWidth) handleCandidates.add(TrimDragTarget.Start to distStart)
                                             if (distEnd < handleHitWidth) handleCandidates.add(TrimDragTarget.End to distEnd)
                                             if (distPlayhead < handleHitWidth) handleCandidates.add(TrimDragTarget.Playhead to distPlayhead)
-                                            handleCandidates.minByOrNull { it.second }?.first ?: TrimDragTarget.Playhead
+                                            handleCandidates.minByOrNull { it.second }?.first
                                         }
 
                                         var wasDragged = false
@@ -548,20 +536,25 @@ fun TrimAudioDialog(
                                             if (!wasDragged && kotlin.math.abs(change.position.x - downX) > slop) {
                                                 wasDragged = true
                                                 dragTarget = target
-                                                isDraggingHandle = (target != TrimDragTarget.Playhead)
+                                                isDraggingHandle = (target != null && target != TrimDragTarget.Playhead)
                                             }
 
                                             if (wasDragged) {
-                                                change.consume()
-                                                val dragDeltaMs = ( (change.position.x - prevX) / (widthPx * zoomScale) ) * totalDuration
-                                                when (target) {
-                                                    TrimDragTarget.Start -> startMs = (startMs + dragDeltaMs).coerceIn(0f, totalDuration)
-                                                    TrimDragTarget.End -> endMs = (endMs + dragDeltaMs).coerceIn(0f, totalDuration)
-                                                    TrimDragTarget.Playhead -> {
-                                                        val tappedMs = pxToMs(change.position.x)
-                                                        previewPositionMs = resolvePreviewPosition(tappedMs)
-                                                        previewPlayer.seekTo(previewPositionMs.toInt())
+                                                if (target != null) {
+                                                    // Consume ONLY if we are moving a handle
+                                                    change.consume()
+                                                    val dragDeltaMs = ( (change.position.x - prevX) / (widthPx * zoomScale) ) * totalDuration
+                                                    when (target) {
+                                                        TrimDragTarget.Start -> startMs = (startMs + dragDeltaMs).coerceIn(0f, totalDuration)
+                                                        TrimDragTarget.End -> endMs = (endMs + dragDeltaMs).coerceIn(0f, totalDuration)
+                                                        TrimDragTarget.Playhead -> {
+                                                            val tappedMs = pxToMs(change.position.x)
+                                                            previewPositionMs = resolvePreviewPosition(tappedMs)
+                                                            previewPlayer.seekTo(previewPositionMs.toInt())
+                                                        }
                                                     }
+                                                } else {
+                                                    // Empty space drag: DONT consume, let detectTransformGestures handle PAN
                                                 }
                                             }
                                             prevX = change.position.x
@@ -575,6 +568,18 @@ fun TrimAudioDialog(
                                             previewPositionMs = resolvePreviewPosition(tapMs)
                                             previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
+                                    }
+                                }
+                                .pointerInput(widthPx) {
+                                    detectTransformGestures { centroid, pan, zoom, _ ->
+                                        val oldScale = zoomScale
+                                        zoomScale = (zoomScale * zoom).coerceIn(1f, 15f)
+                                        val maxScroll = (widthPx * zoomScale - widthPx).coerceAtLeast(0f)
+                                        
+                                        // Center zoom on focus point
+                                        val focusFraction = (centroid.x + scrollOffsetPx) / (widthPx * oldScale)
+                                        scrollOffsetPx = (scrollOffsetPx - pan.x + focusFraction * widthPx * (zoomScale - oldScale))
+                                            .coerceIn(0f, maxScroll)
                                     }
                                 }
                         )
