@@ -939,7 +939,7 @@ fun TrimAudioScreen(
             }
 
             // Final Actions (Fixed Footer)
-            if (isPreviewReady) {
+            if (playerReady) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
