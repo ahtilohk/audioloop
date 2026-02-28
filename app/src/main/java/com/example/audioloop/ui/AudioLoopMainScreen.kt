@@ -226,9 +226,9 @@ fun AudioLoopMainScreen(
     var showNoteDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var showPlaylistSheet by remember { mutableStateOf(false) }
+    var showBackupSheet by remember { mutableStateOf(false) }
     var showPlaylistView by remember { mutableStateOf(false) }
     var editingPlaylist by remember { mutableStateOf<Playlist?>(null) }
-    var restoreConfirmBackup by remember { mutableStateOf<com.example.audioloop.BackupInfo?>(null) }
     var viewingPlaylistId by remember { mutableStateOf<String?>(null) } // To allow viewing without playing
 
     // When playback stops, return to playlist list (stay in playlist mode)
@@ -324,6 +324,19 @@ fun AudioLoopMainScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.wrapContentWidth()
                 ) {
+                    // Backup & Restore icon button
+                    IconButton(
+                        onClick = { showBackupSheet = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.CloudSync,
+                            contentDescription = "Backup & Restore",
+                            tint = if (isBackupSignedIn) themeColors.primary400 else Zinc500,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
                     // Premium Playlists Button
                     Surface(
                         onClick = { showPlaylistSheet = true },
@@ -647,298 +660,6 @@ fun AudioLoopMainScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             )
-
-            // --- Backup & Restore (Collapsible) ---
-            var backupOpen by remember { mutableStateOf(false) }
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = Zinc800.copy(alpha = 0.3f),
-                border = BorderStroke(1.dp, Zinc600)
-            ) {
-                Column {
-                    // Collapsible header row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { backupOpen = !backupOpen }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.CloudSync,
-                            contentDescription = null,
-                            tint = if (backupOpen) themeColors.primary else Zinc400,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Backup & Restore",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (backupOpen) themeColors.onPrimaryContainer else Zinc300,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-                            // Collapsed status line
-                            if (!backupOpen) {
-                                val statusText = when {
-                                    backupProgress.isNotEmpty() -> backupProgress
-                                    isBackupSignedIn -> backupEmail
-                                    else -> "Not signed in"
-                                }
-                                val statusColor = when {
-                                    backupProgress.startsWith("✅") -> Forest400
-                                    backupProgress.startsWith("❌") -> Red400
-                                    isBackupSignedIn -> Zinc500
-                                    else -> Zinc600
-                                }
-                                Text(
-                                    text = statusText,
-                                    style = TextStyle(color = statusColor, fontSize = 11.sp),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                        }
-                        // Chevron
-                        Icon(
-                            imageVector = if (backupOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
-                            contentDescription = null,
-                            tint = Zinc500,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    // Expanded content
-                    AnimatedVisibility(visible = backupOpen) {
-                        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
-                            // Progress/error text (before sign-in)
-                            if (backupProgress.isNotEmpty() && !isBackupSignedIn) {
-                                Text(
-                                    text = backupProgress,
-                                    style = TextStyle(color = Sunset400, fontSize = 11.sp),
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                            }
-
-                            if (!isBackupSignedIn) {
-                                // Sign-in button
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = themeColors.primary600.copy(alpha = if (isBackupRunning) 0.5f else 1f),
-                                    onClick = { if (!isBackupRunning) onBackupSignIn() }
-                                ) {
-                                    Box(
-                                        modifier = Modifier.padding(vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            if (isBackupRunning) "Signing in..." else "Sign in with Google",
-                                            style = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                        )
-                                    }
-                                }
-                                if (backupProgress.isNotEmpty()) {
-                                    Text(
-                                        backupProgress,
-                                        style = TextStyle(color = Red400, fontSize = 11.sp),
-                                        modifier = Modifier.padding(top = 6.dp)
-                                    )
-                                }
-                            } else {
-                                // Signed-in info row
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(6.dp)
-                                                .clip(CircleShape)
-                                                .background(Forest400)
-                                        )
-                                        Text(
-                                            backupEmail,
-                                            style = TextStyle(color = themeColors.primary300, fontSize = 11.sp),
-                                            maxLines = 1
-                                        )
-                                    }
-                                    Text(
-                                        "Sign out",
-                                        style = TextStyle(
-                                            color = Zinc500,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Medium
-                                        ),
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .clickable { onBackupSignOut() }
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
-
-                                Spacer(Modifier.height(10.dp))
-
-                                // Backup & Restore action buttons
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Surface(
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = if (isBackupRunning) Zinc700 else themeColors.primary600,
-                                        onClick = { if (!isBackupRunning) onBackupCreate() }
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(vertical = 12.dp),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = AppIcons.CloudUpload,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(Modifier.width(6.dp))
-                                            Text(
-                                                "Backup",
-                                                style = TextStyle(
-                                                    color = Color.White,
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.SemiBold
-                                                )
-                                            )
-                                        }
-                                    }
-                                    Surface(
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = if (isBackupRunning) Zinc700 else Zinc800,
-                                        border = BorderStroke(1.dp, themeColors.primary600.copy(alpha = 0.6f)),
-                                        onClick = { if (!isBackupRunning) onBackupList() }
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(vertical = 12.dp),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = AppIcons.CloudDownload,
-                                                contentDescription = null,
-                                                tint = themeColors.primary300,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(Modifier.width(6.dp))
-                                            Text(
-                                                "Restore",
-                                                style = TextStyle(
-                                                    color = themeColors.primary300,
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.SemiBold
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-
-                                // Progress text
-                                if (backupProgress.isNotEmpty()) {
-                                    Text(
-                                        backupProgress,
-                                        style = TextStyle(color = themeColors.primary300, fontSize = 11.sp),
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
-
-                                // Backup list (for restore)
-                                if (backupList.isNotEmpty()) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 8.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(Zinc900.copy(alpha = 0.6f))
-                                            .padding(10.dp),
-                                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Text(
-                                            "Tap a backup to restore:",
-                                            style = TextStyle(
-                                                color = Zinc400,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        )
-                                        backupList.forEach { backup ->
-                                            Surface(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(10.dp),
-                                                color = Zinc800,
-                                                onClick = { restoreConfirmBackup = backup }
-                                            ) {
-                                                Row(
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(10.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Column(modifier = Modifier.weight(1f)) {
-                                                        Text(
-                                                            backup.date,
-                                                            style = TextStyle(
-                                                                color = Zinc200,
-                                                                fontSize = 12.sp,
-                                                                fontWeight = FontWeight.Medium
-                                                            )
-                                                        )
-                                                        Text(
-                                                            backup.name,
-                                                            style = TextStyle(color = Zinc500, fontSize = 9.sp),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis
-                                                        )
-                                                    }
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                    ) {
-                                                        if (backup.sizeBytes > 0) {
-                                                            val mb = backup.sizeBytes / (1024.0 * 1024.0)
-                                                            Text(
-                                                                String.format("%.1f MB", mb),
-                                                                style = TextStyle(color = Zinc500, fontSize = 10.sp)
-                                                            )
-                                                        }
-                                                        Icon(
-                                                            imageVector = AppIcons.CloudDownload,
-                                                            contentDescription = "Restore",
-                                                            tint = themeColors.primary400,
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -1524,82 +1245,32 @@ fun AudioLoopMainScreen(
             )
         }
 
-        // Restore confirmation dialog
-        if (restoreConfirmBackup != null) {
-            val backup = restoreConfirmBackup!!
-            AlertDialog(
-                onDismissRequest = { restoreConfirmBackup = null },
-                containerColor = Zinc900,
-                titleContentColor = Color.White,
-                textContentColor = Zinc300,
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.CloudDownload,
-                            contentDescription = null,
-                            tint = themeColors.primary400,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Text("Restore Backup?")
-                    }
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            backup.date,
-                            style = TextStyle(color = Color.White, fontWeight = FontWeight.Medium)
-                        )
-                        Text(
-                            backup.name,
-                            style = TextStyle(color = Zinc400, fontSize = 12.sp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (backup.sizeBytes > 0) {
-                            val mb = backup.sizeBytes / (1024.0 * 1024.0)
-                            Text(
-                                String.format("%.1f MB", mb),
-                                style = TextStyle(color = Zinc500, fontSize = 12.sp)
-                            )
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "This will replace your current files, categories, and settings with the backup contents.",
-                            style = TextStyle(color = Sunset400, fontSize = 12.sp)
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            onRestoreFromBackup(backup.id)
-                            restoreConfirmBackup = null
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.CloudDownload,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text("Restore")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { restoreConfirmBackup = null }) {
-                        Text("Cancel", color = Zinc400)
-                    }
-                }
-            )
-        }
-
         } // end inner Column
         } // end outer Column
+
+        // ── Backup & Restore overlay (Full-Screen) ──
+        AnimatedVisibility(
+            visible = showBackupSheet,
+            modifier = Modifier.fillMaxSize(),
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            BackupRestoreSheet(
+                isBackupSignedIn = isBackupSignedIn,
+                backupEmail = backupEmail,
+                backupProgress = backupProgress,
+                isBackupRunning = isBackupRunning,
+                onBackupSignIn = onBackupSignIn,
+                onBackupSignOut = onBackupSignOut,
+                onBackupCreate = onBackupCreate,
+                onBackupList = onBackupList,
+                backupList = backupList,
+                onRestoreFromBackup = onRestoreFromBackup,
+                onDeleteBackup = onDeleteBackup,
+                onClose = { showBackupSheet = false },
+                themeColors = themeColors
+            )
+        }
 
         // ── Playlist Sheets (direct Box children for fullscreen overlay) ──
         // ── Playlist List overlay (Full-Screen) ──
