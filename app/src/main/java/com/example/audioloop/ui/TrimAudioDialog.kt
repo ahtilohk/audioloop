@@ -157,12 +157,12 @@ fun TrimAudioScreen(
         modifier = Modifier.fillMaxSize(),
         color = Zinc950
     ) {
-        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
             // Top Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 12.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -928,70 +928,74 @@ fun TrimAudioScreen(
                                 }
                             }
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(60.dp))
-
-                    // Final Actions at bottom (Two-tier Premium layout)
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 32.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            // Cancel
-                            Button(
-                                onClick = onDismiss,
-                                modifier = Modifier.weight(1f).height(50.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
-                                border = BorderStroke(1.dp, Zinc800)
-                            ) {
-                                Text("Cancel", fontWeight = FontWeight.SemiBold)
-                            }
-                            // Copy
-                            Button(
-                                onClick = {
-                                    val s = range.start.toLong(); val e = range.endInclusive.toLong()
-                                    val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
-                                    val fd = (dur / 10).coerceIn(200, 3000)
-                                    onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
-                                },
-                                modifier = Modifier.weight(1.2f).height(50.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
-                                border = BorderStroke(1.dp, Zinc700)
-                            ) {
-                                Icon(AppIcons.Add, null, Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("Copy File", maxLines = 1)
-                            }
                         }
+                        Spacer(modifier = Modifier.height(30.dp))
+                    }
+                } else if (!playerInitError) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = themeColors.primary500)
+                    }
+                }
+            }
 
-                        // Primary Action: Replace Original
+            // Final Actions (Fixed Footer)
+            if (isPreviewReady) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Zinc950)
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // Cancel
+                        Button(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f).height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
+                            border = BorderStroke(1.dp, Zinc800)
+                        ) {
+                            Text("Cancel", fontWeight = FontWeight.SemiBold)
+                        }
+                        // Copy
                         Button(
                             onClick = {
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
                                 val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
                                 val fd = (dur / 10).coerceIn(200, 3000)
-                                onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                             },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            modifier = Modifier.weight(1.2f).height(50.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
+                            border = BorderStroke(1.dp, Zinc700)
                         ) {
-                            Icon(AppIcons.Check, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Replace Original", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Icon(AppIcons.Add, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Copy File", maxLines = 1)
                         }
                     }
+
+                    // Primary Action: Replace Original
+                    Button(
+                        onClick = {
+                            val s = range.start.toLong(); val e = range.endInclusive.toLong()
+                            val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
+                            val fd = (dur / 10).coerceIn(200, 3000)
+                            onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                    ) {
+                        Icon(AppIcons.Check, null, Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Replace Original", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    }
                 }
-            } else if (!playerInitError) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = themeColors.primary500)
-                }
+            }
             }
         }
     }

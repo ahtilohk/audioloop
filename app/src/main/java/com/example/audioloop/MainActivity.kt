@@ -1300,64 +1300,80 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val isWav = ext.equals("wav", ignoreCase = true)
 
         launch(Dispatchers.IO) {
-            val resultFile = File(file.parent, "temp_trim_${System.currentTimeMillis()}.$ext")
+            val ts = System.currentTimeMillis()
+            var currentWorkFile = File(file.parent, "temp_trim_$ts.$ext")
+            
+            // Step 1: Trim/Cut
             var ok = if (isWav) {
-                if (removeSelection) WavAudioTrimmer.removeSegmentWav(file, resultFile, start, end)
-                else WavAudioTrimmer.trimWav(file, resultFile, start, end)
+                if (removeSelection) WavAudioTrimmer.removeSegmentWav(file, currentWorkFile, start, end)
+                else WavAudioTrimmer.trimWav(file, currentWorkFile, start, end)
             } else {
-                if (removeSelection) AudioTrimmer.removeSegmentAudio(file, resultFile, start, end)
-                else AudioTrimmer.trimAudio(file, resultFile, start, end)
+                if (removeSelection) AudioTrimmer.removeSegmentAudio(file, currentWorkFile, start, end)
+                else AudioTrimmer.trimAudio(file, currentWorkFile, start, end)
             }
 
             if (ok) {
-                // Apply Fade if requested
-                if (fadeInMs > 0 || fadeOutMs > 0) {
-                    val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.$ext")
-                    if (AudioProcessor.applyFade(resultFile, fadeTemp, fadeInMs, fadeOutMs)) {
-                        resultFile.delete()
-                        fadeTemp.renameTo(resultFile)
-                    } else fadeTemp.delete()
+                // Step 2: Normalize (Apply before fade for consistent results)
+                if (normalize) {
+                    val normFile = File(file.parent, "temp_norm_$ts.$ext")
+                    if (AudioProcessor.normalize(currentWorkFile, normFile)) {
+                        currentWorkFile.delete()
+                        currentWorkFile = normFile
+                    } else {
+                        normFile.delete()
+                        withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Normalization failed", Toast.LENGTH_SHORT).show() }
+                    }
                 }
 
-                // Apply Normalize if requested
-                if (normalize) {
-                    val normTemp = File(file.parent, "temp_norm_${System.currentTimeMillis()}.$ext")
-                    if (AudioProcessor.normalize(resultFile, normTemp)) {
-                        resultFile.delete()
-                        normTemp.renameTo(resultFile)
-                    } else normTemp.delete()
+                // Step 3: Fade
+                if (fadeInMs > 0 || fadeOutMs > 0) {
+                    val fadeFile = File(file.parent, "temp_fade_$ts.$ext")
+                    if (AudioProcessor.applyFade(currentWorkFile, fadeFile, fadeInMs, fadeOutMs)) {
+                        currentWorkFile.delete()
+                        currentWorkFile = fadeFile
+                    } else {
+                        fadeFile.delete()
+                        withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Fade failed", Toast.LENGTH_SHORT).show() }
+                    }
                 }
             }
-            
+
             withContext(Dispatchers.Main) {
-                if (ok && resultFile.exists()) {
+                if (ok && currentWorkFile.exists()) {
                     if (replace) {
                         if (file.delete()) {
-                            resultFile.renameTo(file)
-                            waveformCache.remove(file.absolutePath)
-                            getWaveformFile(file).delete()
-                            onSuccess()
+                            if (currentWorkFile.renameTo(file)) {
+                                waveformCache.remove(file.absolutePath)
+                                getWaveformFile(file).delete()
+                                onSuccess()
+                            } else {
+                                Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
+                                currentWorkFile.delete()
+                            }
                         } else {
-                            resultFile.delete()
-                            Toast.makeText(this@MainActivity, "Could not replace original file!", Toast.LENGTH_SHORT).show()
+                            currentWorkFile.delete()
+                            Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         val originalName = file.nameWithoutExtension
                         val baseName = if (originalName.contains("_trim_")) originalName.substringBeforeLast("_trim_") else originalName
                         var counter = 1
-                        var newFile = File(file.parent, "${baseName}_trim_$counter.$ext")
-                        while (newFile.exists()) {
+                        var targetFile = File(file.parent, "${baseName}_trim_$counter.$ext")
+                        while (targetFile.exists()) {
                             counter++
-                            newFile = File(file.parent, "${baseName}_trim_$counter.$ext")
+                            targetFile = File(file.parent, "${baseName}_trim_$counter.$ext")
                         }
-                        if (resultFile.renameTo(newFile)) {
+                        if (currentWorkFile.renameTo(targetFile)) {
                             onSuccess()
-                            Toast.makeText(this@MainActivity, "Saved: ${newFile.name}", Toast.LENGTH_SHORT).show()
-                        } else resultFile.delete()
+                            Toast.makeText(this@MainActivity, "Saved: ${targetFile.name}", Toast.LENGTH_SHORT).show()
+                        } else {
+                            currentWorkFile.delete()
+                            Toast.makeText(this@MainActivity, "Error saving copy", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 } else {
-                    resultFile.delete()
-                    Toast.makeText(this@MainActivity, "Error processing audio", Toast.LENGTH_SHORT).show()
+                    currentWorkFile.delete()
+                    Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
