@@ -1749,10 +1749,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
             return
         }
+
         val baseName = file.nameWithoutExtension
         val usePublic = getPublicStoragePref(this@MainActivity)
         val outputDir = if (usePublic) {
-            // For public storage, write to internal first, then they get picked up
             if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
         } else {
             if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
@@ -1762,13 +1762,13 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             SilenceSplitter.splitFile(file, outputDir, segments, baseName)
         }
 
-        // Pre-compute waveforms for new files
         created.forEach { precomputeWaveformAsync(this@MainActivity, it) }
 
         withContext(Dispatchers.Main) {
             Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()
         }
     }
+
     private suspend fun autoTrimSilence(file: File, category: String) {
         withContext(Dispatchers.Main) {
             Toast.makeText(this@MainActivity, "Detecting silence...", Toast.LENGTH_SHORT).show()
@@ -1783,8 +1783,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val (contentStart, contentEnd) = bounds
         val (_, totalMs) = getDuration(file)
         val startMs = contentStart
-        val endMs = contentEnd.coerceAtMost(totalMs) // don't exceed file duration
-        // Only trim if there's significant silence (>100ms) at start or end
+        val endMs = contentEnd.coerceAtMost(totalMs) 
         if (startMs < 100 && totalMs - endMs < 100) {
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@MainActivity, "No significant silence to trim", Toast.LENGTH_SHORT).show()
@@ -1798,11 +1797,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         val isWav = ext.equals("wav", ignoreCase = true)
         val tempFile = File(file.parent, "temp_autotrim_${System.currentTimeMillis()}.$ext")
         val success = withContext(Dispatchers.IO) {
-            if (isWav) {
-                WavAudioTrimmer.trimWav(file, tempFile, startMs, endMs)
-            } else {
-                AudioTrimmer.trimAudio(file, tempFile, startMs, endMs)
-            }
+            if (isWav) WavAudioTrimmer.trimWav(file, tempFile, startMs, endMs)
+            else AudioTrimmer.trimAudio(file, tempFile, startMs, endMs)
         }
         withContext(Dispatchers.Main) {
             if (success && tempFile.exists()) {
@@ -1812,22 +1808,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 tempFile.renameTo(file)
                 precomputeWaveformAsync(this@MainActivity, file)
                 savedItems = getSavedRecordings(category, filesDir)
-                val trimmedStart = if (startMs > 100) "${startMs}ms" else ""
-                val trimmedEnd = if (totalMs - endMs > 100) "${totalMs - endMs}ms" else ""
-                val msg = buildString {
-                    append("Trimmed")
-                    if (trimmedStart.isNotEmpty()) append(" $trimmedStart from start")
-                    if (trimmedStart.isNotEmpty() && trimmedEnd.isNotEmpty()) append(",")
-                    if (trimmedEnd.isNotEmpty()) append(" $trimmedEnd from end")
-                }
-                Toast.makeText(this@MainActivity, msg, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
             } else {
                 tempFile.delete()
                 Toast.makeText(this@MainActivity, "Auto-trim failed", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
     }
 
     private suspend fun mergeFiles(files: List<File>, category: String) {
