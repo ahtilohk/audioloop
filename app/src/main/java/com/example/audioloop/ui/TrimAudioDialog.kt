@@ -5,9 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,7 +101,7 @@ fun TrimAudioDialog(
     // Waveform Loading
     val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
         value = withContext(Dispatchers.IO) {
-            WaveformGenerator.extractWaveform(file, 80) // Higher resolution for premium feel
+            WaveformGenerator.extractWaveform(file, 500) // High resolution for zooming
         }
     }
 
@@ -220,8 +218,10 @@ fun TrimAudioDialog(
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     // Shared state for trim handles (accessible by nudge buttons below)
-                    var startX by remember { mutableFloatStateOf(0f) }
-                    var endX by remember { mutableFloatStateOf(0f) }
+                    var startMs by remember { mutableFloatStateOf(0f) }
+                    var endMs by remember { mutableFloatStateOf(durationMs.toFloat()) }
+                    var zoomScale by remember { mutableFloatStateOf(1f) }
+                    var scrollOffsetPx by remember { mutableFloatStateOf(0f) }
                     var waveformWidthPx by remember { mutableFloatStateOf(0f) }
 
                     // Visual Trimmer with Waveform - Premium Look
@@ -238,49 +238,51 @@ fun TrimAudioDialog(
                         val totalDuration = durationMs.toFloat()
                         val heightPx = constraints.maxHeight.toFloat()
                         val handleHitWidth = with(LocalDensity.current) { 48.dp.toPx() }
-                        val handleLineWidth = with(LocalDensity.current) { 2.dp.toPx() } // Thin precise line
-                        val handleTabWidth = with(LocalDensity.current) { 14.dp.toPx() } // Tab grip width
-                        val handleTabHeight = with(LocalDensity.current) { 20.dp.toPx() } // Tab grip height
-                        val waveTop = 0f
-                        val waveBottom = heightPx
+                        val handleLineWidth = with(LocalDensity.current) { 2.dp.toPx() }
+                        val handleTabWidth = with(LocalDensity.current) { 14.dp.toPx() }
+                        val handleTabHeight = with(LocalDensity.current) { 20.dp.toPx() }
+
+                        // Coordinate helpers
+                        fun msToPx(ms: Float): Float {
+                            return (ms / totalDuration) * widthPx * zoomScale - scrollOffsetPx
+                        }
+                        fun pxToMs(px: Float): Float {
+                            return ((px + scrollOffsetPx) / (widthPx * zoomScale)) * totalDuration
+                        }
 
                         // Sync widthPx to outer scope
                         LaunchedEffect(widthPx) { waveformWidthPx = widthPx }
                         
+                        // Handle clamping and range update
+                        LaunchedEffect(startMs, endMs) {
+                            range = min(startMs, endMs)..max(startMs, endMs)
+                        }
+
                         // State for drag target
                         var dragTarget by remember { mutableStateOf<TrimDragTarget?>(null) }
                         
+                        val startX = msToPx(startMs)
+                        val endX = msToPx(endMs)
                         val selectionStartX = min(startX, endX)
                         val selectionEndX = max(startX, endX)
                         
-                        val startHandleMs = if (widthPx > 0f) ((startX / widthPx) * totalDuration).coerceIn(0f, totalDuration) else 0f
-                        val endHandleMs = if (widthPx > 0f) ((endX / widthPx) * totalDuration).coerceIn(0f, totalDuration) else totalDuration
-                        val selectionStartMs = min(startHandleMs, endHandleMs)
-                        val selectionEndMs = max(startHandleMs, endHandleMs)
+                        val selectionStartMs = min(startMs, endMs)
+                        val selectionEndMs = max(startMs, endMs)
 
-                        LaunchedEffect(widthPx) {
-                             if (widthPx > 0 && endX == 0f) {
-                                  startX = 0f
-                                  endX = widthPx
-                             }
-                        }
-
-                        // Auto-trim Silence: only snap handles in Keep mode
+                        // Auto-trim Silence logic
                         LaunchedEffect(autoTrimSilence, waveform.value, widthPx, trimMode) {
                             val bars = waveform.value
-                            if (autoTrimSilence && trimMode == TrimMode.Keep && bars != null && bars.isNotEmpty() && widthPx > 0f) {
+                            if (autoTrimSilence && trimMode == TrimMode.Keep && bars != null && bars.isNotEmpty()) {
                                 val silenceThreshold = 5
                                 val firstLoud = bars.indexOfFirst { it > silenceThreshold }
                                 val lastLoud = bars.indexOfLast { it > silenceThreshold }
                                 if (firstLoud >= 0 && lastLoud >= firstLoud) {
-                                    val barWidth = widthPx / bars.size
-                                    startX = (firstLoud * barWidth).coerceAtLeast(0f)
-                                    endX = ((lastLoud + 1) * barWidth).coerceAtMost(widthPx)
+                                    startMs = (firstLoud.toFloat() / bars.size) * totalDuration
+                                    endMs = ((lastLoud + 1).toFloat() / bars.size) * totalDuration
                                 }
                             } else if (!autoTrimSilence) {
-                                // Reset to full range when toggled off
-                                startX = 0f
-                                endX = widthPx
+                                startMs = 0f
+                                endMs = totalDuration
                             }
                         }
 
@@ -371,9 +373,8 @@ fun TrimAudioDialog(
                         }
 
                         // Drawing
-                        val density = LocalDensity.current.density
-                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            // Grid lines
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            // Grid lines (fixed to screen)
                             val steps = 10
                             val stepPx = size.width / steps
                             for (i in 1 until steps) {
@@ -385,48 +386,49 @@ fun TrimAudioDialog(
                                 )
                             }
                             
-                            // Calculate fade zone boundaries for visual overlay
-                            // Keep mode: fade applies within selection
-                            // Cut mode: fade applies to the kept parts (0..selStart + selEnd..width)
                             val fadeFraction = 0.10f
                             val silenceThreshold = 5
                             val effectiveWidth = if (trimMode == TrimMode.Keep) {
                                 (selectionEndX - selectionStartX).coerceAtLeast(1f)
                             } else {
-                                (size.width - (selectionEndX - selectionStartX)).coerceAtLeast(1f)
+                                (widthPx * zoomScale - (selectionEndX - selectionStartX)).coerceAtLeast(1f)
                             }
                             val fadeInPx = if (fadeInEnabled) effectiveWidth * fadeFraction else 0f
                             val fadeOutPx = if (fadeOutEnabled) effectiveWidth * fadeFraction else 0f
 
                             if (waveform.value != null) {
                                 val bars = waveform.value!!
-                                val barWidth = widthPx / bars.size
-                                bars.forEachIndexed { index, amplitude ->
-                                    val x = index * barWidth
+                                val totalWaveWidth = widthPx * zoomScale
+                                val barWidth = totalWaveWidth / bars.size
+                                
+                                // Optimization: only draw visible bars
+                                val firstVisible = ((scrollOffsetPx - barWidth) / barWidth).toInt().coerceAtLeast(0)
+                                val lastVisible = ((scrollOffsetPx + widthPx + barWidth) / barWidth).toInt().coerceAtMost(bars.size - 1)
+
+                                for (index in firstVisible..lastVisible) {
+                                    val amplitude = bars[index]
+                                    val x = index * barWidth - scrollOffsetPx
                                     val isSelected = x >= selectionStartX && x <= selectionEndX
                                     val isSilent = amplitude <= silenceThreshold
-
-                                    // Is this bar part of the "kept" audio?
                                     val isKept = if (trimMode == TrimMode.Keep) isSelected else !isSelected
 
-                                    // Calculate fade volume multiplier for this bar
                                     var fadeMultiplier = 1f
                                     if (isKept) {
+                                        val totalX = index * barWidth
                                         if (trimMode == TrimMode.Keep) {
-                                            val posInSelection = x - selectionStartX
+                                            val posInSelection = totalX - (selectionStartX + scrollOffsetPx)
                                             if (fadeInEnabled && posInSelection < fadeInPx && fadeInPx > 0f) {
                                                 fadeMultiplier = (posInSelection / fadeInPx).coerceIn(0f, 1f)
                                             }
-                                            val posFromEnd = selectionEndX - x
+                                            val posFromEnd = (selectionEndX + scrollOffsetPx) - totalX
                                             if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
                                                 fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
                                             }
                                         } else {
-                                            // Cut mode: kept = before selection + after selection
-                                            if (fadeInEnabled && x < fadeInPx && fadeInPx > 0f) {
-                                                fadeMultiplier = (x / fadeInPx).coerceIn(0f, 1f)
+                                            if (fadeInEnabled && totalX < fadeInPx && fadeInPx > 0f) {
+                                                fadeMultiplier = (totalX / fadeInPx).coerceIn(0f, 1f)
                                             }
-                                            val posFromEnd = size.width - x
+                                            val posFromEnd = totalWaveWidth - totalX
                                             if (fadeOutEnabled && posFromEnd < fadeOutPx && fadeOutPx > 0f) {
                                                 fadeMultiplier = min(fadeMultiplier, (posFromEnd / fadeOutPx).coerceIn(0f, 1f))
                                             }
@@ -435,7 +437,6 @@ fun TrimAudioDialog(
 
                                     val rawHeight = (amplitude / 100f) * size.height * 0.8f
                                     val barHeight = rawHeight * fadeMultiplier
-
                                     val barColor = if (isKept) {
                                         if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
                                         else themeColors.primary400
@@ -452,235 +453,91 @@ fun TrimAudioDialog(
                             }
 
                             // Dimming layers
-                            val dimColor = Color.Black.copy(alpha = 0.3f)
+                            val dimColor = Color.Black.copy(alpha = 0.4f)
                             if (trimMode == TrimMode.Keep) {
-                                drawRect(dimColor, size = Size(selectionStartX, size.height))
-                                drawRect(dimColor, topLeft = Offset(selectionEndX, 0f), size = Size(size.width - selectionEndX, size.height))
+                                drawRect(dimColor, size = Size(selectionStartX.coerceAtLeast(0f), size.height))
+                                drawRect(dimColor, topLeft = Offset(selectionEndX, 0f), size = Size((size.width - selectionEndX).coerceAtLeast(0f), size.height))
                             } else {
-                                drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size(selectionEndX - selectionStartX, size.height))
+                                drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size((selectionEndX - selectionStartX).coerceAtLeast(0f), size.height))
                             }
 
-                            // Fade In gradient overlay
-                            if (fadeInEnabled) {
-                                val fadeStart = if (trimMode == TrimMode.Keep) selectionStartX else 0f
-                                val fadeEnd = fadeStart + fadeInPx
-                                for (px in fadeStart.toInt()..fadeEnd.toInt()) {
-                                    val progress = ((px - fadeStart) / fadeInPx).coerceIn(0f, 1f)
-                                    val alpha = (1f - progress) * 0.4f
-                                    drawLine(
-                                        color = themeColors.primary900.copy(alpha = alpha),
-                                        start = Offset(px.toFloat(), 0f),
-                                        end = Offset(px.toFloat(), size.height),
-                                        strokeWidth = 1f
-                                    )
-                                }
-                            }
-
-                            // Fade Out gradient overlay
-                            if (fadeOutEnabled) {
-                                val fadeEnd = if (trimMode == TrimMode.Keep) selectionEndX else size.width
-                                val fadeStart = fadeEnd - fadeOutPx
-                                for (px in fadeStart.toInt()..fadeEnd.toInt()) {
-                                    val progress = ((px - fadeStart) / fadeOutPx).coerceIn(0f, 1f)
-                                    val alpha = progress * 0.4f
-                                    drawLine(
-                                        color = themeColors.primary900.copy(alpha = alpha),
-                                        start = Offset(px.toFloat(), 0f),
-                                        end = Offset(px.toFloat(), size.height),
-                                        strokeWidth = 1f
-                                    )
-                                }
-                            }
-
-                            // ── Handles - Premium Precise Design ──
+                            // Handles
                             val handleH = size.height
                             val gripLineCount = 3
                             val gripLineSpacing = 2.5.dp.toPx()
                             val gripLineH = 8.dp.toPx()
                             val tabCorner = CornerRadius(3.dp.toPx())
+                            val hLineW = with(density) { 2.dp.toPx() }
 
-                            // Start Handle - thin vertical line
-                            drawLine(
-                                color = themeColors.primary400,
-                                start = Offset(startX, 0f),
-                                end = Offset(startX, handleH),
-                                strokeWidth = handleLineWidth
-                            )
-                            // Start Handle - top tab
-                            drawRoundRect(
-                                color = themeColors.primary500,
-                                topLeft = Offset(startX - handleTabWidth / 2, 0f),
-                                size = Size(handleTabWidth, handleTabHeight),
-                                cornerRadius = tabCorner
-                            )
-                            // Grip lines on top tab
-                            val startTabCenterY = handleTabHeight / 2
-                            for (i in 0 until gripLineCount) {
-                                val ly = startTabCenterY + (i - 1) * gripLineSpacing
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(startX - gripLineH / 2, ly),
-                                    end = Offset(startX + gripLineH / 2, ly),
-                                    strokeWidth = 1.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                            }
-                            // Start Handle - bottom tab
-                            drawRoundRect(
-                                color = themeColors.primary500,
-                                topLeft = Offset(startX - handleTabWidth / 2, handleH - handleTabHeight),
-                                size = Size(handleTabWidth, handleTabHeight),
-                                cornerRadius = tabCorner
-                            )
-                            // Grip lines on bottom tab
-                            val startBotCenterY = handleH - handleTabHeight / 2
-                            for (i in 0 until gripLineCount) {
-                                val ly = startBotCenterY + (i - 1) * gripLineSpacing
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(startX - gripLineH / 2, ly),
-                                    end = Offset(startX + gripLineH / 2, ly),
-                                    strokeWidth = 1.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                            }
+                            // Start Handle
+                            drawLine(color = themeColors.primary400, start = Offset(startX, 0f), end = Offset(startX, handleH), strokeWidth = hLineW)
+                            drawRoundRect(color = themeColors.primary500, topLeft = Offset(startX - handleTabWidth / 2, 0f), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
+                            drawRoundRect(color = themeColors.primary500, topLeft = Offset(startX - handleTabWidth / 2, handleH - handleTabHeight), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
 
-                            // End Handle - thin vertical line
-                            drawLine(
-                                color = Red400,
-                                start = Offset(endX, 0f),
-                                end = Offset(endX, handleH),
-                                strokeWidth = handleLineWidth
-                            )
-                            // End Handle - top tab
-                            drawRoundRect(
-                                color = Red500,
-                                topLeft = Offset(endX - handleTabWidth / 2, 0f),
-                                size = Size(handleTabWidth, handleTabHeight),
-                                cornerRadius = tabCorner
-                            )
-                            // Grip lines on top tab
-                            val endTabCenterY = handleTabHeight / 2
-                            for (i in 0 until gripLineCount) {
-                                val ly = endTabCenterY + (i - 1) * gripLineSpacing
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(endX - gripLineH / 2, ly),
-                                    end = Offset(endX + gripLineH / 2, ly),
-                                    strokeWidth = 1.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                            }
-                            // End Handle - bottom tab
-                            drawRoundRect(
-                                color = Red500,
-                                topLeft = Offset(endX - handleTabWidth / 2, handleH - handleTabHeight),
-                                size = Size(handleTabWidth, handleTabHeight),
-                                cornerRadius = tabCorner
-                            )
-                            // Grip lines on bottom tab
-                            val endBotCenterY = handleH - handleTabHeight / 2
-                            for (i in 0 until gripLineCount) {
-                                val ly = endBotCenterY + (i - 1) * gripLineSpacing
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(endX - gripLineH / 2, ly),
-                                    end = Offset(endX + gripLineH / 2, ly),
-                                    strokeWidth = 1.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                            }
+                            // End Handle
+                            drawLine(color = Red400, start = Offset(endX, 0f), end = Offset(endX, handleH), strokeWidth = hLineW)
+                            drawRoundRect(color = Red500, topLeft = Offset(endX - handleTabWidth / 2, 0f), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
+                            drawRoundRect(color = Red500, topLeft = Offset(endX - handleTabWidth / 2, handleH - handleTabHeight), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
                             
-                             // Playhead - Premium draggable design
-                              val playheadX = if (totalDuration > 0f) {
-                                 ((previewPositionMs.toFloat() / totalDuration) * size.width).coerceIn(0f, size.width)
-                             } else 0f
-                             val isDraggingPlayhead = dragTarget == TrimDragTarget.Playhead
-                             val playheadAlpha = if (isDraggingPlayhead) 1f else 0.85f
-                             val playheadLineWidth = if (isDraggingPlayhead) 2.5f.dp.toPx() else 2.dp.toPx()
+                            // Playhead
+                            val playheadX = msToPx(previewPositionMs.toFloat())
+                            val isDraggingPlayhead = dragTarget == TrimDragTarget.Playhead
+                            val playheadAlpha = if (isDraggingPlayhead) 1f else 0.85f
+                            val playheadLineWidth = if (isDraggingPlayhead) 2.5f.dp.toPx() else 2.dp.toPx()
 
-                             // Glow when dragging
-                             if (isDraggingPlayhead) {
-                                 drawLine(
-                                     color = Color.White.copy(alpha = 0.2f),
-                                     start = Offset(playheadX, 0f),
-                                     end = Offset(playheadX, size.height),
-                                     strokeWidth = 8.dp.toPx(),
-                                     cap = StrokeCap.Round
-                                 )
-                             }
-
-                             // Main playhead line
-                             drawLine(
-                                 color = Color.White.copy(alpha = playheadAlpha),
-                                 start = Offset(playheadX, 0f),
-                                 end = Offset(playheadX, size.height),
-                                 strokeWidth = playheadLineWidth
-                             )
-
-                             // Top pill handle
-                             val pillW = 10.dp.toPx()
-                             val pillH = 16.dp.toPx()
-                             val pillR = 3.dp.toPx()
-                             drawRoundRect(
-                                 color = Color.White.copy(alpha = playheadAlpha),
-                                 topLeft = Offset(playheadX - pillW / 2, 0f),
-                                 size = Size(pillW, pillH),
-                                 cornerRadius = CornerRadius(pillR)
-                             )
-                             // Bottom pill handle
-                             drawRoundRect(
-                                 color = Color.White.copy(alpha = playheadAlpha),
-                                 topLeft = Offset(playheadX - pillW / 2, size.height - pillH),
-                                 size = Size(pillW, pillH),
-                                 cornerRadius = CornerRadius(pillR)
-                             )
-                          }
+                            drawLine(color = Color.White.copy(alpha = playheadAlpha), start = Offset(playheadX, 0f), end = Offset(playheadX, size.height), strokeWidth = playheadLineWidth)
+                            val pillW = 10.dp.toPx()
+                            val pillH = 16.dp.toPx()
+                            drawRoundRect(color = Color.White.copy(alpha = playheadAlpha), topLeft = Offset(playheadX - pillW / 2, 0f), size = Size(pillW, pillH), cornerRadius = CornerRadius(3.dp.toPx()))
+                            drawRoundRect(color = Color.White.copy(alpha = playheadAlpha), topLeft = Offset(playheadX - pillW / 2, size.height - pillH), size = Size(pillW, pillH), cornerRadius = CornerRadius(3.dp.toPx()))
+                        }
                         
-                         // Touch Logic - unified gesture handler
-                         Canvas(
+                        // Touch & Gesture Logic
+                        Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .pointerInput(Unit) {
+                                .pointerInput(widthPx) {
+                                    detectTransformGestures { centroid, pan, zoom, _ ->
+                                        val oldScale = zoomScale
+                                        zoomScale = (zoomScale * zoom).coerceIn(1f, 15f)
+                                        val maxScroll = (widthPx * zoomScale - widthPx).coerceAtLeast(0f)
+                                        
+                                        // Center zoom on focus point
+                                        val focusFraction = (centroid.x + scrollOffsetPx) / (widthPx * oldScale)
+                                        scrollOffsetPx = (scrollOffsetPx - pan.x + focusFraction * widthPx * (zoomScale - oldScale))
+                                            .coerceIn(0f, maxScroll)
+                                    }
+                                }
+                                .pointerInput(widthPx, zoomScale, scrollOffsetPx) {
                                     val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
                                         val down = awaitFirstDown(requireUnconsumed = false)
                                         val downX = down.position.x
                                         val downY = down.position.y
 
-                                        // Hit test at INITIAL touch position (before any slop movement)
+                                        val playheadPx = msToPx(previewPositionMs.toFloat())
                                         val distStart = kotlin.math.abs(downX - startX)
                                         val distEnd = kotlin.math.abs(downX - endX)
-                                        val playheadPx = if (totalDuration > 0f) {
-                                            (previewPositionMs.toFloat() / totalDuration) * widthPx
-                                        } else 0f
                                         val distPlayhead = kotlin.math.abs(downX - playheadPx)
 
-                                        // Determine target: playhead pills are at top/bottom 20dp
-                                        val pillZone = 20.dp.toPx()
+                                        val pillZone = 25.dp.toPx()
                                         val inPillZone = downY < pillZone || downY > (heightPx - pillZone)
 
                                         val target = if (inPillZone && distPlayhead < handleHitWidth) {
-                                            // Touch is on playhead pill handles - always grab playhead
                                             TrimDragTarget.Playhead
                                         } else {
-                                            // Find closest among trim handles only (playhead moves via body drag/tap)
                                             val handleCandidates = mutableListOf<Pair<TrimDragTarget, Float>>()
                                             if (distStart < handleHitWidth) handleCandidates.add(TrimDragTarget.Start to distStart)
                                             if (distEnd < handleHitWidth) handleCandidates.add(TrimDragTarget.End to distEnd)
-                                            // Also consider playhead if close
                                             if (distPlayhead < handleHitWidth) handleCandidates.add(TrimDragTarget.Playhead to distPlayhead)
                                             handleCandidates.minByOrNull { it.second }?.first ?: TrimDragTarget.Playhead
                                         }
 
-                                        // Try to detect drag vs tap
                                         var wasDragged = false
                                         var prevX = downX
 
-                                        val dragSuccess = drag(down.id) { change ->
-                                            val dx = change.position.x - downX
-                                            val dy = change.position.y - downY
-                                            if (!wasDragged && (kotlin.math.abs(dx) > slop || kotlin.math.abs(dy) > slop)) {
+                                        drag(down.id) { change ->
+                                            if (!wasDragged && kotlin.math.abs(change.position.x - downX) > slop) {
                                                 wasDragged = true
                                                 dragTarget = target
                                                 isDraggingHandle = (target != TrimDragTarget.Playhead)
@@ -688,18 +545,13 @@ fun TrimAudioDialog(
 
                                             if (wasDragged) {
                                                 change.consume()
-                                                val dragDelta = change.position.x - prevX
+                                                val dragDeltaMs = ( (change.position.x - prevX) / (widthPx * zoomScale) ) * totalDuration
                                                 when (target) {
-                                                    TrimDragTarget.Start -> {
-                                                        startX = (startX + dragDelta).coerceIn(0f, widthPx)
-                                                    }
-                                                    TrimDragTarget.End -> {
-                                                        endX = (endX + dragDelta).coerceIn(0f, widthPx)
-                                                    }
+                                                    TrimDragTarget.Start -> startMs = (startMs + dragDeltaMs).coerceIn(0f, totalDuration)
+                                                    TrimDragTarget.End -> endMs = (endMs + dragDeltaMs).coerceIn(0f, totalDuration)
                                                     TrimDragTarget.Playhead -> {
-                                                        val rawMs = (change.position.x / widthPx) * totalDuration
-                                                        val newMs = rawMs.toLong().coerceIn(0L, durationMs)
-                                                        previewPositionMs = newMs
+                                                        val tappedMs = pxToMs(change.position.x)
+                                                        previewPositionMs = tappedMs.toLong().coerceIn(0L, durationMs)
                                                         previewPlayer.seekTo(previewPositionMs.toInt())
                                                     }
                                                 }
@@ -707,15 +559,12 @@ fun TrimAudioDialog(
                                             prevX = change.position.x
                                         }
 
-                                        // Drag ended or was a tap
                                         dragTarget = null
                                         isDraggingHandle = false
 
                                         if (!wasDragged) {
-                                            // It was a tap - move playhead to tap position
-                                            val tapMs = (downX / widthPx) * totalDuration
-                                            val newMs = tapMs.toLong().coerceIn(0L, durationMs)
-                                            previewPositionMs = newMs
+                                            val tapMs = pxToMs(downX)
+                                            previewPositionMs = tapMs.toLong().coerceIn(0L, durationMs)
                                             previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
                                     }
@@ -809,10 +658,7 @@ fun TrimAudioDialog(
                                         .background(Zinc800, RoundedCornerShape(6.dp))
                                         .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
                                         .clickable {
-                                            if (waveformWidthPx > 0f) {
-                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
-                                                startX = (startX - nudgeMs * pxPerMs).coerceAtLeast(0f)
-                                            }
+                                            startMs = (startMs - nudgeMs).coerceAtLeast(0f)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -840,10 +686,7 @@ fun TrimAudioDialog(
                                         .background(Zinc800, RoundedCornerShape(6.dp))
                                         .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
                                         .clickable {
-                                            if (waveformWidthPx > 0f) {
-                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
-                                                startX = (startX + nudgeMs * pxPerMs).coerceAtMost(waveformWidthPx)
-                                            }
+                                            startMs = (startMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -866,10 +709,7 @@ fun TrimAudioDialog(
                                         .background(Zinc800, RoundedCornerShape(6.dp))
                                         .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
                                         .clickable {
-                                            if (waveformWidthPx > 0f) {
-                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
-                                                endX = (endX - nudgeMs * pxPerMs).coerceAtLeast(0f)
-                                            }
+                                            endMs = (endMs - nudgeMs).coerceAtLeast(0f)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -897,10 +737,7 @@ fun TrimAudioDialog(
                                         .background(Zinc800, RoundedCornerShape(6.dp))
                                         .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
                                         .clickable {
-                                            if (waveformWidthPx > 0f) {
-                                                val pxPerMs = waveformWidthPx / durationMs.toFloat()
-                                                endX = (endX + nudgeMs * pxPerMs).coerceAtMost(waveformWidthPx)
-                                            }
+                                            endMs = (endMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
