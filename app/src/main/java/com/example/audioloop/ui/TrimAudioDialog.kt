@@ -493,6 +493,18 @@ fun TrimAudioDialog(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .pointerInput(widthPx) {
+                                    detectTransformGestures { centroid, pan, zoom, _ ->
+                                        val oldScale = zoomScale
+                                        zoomScale = (zoomScale * zoom).coerceIn(1f, 15f)
+                                        val maxScroll = (widthPx * zoomScale - widthPx).coerceAtLeast(0f)
+                                        
+                                        // Center zoom on focus point
+                                        val focusFraction = (centroid.x + scrollOffsetPx) / (widthPx * oldScale)
+                                        scrollOffsetPx = (scrollOffsetPx - pan.x + focusFraction * widthPx * (zoomScale - oldScale))
+                                            .coerceIn(0f, maxScroll)
+                                    }
+                                }
                                 .pointerInput(widthPx, zoomScale, scrollOffsetPx, trimMode) {
                                     val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
@@ -568,18 +580,6 @@ fun TrimAudioDialog(
                                             previewPositionMs = resolvePreviewPosition(tapMs)
                                             previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
-                                    }
-                                }
-                                .pointerInput(widthPx) {
-                                    detectTransformGestures { centroid, pan, zoom, _ ->
-                                        val oldScale = zoomScale
-                                        zoomScale = (zoomScale * zoom).coerceIn(1f, 15f)
-                                        val maxScroll = (widthPx * zoomScale - widthPx).coerceAtLeast(0f)
-                                        
-                                        // Center zoom on focus point
-                                        val focusFraction = (centroid.x + scrollOffsetPx) / (widthPx * oldScale)
-                                        scrollOffsetPx = (scrollOffsetPx - pan.x + focusFraction * widthPx * (zoomScale - oldScale))
-                                            .coerceIn(0f, maxScroll)
                                     }
                                 }
                         )
