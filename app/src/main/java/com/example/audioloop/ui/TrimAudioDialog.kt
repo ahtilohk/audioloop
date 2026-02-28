@@ -156,12 +156,12 @@ fun TrimAudioScreen(
         modifier = Modifier.fillMaxSize(),
         color = Zinc950
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             // Top Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -948,7 +948,24 @@ fun TrimAudioScreen(
                     Spacer(modifier = Modifier.height(60.dp))
 
                     // Final Actions at bottom
-                    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Cancel Button
+                        Button(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(0.8f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
+                            border = BorderStroke(1.dp, Zinc800)
+                        ) {
+                            Text("Cancel", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                        }
+
+                        // Copy Button
                         Button(
                             onClick = {
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
@@ -956,15 +973,17 @@ fun TrimAudioScreen(
                                 val fd = (dur / 10).coerceIn(200, 3000)
                                 onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
                             },
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier.weight(0.9f).height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
                             border = BorderStroke(1.dp, Zinc700)
                         ) {
-                            Icon(AppIcons.Add, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Copy File", fontWeight = FontWeight.Bold)
+                            Icon(AppIcons.Add, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Copy", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                         }
+
+                        // Replace Button (Primary)
                         Button(
                             onClick = {
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
@@ -972,14 +991,14 @@ fun TrimAudioScreen(
                                 val fd = (dur / 10).coerceIn(200, 3000)
                                 onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
                             },
-                            modifier = Modifier.weight(1.2f).height(56.dp),
+                            modifier = Modifier.weight(1.3f).height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                         ) {
-                            Icon(AppIcons.Check, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Replace Original", fontWeight = FontWeight.Bold)
+                            Icon(AppIcons.Check, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Replace", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
