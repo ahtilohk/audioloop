@@ -1,5 +1,6 @@
 package com.example.audioloop.ui
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -568,6 +569,33 @@ fun TrimAudioDialog(
                                     }
                                 }
                         ) {}
+
+                        // Reset Zoom Button (Floating Overlay)
+                        AnimatedVisibility(
+                            visible = zoomScale > 1.05f,
+                            enter = fadeIn() + scaleIn(),
+                            exit = fadeOut() + scaleOut(),
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                                    .clickable {
+                                        zoomScale = 1f
+                                        scrollOffsetPx = 0f
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.ZoomOutMap,
+                                    contentDescription = "Reset Zoom",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(20.dp))
