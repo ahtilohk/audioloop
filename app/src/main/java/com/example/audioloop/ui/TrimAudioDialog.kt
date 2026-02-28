@@ -296,12 +296,10 @@ fun TrimAudioDialog(
                             // Only force seek if we weren't just scrubbing
                             if (dragTarget == null) {
                                 val current = previewPositionMs.toFloat()
-                                // If Keep mode: ensure inside range
-                                if (trimMode == TrimMode.Keep) {
-                                    if (current < selectionStartMs || current > selectionEndMs) {
-                                         previewPositionMs = selectionStartMs.toLong()
-                                         if (isPreviewPlaying) previewPlayer.seekTo(selectionStartMs.toInt())
-                                    }
+                                val validated = resolvePreviewPosition(current)
+                                if (validated != current.toLong()) {
+                                     previewPositionMs = validated
+                                     if (isPreviewPlaying) previewPlayer.seekTo(validated.toInt())
                                 }
                             }
                         }
@@ -350,13 +348,13 @@ fun TrimAudioDialog(
                                                 isPreviewPlaying = false
                                           }
                                       } else {
-                                          if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
-                                               val seekPos = (selectionEndMs + 20).toInt().coerceAtMost(durationMs.toInt())
-                                               previewPlayer.seekTo(seekPos)
-                                               previewPositionMs = seekPos.toLong()
-                                               delay(100)
-                                          }
-                                      }
+                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
+                                                val seekPos = (selectionEndMs + 10).toInt().coerceAtMost(durationMs.toInt())
+                                                previewPlayer.seekTo(seekPos)
+                                                previewPositionMs = seekPos.toLong()
+                                                delay(50)
+                                           }
+                                       }
                                       delay(30)
                                   }
                                   // Playback ended naturally - loop back
@@ -551,7 +549,7 @@ fun TrimAudioDialog(
                                                     TrimDragTarget.End -> endMs = (endMs + dragDeltaMs).coerceIn(0f, totalDuration)
                                                     TrimDragTarget.Playhead -> {
                                                         val tappedMs = pxToMs(change.position.x)
-                                                        previewPositionMs = tappedMs.toLong().coerceIn(0L, durationMs)
+                                                        previewPositionMs = resolvePreviewPosition(tappedMs)
                                                         previewPlayer.seekTo(previewPositionMs.toInt())
                                                     }
                                                 }
@@ -564,7 +562,7 @@ fun TrimAudioDialog(
 
                                         if (!wasDragged) {
                                             val tapMs = pxToMs(downX)
-                                            previewPositionMs = tapMs.toLong().coerceIn(0L, durationMs)
+                                            previewPositionMs = resolvePreviewPosition(tapMs)
                                             previewPlayer.seekTo(previewPositionMs.toInt())
                                         }
                                     }
@@ -871,19 +869,8 @@ fun TrimAudioDialog(
                                                  previewPlayer.pause()
                                                  isPreviewPlaying = false
                                              } else {
-                                                 // Smart Start Logic
-                                                 if (trimMode == TrimMode.Keep) {
-                                                     if (previewPositionMs < start || previewPositionMs >= end) {
-                                                          previewPositionMs = start
-                                                     }
-                                                 } else {
-                                                     // Cut Mode
-                                                     if (previewPositionMs >= start && previewPositionMs < end) {
-                                                          previewPositionMs = end
-                                                     } else if (previewPositionMs >= durationMs) {
-                                                          previewPositionMs = 0L
-                                                     }
-                                                 }
+                                                  // Smart Start Logic
+                                                  previewPositionMs = resolvePreviewPosition(previewPositionMs.toFloat())
 
                                                  previewPlayer.seekTo(previewPositionMs.toInt())
                                                  previewPlayer.start()
