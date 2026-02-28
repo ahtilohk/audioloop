@@ -383,7 +383,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                         val secondTry = getSavedRecordings(uiCategory, ctx.filesDir)
                                         val newFile = secondTry.firstOrNull()?.file
                                         if (newFile != null) {
-                                            precomputeWaveformAsync(this, newFile)
+                                            precomputeWaveformAsync(this@MainActivity, newFile)
                                             // Auto-Export Logic (DISABLED to fix System UI ANR)
                                             // exportFileToMusic(newFile, uiCategory)
                                             // withContext(Dispatchers.Main) {
@@ -707,7 +707,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             coroutineScope.launch {
                                 splitBySilence(item.file, uiCategory)
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                savedItems.forEach { precomputeWaveformAsync(coroutineScope, it.file) }
+                                savedItems.forEach { precomputeWaveformAsync(this@MainActivity, it.file) }
                             }
                         },
                         onAutoTrimFile = { item ->

@@ -452,7 +452,28 @@ fun FileItem(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(120) { 8 } }
+                        var localWaveform by remember(item.file.absolutePath) { mutableStateOf<List<Int>?>(null) }
+                        
+                        LaunchedEffect(item.file.absolutePath, waveformData) {
+                            if (waveformData.isEmpty() && localWaveform == null) {
+                                withContext(Dispatchers.IO) {
+                                    try {
+                                        val waveFile = File(item.file.parent, "${item.file.name}.wave")
+                                        if (waveFile.exists()) {
+                                            val content = waveFile.readText()
+                                            if (content.isNotEmpty()) {
+                                                val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
+                                                if (list.isNotEmpty()) {
+                                                    withContext(Dispatchers.Main) { localWaveform = list }
+                                                }
+                                            }
+                                        }
+                                    } catch (_: Exception) {}
+                                }
+                            }
+                        }
+
+                        val bars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
                         val barCount = bars.size
 
                         androidx.compose.foundation.Canvas(
