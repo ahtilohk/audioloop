@@ -158,7 +158,7 @@ fun sanitizeName(name: String): String {
 }
 
     // Generate waveform using MediaCodec (via WaveformGenerator)
-    private fun generateWaveform(file: File, numBars: Int = 60): List<Int> {
+    private fun generateWaveform(file: File, numBars: Int = 500): List<Int> {
         return WaveformGenerator.extractWaveform(file, numBars)
     }
 

@@ -440,28 +440,20 @@ fun FileItem(
 
             Box(
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
+                    .padding(start = 4.dp, end = 4.dp, bottom = 10.dp)
                     .fillMaxWidth()
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(themeColors.primary900.copy(alpha = 0.3f))
-                        .padding(8.dp)
+                        .background(Zinc900.copy(alpha = 0.6f))
+                        .padding(horizontal = 4.dp, vertical = 6.dp)
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        val barCount = 120
-                        val fallbackBars = remember { List(barCount) { (10..80).random() } }
-                        val rawBars = if (waveformData.isNotEmpty()) waveformData else fallbackBars
-                        val bars = if (rawBars.size > barCount) {
-                            // Max-based downsample for better peak visibility (matches Trim view better)
-                            val chunk = rawBars.size / barCount
-                            (0 until barCount).map { i ->
-                                rawBars.subList(i * chunk, ((i + 1) * chunk).coerceAtMost(rawBars.size)).maxOrNull() ?: 10
-                            }
-                        } else rawBars
+                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(500) { 5 } }
+                        val barCount = bars.size
 
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
@@ -484,8 +476,8 @@ fun FileItem(
                         ) {
                             val w = size.width
                             val h = size.height
-                            val barW = w / bars.size
-                            val gap = (barW * 0.3f).coerceAtLeast(1.dp.toPx())
+                            val barWidth = w / barCount
+                            val strokeWidth = (barWidth * 0.8f).coerceAtLeast(1f)
 
                             // A-B loop region highlight
                             if (abActive) {
@@ -501,19 +493,20 @@ fun FileItem(
                                 val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
                                 // Use 80% height to match TrimDialog and look more premium
                                 val barH = barFraction * h * 0.8f
-                                val x = i * barW + gap / 2
+                                val x = i * barWidth + barWidth / 2f
                                 val barProgress = (i + 0.5f) / bars.size
 
                                 val color = when {
                                     barProgress <= currentProgress -> themeColors.primary400
-                                    else -> Zinc600.copy(alpha = 0.5f)
+                                    else -> Zinc700.copy(alpha = 0.5f)
                                 }
                                 
-                                drawRoundRect(
+                                drawLine(
                                     color = color,
-                                    topLeft = Offset(x, (h - barH) / 2),
-                                    size = androidx.compose.ui.geometry.Size(barW - gap, barH),
-                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                                    start = Offset(x, (h - barH) / 2),
+                                    end = Offset(x, (h + barH) / 2),
+                                    strokeWidth = strokeWidth,
+                                    cap = StrokeCap.Round
                                 )
                             }
 
