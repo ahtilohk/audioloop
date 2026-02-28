@@ -682,8 +682,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                             savedItems.forEach { item -> precomputeWaveformAsync(this@MainActivity, item.file) }
                         },
-                        onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs ->
-                            trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs) {
+                        onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize ->
+                            trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
                                 if (replace) precomputeWaveformAsync(this@MainActivity, file, force = true)
                                 else {
@@ -1292,81 +1292,72 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         removeSelection: Boolean,
         fadeInMs: Long = 0,
         fadeOutMs: Long = 0,
+        normalize: Boolean = false,
         onSuccess: () -> Unit
     ) {
         stopPlaying()
         val ext = file.extension
         val isWav = ext.equals("wav", ignoreCase = true)
-        val tempFile = File(file.parent, "temp_trim_${System.currentTimeMillis()}.$ext")
 
         launch(Dispatchers.IO) {
-            var success = if (isWav) {
-                if (removeSelection) {
-                    WavAudioTrimmer.removeSegmentWav(file, tempFile, start, end)
-                } else {
-                    WavAudioTrimmer.trimWav(file, tempFile, start, end)
-                }
+            val resultFile = File(file.parent, "temp_trim_${System.currentTimeMillis()}.$ext")
+            var ok = if (isWav) {
+                if (removeSelection) WavAudioTrimmer.removeSegmentWav(file, resultFile, start, end)
+                else WavAudioTrimmer.trimWav(file, resultFile, start, end)
             } else {
-                if (removeSelection) {
-                    AudioTrimmer.removeSegmentAudio(file, tempFile, start, end)
-                } else {
-                    AudioTrimmer.trimAudio(file, tempFile, start, end)
-                }
+                if (removeSelection) AudioTrimmer.removeSegmentAudio(file, resultFile, start, end)
+                else AudioTrimmer.trimAudio(file, resultFile, start, end)
             }
 
-            // Apply fade to trimmed result if requested
-            if (success && (fadeInMs > 0 || fadeOutMs > 0)) {
-                val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.$ext")
-                val fadeSuccess = AudioProcessor.applyFade(tempFile, fadeTemp, fadeInMs, fadeOutMs)
-                if (fadeSuccess) {
-                    tempFile.delete()
-                    fadeTemp.renameTo(tempFile)
-                } else {
-                    fadeTemp.delete()
-                    // Fade failed but trim succeeded - continue without fade
+            if (ok) {
+                // Apply Fade if requested
+                if (fadeInMs > 0 || fadeOutMs > 0) {
+                    val fadeTemp = File(file.parent, "temp_fade_${System.currentTimeMillis()}.$ext")
+                    if (AudioProcessor.applyFade(resultFile, fadeTemp, fadeInMs, fadeOutMs)) {
+                        resultFile.delete()
+                        fadeTemp.renameTo(resultFile)
+                    } else fadeTemp.delete()
+                }
+
+                // Apply Normalize if requested
+                if (normalize) {
+                    val normTemp = File(file.parent, "temp_norm_${System.currentTimeMillis()}.$ext")
+                    if (AudioProcessor.normalize(resultFile, normTemp)) {
+                        resultFile.delete()
+                        normTemp.renameTo(resultFile)
+                    } else normTemp.delete()
                 }
             }
-
+            
             withContext(Dispatchers.Main) {
-                if (success) {
+                if (ok && resultFile.exists()) {
                     if (replace) {
                         if (file.delete()) {
-                            tempFile.renameTo(file)
+                            resultFile.renameTo(file)
                             waveformCache.remove(file.absolutePath)
                             getWaveformFile(file).delete()
                             onSuccess()
                         } else {
-                            tempFile.delete()
+                            resultFile.delete()
                             Toast.makeText(this@MainActivity, "Could not replace original file!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         val originalName = file.nameWithoutExtension
-                        val baseName = if (originalName.contains("_trim_")) {
-                             originalName.substringBeforeLast("_trim_")
-                        } else {
-                             originalName
-                        }
-
+                        val baseName = if (originalName.contains("_trim_")) originalName.substringBeforeLast("_trim_") else originalName
                         var counter = 1
-                        var newName = "${baseName}_trim_$counter.$ext"
-                        var newFile = File(file.parent, newName)
-
+                        var newFile = File(file.parent, "${baseName}_trim_$counter.$ext")
                         while (newFile.exists()) {
                             counter++
-                            newName = "${baseName}_trim_$counter.$ext"
-                            newFile = File(file.parent, newName)
+                            newFile = File(file.parent, "${baseName}_trim_$counter.$ext")
                         }
-
-                        if (tempFile.renameTo(newFile)) {
+                        if (resultFile.renameTo(newFile)) {
                             onSuccess()
-                            Toast.makeText(this@MainActivity, "Saved: $newName", Toast.LENGTH_SHORT).show()
-                        } else {
-                            tempFile.delete()
-                        }
+                            Toast.makeText(this@MainActivity, "Saved: ${newFile.name}", Toast.LENGTH_SHORT).show()
+                        } else resultFile.delete()
                     }
                 } else {
-                    tempFile.delete()
-                    Toast.makeText(this@MainActivity, "Error trimming (invalid format?)", Toast.LENGTH_SHORT).show()
+                    resultFile.delete()
+                    Toast.makeText(this@MainActivity, "Error processing audio", Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -148,7 +148,10 @@ fun AudioLoopMainScreen(
     onShareFile: (RecordingItem) -> Unit,
     onRenameFile: (RecordingItem, String) -> Unit,
     onImportFile: (Uri) -> Unit,
-    onTrimFile: (File, Long, Long, Boolean, Boolean, Long, Long) -> Unit,
+    /**
+     * @param normalize whether to normalize audio to 0dB peak after trimming
+     */
+    onTrimFile: (file: File, start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
     selectedSpeed: Float,
     selectedPitch: Float,
     selectedLoopCount: Int,
@@ -1414,8 +1417,8 @@ fun AudioLoopMainScreen(
                     uri = trimItem.uri,
                     durationMs = trimItem.durationMillis,
                     onDismiss = { showTrimDialog = false },
-                    onConfirm = { start, end, replace, remove, fadeIn, fadeOut ->
-                        onTrimFile(trimItem.file, start, end, replace, remove, fadeIn, fadeOut)
+                    onConfirm = { start, end, replace, remove, fadeIn, fadeOut, normalize ->
+                        onTrimFile(trimItem.file, start, end, replace, remove, fadeIn, fadeOut, normalize)
                         showTrimDialog = false
                     },
                     themeColors = themeColors

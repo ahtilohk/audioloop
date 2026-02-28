@@ -68,7 +68,7 @@ fun TrimAudioScreen(
     uri: Uri,
     durationMs: Long,
     onDismiss: () -> Unit,
-    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long) -> Unit,
+    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
     themeColors: AppColorPalette = AppTheme.SLATE.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
@@ -83,6 +83,7 @@ fun TrimAudioScreen(
     var fadeInEnabled by remember { mutableStateOf(false) }
     var fadeOutEnabled by remember { mutableStateOf(false) }
     var autoTrimSilence by remember { mutableStateOf(false) }
+    var normalizeEnabled by remember { mutableStateOf(false) }
 
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
@@ -161,7 +162,7 @@ fun TrimAudioScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -800,81 +801,65 @@ fun TrimAudioScreen(
                         }
 
                         // Row 3: Effect toggles
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            // Fade In toggle
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(
-                                        if (fadeInEnabled) themeColors.primary700 else Zinc800,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .border(
-                                        1.dp,
-                                        if (fadeInEnabled) themeColors.primary500 else Zinc600,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { fadeInEnabled = !fadeInEnabled }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
+                        // Row 3: Effect toggles (2x2 Grid for Premium Studio)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(
-                                    "Fade In",
-                                    color = if (fadeInEnabled) Color.White else Zinc500,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                // Fade In toggle
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(if (fadeInEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (fadeInEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .clickable { fadeInEnabled = !fadeInEnabled }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Fade In", color = if (fadeInEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                                // Fade Out toggle
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(if (fadeOutEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (fadeOutEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .clickable { fadeOutEnabled = !fadeOutEnabled }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Fade Out", color = if (fadeOutEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
                             }
-                            // Auto-trim Silence toggle
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(
-                                        if (autoTrimSilence) Amber700 else Zinc800,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .border(
-                                        1.dp,
-                                        if (autoTrimSilence) Amber500 else Zinc600,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { autoTrimSilence = !autoTrimSilence }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(
-                                    "Silence",
-                                    color = if (autoTrimSilence) Color.White else Zinc500,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            // Fade Out toggle
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(
-                                        if (fadeOutEnabled) themeColors.primary700 else Zinc800,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .border(
-                                        1.dp,
-                                        if (fadeOutEnabled) themeColors.primary500 else Zinc600,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { fadeOutEnabled = !fadeOutEnabled }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    "Fade Out",
-                                    color = if (fadeOutEnabled) Color.White else Zinc500,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                // Auto-trim Silence toggle
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(if (autoTrimSilence) Amber700 else Zinc800, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (autoTrimSilence) Amber500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .clickable { autoTrimSilence = !autoTrimSilence }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Silence", color = if (autoTrimSilence) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                                // Normalize toggle
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(if (normalizeEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (normalizeEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .clickable { normalizeEnabled = !normalizeEnabled }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Normalize", color = if (normalizeEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
 
@@ -947,58 +932,59 @@ fun TrimAudioScreen(
 
                     Spacer(modifier = Modifier.height(60.dp))
 
-                    // Final Actions at bottom
-                    Row(
+                    // Final Actions at bottom (Two-tier Premium layout)
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 32.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Cancel Button
-                        Button(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(0.8f).height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
-                            border = BorderStroke(1.dp, Zinc800)
-                        ) {
-                            Text("Cancel", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            // Cancel
+                            Button(
+                                onClick = onDismiss,
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
+                                border = BorderStroke(1.dp, Zinc800)
+                            ) {
+                                Text("Cancel", fontWeight = FontWeight.SemiBold)
+                            }
+                            // Copy
+                            Button(
+                                onClick = {
+                                    val s = range.start.toLong(); val e = range.endInclusive.toLong()
+                                    val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
+                                    val fd = (dur / 10).coerceIn(200, 3000)
+                                    onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                                },
+                                modifier = Modifier.weight(1.2f).height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
+                                border = BorderStroke(1.dp, Zinc700)
+                            ) {
+                                Icon(AppIcons.Add, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Copy File", maxLines = 1)
+                            }
                         }
 
-                        // Copy Button
+                        // Primary Action: Replace Original
                         Button(
                             onClick = {
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
                                 val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
                                 val fd = (dur / 10).coerceIn(200, 3000)
-                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
+                                onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                             },
-                            modifier = Modifier.weight(0.9f).height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
-                            border = BorderStroke(1.dp, Zinc700)
-                        ) {
-                            Icon(AppIcons.Add, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Copy", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                        }
-
-                        // Replace Button (Primary)
-                        Button(
-                            onClick = {
-                                val s = range.start.toLong(); val e = range.endInclusive.toLong()
-                                val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
-                                val fd = (dur / 10).coerceIn(200, 3000)
-                                onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
-                            },
-                            modifier = Modifier.weight(1.3f).height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
-                            Icon(AppIcons.Check, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Replace", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            Icon(AppIcons.Check, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Replace Original", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
