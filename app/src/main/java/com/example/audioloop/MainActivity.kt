@@ -658,9 +658,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onSeekTo = { pos -> seekTo(pos) },
                         onPausePlay = { pausePlaying() },
                         onResumePlay = { resumePlaying() },
-                        onStopPlay = { 
+                        onStopPlay = {
                             stopPlaying()
-                            playingFileName = "" 
+                            playingFileName = ""
+                            currentlyPlayingPlaylistId = null
                         },
                         onDeleteFile = { item ->
                             getNoteFile(item.file).delete()
@@ -1640,6 +1641,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
         stopPlaying()
         playingFileName = ""
+        currentlyPlayingPlaylistId = null
     }
 
     private fun pausePlaying() {
@@ -1654,6 +1656,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             // Was in shadow countdown pause - stop fully
             stopPlaying()
             playingFileName = ""
+            currentlyPlayingPlaylistId = null
         }
     }
     fun resumePlaying() {

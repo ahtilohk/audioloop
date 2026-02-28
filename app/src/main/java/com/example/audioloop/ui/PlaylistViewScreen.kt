@@ -47,13 +47,16 @@ fun PlaylistViewScreen(
         }
     }
 
+    // Whether the playlist is actively playing or paused (vs finished)
+    val isActive = playingFileName.isNotEmpty() || isPaused
+
     // Glow animation
     val glowAlpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
+        targetValue = if (isActive) 1f else 0f,
+        animationSpec = if (isActive) infiniteRepeatable(
             animation = tween(900, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        ),
+        ) else tween(300),
         label = "pvGlow"
     )
 
@@ -117,14 +120,25 @@ fun PlaylistViewScreen(
                                 .size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isPaused) Zinc500
-                                    else themeColors.primary400.copy(alpha = 0.5f + 0.5f * glowAlpha)
+                                    when {
+                                        !isActive -> Zinc600
+                                        isPaused -> Zinc500
+                                        else -> themeColors.primary400.copy(alpha = 0.5f + 0.5f * glowAlpha)
+                                    }
                                 )
                         )
                         Text(
-                            text = if (isPaused) "PAUSED" else "NOW PLAYING",
+                            text = when {
+                                !isActive -> "COMPLETED"
+                                isPaused -> "PAUSED"
+                                else -> "NOW PLAYING"
+                            },
                             style = TextStyle(
-                                color = if (isPaused) Zinc500 else themeColors.primary400,
+                                color = when {
+                                    !isActive -> Zinc600
+                                    isPaused -> Zinc500
+                                    else -> themeColors.primary400
+                                },
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.5.sp
@@ -143,40 +157,42 @@ fun PlaylistViewScreen(
                     )
                 }
 
-                Spacer(Modifier.width(8.dp))
+                if (isActive) {
+                    Spacer(Modifier.width(8.dp))
 
-                // Pause / Resume
-                IconButton(
-                    onClick = if (isPaused) onResume else onPause,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(themeColors.primary800.copy(alpha = 0.5f))
-                ) {
-                    Icon(
-                        imageVector = if (isPaused) AppIcons.PlayArrow else AppIcons.Pause,
-                        contentDescription = if (isPaused) "Resume" else "Pause",
-                        tint = themeColors.primary300,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                    // Pause / Resume
+                    IconButton(
+                        onClick = if (isPaused) onResume else onPause,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(themeColors.primary800.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = if (isPaused) AppIcons.PlayArrow else AppIcons.Pause,
+                            contentDescription = if (isPaused) "Resume" else "Pause",
+                            tint = themeColors.primary300,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.width(6.dp))
 
-                // Stop
-                IconButton(
-                    onClick = onStop,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Zinc800.copy(alpha = 0.6f))
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Stop,
-                        contentDescription = "Stop",
-                        tint = Zinc400,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    // Stop
+                    IconButton(
+                        onClick = onStop,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Zinc800.copy(alpha = 0.6f))
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Stop,
+                            contentDescription = "Stop",
+                            tint = Zinc400,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
