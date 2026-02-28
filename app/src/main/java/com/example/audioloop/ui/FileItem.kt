@@ -452,16 +452,16 @@ fun FileItem(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        val fallbackBars = remember { List(60) { (10..80).random() } }
+                        val barCount = 120
+                        val fallbackBars = remember { List(barCount) { (10..80).random() } }
                         val rawBars = if (waveformData.isNotEmpty()) waveformData else fallbackBars
-                        val bars = if (rawBars.size > 100) {
-                            // Simple downsample for display
-                            val chunk = rawBars.size / 100
-                            (0 until 100).map { i ->
-                                rawBars.subList(i * chunk, ((i + 1) * chunk).coerceAtMost(rawBars.size)).average().toInt()
+                        val bars = if (rawBars.size > barCount) {
+                            // Max-based downsample for better peak visibility (matches Trim view better)
+                            val chunk = rawBars.size / barCount
+                            (0 until barCount).map { i ->
+                                rawBars.subList(i * chunk, ((i + 1) * chunk).coerceAtMost(rawBars.size)).maxOrNull() ?: 10
                             }
                         } else rawBars
-                        val barCount = bars.size
 
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
@@ -484,8 +484,8 @@ fun FileItem(
                         ) {
                             val w = size.width
                             val h = size.height
-                            val barW = w / barCount
-                            val gap = 1.dp.toPx()
+                            val barW = w / bars.size
+                            val gap = (barW * 0.3f).coerceAtLeast(1.dp.toPx())
 
                             // A-B loop region highlight
                             if (abActive) {
@@ -499,14 +499,16 @@ fun FileItem(
                             // Waveform bars
                             bars.forEachIndexed { i, amp ->
                                 val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
-                                val barH = barFraction * h
+                                // Use 80% height to match TrimDialog and look more premium
+                                val barH = barFraction * h * 0.8f
                                 val x = i * barW + gap / 2
-                                val barProgress = (i + 0.5f) / barCount
+                                val barProgress = (i + 0.5f) / bars.size
 
                                 val color = when {
-                                    barProgress <= currentProgress -> Zinc600.copy(alpha = 0.5f)
-                                    else -> themeColors.primary400
+                                    barProgress <= currentProgress -> themeColors.primary400
+                                    else -> Zinc600.copy(alpha = 0.5f)
                                 }
+                                
                                 drawRoundRect(
                                     color = color,
                                     topLeft = Offset(x, (h - barH) / 2),

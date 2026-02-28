@@ -125,8 +125,12 @@ private fun loadWaveformFromDisk(audioFile: java.io.File): List<Int>? {
     } catch (e: Exception) { null }
 }
 
-private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 500) {
+private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 500, force: Boolean = false) {
     val key = file.absolutePath
+    if (force) {
+        waveformCache.remove(key)
+        try { getWaveformFile(file).delete() } catch (_: Exception) {}
+    }
     if (waveformCache.containsKey(key)) return
     scope.launch(Dispatchers.IO) {
         try {
@@ -681,11 +685,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs ->
                             trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                if (replace) precomputeWaveformAsync(coroutineScope, file)
+                                if (replace) precomputeWaveformAsync(coroutineScope, file, force = true)
                                 else {
                                     val items = getSavedRecordings(uiCategory, filesDir)
                                     val newFile = items.firstOrNull()?.file
-                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile)
+                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile, force = true)
                                 }
                             }
                         },
