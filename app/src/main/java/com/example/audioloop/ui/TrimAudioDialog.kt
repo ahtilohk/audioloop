@@ -508,6 +508,10 @@ fun TrimAudioDialog(
                                     val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
                                         val down = awaitFirstDown(requireUnconsumed = false)
+                                        
+                                        // 1. If more than 1 finger is down initially, it's likely a swim/zoom gesture. Skip handle logic.
+                                        if (currentEvent.changes.size > 1) return@awaitEachGesture
+
                                         val downX = down.position.x
                                         val downY = down.position.y
 
@@ -536,6 +540,10 @@ fun TrimAudioDialog(
                                         var prevX = downX
 
                                         drag(down.id) { change ->
+                                            // 2. If a second finger comes down during a handle drag, cancel the handle drag 
+                                            // and let the transform gesture take over.
+                                            if (currentEvent.changes.size > 1) return@drag
+
                                             if (!wasDragged && kotlin.math.abs(change.position.x - downX) > slop) {
                                                 wasDragged = true
                                                 dragTarget = target
@@ -561,7 +569,7 @@ fun TrimAudioDialog(
                                         dragTarget = null
                                         isDraggingHandle = false
 
-                                        if (!wasDragged) {
+                                        if (!wasDragged && currentEvent.changes.all { it.changedToUp() }) {
                                             val tapMs = pxToMs(downX)
                                             previewPositionMs = resolvePreviewPosition(tapMs)
                                             previewPlayer.seekTo(previewPositionMs.toInt())
@@ -571,7 +579,7 @@ fun TrimAudioDialog(
                         )
 
                         // 3. Floating Overlays
-                        AnimatedVisibility(
+                        androidx.compose.animation.AnimatedVisibility(
                             visible = zoomScale > 1.05f,
                             enter = fadeIn() + scaleIn(),
                             exit = fadeOut() + scaleOut(),
