@@ -488,7 +488,7 @@ fun TrimAudioDialog(
                             drawRoundRect(color = Color.White.copy(alpha = playheadAlpha), topLeft = Offset(playheadX - pillW / 2, size.height - pillH), size = Size(pillW, pillH), cornerRadius = CornerRadius(3.dp.toPx()))
                         }
                         
-                        // Touch & Gesture Logic
+                        // 2. Gesture & Overlay Layer
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -568,16 +568,16 @@ fun TrimAudioDialog(
                                         }
                                     }
                                 }
-                        ) {}
+                        )
 
-                        // Reset Zoom Button (Floating Overlay)
+                        // 3. Floating Overlays
                         AnimatedVisibility(
                             visible = zoomScale > 1.05f,
                             enter = fadeIn() + scaleIn(),
                             exit = fadeOut() + scaleOut(),
                             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                         ) {
-                            Box(
+                            androidx.compose.foundation.layout.Box(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
