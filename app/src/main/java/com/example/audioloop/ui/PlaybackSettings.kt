@@ -34,8 +34,8 @@ fun PlaybackSettingsCard(
     selectedSleepMinutes: Int,
     onSleepTimerChange: (Int) -> Unit,
     sleepTimerRemainingMs: Long,
-    gapSeconds: Int,
-    onGapChange: (Int) -> Unit,
+    gapSeconds: Int = 0,
+    onGapChange: ((Int) -> Unit)? = null,
     themeColors: AppColorPalette,
     modifier: Modifier = Modifier,
     currentTheme: AppTheme? = null,
@@ -177,20 +177,20 @@ fun PlaybackSettingsCard(
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 8.dp)
                         .fillMaxWidth()
-                        .heightIn(max = 580.dp)
+                        .heightIn(max = 300.dp)
                         .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                         .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                         .padding(12.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Speed
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                            Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
+                            Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                         }
                         Row(
                             Modifier.fillMaxWidth(),
@@ -204,7 +204,7 @@ fun PlaybackSettingsCard(
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (active) themeColors.primary600 else Zinc800)
                                         .clickable { onSpeedChange(s) }
-                                        .padding(vertical = 6.dp),
+                                        .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     val label = if (s == s.toInt().toFloat()) "${s.toInt()}" else "$s"
@@ -215,12 +215,12 @@ fun PlaybackSettingsCard(
                     }
 
                     // Repeats
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
                             Text(
                                 if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                         }
                         Row(
@@ -235,7 +235,7 @@ fun PlaybackSettingsCard(
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (active) themeColors.primary600 else Zinc800)
                                         .clickable { onLoopCountChange(r) }
-                                        .padding(vertical = 6.dp),
+                                        .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text("${r}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
@@ -248,42 +248,44 @@ fun PlaybackSettingsCard(
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(if (selectedLoopCount == -1) themeColors.primary600 else Zinc800)
                                     .clickable { onLoopCountChange(-1) }
-                                    .padding(vertical = 6.dp),
+                                    .padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                                Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                             }
                         }
                     }
 
-                    // Gap support (for Playlist contextual settings)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Gap between tracks:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                            Text("${gapSeconds}s", style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf(0, 1, 2, 3, 5, 10).forEach { gap ->
-                                val active = gapSeconds == gap
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (active) themeColors.primary600 else Zinc800)
-                                        .clickable { onGapChange(gap) }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("${gap}s", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                    // Gap support (only shown in Playlist context)
+                    if (onGapChange != null) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("Gap between tracks:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
+                                Text("${gapSeconds}s", style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold))
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOf(0, 1, 2, 3, 5, 10).forEach { gap ->
+                                    val active = gapSeconds == gap
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (active) themeColors.primary600 else Zinc800)
+                                            .clickable { onGapChange(gap) }
+                                            .padding(vertical = 5.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("${gap}s", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    }
                                 }
                             }
                         }
                     }
-                    
+
                     // Listen & Repeat
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("Listen & Repeat", style = TextStyle(color = Zinc300, fontSize = 14.sp))
+                            Text("Listen & Repeat", style = TextStyle(color = Zinc300, fontSize = 13.sp))
                             Text("Pause after playback to practice", style = TextStyle(color = Zinc600, fontSize = 10.sp))
                         }
                         Box(
@@ -309,7 +311,7 @@ fun PlaybackSettingsCard(
 
                     if (isShadowing) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Pause duration:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Text("Pause duration:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOf(0 to "Auto", 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
                                     val active = shadowPauseSeconds == secs
@@ -318,9 +320,9 @@ fun PlaybackSettingsCard(
                                             .clip(RoundedCornerShape(6.dp))
                                             .background(if (active) themeColors.primary600 else Zinc800)
                                             .clickable { onShadowPauseChange(secs) }
-                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                            .padding(horizontal = 8.dp, vertical = 5.dp)
                                     ) {
-                                        Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 11.sp, fontWeight = FontWeight.Medium))
                                     }
                                 }
                             }
@@ -328,12 +330,12 @@ fun PlaybackSettingsCard(
                     }
 
                     // Sleep Timer
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
                             Text(
                                 if (selectedSleepMinutes == 0) "Off" else "${selectedSleepMinutes}m",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                         }
                         Row(
@@ -347,7 +349,7 @@ fun PlaybackSettingsCard(
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(if (isOffSelected) themeColors.primary600 else Zinc800)
                                     .clickable { onSleepTimerChange(0) }
-                                    .padding(vertical = 6.dp),
+                                    .padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
@@ -360,7 +362,7 @@ fun PlaybackSettingsCard(
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (isSelected) themeColors.primary600 else Zinc800)
                                         .clickable { onSleepTimerChange(m) }
-                                        .padding(vertical = 6.dp),
+                                        .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
@@ -394,12 +396,12 @@ fun PlaybackSettingsCard(
                     // Theme Selector (conditionally show only if callbacks provided)
                     if (onThemeChange != null && currentTheme != null) {
                         Column {
-                            HorizontalDivider(color = Zinc700, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
-                            Text("App Theme:", style = TextStyle(color = Zinc400, fontSize = 14.sp), modifier = Modifier.padding(top = 8.dp))
+                            HorizontalDivider(color = Zinc700, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+                            Text("App Theme:", style = TextStyle(color = Zinc400, fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 8.dp),
+                                    .padding(top = 6.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 AppTheme.values().forEach { theme ->
@@ -415,12 +417,12 @@ fun PlaybackSettingsCard(
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { onThemeChange(theme) }
-                                            .padding(vertical = 8.dp),
+                                            .padding(vertical = 6.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(16.dp)
+                                                .size(14.dp)
                                                 .clip(CircleShape)
                                                 .background(theme.palette.primary500)
                                         )

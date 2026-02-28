@@ -639,8 +639,7 @@ fun AudioLoopMainScreen(
                 selectedSleepMinutes = selectedSleepMinutes,
                 onSleepTimerChange = onSleepTimerChange,
                 sleepTimerRemainingMs = sleepTimerRemainingMs,
-                gapSeconds = 0, // Main screen doesn't use global gap yet
-                onGapChange = {},
+                // gapSeconds / onGapChange omitted - not used on main screen
                 themeColors = themeColors,
                 currentTheme = currentTheme,
                 onThemeChange = onThemeChange,
