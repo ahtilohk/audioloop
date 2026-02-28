@@ -452,7 +452,8 @@ fun FileItem(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        val bars = if (waveformData.isNotEmpty()) waveformData else List(60) { (10..80).random() }
+                        val fallbackBars = remember { List(60) { (10..80).random() } }
+                        val bars = if (waveformData.isNotEmpty()) waveformData else fallbackBars
                         val barCount = bars.size
 
                         androidx.compose.foundation.Canvas(
