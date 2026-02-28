@@ -179,7 +179,7 @@ fun PlaybackSettingsCard(
                         .padding(horizontal = 12.dp)
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
-                        .heightIn(max = 520.dp)
+                        .heightIn(max = 580.dp)
                         .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                         .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                         .padding(12.dp)
@@ -211,14 +211,6 @@ fun PlaybackSettingsCard(
                                     Text("${label}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                 }
                             }
-                        }
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("🎧 ", style = TextStyle(fontSize = 10.sp))
-                            Text("Pitch preserved", style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                         }
                     }
 
