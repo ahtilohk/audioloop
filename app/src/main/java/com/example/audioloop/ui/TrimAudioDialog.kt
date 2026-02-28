@@ -61,7 +61,7 @@ private enum class TrimMode {
 }
 
 @Composable
-fun TrimAudioDialog(
+fun TrimAudioScreen(
     file: File,
     uri: Uri,
     durationMs: Long,
@@ -150,75 +150,86 @@ fun TrimAudioDialog(
         }
     }
     
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Zinc950
     ) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
-            shape = RoundedCornerShape(24.dp), // More modern rounding
-            border = BorderStroke(1.dp, Zinc600),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp), // Higher elevation
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
-        ) {
-            if (playerReady) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Header
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                "Trim Audio",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            Text(
-                                "Studio Editor",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    color = themeColors.primary400
-                                )
-                            )
-                        }
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Zinc800, CircleShape)
+                ) {
+                    Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column {
+                    Text(
+                        "Trim Audio",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        "Studio Editor",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = themeColors.primary400
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                // Compact Segmented Control for Mode
+                Surface(
+                    color = Zinc900,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Zinc700)
+                ) {
+                    Row(modifier = Modifier.padding(2.dp)) {
+                        val keepSelected = trimMode == TrimMode.Keep
+                        val itemModifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
                         
-                        // Compact Segmented Control for Mode
-                        Surface(
-                            color = Zinc950,
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Zinc600)
+                        Box(
+                            modifier = Modifier
+                                .background(if (keepSelected) themeColors.primary700 else Color.Transparent, RoundedCornerShape(10.dp))
+                                .clickable { trimMode = TrimMode.Keep }
+                                .then(itemModifier)
                         ) {
-                            Row(modifier = Modifier.padding(2.dp)) {
-                                val keepSelected = trimMode == TrimMode.Keep
-                                val itemModifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .background(if (keepSelected) themeColors.primary700 else Color.Transparent, RoundedCornerShape(10.dp))
-                                        .clickable { trimMode = TrimMode.Keep }
-                                        .then(itemModifier)
-                                ) {
-                                    Text("Keep", color = if (keepSelected) Color.White else Zinc500, style = MaterialTheme.typography.labelMedium)
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .background(if (!keepSelected) Red900 else Color.Transparent, RoundedCornerShape(10.dp))
-                                        .clickable { trimMode = TrimMode.Remove }
-                                        .then(itemModifier)
-                                ) {
-                                    Text("Cut", color = if (!keepSelected) Red100 else Zinc500, style = MaterialTheme.typography.labelMedium)
-                                }
-                            }
+                            Text("Keep", color = if (keepSelected) Color.White else Zinc500, style = MaterialTheme.typography.labelMedium)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(if (!keepSelected) Red900 else Color.Transparent, RoundedCornerShape(10.dp))
+                                .clickable { trimMode = TrimMode.Remove }
+                                .then(itemModifier)
+                        ) {
+                            Text("Cut", color = if (!keepSelected) Red100 else Zinc500, style = MaterialTheme.typography.labelMedium)
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
+                }
+            }
+
+            if (playerReady) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
                     var startMs by remember { mutableFloatStateOf(0f) }
                     var endMs by remember { mutableFloatStateOf(durationMs.toFloat()) }
@@ -230,19 +241,19 @@ fun TrimAudioDialog(
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp) // Taller
-                            .background(Color.Black, RoundedCornerShape(16.dp)) // Black background for contrast
-                            .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
-                            .clip(RoundedCornerShape(16.dp))
-                            .padding(horizontal = 6.dp, vertical = 4.dp)
+                            .height(200.dp) // Taller
+                            .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
+                            .border(1.dp, Zinc700, RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(20.dp))
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
                     ) {
                         val widthPx = constraints.maxWidth.toFloat()
                         val totalDuration = durationMs.toFloat()
                         val heightPx = constraints.maxHeight.toFloat()
                         val handleHitWidth = with(LocalDensity.current) { 48.dp.toPx() }
                         val handleLineWidth = with(LocalDensity.current) { 2.dp.toPx() }
-                        val handleTabWidth = with(LocalDensity.current) { 14.dp.toPx() }
-                        val handleTabHeight = with(LocalDensity.current) { 20.dp.toPx() }
+                        val handleTabWidth = with(LocalDensity.current) { 16.dp.toPx() }
+                        val handleTabHeight = with(LocalDensity.current) { 24.dp.toPx() }
 
                         // Coordinate helpers
                         fun msToPx(ms: Float): Float {
@@ -932,67 +943,46 @@ fun TrimAudioDialog(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(60.dp))
 
-                    // Footer Actions
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Zinc600),
-                            contentPadding = PaddingValues(horizontal = 6.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc300)
-                        ) {
-                            Icon(AppIcons.Close, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text("Cancel", maxLines = 1, style = MaterialTheme.typography.labelMedium)
-                        }
-
+                    // Final Actions at bottom
+                    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Button(
                             onClick = {
-                                val start = range.start.toLong()
-                                val end = range.endInclusive.toLong()
-                                val resultDuration = if (trimMode == TrimMode.Keep) end - start else durationMs - (end - start)
-                                val fadeDur = (resultDuration / 10).coerceIn(200, 3000)
-                                val fadeIn = if (fadeInEnabled) fadeDur else 0L
-                                val fadeOut = if (fadeOutEnabled) fadeDur else 0L
-                                onConfirm(start, end, false, trimMode == TrimMode.Remove, fadeIn, fadeOut)
+                                val s = range.start.toLong(); val e = range.endInclusive.toLong()
+                                val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
+                                val fd = (dur / 10).coerceIn(200, 3000)
+                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
                             },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc700, contentColor = Color.White),
-                            border = BorderStroke(1.dp, Zinc600)
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
+                            border = BorderStroke(1.dp, Zinc700)
                         ) {
-                            Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text("Copy", maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                            Icon(AppIcons.Add, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Copy File", fontWeight = FontWeight.Bold)
                         }
-
                         Button(
                             onClick = {
-                                val start = range.start.toLong()
-                                val end = range.endInclusive.toLong()
-                                val resultDuration = if (trimMode == TrimMode.Keep) end - start else durationMs - (end - start)
-                                val fadeDur = (resultDuration / 10).coerceIn(200, 3000)
-                                val fadeIn = if (fadeInEnabled) fadeDur else 0L
-                                val fadeOut = if (fadeOutEnabled) fadeDur else 0L
-                                onConfirm(start, end, true, trimMode == TrimMode.Remove, fadeIn, fadeOut)
+                                val s = range.start.toLong(); val e = range.endInclusive.toLong()
+                                val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
+                                val fd = (dur / 10).coerceIn(200, 3000)
+                                onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L)
                             },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White)
+                            modifier = Modifier.weight(1.2f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                         ) {
-                            Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text("Replace", maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                            Icon(AppIcons.Check, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Replace Original", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             } else if (!playerInitError) {
-                Box(Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = themeColors.primary500)
                 }
             }

@@ -1208,20 +1208,6 @@ fun AudioLoopMainScreen(
             )
         }
         
-        if (showTrimDialog && recordingToTrim != null) {
-             val trimItem = recordingToTrim!!
-             TrimAudioDialog(
-                file = trimItem.file,
-                uri = trimItem.uri,
-                durationMs = trimItem.durationMillis,
-                onDismiss = { showTrimDialog = false },
-                onConfirm = { start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long ->
-                    onTrimFile(trimItem.file, start, end, replace, removeSelection, fadeInMs, fadeOutMs)
-                    showTrimDialog = false
-                },
-                themeColors = themeColors
-             )
-        }
 
         if (showNoteDialog && recordingToNote != null) {
             NoteEditDialog(
@@ -1413,13 +1399,37 @@ fun AudioLoopMainScreen(
                 )
             }
         }
+        // ── Trim Editor overlay (Full-Screen Studio) ──
+        AnimatedVisibility(
+            visible = showTrimDialog,
+            modifier = Modifier.fillMaxSize(),
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            val trimItem = recordingToTrim
+            if (trimItem != null) {
+                BackHandler { showTrimDialog = false }
+                
+                TrimAudioScreen(
+                    file = trimItem.file,
+                    uri = trimItem.uri,
+                    durationMs = trimItem.durationMillis,
+                    onDismiss = { showTrimDialog = false },
+                    onConfirm = { start, end, replace, remove, fadeIn, fadeOut ->
+                        onTrimFile(trimItem.file, start, end, replace, remove, fadeIn, fadeOut)
+                        showTrimDialog = false
+                    },
+                    themeColors = themeColors
+                )
+            }
+        }
     } // end Box
 } // end AudioLoopMainScreen
 // Dialog Helpers adapted from MainActivity
 
 // Dialog Definitions moved to ui/Dialogs.kt
 
-// TrimAudioDialog moved to ui/TrimAudioDialog.kt
+// TrimAudioScreen moved to ui/TrimAudioDialog.kt
 
 
 
