@@ -270,7 +270,7 @@ fun TrimAudioDialog(
                         val selectionEndMs = max(startMs, endMs)
 
                         // Auto-trim Silence logic
-                        LaunchedEffect(autoTrimSilence, waveform.value, widthPx, trimMode) {
+                        LaunchedEffect(autoTrimSilence, waveform.value) {
                             val bars = waveform.value
                             if (autoTrimSilence && trimMode == TrimMode.Keep && bars != null && bars.isNotEmpty()) {
                                 val silenceThreshold = 5
@@ -280,9 +280,6 @@ fun TrimAudioDialog(
                                     startMs = (firstLoud.toFloat() / bars.size) * totalDuration
                                     endMs = ((lastLoud + 1).toFloat() / bars.size) * totalDuration
                                 }
-                            } else if (!autoTrimSilence) {
-                                startMs = 0f
-                                endMs = totalDuration
                             }
                         }
 
@@ -506,16 +503,19 @@ fun TrimAudioDialog(
                                             .coerceIn(0f, maxScroll)
                                     }
                                 }
-                                .pointerInput(widthPx, zoomScale, scrollOffsetPx) {
+                                .pointerInput(widthPx, zoomScale, scrollOffsetPx, trimMode) {
                                     val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
                                         val down = awaitFirstDown(requireUnconsumed = false)
                                         val downX = down.position.x
                                         val downY = down.position.y
 
+                                        val currentStartX = msToPx(startMs)
+                                        val currentEndX = msToPx(endMs)
                                         val playheadPx = msToPx(previewPositionMs.toFloat())
-                                        val distStart = kotlin.math.abs(downX - startX)
-                                        val distEnd = kotlin.math.abs(downX - endX)
+
+                                        val distStart = kotlin.math.abs(downX - currentStartX)
+                                        val distEnd = kotlin.math.abs(downX - currentEndX)
                                         val distPlayhead = kotlin.math.abs(downX - playheadPx)
 
                                         val pillZone = 25.dp.toPx()
