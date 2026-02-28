@@ -102,7 +102,7 @@ fun createLightColorScheme(palette: AppColorPalette) = lightColorScheme(
 
 @Composable
 fun AudioLoopTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true,
     dynamicColor: Boolean = false,
     appTheme: AppTheme = AppTheme.SLATE,
     content: @Composable () -> Unit
