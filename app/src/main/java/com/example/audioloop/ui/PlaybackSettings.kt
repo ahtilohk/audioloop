@@ -179,7 +179,7 @@ fun PlaybackSettingsCard(
                         .padding(horizontal = 12.dp)
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
-                        .heightIn(max = 450.dp)
+                        .heightIn(max = 520.dp)
                         .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                         .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
                         .padding(12.dp)
@@ -336,30 +336,42 @@ fun PlaybackSettingsCard(
                     }
 
                     // Sleep Timer
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            val timerActive = sleepTimerRemainingMs > 0L
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 14.sp))
+                            Text(
+                                if (selectedSleepMinutes == 0) "Off" else "${selectedSleepMinutes}m",
+                                style = TextStyle(color = themeColors.primary300, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             val isOffSelected = selectedSleepMinutes == 0
                             Box(
                                 modifier = Modifier
+                                    .weight(1f)
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(if (isOffSelected) themeColors.primary600 else Zinc800)
                                     .clickable { onSleepTimerChange(0) }
-                                    .padding(horizontal = 8.dp, vertical = 6.dp)
-                                ) {
-                                    Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-                                }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                            }
                             listOf(15, 30, 45, 60).forEach { m ->
-                                val isSelected = selectedSleepMinutes == m && timerActive
+                                val isSelected = selectedSleepMinutes == m
                                 Box(
                                     modifier = Modifier
+                                        .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (isSelected) themeColors.primary600 else Zinc800)
                                         .clickable { onSleepTimerChange(m) }
-                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                    Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                 }
                             }
                         }
