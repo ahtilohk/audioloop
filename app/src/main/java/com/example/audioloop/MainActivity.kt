@@ -1025,7 +1025,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     fun getThemePref(context: Context): com.example.audioloop.ui.theme.AppTheme {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        val themeName = prefs.getString("app_theme", "CYAN") ?: "CYAN"
+        val themeName = prefs.getString("app_theme", "SLATE") ?: "SLATE"
         return try {
             com.example.audioloop.ui.theme.AppTheme.valueOf(themeName)
         } catch (e: Exception) {
