@@ -125,7 +125,7 @@ private fun loadWaveformFromDisk(audioFile: java.io.File): List<Int>? {
     } catch (e: Exception) { null }
 }
 
-private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 160) {
+private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 500) {
     val key = file.absolutePath
     if (waveformCache.containsKey(key)) return
     scope.launch(Dispatchers.IO) {

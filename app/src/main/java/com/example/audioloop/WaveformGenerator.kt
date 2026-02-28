@@ -68,10 +68,7 @@ object WaveformGenerator {
                 return emptyList()
             }
 
-            // Calculate skip factor: Target processing < 1 second.
-            // approx 40 frames per second of audio.
-            // 4 min = 240s = 10000 frames. skip 10 -> 1000 frames -> acceptable.
-            val safeSkip = (durationUs / 1000000 / 10).toInt().coerceIn(0, 100)
+
 
             val bufferInfo = MediaCodec.BufferInfo()
             var isEOS = false
@@ -95,12 +92,8 @@ object WaveformGenerator {
                             } else {
                                 val time = extractor.sampleTime
                                 codec.queueInputBuffer(inputIndex, 0, sampleSize, time, 0)
-                                // Skip frames optimization
-                                var skipped = 0
-                                while (skipped < safeSkip && extractor.advance()) {
-                                    skipped++
-                                }
-                                if (skipped == 0) extractor.advance() // Always advance at least once if skip is 0, wait, logic below logic below handles advance
+                                // Always advance to next sample
+                                extractor.advance()
                             }
                         }
                     }
@@ -167,7 +160,26 @@ object WaveformGenerator {
 
     private fun downsample(data: List<Int>, targetSize: Int): List<Int> {
         if (data.isEmpty()) return List(targetSize) { 0 }
-        if (targetSize >= data.size) return data
+        
+        // If we have fewer data points than requested, interpolate
+        if (targetSize > data.size && data.size > 1) {
+            val result = ArrayList<Int>(targetSize)
+            val step = (data.size - 1).toDouble() / (targetSize - 1)
+            for (i in 0 until targetSize) {
+                val pos = i * step
+                val low = pos.toInt()
+                val high = (low + 1).coerceAtMost(data.size - 1)
+                val weight = pos - low
+                val value = (data[low] * (1 - weight) + data[high] * weight).toInt()
+                result.add(value)
+            }
+            // Normalize
+            val maxVal = result.maxOrNull()?.coerceAtLeast(1) ?: 1
+            return result.map { (it.toDouble() / maxVal * 100).toInt().coerceIn(5, 100) }
+        }
+        
+        if (targetSize == data.size) return data
+        if (targetSize > data.size) return data // Fallback for single point
 
         val result = ArrayList<Int>(targetSize)
         val chunkSize = data.size.toDouble() / targetSize
