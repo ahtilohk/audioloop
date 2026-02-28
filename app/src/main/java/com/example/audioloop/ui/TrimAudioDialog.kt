@@ -996,7 +996,6 @@ fun TrimAudioScreen(
                     }
                 }
             }
-            }
         }
     }
 }
