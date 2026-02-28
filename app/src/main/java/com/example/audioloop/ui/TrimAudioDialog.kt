@@ -800,7 +800,6 @@ fun TrimAudioScreen(
                             }
                         }
 
-                        // Row 3: Effect toggles
                         // Row 3: Effect toggles (2x2 Grid for Premium Studio)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(
@@ -902,16 +901,11 @@ fun TrimAudioScreen(
                                         .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
                                         .border(1.dp, if (isPreviewPlaying) themeColors.primary400 else Zinc600, CircleShape)
                                         .clickable {
-                                             val start = range.start.toLong()
-                                             val end = range.endInclusive.toLong()
-
                                              if (isPreviewPlaying) {
                                                  previewPlayer.pause()
                                                  isPreviewPlaying = false
                                              } else {
-                                                  // Smart Start Logic
                                                   previewPositionMs = resolvePreviewPosition(previewPositionMs.toFloat())
-
                                                  previewPlayer.seekTo(previewPositionMs.toInt())
                                                  previewPlayer.start()
                                                  isPreviewPlaying = true
@@ -928,13 +922,12 @@ fun TrimAudioScreen(
                                 }
                             }
                         }
-                        }
                         Spacer(modifier = Modifier.height(30.dp))
-                    }
-                } else if (!playerInitError) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = themeColors.primary500)
-                    }
+                    } // Column (Time Info Card)
+                } // Column (Scrollable Content)
+            } else if (!playerInitError) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = themeColors.primary500)
                 }
             }
 
