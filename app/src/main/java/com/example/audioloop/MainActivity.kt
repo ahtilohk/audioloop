@@ -1340,41 +1340,93 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
             withContext(Dispatchers.Main) {
                 if (ok && currentWorkFile.exists()) {
-                    if (replace) {
-                        if (file.delete()) {
-                            if (currentWorkFile.renameTo(file)) {
-                                waveformCache.remove(file.absolutePath)
-                                getWaveformFile(file).delete()
-                                onSuccess()
-                            } else {
-                                Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
-                                currentWorkFile.delete()
-                            }
-                        } else {
-                            currentWorkFile.delete()
-                            Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
-                        }
+                    val finalTarget: File = if (replace) {
+                        file
                     } else {
                         val originalName = file.nameWithoutExtension
                         val baseName = if (originalName.contains("_trim_")) originalName.substringBeforeLast("_trim_") else originalName
                         var counter = 1
-                        var targetFile = File(file.parent, "${baseName}_trim_$counter.$ext")
-                        while (targetFile.exists()) {
+                        var target = File(file.parent, "${baseName}_trim_$counter.$ext")
+                        while (target.exists()) {
                             counter++
-                            targetFile = File(file.parent, "${baseName}_trim_$counter.$ext")
+                            target = File(file.parent, "${baseName}_trim_$counter.$ext")
                         }
-                        if (currentWorkFile.renameTo(targetFile)) {
-                            onSuccess()
-                            Toast.makeText(this@MainActivity, "Saved: ${targetFile.name}", Toast.LENGTH_SHORT).show()
-                        } else {
+                        target
+                    }
+
+                    // Windows: MUST delete original before rename during replace
+                    if (replace && file.exists()) {
+                        if (!file.delete()) {
                             currentWorkFile.delete()
-                            Toast.makeText(this@MainActivity, "Error saving copy", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
+                            return@withContext
                         }
+                    }
+
+                    if (currentWorkFile.renameTo(finalTarget)) {
+                        if (replace) {
+                            waveformCache.remove(finalTarget.absolutePath)
+                            getWaveformFile(finalTarget).delete()
+                            Toast.makeText(this@MainActivity, "Studio: Original replaced", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@MainActivity, "Studio: Saved as ${finalTarget.name}", Toast.LENGTH_SHORT).show()
+                        }
+                        onSuccess()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
+                        currentWorkFile.delete()
                     }
                 } else {
                     currentWorkFile.delete()
-                    Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Studio: Processing failed", Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+    }
+
+    /**
+     * Processes an audio file in-place: runs the given processor, replaces the original,
+     * refreshes file list and waveform cache.
+     */
+    private suspend fun processFileInPlace(
+        file: File,
+        category: String,
+        toastMsg: String,
+        processor: suspend (File, File) -> Boolean
+    ) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
+        }
+        val ext = file.extension.ifEmpty { "m4a" }
+        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
+        val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
+        
+        withContext(Dispatchers.Main) {
+            if (success && tempFile.exists()) {
+                val finalFile = File(file.parent, "${file.nameWithoutExtension}.$ext")
+                waveformCache.remove(file.absolutePath)
+                getWaveformFile(file).delete()
+                
+                // For replace, we MUST delete original first on Windows
+                if (file.exists()) {
+                    if (!file.delete()) {
+                        tempFile.delete()
+                        Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
+                        return@withContext
+                    }
+                }
+                
+                if (tempFile.renameTo(finalFile)) {
+                    precomputeWaveformAsync(this@MainActivity, finalFile)
+                    savedItems = getSavedRecordings(category, filesDir)
+                    Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
+                } else {
+                    tempFile.delete()
+                    Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                tempFile.delete()
+                Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1776,37 +1828,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    /**
-     * Processes an audio file in-place: runs the given processor, replaces the original,
-     * refreshes file list and waveform cache.
-     */
-    private suspend fun processFileInPlace(
-        file: File,
-        category: String,
-        toastMsg: String,
-        processor: suspend (File, File) -> Boolean
-    ) {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
-        }
-        val ext = file.extension.ifEmpty { "m4a" }
-        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
-        val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
-        withContext(Dispatchers.Main) {
-            if (success && tempFile.exists()) {
-                val finalFile = File(file.parent, "${file.nameWithoutExtension}.$ext")
-                waveformCache.remove(file.absolutePath)
-                getWaveformFile(file).delete()
-                file.delete()
-                tempFile.renameTo(finalFile)
-                precomputeWaveformAsync(this@MainActivity, finalFile)
-                savedItems = getSavedRecordings(category, filesDir)
-                Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
-            } else {
-                tempFile.delete()
-                Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private suspend fun mergeFiles(files: List<File>, category: String) {
