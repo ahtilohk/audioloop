@@ -27,9 +27,7 @@ object WaveformGenerator {
                  val content = waveFile.readText()
                  if (content.isNotEmpty()) {
                      val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
-                     // If existing cache has sufficient resolution, use it.
-                     // Otherwise (e.g. old 60-bar file but we want 500), re-extract.
-                     if (list.size >= numBars * 0.9) return list
+                     if (list.isNotEmpty()) return list
                  }
              } catch (e: Exception) { e.printStackTrace() }
         }

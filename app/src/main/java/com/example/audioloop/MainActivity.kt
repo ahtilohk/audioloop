@@ -125,7 +125,7 @@ private fun loadWaveformFromDisk(audioFile: java.io.File): List<Int>? {
     } catch (e: Exception) { null }
 }
 
-private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 500, force: Boolean = false) {
+private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 120, force: Boolean = false) {
     val key = file.absolutePath
     if (force) {
         waveformCache.remove(key)
@@ -158,7 +158,7 @@ fun sanitizeName(name: String): String {
 }
 
     // Generate waveform using MediaCodec (via WaveformGenerator)
-    private fun generateWaveform(file: File, numBars: Int = 500): List<Int> {
+    private fun generateWaveform(file: File, numBars: Int = 120): List<Int> {
         return WaveformGenerator.extractWaveform(file, numBars)
     }
 
@@ -458,7 +458,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
                         // Update items
                         val items = getSavedRecordings(uiCategory, filesDir)
-                        items.forEach { precomputeWaveformAsync(this, it.file) }
+                        items.forEach { precomputeWaveformAsync(this@MainActivity, it.file) }
                         withContext(Dispatchers.Main) { savedItems = items }
                     }
                 }
@@ -680,16 +680,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onImportFile = { uri ->
                             importFileFromUri(uri, uiCategory)
                             savedItems = getSavedRecordings(uiCategory, filesDir)
-                            savedItems.forEach { item -> precomputeWaveformAsync(coroutineScope, item.file) }
+                            savedItems.forEach { item -> precomputeWaveformAsync(this@MainActivity, item.file) }
                         },
                         onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs ->
                             trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
-                                if (replace) precomputeWaveformAsync(coroutineScope, file, force = true)
+                                if (replace) precomputeWaveformAsync(this@MainActivity, file, force = true)
                                 else {
                                     val items = getSavedRecordings(uiCategory, filesDir)
                                     val newFile = items.firstOrNull()?.file
-                                    if (newFile != null) precomputeWaveformAsync(coroutineScope, newFile, force = true)
+                                    if (newFile != null) precomputeWaveformAsync(this@MainActivity, newFile, force = true)
                                 }
                             }
                         },
@@ -1704,7 +1704,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
 
         // Pre-compute waveforms for new files
-        created.forEach { precomputeWaveformAsync(this, it) }
+        created.forEach { precomputeWaveformAsync(this@MainActivity, it) }
 
         withContext(Dispatchers.Main) {
             Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()

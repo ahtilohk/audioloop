@@ -452,7 +452,7 @@ fun FileItem(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(500) { 5 } }
+                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(120) { 8 } }
                         val barCount = bars.size
 
                         androidx.compose.foundation.Canvas(
@@ -477,7 +477,7 @@ fun FileItem(
                             val w = size.width
                             val h = size.height
                             val barWidth = w / barCount
-                            val strokeWidth = (barWidth * 0.8f).coerceAtLeast(1f)
+                            val strokeWidth = (barWidth * 0.7f).coerceAtLeast(1.5f)
 
                             // A-B loop region highlight
                             if (abActive) {
