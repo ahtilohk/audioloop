@@ -162,7 +162,7 @@ fun TrimAudioScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -229,7 +229,7 @@ fun TrimAudioScreen(
             if (playerReady) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
@@ -966,7 +966,7 @@ fun TrimAudioScreen(
                         ) {
                             Icon(AppIcons.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Copy File", maxLines = 1)
+                            Text("Save Copy", maxLines = 1)
                         }
                     }
 
