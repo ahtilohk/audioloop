@@ -230,8 +230,7 @@ fun TrimAudioScreen(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
                 ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
                     var startMs by remember { mutableFloatStateOf(0f) }
@@ -244,7 +243,7 @@ fun TrimAudioScreen(
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp) // Taller
+                            .height(180.dp) // Adjusted to fit screen without scrolling
                             .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
                             .border(1.dp, Zinc700, RoundedCornerShape(20.dp))
                             .clip(RoundedCornerShape(20.dp))
@@ -626,7 +625,7 @@ fun TrimAudioScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     // Time Info Card Container
                     Column(
@@ -635,7 +634,7 @@ fun TrimAudioScreen(
                             .background(Zinc800.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                             .border(1.dp, Zinc600.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // Row 1: CURRENT + NEW LENGTH
                         Row(
@@ -922,7 +921,7 @@ fun TrimAudioScreen(
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(30.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                     } // Column (Time Info Card)
                 } // Column (Scrollable Content)
             } else if (!playerInitError) {
@@ -937,7 +936,7 @@ fun TrimAudioScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Zinc950)
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 20.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
