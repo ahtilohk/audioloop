@@ -79,7 +79,6 @@ fun TrimAudioScreen(
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
     var playerReady by remember { mutableStateOf(false) }
     var playerInitError by remember { mutableStateOf(false) }
-    var isDraggingHandle by remember { mutableStateOf(false) }
     var fadeInEnabled by remember { mutableStateOf(false) }
     var fadeOutEnabled by remember { mutableStateOf(false) }
     var autoTrimSilence by remember { mutableStateOf(false) }
@@ -311,73 +310,80 @@ fun TrimAudioScreen(
                                 val validated = resolvePreviewPosition(current)
                                 if (validated != current.toLong()) {
                                      previewPositionMs = validated
-                                     if (isPreviewPlaying) previewPlayer.seekTo(validated.toInt())
+                                     if (isPreviewPlaying) try { previewPlayer.seekTo(validated.toInt()) } catch (_: Exception) {}
                                 }
                             }
                         }
 
                         LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs, fadeInEnabled, fadeOutEnabled) {
                              if (isPreviewPlaying) {
-                                  while (isActive && previewPlayer.isPlaying) {
-                                      val currentMs = previewPlayer.currentPosition.toLong()
-                                      previewPositionMs = currentMs
+                                  try {
+                                      while (isActive && (try { previewPlayer.isPlaying } catch (_: Exception) { false })) {
+                                          val currentMs = try { previewPlayer.currentPosition.toLong() } catch (_: Exception) { break }
+                                          previewPositionMs = currentMs
 
-                                      // Fade preview via volume
-                                      val effectiveStart: Long
-                                      val effectiveEnd: Long
-                                      if (trimMode == TrimMode.Keep) {
-                                          effectiveStart = selectionStartMs.toLong()
-                                          effectiveEnd = selectionEndMs.toLong()
-                                      } else {
-                                          effectiveStart = 0L
-                                          effectiveEnd = durationMs
-                                      }
-                                      val effectiveDuration = (effectiveEnd - effectiveStart).coerceAtLeast(1)
-                                      val fadeDurationMs = (effectiveDuration / 10).coerceIn(200, 3000)
-                                      var vol = 1f
-                                      if (fadeInEnabled) {
-                                          val elapsed = currentMs - effectiveStart
-                                          if (elapsed < fadeDurationMs) {
-                                              vol = (elapsed.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+                                          // Fade preview via volume
+                                          val effectiveStart: Long
+                                          val effectiveEnd: Long
+                                          if (trimMode == TrimMode.Keep) {
+                                              effectiveStart = selectionStartMs.toLong()
+                                              effectiveEnd = selectionEndMs.toLong()
+                                          } else {
+                                              effectiveStart = 0L
+                                              effectiveEnd = durationMs
                                           }
-                                      }
-                                      if (fadeOutEnabled) {
-                                          val remaining = effectiveEnd - currentMs
-                                          if (remaining < fadeDurationMs) {
-                                              val fadeOutVol = (remaining.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
-                                              vol = min(vol, fadeOutVol)
+                                          val effectiveDuration = (effectiveEnd - effectiveStart).coerceAtLeast(1)
+                                          val fadeDurationMs = (effectiveDuration / 10).coerceIn(200, 3000)
+                                          var vol = 1f
+                                          if (fadeInEnabled) {
+                                              val elapsed = currentMs - effectiveStart
+                                              if (elapsed < fadeDurationMs) {
+                                                  vol = (elapsed.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+                                              }
                                           }
-                                      }
-                                      try { previewPlayer.setVolume(vol, vol) } catch (_: Exception) {}
+                                          if (fadeOutEnabled) {
+                                              val remaining = effectiveEnd - currentMs
+                                              if (remaining < fadeDurationMs) {
+                                                  val fadeOutVol = (remaining.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+                                                  vol = min(vol, fadeOutVol)
+                                              }
+                                          }
+                                          try { previewPlayer.setVolume(vol, vol) } catch (_: Exception) {}
 
-                                      if (trimMode == TrimMode.Keep) {
-                                          if (currentMs >= selectionEndMs) {
-                                                // Stop and jump back to selection start
-                                                previewPlayer.pause()
-                                                previewPlayer.setVolume(1f, 1f)
-                                                previewPlayer.seekTo(selectionStartMs.toInt())
-                                                previewPositionMs = selectionStartMs.toLong()
-                                                isPreviewPlaying = false
-                                          }
-                                      } else {
-                                           if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
-                                                val seekPos = (selectionEndMs + 10).toInt().coerceAtMost(durationMs.toInt())
-                                                previewPlayer.seekTo(seekPos)
-                                                previewPositionMs = seekPos.toLong()
-                                                delay(50)
+                                          if (trimMode == TrimMode.Keep) {
+                                              if (currentMs >= selectionEndMs) {
+                                                    try {
+                                                        previewPlayer.pause()
+                                                        previewPlayer.setVolume(1f, 1f)
+                                                        previewPlayer.seekTo(selectionStartMs.toInt())
+                                                    } catch (_: Exception) {}
+                                                    previewPositionMs = selectionStartMs.toLong()
+                                                    isPreviewPlaying = false
+                                              }
+                                          } else {
+                                               if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
+                                                    val seekPos = (selectionEndMs + 10).toInt().coerceAtMost(durationMs.toInt())
+                                                    try { previewPlayer.seekTo(seekPos) } catch (_: Exception) {}
+                                                    previewPositionMs = seekPos.toLong()
+                                                    delay(50)
+                                               }
                                            }
-                                       }
-                                      delay(30)
+                                          delay(30)
+                                      }
+                                  } catch (_: Exception) {
+                                      // Player entered error state during playback
                                   }
                                   // Playback ended naturally - loop back
-                                  try { previewPlayer.setVolume(1f, 1f) } catch (_: Exception) {}
-                                  if (trimMode == TrimMode.Keep) {
-                                      previewPlayer.seekTo(selectionStartMs.toInt())
-                                      previewPositionMs = selectionStartMs.toLong()
-                                  } else {
-                                      previewPlayer.seekTo(0)
-                                      previewPositionMs = 0L
-                                  }
+                                  try {
+                                      previewPlayer.setVolume(1f, 1f)
+                                      if (trimMode == TrimMode.Keep) {
+                                          previewPlayer.seekTo(selectionStartMs.toInt())
+                                          previewPositionMs = selectionStartMs.toLong()
+                                      } else {
+                                          previewPlayer.seekTo(0)
+                                          previewPositionMs = 0L
+                                      }
+                                  } catch (_: Exception) {}
                                   isPreviewPlaying = false
                              }
                         }
@@ -561,7 +567,7 @@ fun TrimAudioScreen(
                                             if (!wasDragged && kotlin.math.abs(change.position.x - downX) > slop) {
                                                 wasDragged = true
                                                 dragTarget = target
-                                                isDraggingHandle = (target != null && target != TrimDragTarget.Playhead)
+                                                // handle drag started
                                             }
 
                                             if (wasDragged) {
@@ -575,7 +581,7 @@ fun TrimAudioScreen(
                                                         TrimDragTarget.Playhead -> {
                                                             val tappedMs = pxToMs(change.position.x)
                                                             previewPositionMs = resolvePreviewPosition(tappedMs)
-                                                            previewPlayer.seekTo(previewPositionMs.toInt())
+                                                            try { previewPlayer.seekTo(previewPositionMs.toInt()) } catch (_: Exception) {}
                                                         }
                                                     }
                                                 } else {
@@ -586,12 +592,12 @@ fun TrimAudioScreen(
                                         }
 
                                         dragTarget = null
-                                        isDraggingHandle = false
+                                        // handle drag ended
 
                                         if (!wasDragged && currentEvent.changes.all { it.changedToUp() }) {
                                             val tapMs = pxToMs(downX)
                                             previewPositionMs = resolvePreviewPosition(tapMs)
-                                            previewPlayer.seekTo(previewPositionMs.toInt())
+                                            try { previewPlayer.seekTo(previewPositionMs.toInt()) } catch (_: Exception) {}
                                         }
                                     }
                                 }
@@ -649,7 +655,7 @@ fun TrimAudioScreen(
                                     .clip(RoundedCornerShape(10.dp))
                                     .clickable {
                                         previewPositionMs = 0L
-                                        previewPlayer.seekTo(0)
+                                        try { previewPlayer.seekTo(0) } catch (_: Exception) {}
                                     }
                                     .padding(10.dp)
                             ) {
@@ -876,7 +882,7 @@ fun TrimAudioScreen(
                                         .border(1.dp, Zinc600, CircleShape)
                                         .clickable {
                                             previewPositionMs = 0L
-                                            previewPlayer.seekTo(0)
+                                            try { previewPlayer.seekTo(0) } catch (_: Exception) {}
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -900,14 +906,18 @@ fun TrimAudioScreen(
                                         .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
                                         .border(1.dp, if (isPreviewPlaying) themeColors.primary400 else Zinc600, CircleShape)
                                         .clickable {
-                                             if (isPreviewPlaying) {
-                                                 previewPlayer.pause()
+                                             try {
+                                                 if (isPreviewPlaying) {
+                                                     previewPlayer.pause()
+                                                     isPreviewPlaying = false
+                                                 } else {
+                                                     previewPositionMs = resolvePreviewPosition(previewPositionMs.toFloat())
+                                                     previewPlayer.seekTo(previewPositionMs.toInt())
+                                                     previewPlayer.start()
+                                                     isPreviewPlaying = true
+                                                 }
+                                             } catch (_: Exception) {
                                                  isPreviewPlaying = false
-                                             } else {
-                                                  previewPositionMs = resolvePreviewPosition(previewPositionMs.toFloat())
-                                                 previewPlayer.seekTo(previewPositionMs.toInt())
-                                                 previewPlayer.start()
-                                                 isPreviewPlaying = true
                                              }
                                         },
                                     contentAlignment = Alignment.Center
@@ -924,7 +934,41 @@ fun TrimAudioScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                     } // Column (Time Info Card)
                 } // Column (Scrollable Content)
-            } else if (!playerInitError) {
+            } else if (playerInitError) {
+                Column(
+                    Modifier.fillMaxSize().padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        AppIcons.Close,
+                        contentDescription = null,
+                        tint = Red500,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Could not open audio file",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "The file may be corrupted or in an unsupported format.",
+                        color = Zinc500,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Zinc600),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc300)
+                    ) {
+                        Text("Go Back")
+                    }
+                }
+            } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = themeColors.primary500)
                 }
