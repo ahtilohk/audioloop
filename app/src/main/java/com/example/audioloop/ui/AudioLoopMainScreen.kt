@@ -9,6 +9,7 @@ import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
 import com.example.audioloop.Playlist
 import com.example.audioloop.PlaylistManager
+import com.example.audioloop.CoachEngine
 import java.util.UUID
 import kotlinx.coroutines.*
 import androidx.compose.animation.AnimatedContent
@@ -197,7 +198,19 @@ fun AudioLoopMainScreen(
     onPlayPlaylist: (Playlist) -> Unit = {},
     currentlyPlayingPlaylistId: String? = null,
     currentPlaylistIteration: Int = 1,
-    onGetAllRecordings: () -> List<RecordingItem> = { emptyList() }
+    onGetAllRecordings: () -> List<RecordingItem> = { emptyList() },
+
+    // Practice Coach stats
+    practiceWeeklyMinutes: Float = 0f,
+    practiceWeeklyGoal: Int = 120,
+    practiceStreak: Int = 0,
+    practiceTodayMinutes: Float = 0f,
+    practiceWeeklySessions: Int = 0,
+    practiceWeeklyEdits: Int = 0,
+    practiceGoalProgress: Float = 0f,
+    practiceRecommendation: CoachEngine.Recommendation = CoachEngine.Recommendation("", "", "", 0),
+    onStartRecommendedSession: (Int) -> Unit = {},
+    onViewPracticeStats: () -> Unit = {}
 ) {
     // Get theme colors
     val themeColors = currentTheme.palette
@@ -1007,6 +1020,24 @@ fun AudioLoopMainScreen(
                                 )
                             }
                         }
+                    }
+
+                    // ── Practice Progress Card ──
+                    if (practiceRecommendation.title.isNotEmpty()) {
+                        PracticeProgressCard(
+                            weeklyMinutes = practiceWeeklyMinutes,
+                            weeklyGoal = practiceWeeklyGoal,
+                            streak = practiceStreak,
+                            todayMinutes = practiceTodayMinutes,
+                            weeklySessions = practiceWeeklySessions,
+                            weeklyEdits = practiceWeeklyEdits,
+                            recommendation = practiceRecommendation,
+                            goalProgress = practiceGoalProgress,
+                            themeColors = themeColors,
+                            onStartRecommended = onStartRecommendedSession,
+                            onViewDetails = onViewPracticeStats,
+                            modifier = Modifier.padding(horizontal = 2.dp, vertical = 6.dp)
+                        )
                     }
 
                     val density = LocalDensity.current

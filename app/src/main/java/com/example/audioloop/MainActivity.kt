@@ -266,6 +266,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
     private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
     
+    // Practice Coach state
+    private lateinit var practiceStats: PracticeStatsManager
+    private lateinit var coachEngine: CoachEngine
+    private var practiceWeeklyMinutes by mutableFloatStateOf(0f)
+    private var practiceWeeklyGoal by mutableIntStateOf(120)
+    private var practiceStreak by mutableIntStateOf(0)
+    private var practiceTodayMinutes by mutableFloatStateOf(0f)
+    private var practiceWeeklySessions by mutableIntStateOf(0)
+    private var practiceWeeklyEdits by mutableIntStateOf(0)
+    private var practiceGoalProgress by mutableFloatStateOf(0f)
+    private var practiceRecommendation by mutableStateOf(CoachEngine.Recommendation("", "", "", 0))
+    private var showPracticeStats by mutableStateOf(false)
+    // Playback session timing
+    private var sessionStartTimeMs: Long = 0L
+
     // Playlists state
     private lateinit var playlistManager: PlaylistManager
     private var playlists by mutableStateOf<List<Playlist>>(emptyList())
@@ -346,6 +361,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         // Init playlist manager
         playlistManager = PlaylistManager(this)
         playlists = playlistManager.loadAll()
+
+        // Init practice stats & coach
+        practiceStats = PracticeStatsManager(this)
+        coachEngine = CoachEngine(practiceStats)
+        refreshPracticeStats()
 
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
@@ -683,6 +703,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems.forEach { item -> precomputeWaveformAsync(this@MainActivity, item.file) }
                         },
                         onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize ->
+                            logEditEvent("trim")
                             trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize) {
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
                                 if (replace) precomputeWaveformAsync(this@MainActivity, file, force = true)
@@ -704,6 +725,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         waveformCache = waveformCache,
                         onSeekAbsolute = { ms -> mediaPlayer?.seekTo(ms) },
                         onSplitFile = { item ->
+                            logEditEvent("split")
                             coroutineScope.launch {
                                 splitBySilence(item.file, uiCategory)
                                 savedItems = getSavedRecordings(uiCategory, filesDir)
@@ -711,6 +733,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         onAutoTrimFile = { item ->
+                            logEditEvent("auto_trim")
                             coroutineScope.launch {
                                 autoTrimSilence(item.file, uiCategory)
                             }
@@ -720,6 +743,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             savedItems = getSavedRecordings(uiCategory, filesDir)
                         },
                         onNormalizeFile = { item ->
+                            logEditEvent("normalize")
                             coroutineScope.launch {
                                 processFileInPlace(item.file, uiCategory, "Normalizing...") { input, output ->
                                     AudioProcessor.normalize(input, output)
@@ -727,6 +751,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         onFadeFile = { item, fadeInMs, fadeOutMs ->
+                            logEditEvent("fade")
                             coroutineScope.launch {
                                 processFileInPlace(item.file, uiCategory, "Applying fade...") { input, output ->
                                     AudioProcessor.applyFade(input, output, fadeInMs = fadeInMs, fadeOutMs = fadeOutMs)
@@ -734,6 +759,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                             }
                         },
                         onMergeFiles = { items ->
+                            logEditEvent("merge")
                             coroutineScope.launch {
                                 mergeFiles(items.map { it.file }, uiCategory)
                             }
@@ -881,8 +907,77 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         },
                         currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
                         currentPlaylistIteration = currentPlaylistIteration,
-                        onGetAllRecordings = getAllRecordings
+                        onGetAllRecordings = getAllRecordings,
+
+                        // Practice Coach
+                        practiceWeeklyMinutes = practiceWeeklyMinutes,
+                        practiceWeeklyGoal = practiceWeeklyGoal,
+                        practiceStreak = practiceStreak,
+                        practiceTodayMinutes = practiceTodayMinutes,
+                        practiceWeeklySessions = practiceWeeklySessions,
+                        practiceWeeklyEdits = practiceWeeklyEdits,
+                        practiceGoalProgress = practiceGoalProgress,
+                        practiceRecommendation = practiceRecommendation,
+                        onStartRecommendedSession = { suggestedMinutes ->
+                            practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
+                            // Start first available file in current category
+                            val items = savedItems
+                            if (items.isNotEmpty()) {
+                                playingFileName = items.first().file.name
+                                playPlaylist(
+                                    allFiles = items,
+                                    currentIndex = 0,
+                                    loopCountProvider = { loopMode },
+                                    speedProvider = { playbackSpeed },
+                                    pitchProvider = { playbackPitch },
+                                    shadowingProvider = { isShadowingMode },
+                                    onNext = { playingFileName = it },
+                                    gapSeconds = 0,
+                                    onComplete = {
+                                        playingFileName = ""
+                                        refreshPracticeStats()
+                                    }
+                                )
+                            }
+                        },
+                        onViewPracticeStats = { showPracticeStats = true }
                     )
+
+                    // Practice Stats overlay
+                    if (showPracticeStats) {
+                        com.example.audioloop.ui.PracticeStatsScreen(
+                            stats = practiceStats,
+                            coach = coachEngine,
+                            themeColors = currentTheme.palette,
+                            onBack = { showPracticeStats = false },
+                            onStartRecommended = { suggestedMinutes ->
+                                practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
+                                showPracticeStats = false
+                                val items = savedItems
+                                if (items.isNotEmpty()) {
+                                    playingFileName = items.first().file.name
+                                    playPlaylist(
+                                        allFiles = items,
+                                        currentIndex = 0,
+                                        loopCountProvider = { loopMode },
+                                        speedProvider = { playbackSpeed },
+                                        pitchProvider = { playbackPitch },
+                                        shadowingProvider = { isShadowingMode },
+                                        onNext = { playingFileName = it },
+                                        gapSeconds = 0,
+                                        onComplete = {
+                                            playingFileName = ""
+                                            refreshPracticeStats()
+                                        }
+                                    )
+                                }
+                            },
+                            onGoalChange = { newGoal ->
+                                practiceStats.setWeeklyGoal(newGoal)
+                                refreshPracticeStats()
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -1544,6 +1639,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
 
+        // Track session start (first file in a playlist)
+        if (currentIndex == 0 && sessionStartTimeMs == 0L) {
+            onSessionStart()
+        }
+
         // Dynamically fetch current settings
         val loopCount = loopCountProvider()
         val speed = speedProvider()
@@ -1661,6 +1761,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         shadowingJob?.cancel()
         shadowingJob = null
         shadowCountdownText = ""
+        onSessionEnd() // log practice session duration
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
@@ -1846,6 +1947,37 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
         }
+    }
+
+    // ── Practice Stats Helpers ──
+
+    private fun refreshPracticeStats() {
+        practiceWeeklyMinutes = practiceStats.weeklyMinutes()
+        practiceWeeklyGoal = practiceStats.weeklyGoalMinutes()
+        practiceStreak = practiceStats.streak()
+        practiceTodayMinutes = practiceStats.todayMinutes()
+        practiceWeeklySessions = practiceStats.weeklySessions()
+        practiceWeeklyEdits = practiceStats.weeklyEdits()
+        practiceGoalProgress = practiceStats.goalProgress()
+        practiceRecommendation = coachEngine.recommend()
+    }
+
+    private fun onSessionStart() {
+        sessionStartTimeMs = System.currentTimeMillis()
+    }
+
+    private fun onSessionEnd() {
+        if (sessionStartTimeMs > 0) {
+            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
+            practiceStats.logSession(durationMs)
+            sessionStartTimeMs = 0L
+            refreshPracticeStats()
+        }
+    }
+
+    private fun logEditEvent(type: String) {
+        practiceStats.logEdit(type)
+        refreshPracticeStats()
     }
 }
 
