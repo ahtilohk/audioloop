@@ -980,7 +980,7 @@ fun TrimAudioScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Zinc950)
-                        .padding(horizontal = 20.dp, bottom = 12.dp),
+                        .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
