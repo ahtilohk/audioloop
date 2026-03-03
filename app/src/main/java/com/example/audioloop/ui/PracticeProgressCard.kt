@@ -1,12 +1,5 @@
 package com.example.audioloop.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.audioloop.AppIcons
 import com.example.audioloop.CoachEngine
 import com.example.audioloop.ui.theme.*
@@ -49,40 +42,126 @@ fun PracticeProgressCard(
     currentSessionElapsedMs: Long = 0L,
     modifier: Modifier = Modifier
 ) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = goalProgress,
-        animationSpec = tween(durationMillis = 800),
-        label = "goalProgress"
-    )
-
-    Column(
+    // ── Collapsed bar (always visible, always compact) ──
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(
-                Brush.verticalGradient(
+                Brush.horizontalGradient(
                     listOf(
-                        themeColors.primary900.copy(alpha = 0.6f),
-                        themeColors.primary900.copy(alpha = 0.3f)
+                        themeColors.primary900.copy(alpha = 0.5f),
+                        themeColors.primary900.copy(alpha = 0.25f)
                     )
                 )
             )
             .border(
                 1.dp,
-                themeColors.primary700.copy(alpha = 0.3f),
-                RoundedCornerShape(14.dp)
+                themeColors.primary700.copy(alpha = 0.25f),
+                RoundedCornerShape(12.dp)
             )
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .clickable { onToggleExpanded() }
+            .padding(horizontal = 14.dp, vertical = 9.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // ── Header row (always visible, tappable to toggle) ──
-        Row(
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "SMART COACH",
+                style = TextStyle(
+                    color = themeColors.primary300,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                )
+            )
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                AppIcons.ChevronDown,
+                contentDescription = "Open",
+                modifier = Modifier.size(14.dp),
+                tint = themeColors.primary500
+            )
+        }
+
+        // Right side: live timer when playing, or static summary
+        if (isPlaying) {
+            val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
+            Text(
+                formatHhMmSs(totalTodayMs),
+                style = TextStyle(
+                    color = themeColors.primary300,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 0.5.sp
+                )
+            )
+        } else {
+            Text(
+                "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
+                style = TextStyle(
+                    color = Zinc500,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+        }
+    }
+
+    // ── Expanded content as dialog overlay ──
+    if (isExpanded) {
+        SmartCoachDialog(
+            weeklyMinutes = weeklyMinutes,
+            weeklyGoal = weeklyGoal,
+            streak = streak,
+            todayMinutes = todayMinutes,
+            weeklySessions = weeklySessions,
+            weeklyEdits = weeklyEdits,
+            recommendation = recommendation,
+            goalProgress = goalProgress,
+            themeColors = themeColors,
+            onStartRecommended = onStartRecommended,
+            onViewDetails = onViewDetails,
+            onDismiss = onToggleExpanded,
+            isPlaying = isPlaying,
+            currentSessionElapsedMs = currentSessionElapsedMs
+        )
+    }
+}
+
+@Composable
+private fun SmartCoachDialog(
+    weeklyMinutes: Float,
+    weeklyGoal: Int,
+    streak: Int,
+    todayMinutes: Float,
+    weeklySessions: Int,
+    weeklyEdits: Int,
+    recommendation: CoachEngine.Recommendation,
+    goalProgress: Float,
+    themeColors: AppColorPalette,
+    onStartRecommended: (Int) -> Unit,
+    onViewDetails: () -> Unit,
+    onDismiss: () -> Unit,
+    isPlaying: Boolean,
+    currentSessionElapsedMs: Long
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onToggleExpanded() },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .clip(RoundedCornerShape(20.dp))
+                .background(Zinc900)
+                .border(1.dp, themeColors.primary700.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                .padding(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // ── Header ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     "SMART COACH",
                     style = TextStyle(
@@ -92,46 +171,6 @@ fun PracticeProgressCard(
                         letterSpacing = 1.2.sp
                     )
                 )
-                Spacer(Modifier.width(4.dp))
-                val chevronRotation by animateFloatAsState(
-                    targetValue = if (isExpanded) 180f else 0f,
-                    animationSpec = tween(durationMillis = 250),
-                    label = "chevron"
-                )
-                Icon(
-                    AppIcons.ChevronDown,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    modifier = Modifier
-                        .size(14.dp)
-                        .rotate(chevronRotation),
-                    tint = themeColors.primary400
-                )
-            }
-
-            // Right side: live timer when playing, or summary when collapsed, or "View details" when expanded
-            if (isPlaying && !isExpanded) {
-                // Live running timer: today's total including current session
-                val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
-                Text(
-                    formatHhMmSs(totalTodayMs),
-                    style = TextStyle(
-                        color = themeColors.primary300,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        letterSpacing = 0.5.sp
-                    )
-                )
-            } else if (!isExpanded) {
-                Text(
-                    "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
-                    style = TextStyle(
-                        color = Zinc500,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-            } else {
                 Text(
                     "View details",
                     style = TextStyle(
@@ -139,155 +178,131 @@ fun PracticeProgressCard(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     ),
-                    modifier = Modifier.clickable { onViewDetails() }
+                    modifier = Modifier.clickable {
+                        onDismiss()
+                        onViewDetails()
+                    }
                 )
             }
-        }
 
-        // ── Expandable content ──
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically(animationSpec = tween(250)) + fadeIn(animationSpec = tween(250)),
-            exit = shrinkVertically(animationSpec = tween(250)) + fadeOut(animationSpec = tween(200))
-        ) {
-            Column {
-                Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
-                // ── Progress ring + weekly minutes ──
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+            // ── Progress ring + weekly minutes ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(56.dp)
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(52.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier.size(52.dp),
-                            color = if (goalProgress >= 1f) Forest400 else themeColors.primary400,
-                            trackColor = Zinc800,
-                            strokeWidth = 4.dp,
-                            strokeCap = StrokeCap.Round
-                        )
-                        Text(
-                            "${(goalProgress * 100).toInt()}%",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(Modifier.width(12.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
-                            color = Color.White,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "this week",
-                            color = Zinc500,
-                            fontSize = 11.sp
-                        )
-                    }
-
-                    // Live timer when playing (expanded view)
-                    if (isPlaying) {
-                        val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
-                        Text(
-                            formatHhMmSs(totalTodayMs),
-                            style = TextStyle(
-                                color = themeColors.primary300,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(10.dp))
-
-                // ── Stats pills row ──
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    StatPill(
-                        label = "Streak",
-                        value = "${streak}d",
-                        color = if (streak >= 3) Sunset400 else Zinc400,
-                        modifier = Modifier.weight(1f)
+                    CircularProgressIndicator(
+                        progress = { goalProgress.coerceIn(0f, 1f) },
+                        modifier = Modifier.size(56.dp),
+                        color = if (goalProgress >= 1f) Forest400 else themeColors.primary400,
+                        trackColor = Zinc800,
+                        strokeWidth = 5.dp,
+                        strokeCap = StrokeCap.Round
                     )
-                    StatPill(
-                        label = "Today",
-                        value = formatMinutes(todayMinutes),
-                        color = themeColors.primary400,
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatPill(
-                        label = "Sessions",
-                        value = "$weeklySessions",
-                        color = Zinc400,
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatPill(
-                        label = "Edits",
-                        value = "$weeklyEdits",
-                        color = Zinc400,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                // ── Coach recommendation + CTA ──
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(themeColors.primary800.copy(alpha = 0.5f))
-                        .padding(10.dp)
-                ) {
                     Text(
-                        recommendation.title,
+                        "${(goalProgress * 100).toInt()}%",
                         color = Color.White,
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(Modifier.width(14.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
-                        recommendation.subtitle,
-                        color = Zinc400,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(top = 2.dp)
+                        "this week",
+                        color = Zinc500,
+                        fontSize = 12.sp
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = { onStartRecommended(recommendation.suggestedMinutes) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isPlaying) Zinc700 else themeColors.primary600
-                        ),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            if (isPlaying) AppIcons.Stop else AppIcons.PlayArrow,
-                            contentDescription = null,
-                            modifier = Modifier.size(15.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            if (isPlaying) "Playing..." else recommendation.actionLabel,
-                            color = Color.White,
+                }
+
+                if (isPlaying) {
+                    val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
+                    Text(
+                        formatHhMmSs(totalTodayMs),
+                        style = TextStyle(
+                            color = themeColors.primary300,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
+                            fontFamily = FontFamily.Monospace
                         )
-                    }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // ── Stats pills ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StatPill("Streak", "${streak}d", if (streak >= 3) Sunset400 else Zinc400, Modifier.weight(1f))
+                StatPill("Today", formatMinutes(todayMinutes), themeColors.primary400, Modifier.weight(1f))
+                StatPill("Sessions", "$weeklySessions", Zinc400, Modifier.weight(1f))
+                StatPill("Edits", "$weeklyEdits", Zinc400, Modifier.weight(1f))
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // ── Coach recommendation + CTA ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(themeColors.primary800.copy(alpha = 0.5f))
+                    .padding(12.dp)
+            ) {
+                Text(
+                    recommendation.title,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    recommendation.subtitle,
+                    color = Zinc400,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        onStartRecommended(recommendation.suggestedMinutes)
+                        if (!isPlaying) onDismiss()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isPlaying) Zinc700 else themeColors.primary600
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        if (isPlaying) AppIcons.Stop else AppIcons.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        if (isPlaying) "Playing..." else recommendation.actionLabel,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
@@ -304,20 +319,20 @@ private fun StatPill(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(Zinc800.copy(alpha = 0.5f))
-            .padding(vertical = 6.dp, horizontal = 4.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Zinc800.copy(alpha = 0.6f))
+            .padding(vertical = 8.dp, horizontal = 4.dp)
     ) {
         Text(
             value,
             color = color,
-            fontSize = 14.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             label,
             color = Zinc500,
-            fontSize = 9.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
     }

@@ -4,6 +4,7 @@ import com.example.audioloop.ui.RenameDialog
 import com.example.audioloop.ui.MoveFileDialog
 import com.example.audioloop.ui.DeleteConfirmDialog
 import com.example.audioloop.ui.formatDuration
+import com.example.audioloop.ui.formatSessionTime
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
@@ -947,6 +948,30 @@ fun AudioLoopMainScreen(
                                         maxLines = 1,
                                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
+                                }
+                                // Session time + today total
+                                if (currentSessionElapsedMs > 0L) {
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            formatSessionTime(currentSessionElapsedMs),
+                                            style = TextStyle(
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                fontFamily = FontFamily.Monospace
+                                            )
+                                        )
+                                        val totalTodayMs = (practiceTodayMinutes * 60_000L).toLong() + currentSessionElapsedMs
+                                        Text(
+                                            "Today ${formatSessionTime(totalTodayMs)}",
+                                            style = TextStyle(
+                                                color = themeColors.primary400,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                fontFamily = FontFamily.Monospace
+                                            )
+                                        )
+                                    }
                                 }
                             }
                             // Pills row
