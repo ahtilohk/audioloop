@@ -279,6 +279,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var practiceGoalProgress by mutableFloatStateOf(0f)
     private var practiceRecommendation by mutableStateOf(CoachEngine.Recommendation("", "", "", 0))
     private var showPracticeStats by mutableStateOf(false)
+    private var isSmartCoachExpanded by mutableStateOf(true)
     // Playback session timing
     private var sessionStartTimeMs: Long = 0L
 
@@ -351,6 +352,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         }
         
         currentTheme = getThemePref(this)
+        isSmartCoachExpanded = getSmartCoachExpandedPref(this)
 
         // Init backup manager
         driveBackupManager = DriveBackupManager(this)
@@ -972,7 +974,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                                 )
                             }
                         },
-                        onViewPracticeStats = { showPracticeStats = true }
+                        onViewPracticeStats = { showPracticeStats = true },
+                        isSmartCoachExpanded = isSmartCoachExpanded,
+                        onSmartCoachToggle = {
+                            isSmartCoachExpanded = !isSmartCoachExpanded
+                            saveSmartCoachExpandedPref(this@MainActivity, isSmartCoachExpanded)
+                        }
                     )
 
                     // Practice Stats overlay
@@ -1165,6 +1172,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         } catch (e: Exception) {
             com.example.audioloop.ui.theme.AppTheme.SLATE
         }
+    }
+
+    fun saveSmartCoachExpandedPref(context: Context, expanded: Boolean) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("smart_coach_expanded", expanded).apply()
+    }
+
+    fun getSmartCoachExpandedPref(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("smart_coach_expanded", true)
     }
 
     fun isFirstLaunch(context: Context): Boolean {

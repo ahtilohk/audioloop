@@ -210,7 +210,9 @@ fun AudioLoopMainScreen(
     practiceGoalProgress: Float = 0f,
     practiceRecommendation: CoachEngine.Recommendation = CoachEngine.Recommendation("", "", "", 0),
     onStartRecommendedSession: (Int) -> Unit = {},
-    onViewPracticeStats: () -> Unit = {}
+    onViewPracticeStats: () -> Unit = {},
+    isSmartCoachExpanded: Boolean = true,
+    onSmartCoachToggle: () -> Unit = {}
 ) {
     // Get theme colors
     val themeColors = currentTheme.palette
@@ -1138,6 +1140,8 @@ fun AudioLoopMainScreen(
                                         themeColors = themeColors,
                                         onStartRecommended = onStartRecommendedSession,
                                         onViewDetails = onViewPracticeStats,
+                                        isExpanded = isSmartCoachExpanded,
+                                        onToggleExpanded = onSmartCoachToggle,
                                         modifier = Modifier.padding(horizontal = 2.dp, vertical = 6.dp)
                                     )
                                 }

@@ -25,9 +25,9 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         // Already hit the goal this week
         if (remaining <= 0f) {
             return Recommendation(
-                title = "Eesmärk täidetud!",
-                subtitle = "Oled sel nädalal juba ${formatMin(weekMin)} harjutanud. Tubli!",
-                actionLabel = "Bonus sessioon",
+                title = "Goal reached!",
+                subtitle = "You've already practiced ${formatMin(weekMin)} this week. Great job!",
+                actionLabel = "Bonus session",
                 suggestedMinutes = 10
             )
         }
@@ -36,9 +36,9 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         if (todayMin < 1f) {
             val perDay = if (daysLeftInWeek > 0) (remaining / daysLeftInWeek).toInt().coerceIn(5, 45) else 15
             return Recommendation(
-                title = "Alusta tänast sessiooni",
+                title = "Start today's session",
                 subtitle = buildRemainingText(remaining, daysLeftInWeek, streak),
-                actionLabel = "Kuula ${perDay} min",
+                actionLabel = "Listen ${perDay} min",
                 suggestedMinutes = perDay
             )
         }
@@ -46,9 +46,9 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         // Already practiced today but still behind goal
         val perDay = if (daysLeftInWeek > 0) (remaining / daysLeftInWeek).toInt().coerceIn(5, 30) else 10
         return Recommendation(
-            title = "Jätka harjutamist",
-            subtitle = "Täna ${formatMin(todayMin)} tehtud. Veel ${formatMin(remaining)} eesmärgini.",
-            actionLabel = "Lisa ${perDay} min",
+            title = "Continue practicing",
+            subtitle = "${formatMin(todayMin)} done today. ${formatMin(remaining)} left to reach your goal.",
+            actionLabel = "Add ${perDay} min",
             suggestedMinutes = perDay
         )
     }
@@ -57,12 +57,12 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         val parts = mutableListOf<String>()
         if (daysLeft > 0) {
             val perDay = (remaining / daysLeft).toInt().coerceAtLeast(1)
-            parts.add("~${perDay} min/päev eesmärgini")
+            parts.add("~${perDay} min/day to reach your goal")
         }
         if (streak > 1) {
-            parts.add("$streak päeva streak!")
+            parts.add("$streak day streak!")
         }
-        return if (parts.isEmpty()) "Alusta kuulamisega" else parts.joinToString(" · ")
+        return if (parts.isEmpty()) "Start listening" else parts.joinToString(" · ")
     }
 
     private fun formatMin(minutes: Float): String {

@@ -70,10 +70,10 @@ fun PracticeStatsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(AppIcons.ArrowBack, contentDescription = "Tagasi", tint = Color.White)
+                Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
             Text(
-                "Statistika",
+                "Statistics",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -91,7 +91,7 @@ fun PracticeStatsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "NÄDALA ÜLEVAADE",
+                    "WEEKLY OVERVIEW",
                     color = themeColors.primary400,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -136,12 +136,12 @@ fun PracticeStatsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        if (progress >= 1f) "Eesmärk saavutatud!" else "${((1f - progress) * goal).toInt()} min jäänud",
+                        if (progress >= 1f) "Goal reached!" else "${((1f - progress) * goal).toInt()} min remaining",
                         color = if (progress >= 1f) Forest400 else Zinc500,
                         fontSize = 12.sp
                     )
                     Text(
-                        "Muuda eesmärki",
+                        "Change goal",
                         color = themeColors.primary400,
                         fontSize = 12.sp,
                         modifier = Modifier.clickable { showGoalPicker = true }
@@ -158,7 +158,7 @@ fun PracticeStatsScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             StatCard("Streak", "${streak}d", if (streak >= 3) Sunset400 else Zinc400, Modifier.weight(1f))
-            StatCard("Täna", formatMin(todayMin), themeColors.primary400, Modifier.weight(1f))
+            StatCard("Today", formatMin(todayMin), themeColors.primary400, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
@@ -166,8 +166,8 @@ fun PracticeStatsScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Sessioonid", "$sessions", Zinc400, Modifier.weight(1f))
-            StatCard("Muudatused", "$edits", Zinc400, Modifier.weight(1f))
+            StatCard("Sessions", "$sessions", Zinc400, Modifier.weight(1f))
+            StatCard("Edits", "$edits", Zinc400, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
@@ -175,7 +175,7 @@ fun PracticeStatsScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Kesk. päevas", formatMin(avgDaily), themeColors.primary300, Modifier.weight(1f))
+            StatCard("Avg. daily", formatMin(avgDaily), themeColors.primary300, Modifier.weight(1f))
             StatCard("Progress", "${(progress * 100).toInt()}%", if (progress >= 1f) Forest400 else themeColors.primary400, Modifier.weight(1f))
         }
 
@@ -191,7 +191,7 @@ fun PracticeStatsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "VIIMASED 7 PÄEVA",
+                    "LAST 7 DAYS",
                     color = themeColors.primary400,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -218,7 +218,7 @@ fun PracticeStatsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "SOOVITUS",
+                    "RECOMMENDATION",
                     color = themeColors.primary400,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -285,7 +285,7 @@ private fun WeeklyBarChart(
     modifier: Modifier = Modifier
 ) {
     val maxVal = (data.maxOfOrNull { it.second } ?: 1f).coerceAtLeast(1f)
-    val dayLabels = listOf("E", "T", "K", "N", "R", "L", "P") // Mon-Sun in Estonian
+    val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
 
     Row(
         modifier = modifier,
@@ -344,11 +344,11 @@ private fun GoalPickerDialog(
         onDismissRequest = onDismiss,
         containerColor = Zinc900,
         title = {
-            Text("Nädala eesmärk", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Weekly goal", color = Color.White, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Mitu minutit nädalas soovid harjutada?", color = Zinc400, fontSize = 13.sp)
+                Text("How many minutes per week do you want to practice?", color = Zinc400, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 options.forEach { minutes ->
                     Row(
@@ -368,7 +368,7 @@ private fun GoalPickerDialog(
                     ) {
                         Text(formatMin(minutes.toFloat()), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Text(
-                            "~${(minutes / 7)} min/päev",
+                            "~${(minutes / 7)} min/day",
                             color = Zinc500,
                             fontSize = 12.sp
                         )
@@ -381,12 +381,12 @@ private fun GoalPickerDialog(
                 onClick = { onConfirm(selected) },
                 colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
             ) {
-                Text("Salvesta", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Save", color = Color.White, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Tühista", color = Zinc400)
+                Text("Cancel", color = Zinc400)
             }
         }
     )
