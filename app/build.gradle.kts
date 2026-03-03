@@ -20,7 +20,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -70,6 +71,8 @@ dependencies {
     implementation("com.github.lincollincol:compose-audiowaveform:1.1.1")
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
+    // MediaSession for Bluetooth/headset media button support + audio focus
+    implementation("androidx.media:media:1.7.0")
     // Google Drive Backup & Restore (lightweight — auth only + REST calls)
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 }

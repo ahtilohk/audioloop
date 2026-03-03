@@ -5,17 +5,22 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line number information for debugging crash reports
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep Gson serialized classes (used by PracticeStatsManager, PlaylistManager)
+-keepclassmembers class com.example.audioloop.** {
+    <fields>;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep Google Play Services Auth
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# Keep Glance widget classes
+-keep class com.example.audioloop.widget.** { *; }
+
+# Keep MediaSession callback classes
+-keep class android.support.v4.media.** { *; }
+-dontwarn android.support.v4.media.**

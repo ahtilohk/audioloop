@@ -240,6 +240,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     }
 
     private var mediaPlayer: MediaPlayer? = null
+    private lateinit var mediaSessionManager: MediaSessionManager
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
         else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
@@ -367,6 +368,31 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         coachEngine = CoachEngine(practiceStats)
         refreshPracticeStats()
 
+        // Init MediaSession for Bluetooth/headset media button + audio focus
+        mediaSessionManager = MediaSessionManager(
+            context = this,
+            onPlay = {
+                if (isPaused && mediaPlayer != null) {
+                    resumePlaying()
+                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
+                }
+            },
+            onPause = {
+                if (mediaPlayer?.isPlaying == true) {
+                    pausePlaying()
+                    mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
+                }
+            },
+            onStop = {
+                stopPlaying()
+                playingFileName = ""
+                currentlyPlayingPlaylistId = null
+                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
+                mediaSessionManager.abandonAudioFocus()
+            }
+        )
+        mediaSessionManager.initialize()
+
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
                 val coroutineScope = rememberCoroutineScope()
@@ -433,6 +459,12 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 LaunchedEffect(Unit) {
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                         requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                    // Request notification permission for Android 13+ (needed for foreground service)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
                     }
                 }
 
@@ -1071,18 +1103,20 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
         // Varuplaan: MediaPlayer
         if (millis == 0L) {
+            var mp: MediaPlayer? = null
             try {
-                val mp = MediaPlayer()
+                mp = MediaPlayer()
                 mp.setDataSource(file.absolutePath)
                 mp.prepare()
                 millis = mp.duration.toLong()
-                mp.release()
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
+            finally { try { mp?.release() } catch (_: Exception) {} }
         }
         // Varuplaan 2: MediaExtractor
         if (millis == 0L) {
+            var extractor: MediaExtractor? = null
             try {
-                val extractor = MediaExtractor()
+                extractor = MediaExtractor()
                 extractor.setDataSource(file.absolutePath)
                 for (i in 0 until extractor.trackCount) {
                     val format = extractor.getTrackFormat(i)
@@ -1094,8 +1128,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         }
                     }
                 }
-                extractor.release()
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
+            finally { try { extractor?.release() } catch (_: Exception) {} }
         }
 
         if (millis == 0L) return Pair("00:00", 0L)
@@ -1675,7 +1709,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         onNext(itemToPlay.name)
 
         try {
-            mediaPlayer = MediaPlayer().apply {
+            val newPlayer = MediaPlayer()
+            mediaPlayer = newPlayer
+            newPlayer.apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -1687,19 +1723,31 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                    setDataSource(applicationContext, itemToPlay.uri)
                 } else {
                    // Fallback for file access if URI failed (e.g. invalid provider?)
-                   val fis = java.io.FileInputStream(itemToPlay.file)
-                   setDataSource(fis.fd)
-                   fis.close()
+                   java.io.FileInputStream(itemToPlay.file).use { fis ->
+                       setDataSource(fis.fd)
+                   }
                 }
 
                 setOnPreparedListener { mp ->
+                    if (mp != mediaPlayer) return@setOnPreparedListener // stale callback
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         try { mp.playbackParams = mp.playbackParams.setSpeed(speed).setPitch(pitch) } catch (e: Exception) { }
                     }
                     mp.isLooping = false
+                    // Request audio focus before starting playback
+                    if (!mediaSessionManager.requestAudioFocus()) {
+                        // Audio focus denied - stop gracefully
+                        stopPlaying()
+                        playingFileName = ""
+                        onComplete()
+                        return@setOnPreparedListener
+                    }
                     mp.start()
                     // Set isPaused to false when playback starts
                     isPaused = false
+                    // Update MediaSession state
+                    mediaSessionManager.updateMetadata(itemToPlay.name, mp.duration.toLong())
+                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
                 }
                 setOnCompletionListener {
                     if (isShadowing) {
@@ -1750,6 +1798,9 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                 prepareAsync()
             }
         } catch (e: Exception) {
+            // Release leaked MediaPlayer on setup failure
+            try { mediaPlayer?.release() } catch (_: Exception) {}
+            mediaPlayer = null
             Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
             playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
         }
@@ -1762,10 +1813,15 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         shadowingJob = null
         shadowCountdownText = ""
         onSessionEnd() // log practice session duration
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
+        try { mediaPlayer?.stop() } catch (_: IllegalStateException) {}
+        try { mediaPlayer?.release() } catch (_: Exception) {}
         mediaPlayer = null
         isPaused = false
+        // Update MediaSession & release audio focus
+        if (::mediaSessionManager.isInitialized) {
+            mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
+            mediaSessionManager.abandonAudioFocus()
+        }
     }
 
     private fun setSleepTimer(minutes: Int) {
@@ -1806,6 +1862,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         stopPlaying()
         playingFileName = ""
         currentlyPlayingPlaylistId = null
+        mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
     }
 
     private fun pausePlaying() {
@@ -1813,11 +1870,19 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         shadowingJob?.cancel()
         shadowingJob = null
         shadowCountdownText = ""
-        if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.pause()
-            isPaused = true
-        } else if (wasShadowCountdown) {
-            // Was in shadow countdown pause - stop fully
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+                isPaused = true
+                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
+            } else if (wasShadowCountdown) {
+                // Was in shadow countdown pause - stop fully
+                stopPlaying()
+                playingFileName = ""
+                currentlyPlayingPlaylistId = null
+            }
+        } catch (_: IllegalStateException) {
+            // MediaPlayer in invalid state
             stopPlaying()
             playingFileName = ""
             currentlyPlayingPlaylistId = null
@@ -1830,12 +1895,21 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             shadowingJob = null
             shadowCountdownText = ""
         }
-        if (mediaPlayer != null && !mediaPlayer!!.isPlaying) {
-            mediaPlayer?.start()
-            isPaused = false
+        try {
+            val mp = mediaPlayer ?: return
+            if (!mp.isPlaying) {
+                mp.start()
+                isPaused = false
+                mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
+            }
+        } catch (_: IllegalStateException) {
+            // MediaPlayer in invalid state - cannot resume
         }
     }
-    fun seekTo(pos: Float) { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
+    fun seekTo(pos: Float) {
+        try { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
+        catch (_: IllegalStateException) {}
+    }
 
     private suspend fun splitBySilence(file: File, category: String) {
         withContext(Dispatchers.Main) {
@@ -1945,8 +2019,16 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     fun updatePlaybackParams(speed: Float, pitch: Float) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
+            try {
+                mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
+            } catch (_: IllegalStateException) {}
         }
+    }
+
+    override fun onDestroy() {
+        stopPlaying()
+        mediaSessionManager.release()
+        super.onDestroy()
     }
 
     // ── Practice Stats Helpers ──
