@@ -1690,11 +1690,6 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     ) {
         if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
 
-        // Track session start (first file in a playlist)
-        if (currentIndex == 0 && sessionStartTimeMs == 0L) {
-            onSessionStart()
-        }
-
         // Dynamically fetch current settings
         val loopCount = loopCountProvider()
         val speed = speedProvider()
@@ -1715,13 +1710,23 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, next, gapSeconds) { onComplete() }
                 }
                 else -> {
-                    // All iterations complete
+                    // All iterations complete - end session and notify
+                    stopPlaying()
+                    playingFileName = ""
                     onComplete()
                 }
             }
             return
         }
-        stopPlaying()
+        // Release previous MediaPlayer without ending the practice session
+        // (session spans the entire playlist, not individual tracks)
+        stopPlaying(endSession = false)
+
+        // Track session start (first file in a playlist)
+        if (currentIndex == 0 && sessionStartTimeMs == 0L) {
+            onSessionStart()
+        }
+
         val itemToPlay = allFiles[currentIndex]
         onNext(itemToPlay.name)
 
@@ -1825,11 +1830,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     private var shadowingJob: kotlinx.coroutines.Job? = null
 
-    private fun stopPlaying() {
+    private fun stopPlaying(endSession: Boolean = true) {
         shadowingJob?.cancel()
         shadowingJob = null
         shadowCountdownText = ""
-        onSessionEnd() // log practice session duration
+        if (endSession) onSessionEnd() // log practice session duration
         try { mediaPlayer?.stop() } catch (_: IllegalStateException) {}
         try { mediaPlayer?.release() } catch (_: Exception) {}
         mediaPlayer = null
