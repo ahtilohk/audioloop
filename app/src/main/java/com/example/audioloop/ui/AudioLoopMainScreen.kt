@@ -1022,24 +1022,7 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    // ── Practice Progress Card ──
-                    if (practiceRecommendation.title.isNotEmpty()) {
-                        PracticeProgressCard(
-                            weeklyMinutes = practiceWeeklyMinutes,
-                            weeklyGoal = practiceWeeklyGoal,
-                            streak = practiceStreak,
-                            todayMinutes = practiceTodayMinutes,
-                            weeklySessions = practiceWeeklySessions,
-                            weeklyEdits = practiceWeeklyEdits,
-                            recommendation = practiceRecommendation,
-                            goalProgress = practiceGoalProgress,
-                            themeColors = themeColors,
-                            onStartRecommended = onStartRecommendedSession,
-                            onViewDetails = onViewPracticeStats,
-                            modifier = Modifier.padding(horizontal = 2.dp, vertical = 6.dp)
-                        )
-                    }
-
+                    val showPracticeCard = practiceRecommendation.title.isNotEmpty()
                     val density = LocalDensity.current
                     val scrollState = rememberLazyListState()
                     val scope = rememberCoroutineScope()
@@ -1049,6 +1032,9 @@ fun AudioLoopMainScreen(
                     var grabOffsetY by remember { mutableFloatStateOf(0f) }
                     var overscrollSpeed by remember { mutableFloatStateOf(0f) }
 
+                    // Offset for non-file items at the start of LazyColumn (e.g. PracticeProgressCard)
+                    val headerItemCount = if (showPracticeCard) 1 else 0
+
                     fun checkForSwap() {
                         val currentVisibleItems = scrollState.layoutInfo.visibleItemsInfo
                         if (currentVisibleItems.isEmpty()) return
@@ -1056,12 +1042,12 @@ fun AudioLoopMainScreen(
                         var targetIndex = -1
                         val hoveredItem = currentVisibleItems.find { overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size }
                         if (hoveredItem != null) {
-                            targetIndex = hoveredItem.index
+                            targetIndex = hoveredItem.index - headerItemCount
                         } else {
                             val firstVisible = currentVisibleItems.first()
                             val lastVisible = currentVisibleItems.last()
-                            if (overlayCenterY < firstVisible.offset) targetIndex = firstVisible.index
-                            else if (overlayCenterY > lastVisible.offset + lastVisible.size) targetIndex = lastVisible.index
+                            if (overlayCenterY < firstVisible.offset) targetIndex = firstVisible.index - headerItemCount
+                            else if (overlayCenterY > lastVisible.offset + lastVisible.size) targetIndex = lastVisible.index - headerItemCount
                         }
                         if (targetIndex != -1 && targetIndex != draggingItemIndex) {
                             if (draggingItemIndex in uiRecordingItems.indices && targetIndex in uiRecordingItems.indices) {
@@ -1092,9 +1078,10 @@ fun AudioLoopMainScreen(
                                     val y = down.position.y
                                     val x = down.position.x
                                     val hitItem = scrollState.layoutInfo.visibleItemsInfo.find { y >= it.offset && y <= it.offset + it.size }
-                                    if (hitItem != null && x <= gripWidth) {
+                                    val fileIndex = if (hitItem != null) hitItem.index - headerItemCount else -1
+                                    if (hitItem != null && x <= gripWidth && fileIndex >= 0) {
                                         down.consume()
-                                        val index = hitItem.index
+                                        val index = fileIndex
                                         if (index in uiRecordingItems.indices) {
                                             draggingItemIndex = index
                                             draggingItem = uiRecordingItems[index]
@@ -1136,6 +1123,25 @@ fun AudioLoopMainScreen(
                             state = scrollState,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // ── Practice Progress Card (scrolls with files) ──
+                            if (showPracticeCard) {
+                                item(key = "practice_progress") {
+                                    PracticeProgressCard(
+                                        weeklyMinutes = practiceWeeklyMinutes,
+                                        weeklyGoal = practiceWeeklyGoal,
+                                        streak = practiceStreak,
+                                        todayMinutes = practiceTodayMinutes,
+                                        weeklySessions = practiceWeeklySessions,
+                                        weeklyEdits = practiceWeeklyEdits,
+                                        recommendation = practiceRecommendation,
+                                        goalProgress = practiceGoalProgress,
+                                        themeColors = themeColors,
+                                        onStartRecommended = onStartRecommendedSession,
+                                        onViewDetails = onViewPracticeStats,
+                                        modifier = Modifier.padding(horizontal = 2.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
                             itemsIndexed(uiRecordingItems, key = { _, item -> item.name }) { index, item ->
                                 val isPlaying = item.file.name == playingFileName
                                 val isSelected = selectedFiles.contains(item.name)
