@@ -279,9 +279,10 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
     private var practiceGoalProgress by mutableFloatStateOf(0f)
     private var practiceRecommendation by mutableStateOf(CoachEngine.Recommendation("", "", "", 0))
     private var showPracticeStats by mutableStateOf(false)
-    private var isSmartCoachExpanded by mutableStateOf(true)
+    private var isSmartCoachExpanded by mutableStateOf(false)
     // Playback session timing
-    private var sessionStartTimeMs: Long = 0L
+    private var sessionStartTimeMs by mutableLongStateOf(0L)
+    private var currentSessionElapsedMs by mutableLongStateOf(0L)
 
     // Playlists state
     private lateinit var playlistManager: PlaylistManager
@@ -397,6 +398,18 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
         setContent {
             AudioLoopTheme(appTheme = currentTheme) {
+                // Tick session elapsed timer every second while playing
+                LaunchedEffect(sessionStartTimeMs) {
+                    if (sessionStartTimeMs > 0L) {
+                        while (true) {
+                            currentSessionElapsedMs = System.currentTimeMillis() - sessionStartTimeMs
+                            kotlinx.coroutines.delay(1000L)
+                        }
+                    } else {
+                        currentSessionElapsedMs = 0L
+                    }
+                }
+
                 val coroutineScope = rememberCoroutineScope()
 
                 val getAllRecordings = {
@@ -953,25 +966,30 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         practiceGoalProgress = practiceGoalProgress,
                         practiceRecommendation = practiceRecommendation,
                         onStartRecommendedSession = { suggestedMinutes ->
-                            practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
-                            // Start first available file in current category
-                            val items = savedItems
-                            if (items.isNotEmpty()) {
-                                playingFileName = items.first().file.name
-                                playPlaylist(
-                                    allFiles = items,
-                                    currentIndex = 0,
-                                    loopCountProvider = { loopMode },
-                                    speedProvider = { playbackSpeed },
-                                    pitchProvider = { playbackPitch },
-                                    shadowingProvider = { isShadowingMode },
-                                    onNext = { playingFileName = it },
-                                    gapSeconds = 0,
-                                    onComplete = {
-                                        playingFileName = ""
-                                        refreshPracticeStats()
-                                    }
-                                )
+                            if (playingFileName.isNotEmpty()) {
+                                // Already playing - stop
+                                stopPlaying()
+                                playingFileName = ""
+                            } else {
+                                practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
+                                val items = savedItems
+                                if (items.isNotEmpty()) {
+                                    playingFileName = items.first().file.name
+                                    playPlaylist(
+                                        allFiles = items,
+                                        currentIndex = 0,
+                                        loopCountProvider = { loopMode },
+                                        speedProvider = { playbackSpeed },
+                                        pitchProvider = { playbackPitch },
+                                        shadowingProvider = { isShadowingMode },
+                                        onNext = { playingFileName = it },
+                                        gapSeconds = 0,
+                                        onComplete = {
+                                            playingFileName = ""
+                                            refreshPracticeStats()
+                                        }
+                                    )
+                                }
                             }
                         },
                         onViewPracticeStats = { showPracticeStats = true },
@@ -979,7 +997,8 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                         onSmartCoachToggle = {
                             isSmartCoachExpanded = !isSmartCoachExpanded
                             saveSmartCoachExpandedPref(this@MainActivity, isSmartCoachExpanded)
-                        }
+                        },
+                        currentSessionElapsedMs = currentSessionElapsedMs
                     )
 
                     // Practice Stats overlay
@@ -1181,7 +1200,7 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
 
     fun getSmartCoachExpandedPref(context: Context): Boolean {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("smart_coach_expanded", true)
+        return prefs.getBoolean("smart_coach_expanded", false)
     }
 
     fun isFirstLaunch(context: Context): Boolean {
