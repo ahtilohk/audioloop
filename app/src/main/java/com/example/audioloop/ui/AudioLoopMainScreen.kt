@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import com.example.audioloop.ui.RenameDialog
 import com.example.audioloop.ui.MoveFileDialog
@@ -112,114 +112,124 @@ import androidx.compose.runtime.mutableFloatStateOf
 @Composable
 fun AudioLoopMainScreen(
     context: android.content.Context,
-    recordingItems: List<RecordingItem>,
-    categories: List<String>,    // State
-    currentCategory: String,
-    currentProgress: Float,
-    currentTimeString: String,
-    playingFileName: String,
-    isPaused: Boolean,
-    
-    // Callbacks
-    onPlayingFileNameChange: (String) -> Unit,
-    onCategoryChange: (String) -> Unit,
-    onAddCategory: (String) -> Unit,
-    onRenameCategory: (String, String) -> Unit,
-    onDeleteCategory: (String) -> Unit,
-
-    onReorderCategory: (String, Int) -> Unit, // -1 up, +1 down
-    onReorderCategories: (List<String>) -> Unit,
-    
-    onMoveFile: (RecordingItem, String) -> Unit,
-    onReorderFile: (File, Int) -> Unit,
-    onReorderFinished: (List<File>) -> Unit,
-    
+    uiState: com.example.audioloop.AudioLoopUiState,
+    viewModel: com.example.audioloop.AudioLoopViewModel,
     onStartRecord: (String, Boolean) -> Boolean,
     onStopRecord: () -> Unit,
+    onBackupSignIn: () -> Unit
+) {
+    // Bridge local variables
+    val recordingItems = viewModel.getFilteredItems()
+    val categories = uiState.categories
+    val currentCategory = uiState.currentCategory
+    val currentProgress = uiState.currentProgress
+    val currentTimeString = uiState.currentTimeString
+    val playingFileName = uiState.playingFileName
+    val isPaused = uiState.isPaused
     
-    onStartPlaylist: (List<RecordingItem>, Boolean, Float, () -> Unit) -> Unit,
-    onPlaylistUpdate: () -> Unit,
+    val onPlayingFileNameChange: (String) -> Unit = { /* managed by ViewModel */ }
+    val onCategoryChange: (String) -> Unit = { newCat ->
+        viewModel.changeCategory(newCat)
+        com.example.audioloop.widget.WidgetStateHelper.updateWidget(context, category = newCat)
+    }
+    val onAddCategory: (String) -> Unit = { viewModel.addCategory(it) }
+    val onRenameCategory: (String, String) -> Unit = { old, new -> viewModel.renameCategory(old, new) }
+    val onDeleteCategory: (String) -> Unit = { viewModel.deleteCategory(it) }
+
+    val onReorderCategory: (String, Int) -> Unit = { cat, dir -> viewModel.reorderCategory(cat, dir) }
+    val onReorderCategories: (List<String>) -> Unit = { viewModel.reorderCategories(it) }
     
-    onSpeedChange: (Float) -> Unit,
-    onPitchChange: (Float) -> Unit,
-    onLoopCountChange: (Int) -> Unit,
-    onSeekTo: (Float) -> Unit,
-    onPausePlay: () -> Unit,
-    onResumePlay: () -> Unit,
-    onStopPlay: () -> Unit,
-    onDeleteFile: (RecordingItem) -> Unit,
-    onShareFile: (RecordingItem) -> Unit,
-    onRenameFile: (RecordingItem, String) -> Unit,
-    onImportFile: (Uri) -> Unit,
-    /**
-     * @param normalize whether to normalize audio to 0dB peak after trimming
-     */
-    onTrimFile: (file: File, start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
-    selectedSpeed: Float,
-    selectedPitch: Float,
-    selectedLoopCount: Int,
-    isShadowing: Boolean,
-    onShadowingChange: (Boolean) -> Unit,
-    shadowPauseSeconds: Int = 0, // 0 = auto (match duration)
-    onShadowPauseChange: (Int) -> Unit = {},
-    shadowCountdownText: String = "", // countdown text during Listen & Repeat pause
+    val onMoveFile: (RecordingItem, String) -> Unit = { item, cat -> viewModel.moveFile(item, cat) }
+    val onReorderFile: (File, Int) -> Unit = { file, dir -> viewModel.reorderFile(file, dir) }
+    val onReorderFinished: (List<File>) -> Unit = { viewModel.reorderFinished(it) }
     
-    waveformCache: Map<String, List<Int>> = emptyMap(),
-    onSeekAbsolute: (Int) -> Unit = {},
-    onSplitFile: (RecordingItem) -> Unit = {},
-    onNormalizeFile: (RecordingItem) -> Unit = {},
-    onAutoTrimFile: (RecordingItem) -> Unit = {},
-    onSaveNote: (RecordingItem, String) -> Unit = { _, _ -> },
-    onFadeFile: (RecordingItem, Long, Long) -> Unit = { _, _, _ -> },
-    onMergeFiles: (List<RecordingItem>) -> Unit = {},
-    usePublicStorage: Boolean,
-    onPublicStorageChange: (Boolean) -> Unit,
-    sleepTimerRemainingMs: Long = 0L,
-    selectedSleepMinutes: Int = 0,
-    onSleepTimerChange: (Int) -> Unit,
-    currentTheme: com.example.audioloop.ui.theme.AppTheme,
-    onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit,
+    val onStartPlaylist: (List<RecordingItem>, Boolean, Float, () -> Unit) -> Unit = { files, loop, speed, onComplete ->
+        viewModel.startPlaylistPlayback(files, loop, speed, onComplete)
+    }
+    val onPlaylistUpdate: () -> Unit = { }
+    
+    val onSpeedChange: (Float) -> Unit = { viewModel.changeSpeed(it) }
+    val onPitchChange: (Float) -> Unit = { viewModel.changePitch(it) }
+    val onLoopCountChange: (Int) -> Unit = { viewModel.changeLoopMode(it) }
+    val onSeekTo: (Float) -> Unit = { viewModel.seekTo(it) }
+    val onPausePlay: () -> Unit = { viewModel.pausePlaying() }
+    val onResumePlay: () -> Unit = { viewModel.resumePlaying() }
+    val onStopPlay: () -> Unit = { viewModel.stopPlayingAndReset() }
+    val onDeleteFile: (RecordingItem) -> Unit = { viewModel.deleteFile(it) }
+    val onShareFile: (RecordingItem) -> Unit = { viewModel.shareFile(it) }
+    val onRenameFile: (RecordingItem, String) -> Unit = { item, name -> viewModel.renameFile(item, name) }
+    val onImportFile: (android.net.Uri) -> Unit = { uri -> viewModel.importFile(uri) }
+    val onTrimFile: (File, Long, Long, Boolean, Boolean, Long, Long, Boolean) -> Unit = { file, start, end, replace, remove, fadeIn, fadeOut, norm ->
+        viewModel.trimAudioFile(file, start, end, replace, remove, fadeIn, fadeOut, norm) {
+            if (replace) viewModel.precomputeWaveformAsync(file, force = true)
+        }
+    }
+    val selectedSpeed = uiState.playbackSpeed
+    val selectedPitch = uiState.playbackPitch
+    val selectedLoopCount = uiState.loopMode
+    val isShadowing = uiState.isShadowingMode
+    val onShadowingChange: (Boolean) -> Unit = { viewModel.changeShadowingMode(it) }
+    val shadowPauseSeconds = uiState.shadowPauseSeconds
+    val onShadowPauseChange: (Int) -> Unit = { viewModel.changeShadowPause(it) }
+    val shadowCountdownText = uiState.shadowCountdownText
+    
+    val waveformCache = viewModel.waveformCache
+    val onSeekAbsolute: (Int) -> Unit = { viewModel.seekAbsolute(it) }
+    val onSplitFile: (RecordingItem) -> Unit = { viewModel.splitFile(it) }
+    val onNormalizeFile: (RecordingItem) -> Unit = { viewModel.normalizeFile(it) }
+    val onAutoTrimFile: (RecordingItem) -> Unit = { viewModel.autoTrimFile(it) }
+    val onSaveNote: (RecordingItem, String) -> Unit = { item, note -> viewModel.saveNote(item, note) }
+    val onFadeFile: (RecordingItem, Long, Long) -> Unit = { item, fadeIn, fadeOut -> viewModel.fadeFile(item, fadeIn, fadeOut) }
+    val onMergeFiles: (List<RecordingItem>) -> Unit = { viewModel.mergeFiles(it) }
+    val usePublicStorage = uiState.usePublicStorage
+    val onPublicStorageChange: (Boolean) -> Unit = { }
+    val sleepTimerRemainingMs = uiState.sleepTimerRemainingMs
+    val selectedSleepMinutes = uiState.selectedSleepMinutes
+    val onSleepTimerChange: (Int) -> Unit = { viewModel.setSleepTimer(it) }
+    val currentTheme = uiState.currentTheme
+    val onThemeChange: (com.example.audioloop.ui.theme.AppTheme) -> Unit = { viewModel.changeTheme(it) }
+    
     // Backup & Restore
-    isBackupSignedIn: Boolean = false,
-    backupEmail: String = "",
-    backupProgress: String = "",
-    isBackupRunning: Boolean = false,
-    onBackupSignIn: () -> Unit = {},
-    onBackupSignOut: () -> Unit = {},
-    onBackupCreate: () -> Unit = {},
-    onBackupRestore: () -> Unit = {},
-    onBackupList: () -> Unit = {},
-    backupList: List<com.example.audioloop.BackupInfo> = emptyList(),
-    onRestoreFromBackup: (String) -> Unit = {},
-    onDeleteBackup: (String) -> Unit = {},
+    val isBackupSignedIn = uiState.isBackupSignedIn
+    val backupEmail = uiState.backupEmail
+    val backupProgress = uiState.backupProgress
+    val isBackupRunning = uiState.isBackupRunning
+    // onBackupSignIn passed via parameter
+    val onBackupSignOut: () -> Unit = { viewModel.signOutBackup() }
+    val onBackupCreate: () -> Unit = { viewModel.createBackup() }
+    val onBackupRestore: () -> Unit = { }
+    val onBackupList: () -> Unit = { viewModel.listBackups() }
+    val backupList = uiState.backupList
+    val onRestoreFromBackup: (String) -> Unit = { viewModel.restoreFromBackup(it) }
+    val onDeleteBackup: (String) -> Unit = { viewModel.deleteBackup(it) }
 
     // Playlists
-    playlists: List<Playlist> = emptyList(),
-    onSavePlaylist: (Playlist) -> Unit = {},
-    onDeletePlaylist: (Playlist) -> Unit = {},
-    onPlayPlaylist: (Playlist) -> Unit = {},
-    currentlyPlayingPlaylistId: String? = null,
-    currentPlaylistIteration: Int = 1,
-    onGetAllRecordings: () -> List<RecordingItem> = { emptyList() },
+    val playlists = uiState.playlists
+    val onSavePlaylist: (Playlist) -> Unit = { viewModel.savePlaylist(it) }
+    val onDeletePlaylist: (Playlist) -> Unit = { viewModel.deletePlaylist(it) }
+    val onPlayPlaylist: (Playlist) -> Unit = { viewModel.playPlaylistFromPlaylist(it) }
+    val currentlyPlayingPlaylistId = uiState.currentlyPlayingPlaylistId
+    val currentPlaylistIteration = uiState.currentPlaylistIteration
+    val onGetAllRecordings: () -> List<RecordingItem> = { viewModel.getAllRecordings() }
 
     // Practice Coach stats
-    practiceWeeklyMinutes: Float = 0f,
-    practiceWeeklyGoal: Int = 120,
-    practiceStreak: Int = 0,
-    practiceTodayMinutes: Float = 0f,
-    practiceWeeklySessions: Int = 0,
-    practiceWeeklyEdits: Int = 0,
-    practiceGoalProgress: Float = 0f,
-    practiceRecommendation: CoachEngine.Recommendation = CoachEngine.Recommendation("", "", "", 0),
-    onStartRecommendedSession: (Int) -> Unit = {},
-    onViewPracticeStats: () -> Unit = {},
-    isSmartCoachExpanded: Boolean = false,
-    onSmartCoachToggle: () -> Unit = {},
-    currentSessionElapsedMs: Long = 0L,
+    val practiceWeeklyMinutes = uiState.practiceWeeklyMinutes
+    val practiceWeeklyGoal = uiState.practiceWeeklyGoal
+    val practiceStreak = uiState.practiceStreak
+    val practiceTodayMinutes = uiState.practiceTodayMinutes
+    val practiceWeeklySessions = uiState.practiceWeeklySessions
+    val practiceWeeklyEdits = uiState.practiceWeeklyEdits
+    val practiceGoalProgress = uiState.practiceGoalProgress
+    val practiceRecommendation = uiState.practiceRecommendation
+    val onStartRecommendedSession: (Int) -> Unit = { viewModel.startRecommendedSession(it) }
+    val onViewPracticeStats: () -> Unit = { viewModel.setShowPracticeStats(true) }
+    val isSmartCoachExpanded = uiState.isSmartCoachExpanded
+    val onSmartCoachToggle: () -> Unit = { viewModel.toggleSmartCoach() }
+    val currentSessionElapsedMs = uiState.currentSessionElapsedMs
+    
     // Search
-    searchQuery: String = "",
-    onSearchQueryChange: (String) -> Unit = {}
-) {
+    val searchQuery = uiState.searchQuery
+    val onSearchQueryChange: (String) -> Unit = { viewModel.updateSearchQuery(it) }
     // Get theme colors
     val themeColors = currentTheme.palette
     var settingsOpen by remember { mutableStateOf(false) }
@@ -800,7 +810,7 @@ fun AudioLoopMainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isSelectionMode && selectedFiles.isNotEmpty()) {
-                            // ── Selection Action Bar ──
+                            // â”€â”€ Selection Action Bar â”€â”€
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -888,7 +898,7 @@ fun AudioLoopMainScreen(
                                 }
                             }
                         } else {
-                            // ── Normal file list header with Select button ──
+                            // â”€â”€ Normal file list header with Select button â”€â”€
                             Text(
                                 text = "Files ($currentCategory):",
                                 style = TextStyle(color = Zinc200, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -965,7 +975,7 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    // ── Premium Playlist Playback Banner ──
+                    // â”€â”€ Premium Playlist Playback Banner â”€â”€
                     val activePlaylist = if (currentlyPlayingPlaylistId != null)
                         playlists.find { it.id == currentlyPlayingPlaylistId } else null
                     if (activePlaylist != null) {
@@ -1062,8 +1072,8 @@ fun AudioLoopMainScreen(
                             }
                             // Pills row
                             val loopText = when (activePlaylist.loopCount) {
-                                -1 -> "∞"
-                                else -> "$currentPlaylistIteration / ${activePlaylist.loopCount}×"
+                                -1 -> "âˆž"
+                                else -> "$currentPlaylistIteration / ${activePlaylist.loopCount}Ã—"
                             }
                             Row(
                                 modifier = Modifier
@@ -1072,7 +1082,7 @@ fun AudioLoopMainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Loop pill — always visible
+                                // Loop pill â€” always visible
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
@@ -1080,7 +1090,7 @@ fun AudioLoopMainScreen(
                                         .border(1.dp, themeColors.primary500.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
-                                    Text("🔁 $loopText",
+                                    Text("ðŸ” $loopText",
                                         color = themeColors.primary200,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -1095,7 +1105,7 @@ fun AudioLoopMainScreen(
                                             .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
-                                        Text("🎚 ${String.format("%.1f", activePlaylist.speed)}×",
+                                        Text("ðŸŽš ${String.format("%.1f", activePlaylist.speed)}Ã—",
                                             color = Zinc300, fontSize = 12.sp)
                                     }
                                 }
@@ -1108,7 +1118,7 @@ fun AudioLoopMainScreen(
                                             .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
-                                        Text("⏱ ${activePlaylist.gapSeconds}s gap",
+                                        Text("â± ${activePlaylist.gapSeconds}s gap",
                                             color = Zinc300, fontSize = 12.sp)
                                     }
                                 }
@@ -1121,7 +1131,7 @@ fun AudioLoopMainScreen(
                                             .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
-                                        Text("🔀 Shuffle",
+                                        Text("ðŸ”€ Shuffle",
                                             color = Zinc300, fontSize = 12.sp)
                                     }
                                 }
@@ -1136,7 +1146,7 @@ fun AudioLoopMainScreen(
                         }
                     }
 
-                    // ── Sticky Smart Coach bar (always visible, not scrollable) ──
+                    // â”€â”€ Sticky Smart Coach bar (always visible, not scrollable) â”€â”€
                     val showPracticeCard = practiceRecommendation.title.isNotEmpty()
                     if (showPracticeCard) {
                         PracticeProgressCard(
@@ -1251,7 +1261,7 @@ fun AudioLoopMainScreen(
                             }
                     ) {
                         if (uiRecordingItems.isEmpty()) {
-                            // ── Empty State ──
+                            // â”€â”€ Empty State â”€â”€
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -1445,7 +1455,7 @@ fun AudioLoopMainScreen(
         } // end inner Column
         } // end outer Column
 
-        // ── Backup & Restore overlay (Full-Screen) ──
+        // â”€â”€ Backup & Restore overlay (Full-Screen) â”€â”€
         AnimatedVisibility(
             visible = showBackupSheet,
             modifier = Modifier.fillMaxSize(),
@@ -1469,8 +1479,8 @@ fun AudioLoopMainScreen(
             )
         }
 
-        // ── Playlist Sheets (direct Box children for fullscreen overlay) ──
-        // ── Playlist List overlay (Full-Screen) ──
+        // â”€â”€ Playlist Sheets (direct Box children for fullscreen overlay) â”€â”€
+        // â”€â”€ Playlist List overlay (Full-Screen) â”€â”€
         AnimatedVisibility(
             visible = showPlaylistSheet,
             modifier = Modifier.fillMaxSize(),
@@ -1522,7 +1532,7 @@ fun AudioLoopMainScreen(
             )
         }
 
-        // ── Playlist View overlay (Full-Screen) ──
+        // â”€â”€ Playlist View overlay (Full-Screen) â”€â”€
         AnimatedVisibility(
             visible = showPlaylistView,
             modifier = Modifier.fillMaxSize(),
@@ -1561,7 +1571,7 @@ fun AudioLoopMainScreen(
             }
         }
 
-        // ── Playlist Editor overlay (Full-Screen) ──
+        // â”€â”€ Playlist Editor overlay (Full-Screen) â”€â”€
         AnimatedVisibility(
             visible = editingPlaylist != null,
             modifier = Modifier.fillMaxSize(),
@@ -1610,7 +1620,7 @@ fun AudioLoopMainScreen(
                 )
             }
         }
-        // ── Trim Editor overlay (Full-Screen Studio) ──
+        // â”€â”€ Trim Editor overlay (Full-Screen Studio) â”€â”€
         AnimatedVisibility(
             visible = showTrimDialog,
             modifier = Modifier.fillMaxSize(),
@@ -1641,6 +1651,7 @@ fun AudioLoopMainScreen(
 // Dialog Definitions moved to ui/Dialogs.kt
 
 // TrimAudioScreen moved to ui/TrimAudioDialog.kt
+
 
 
 

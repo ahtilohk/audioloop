@@ -1,4 +1,4 @@
-package com.example.audioloop
+﻿package com.example.audioloop
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -38,7 +38,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * MainActivity — slim UI host.
+ * MainActivity â€” slim UI host.
  *
  * All state and business logic lives in AudioLoopViewModel.
  * This Activity is responsible for:
@@ -138,7 +138,7 @@ class MainActivity : ComponentActivity() {
                 val coroutineScope = rememberCoroutineScope()
                 val context = this@MainActivity
 
-                // Snackbar handler — replaces Toast
+                // Snackbar handler â€” replaces Toast
                 LaunchedEffect(uiState.snackbarMessage) {
                     uiState.snackbarMessage?.let { msg ->
                         snackbarHostState.showSnackbar(
@@ -212,31 +212,13 @@ class MainActivity : ComponentActivity() {
                 ) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
                         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                            com.example.audioloop.ui.AudioLoopMainScreen(
+                                                        com.example.audioloop.ui.AudioLoopMainScreen(
                                 context = context,
-                                recordingItems = viewModel.getFilteredItems(),
-                                categories = uiState.categories,
-                                currentCategory = uiState.currentCategory,
-                                currentProgress = uiState.currentProgress,
-                                currentTimeString = uiState.currentTimeString,
-                                playingFileName = uiState.playingFileName,
-                                isPaused = uiState.isPaused,
-                                onPlayingFileNameChange = { /* managed by ViewModel */ },
-                                onCategoryChange = { newCat ->
-                                    viewModel.changeCategory(newCat)
-                                    com.example.audioloop.widget.WidgetStateHelper.updateWidget(context, category = newCat)
-                                },
-                                onAddCategory = { viewModel.addCategory(it) },
-                                onRenameCategory = { old, new -> viewModel.renameCategory(old, new) },
-                                onDeleteCategory = { viewModel.deleteCategory(it) },
-                                onReorderCategory = { cat, dir -> viewModel.reorderCategory(cat, dir) },
-                                onReorderCategories = { viewModel.reorderCategories(it) },
-                                onMoveFile = { item, cat -> viewModel.moveFile(item, cat) },
-                                onReorderFile = { file, dir -> viewModel.reorderFile(file, dir) },
-                                onReorderFinished = { viewModel.reorderFinished(it) },
+                                uiState = uiState,
+                                viewModel = viewModel,
                                 onStartRecord = { name, useRaw ->
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                                        if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                                        if (useRaw && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                                             pendingRecordingName = name
                                             pendingCategory = uiState.currentCategory
                                             val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
@@ -247,95 +229,15 @@ class MainActivity : ComponentActivity() {
                                             true
                                         }
                                     } else {
-                                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                        requestPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
                                         false
                                     }
                                 },
                                 onStopRecord = { stopRecording() },
-                                onStartPlaylist = { files, loop, speed, onComplete ->
-                                    viewModel.startPlaylistPlayback(files, loop, speed, onComplete)
-                                },
-                                onPlaylistUpdate = { },
-                                onSpeedChange = { viewModel.changeSpeed(it) },
-                                onPitchChange = { viewModel.changePitch(it) },
-                                onLoopCountChange = { viewModel.changeLoopMode(it) },
-                                onSeekTo = { viewModel.seekTo(it) },
-                                onPausePlay = { viewModel.pausePlaying() },
-                                onResumePlay = { viewModel.resumePlaying() },
-                                onStopPlay = { viewModel.stopPlayingAndReset() },
-                                onDeleteFile = { viewModel.deleteFile(it) },
-                                onShareFile = { viewModel.shareFile(it) },
-                                onRenameFile = { item, name -> viewModel.renameFile(item, name) },
-                                onImportFile = { uri -> viewModel.importFile(uri) },
-                                onTrimFile = { file, start, end, replace, remove, fadeIn, fadeOut, norm ->
-                                    viewModel.trimAudioFile(file, start, end, replace, remove, fadeIn, fadeOut, norm) {
-                                        if (replace) viewModel.precomputeWaveformAsync(file, force = true)
-                                    }
-                                },
-                                selectedSpeed = uiState.playbackSpeed,
-                                selectedPitch = uiState.playbackPitch,
-                                selectedLoopCount = uiState.loopMode,
-                                isShadowing = uiState.isShadowingMode,
-                                onShadowingChange = { viewModel.changeShadowingMode(it) },
-                                shadowPauseSeconds = uiState.shadowPauseSeconds,
-                                onShadowPauseChange = { viewModel.changeShadowPause(it) },
-                                shadowCountdownText = uiState.shadowCountdownText,
-                                waveformCache = viewModel.waveformCache,
-                                onSeekAbsolute = { viewModel.seekAbsolute(it) },
-                                onSplitFile = { viewModel.splitFile(it) },
-                                onNormalizeFile = { viewModel.normalizeFile(it) },
-                                onAutoTrimFile = { viewModel.autoTrimFile(it) },
-                                onSaveNote = { item, note -> viewModel.saveNote(item, note) },
-                                onFadeFile = { item, fadeIn, fadeOut -> viewModel.fadeFile(item, fadeIn, fadeOut) },
-                                onMergeFiles = { viewModel.mergeFiles(it) },
-                                usePublicStorage = uiState.usePublicStorage,
-                                onPublicStorageChange = { },
-                                sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                                selectedSleepMinutes = uiState.selectedSleepMinutes,
-                                onSleepTimerChange = { viewModel.setSleepTimer(it) },
-                                currentTheme = uiState.currentTheme,
-                                onThemeChange = { viewModel.changeTheme(it) },
-                                // Backup & Restore
-                                isBackupSignedIn = uiState.isBackupSignedIn,
-                                backupEmail = uiState.backupEmail,
-                                backupProgress = uiState.backupProgress,
-                                isBackupRunning = uiState.isBackupRunning,
                                 onBackupSignIn = {
                                     viewModel.setBackupRunning(true)
                                     signInLauncher.launch(viewModel.driveBackupManager.getSignInIntent())
-                                },
-                                onBackupSignOut = { viewModel.signOutBackup() },
-                                onBackupCreate = { viewModel.createBackup() },
-                                onBackupRestore = { },
-                                onBackupList = { viewModel.listBackups() },
-                                backupList = uiState.backupList,
-                                onRestoreFromBackup = { viewModel.restoreFromBackup(it) },
-                                onDeleteBackup = { viewModel.deleteBackup(it) },
-                                // Playlists
-                                playlists = uiState.playlists,
-                                onSavePlaylist = { viewModel.savePlaylist(it) },
-                                onDeletePlaylist = { viewModel.deletePlaylist(it) },
-                                onPlayPlaylist = { viewModel.playPlaylistFromPlaylist(it) },
-                                currentlyPlayingPlaylistId = uiState.currentlyPlayingPlaylistId,
-                                currentPlaylistIteration = uiState.currentPlaylistIteration,
-                                onGetAllRecordings = { viewModel.getAllRecordings() },
-                                // Practice Coach
-                                practiceWeeklyMinutes = uiState.practiceWeeklyMinutes,
-                                practiceWeeklyGoal = uiState.practiceWeeklyGoal,
-                                practiceStreak = uiState.practiceStreak,
-                                practiceTodayMinutes = uiState.practiceTodayMinutes,
-                                practiceWeeklySessions = uiState.practiceWeeklySessions,
-                                practiceWeeklyEdits = uiState.practiceWeeklyEdits,
-                                practiceGoalProgress = uiState.practiceGoalProgress,
-                                practiceRecommendation = uiState.practiceRecommendation,
-                                onStartRecommendedSession = { viewModel.startRecommendedSession(it) },
-                                onViewPracticeStats = { viewModel.setShowPracticeStats(true) },
-                                isSmartCoachExpanded = uiState.isSmartCoachExpanded,
-                                onSmartCoachToggle = { viewModel.toggleSmartCoach() },
-                                currentSessionElapsedMs = uiState.currentSessionElapsedMs,
-                                // Search
-                                searchQuery = uiState.searchQuery,
-                                onSearchQueryChange = { viewModel.updateSearchQuery(it) }
+                                }
                             )
 
                             // Practice Stats overlay
@@ -417,7 +319,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ── Welcome Dialog (extracted) ──
+// â”€â”€ Welcome Dialog (extracted) â”€â”€
 
 @Composable
 private fun WelcomeDialog(
@@ -476,3 +378,4 @@ private fun WelcomeDialog(
         }
     )
 }
+
