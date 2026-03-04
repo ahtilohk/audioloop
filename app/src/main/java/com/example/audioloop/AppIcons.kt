@@ -6,6 +6,39 @@ import androidx.compose.material.icons.materialPath
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object AppIcons {
+    // Replacement for Icons.Default.School
+    val School: ImageVector
+        get() {
+            if (_school != null) return _school!!
+            _school = materialIcon(name = "School") {
+                materialPath {
+                    moveTo(12.0f, 3.0f)
+                    lineTo(1.0f, 9.0f)
+                    lineToRelative(4.0f, 2.18f)
+                    verticalLineToRelative(6.0f)
+                    lineTo(12.0f, 21.0f)
+                    lineToRelative(7.0f, -3.82f)
+                    verticalLineToRelative(-6.0f)
+                    lineToRelative(2.0f, -1.09f)
+                    lineTo(21.0f, 17.0f)
+                    horizontalLineToRelative(2.0f)
+                    verticalLineTo(9.0f)
+                    lineTo(12.0f, 3.0f)
+                    close()
+                    moveTo(6.82f, 13.0f)
+                    verticalLineToRelative(-1.46f)
+                    lineToRelative(5.18f, 2.82f)
+                    lineToRelative(5.18f, -2.82f)
+                    verticalLineTo(13.0f)
+                    lineTo(12.0f, 15.82f)
+                    lineTo(6.82f, 13.0f)
+                    close()
+                }
+            }
+            return _school!!
+        }
+    private var _school: ImageVector? = null
+
     // Replacement for Icons.Default.Stop (Not in Core)
     val Stop: ImageVector
         get() {

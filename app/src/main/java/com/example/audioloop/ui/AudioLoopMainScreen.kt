@@ -46,6 +46,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -240,6 +243,7 @@ fun AudioLoopMainScreen(
     var showCategorySheet by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
     var isSearchVisible by remember { mutableStateOf(searchQuery.isNotEmpty()) }
+    var currentNavTab by remember { mutableStateOf("library") }
     
     // Local source of truth for the list to allow live updates
     val uiRecordingItems = remember { mutableStateListOf<RecordingItem>() }
@@ -308,12 +312,77 @@ fun AudioLoopMainScreen(
         showPlaylistSheet = true  // Go back to playlist list
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    androidx.compose.material3.Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
+        bottomBar = {
+            if (!isSelectionMode && !showCategorySheet && !showPlaylistSheet && !showBackupSheet && !showTrimDialog && editingPlaylist == null && !showPlaylistView) {
+                NavigationBar(
+                    containerColor = Zinc950.copy(alpha = 0.98f),
+                    tonalElevation = 8.dp
+                ) {
+                    NavigationBarItem(
+                        icon = { Icon(AppIcons.QueueMusic, contentDescription = "Library") },
+                        label = { Text("Library", fontWeight = FontWeight.SemiBold, fontSize = 10.sp) },
+                        selected = currentNavTab == "library",
+                        onClick = { currentNavTab = "library" },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = themeColors.primary300,
+                            selectedTextColor = themeColors.primary300,
+                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
+                            unselectedIconColor = Zinc500,
+                            unselectedTextColor = Zinc500
+                        )
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(AppIcons.Mic, contentDescription = "Record") },
+                        label = { Text("Record", fontWeight = FontWeight.SemiBold, fontSize = 10.sp) },
+                        selected = currentNavTab == "record",
+                        onClick = { currentNavTab = "record" },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = themeColors.primary300,
+                            selectedTextColor = themeColors.primary300,
+                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
+                            unselectedIconColor = Zinc500,
+                            unselectedTextColor = Zinc500
+                        )
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(AppIcons.School, contentDescription = "Coach") },
+                        label = { Text("Coach", fontWeight = FontWeight.SemiBold, fontSize = 10.sp) },
+                        selected = currentNavTab == "coach",
+                        onClick = { currentNavTab = "coach" },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = themeColors.primary300,
+                            selectedTextColor = themeColors.primary300,
+                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
+                            unselectedIconColor = Zinc500,
+                            unselectedTextColor = Zinc500
+                        )
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(AppIcons.Settings, contentDescription = "Settings") },
+                        label = { Text("Settings", fontWeight = FontWeight.SemiBold, fontSize = 10.sp) },
+                        selected = currentNavTab == "settings",
+                        onClick = { currentNavTab = "settings" },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = themeColors.primary300,
+                            selectedTextColor = themeColors.primary300,
+                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
+                            unselectedIconColor = Zinc500,
+                            unselectedTextColor = Zinc500
+                        )
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .background(themeColors.primary900.copy(alpha = 0.4f))
+                .padding(innerPadding)
         ) {
         Column(
             modifier = Modifier
@@ -418,6 +487,7 @@ fun AudioLoopMainScreen(
 
 
             // Category Navigation - Underline Tabs
+            if (currentNavTab == "library") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -474,15 +544,18 @@ fun AudioLoopMainScreen(
                    )
                 }
             }
+            } // end library nav
 
+            if (currentNavTab == "library") {
             HorizontalDivider(
                 color = Zinc700.copy(alpha = 0.3f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
+            } // end divider
 
             // Search Bar
-            AnimatedVisibility(visible = isSearchVisible) {
+            AnimatedVisibility(visible = isSearchVisible && currentNavTab == "library") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -551,7 +624,7 @@ fun AudioLoopMainScreen(
             }
 
             // Recording Section - Modern MD3 Design
-            AnimatedVisibility(visible = !isSelectionMode && !showCategorySheet) {
+            AnimatedVisibility(visible = currentNavTab == "record" && !isSelectionMode && !showCategorySheet) {
                 Column(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -752,7 +825,39 @@ fun AudioLoopMainScreen(
                 }
             }
 
+            // Coach Section
+            AnimatedVisibility(visible = currentNavTab == "coach") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(AppIcons.School, contentDescription = null, tint = themeColors.primary400, modifier = Modifier.size(64.dp))
+                    Text(
+                        "Smart Practice Coach",
+                        style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        "Track your progress, get personal recommendations, and build a practice habit.",
+                        color = Zinc400,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Button(
+                        onClick = onViewPracticeStats,
+                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text("Open Full Statistics", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
             // Settings Section - Reusable Card
+            AnimatedVisibility(visible = currentNavTab == "settings") {
             PlaybackSettingsCard(
                 settingsOpen = settingsOpen,
                 onToggleSettings = { settingsOpen = !settingsOpen },
@@ -775,6 +880,7 @@ fun AudioLoopMainScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             )
+            }
 
             // Categories Management Embedded Frame
             AnimatedVisibility(visible = showCategorySheet) {
@@ -793,7 +899,7 @@ fun AudioLoopMainScreen(
                 }
             }
 
-            if (!showCategorySheet) {
+            if (!showCategorySheet && currentNavTab == "library") {
                 HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
                 Column(
@@ -1644,7 +1750,7 @@ fun AudioLoopMainScreen(
                 )
             }
         }
-    } // end Box
+    } // end Scaffold
 } // end AudioLoopMainScreen
 // Dialog Helpers adapted from MainActivity
 
