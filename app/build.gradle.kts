@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -60,7 +61,7 @@ dependencies {
     // implementation("androidx.compose.material:material-icons-extended") - Removed to save memory
     implementation(libs.androidx.compose.material3)
     implementation(libs.gson)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,6 +74,11 @@ dependencies {
     implementation("androidx.glance:glance-material3:1.1.1")
     // MediaSession for Bluetooth/headset media button support + audio focus
     implementation("androidx.media:media:1.7.0")
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     // Google Drive Backup & Restore (lightweight — auth only + REST calls)
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 }

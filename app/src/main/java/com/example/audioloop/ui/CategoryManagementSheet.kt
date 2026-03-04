@@ -219,23 +219,24 @@ fun CategoryManagementSheet(
             val overlayCenterY = overlayOffsetY + (draggingItemSizePx / 2f)
             var targetIndex = -1
 
-            val hoveredItem = currentVisibleItems.find {
-                overlayCenterY >= it.offset && overlayCenterY <= it.offset + it.size
-            }
+            // Only swap when centre crosses 30% into the neighbouring item
+            for (item in currentVisibleItems) {
+                val itemTop = item.offset.toFloat()
+                val itemBottom = itemTop + item.size.toFloat()
+                val threshold = item.size * 0.30f
 
-            if (hoveredItem != null) {
-                targetIndex = hoveredItem.index
-            } else {
-                val firstVisible = currentVisibleItems.first()
-                val lastVisible = currentVisibleItems.last()
-                if (overlayCenterY < firstVisible.offset) {
-                    targetIndex = firstVisible.index
-                } else if (overlayCenterY > lastVisible.offset + lastVisible.size) {
-                    targetIndex = lastVisible.index
+                val isAboveSelf = item.index < draggingCategoryIndex &&
+                        overlayCenterY < itemBottom - threshold
+                val isBelowSelf = item.index > draggingCategoryIndex &&
+                        overlayCenterY > itemTop + threshold
+
+                if (isAboveSelf || isBelowSelf) {
+                    targetIndex = item.index
+                    break
                 }
             }
 
-            // Prevent swapping "General" (index 0)
+            // Prevent swapping "General" (index 0) out of its position
             if (targetIndex >= 0 && targetIndex != draggingCategoryIndex) {
                 if (targetIndex == 0 && draggingCategoryIndex != 0) return
                 if (draggingCategoryIndex == 0 && targetIndex > 0) return

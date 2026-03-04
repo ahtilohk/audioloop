@@ -5,22 +5,37 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# Preserve line number information for debugging crash reports
+# Keep Line number info for crash reporting
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# Keep Gson serialized classes (used by PracticeStatsManager, PlaylistManager)
+# Gson: keep all fields in the app package for serialization
 -keepclassmembers class com.example.audioloop.** {
     <fields>;
 }
 
-# Keep Google Play Services Auth
+# Google Play Services Auth
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
 
-# Keep Glance widget classes
+# Glance widget classes
 -keep class com.example.audioloop.widget.** { *; }
 
-# Keep MediaSession callback classes
+# MediaSession support library
 -keep class android.support.v4.media.** { *; }
 -dontwarn android.support.v4.media.**
+
+# Room – keep Entity, DAO, and Database classes so KSP-generated code works in release
+-keep @androidx.room.Entity class *
+-keep @androidx.room.Dao class *
+-keep @androidx.room.Database class *
+-keepclassmembers @androidx.room.Entity class * { <fields>; }
+-keepclassmembers class * extends androidx.room.RoomDatabase { *; }
+
+# Kotlin coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-dontwarn kotlinx.coroutines.**
+
+# Compose – suppress warnings from internal compiler stubs
+-dontwarn androidx.compose.**

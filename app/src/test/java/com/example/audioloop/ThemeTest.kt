@@ -21,9 +21,9 @@ class ThemeTest {
     }
 
     @Test
-    fun `cyan theme is default and first`() {
-        assertEquals(AppTheme.CYAN, AppTheme.entries.first())
-        assertEquals("Cyan", AppTheme.CYAN.displayName)
+    fun `slate theme is default and first`() {
+        assertEquals(AppTheme.SLATE, AppTheme.entries.first())
+        assertEquals("Pro", AppTheme.SLATE.displayName)
     }
 
     @Test
@@ -116,8 +116,8 @@ class ThemeTest {
 
     @Test
     fun `theme can be looked up by name`() {
-        val theme = AppTheme.valueOf("CYAN")
-        assertEquals(AppTheme.CYAN, theme)
+        val theme = AppTheme.valueOf("SLATE")
+        assertEquals(AppTheme.SLATE, theme)
     }
 
     @Test

@@ -59,11 +59,37 @@ data class AudioLoopUiState(
     val isBackupRunning: Boolean = false,
     val backupList: List<BackupInfo> = emptyList(),
 
-    // Storage
-    val usePublicStorage: Boolean = true,
-
     // Snackbar messages (replaces Toast)
-    val snackbarMessage: SnackbarMessage? = null
+    val snackbarMessage: SnackbarMessage? = null,
+
+    // --- Navigation & App UI States ---
+    val currentNavTab: String = "library",
+    val isSearchVisible: Boolean = false,
+    val isRecording: Boolean = false,
+    val isSelectionMode: Boolean = false,
+    val selectedFiles: Set<String> = emptySet(),
+    val settingsOpen: Boolean = false,
+    val showCategorySheet: Boolean = false,
+
+    // --- Dialog Visibility ---
+    val showRenameDialog: Boolean = false,
+    val showMoveDialog: Boolean = false,
+    val showDeleteDialog: Boolean = false,
+    val showTrimDialog: Boolean = false,
+    val showNoteDialog: Boolean = false,
+    val showInfoDialog: Boolean = false,
+    val showPlaylistSheet: Boolean = false,
+    val showBackupSheet: Boolean = false,
+    val showPlaylistView: Boolean = false,
+
+    // --- Contextual Items ---
+    val itemToModify: RecordingItem? = null,
+    val recordingToDelete: RecordingItem? = null,
+    val recordingToTrim: RecordingItem? = null,
+    val recordingToNote: RecordingItem? = null,
+    val recordingToInfo: RecordingItem? = null,
+    val editingPlaylist: Playlist? = null,
+    val viewingPlaylistId: String? = null
 )
 
 /**

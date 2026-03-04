@@ -64,11 +64,11 @@ class MainActivity : ComponentActivity() {
                 if (!folder.exists()) folder.mkdirs()
                 "$pendingCategory/$pendingRecordingName"
             }
-            val serviceIntent = Intent(this, RecordingService::class.java).apply {
-                action = RecordingService.ACTION_START_INTERNAL
-                putExtra(RecordingService.EXTRA_FILENAME, finalName)
-                putExtra(RecordingService.EXTRA_RESULT_CODE, resultCode)
-                putExtra(RecordingService.EXTRA_DATA, data)
+            val serviceIntent = Intent(this, AudioService::class.java).apply {
+                action = AudioService.ACTION_START_INTERNAL_RECORDING
+                putExtra(AudioService.EXTRA_FILENAME, finalName)
+                putExtra(AudioService.EXTRA_RESULT_CODE, resultCode)
+                putExtra(AudioService.EXTRA_DATA, data)
             }
             startInternalAudioService(serviceIntent)
         } else {
@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
                 // Snackbar handler â€” replaces Toast
                 LaunchedEffect(uiState.snackbarMessage) {
                     uiState.snackbarMessage?.let { msg ->
-                        snackbarHostState.showSnackbar(
+                        val result = snackbarHostState.showSnackbar(
                             message = msg.text,
                             actionLabel = msg.actionLabel,
                             duration = when (msg.duration) {
@@ -150,6 +150,11 @@ class MainActivity : ComponentActivity() {
                                 SnackbarDuration.Indefinite -> androidx.compose.material3.SnackbarDuration.Indefinite
                             }
                         )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            if (msg.actionLabel == "Undo") {
+                                viewModel.undoDelete()
+                            }
+                        }
                         viewModel.clearSnackbar()
                     }
                 }
@@ -158,7 +163,7 @@ class MainActivity : ComponentActivity() {
                 DisposableEffect(Unit) {
                     val receiver = object : BroadcastReceiver() {
                         override fun onReceive(ctx: Context?, intent: Intent?) {
-                            if (intent?.action == RecordingService.ACTION_RECORDING_SAVED) {
+                            if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     try {
                                         viewModel.refreshFileList()
@@ -178,7 +183,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    val filter = IntentFilter(RecordingService.ACTION_RECORDING_SAVED)
+                    val filter = IntentFilter(AudioService.ACTION_RECORDING_SAVED)
                     ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
                     onDispose { context.unregisterReceiver(receiver) }
                 }
@@ -240,20 +245,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                            // Practice Stats overlay
-                            if (uiState.showPracticeStats) {
-                                com.example.audioloop.ui.PracticeStatsScreen(
-                                    stats = viewModel.practiceStats,
-                                    coach = viewModel.coachEngine,
-                                    themeColors = uiState.currentTheme.palette,
-                                    onBack = { viewModel.setShowPracticeStats(false) },
-                                    onStartRecommended = { suggestedMinutes ->
-                                        viewModel.setShowPracticeStats(false)
-                                        viewModel.startRecommendedSession(suggestedMinutes)
-                                    },
-                                    onGoalChange = { viewModel.setPracticeGoal(it) }
-                                )
-                            }
                         }
                     }
                 }
@@ -296,15 +287,15 @@ class MainActivity : ComponentActivity() {
                 "$category/$fileName"
             }
         }
-        val intent = Intent(this, RecordingService::class.java).apply {
-            action = RecordingService.ACTION_START
-            putExtra(RecordingService.EXTRA_FILENAME, finalName)
-            putExtra(RecordingService.EXTRA_USE_PUBLIC_STORAGE, usePublic)
-            putExtra(RecordingService.EXTRA_CATEGORY, category)
+        val intent = Intent(this, AudioService::class.java).apply {
+            action = AudioService.ACTION_START_RECORDING
+            putExtra(AudioService.EXTRA_FILENAME, finalName)
+            putExtra(AudioService.EXTRA_USE_PUBLIC_STORAGE, usePublic)
+            putExtra(AudioService.EXTRA_CATEGORY, category)
             val source = if (useRawAudio && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 MediaRecorder.AudioSource.UNPROCESSED
             } else { MediaRecorder.AudioSource.MIC }
-            putExtra(RecordingService.EXTRA_AUDIO_SOURCE, source)
+            putExtra(AudioService.EXTRA_AUDIO_SOURCE, source)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
     }
@@ -314,7 +305,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopRecording() {
-        val intent = Intent(this, RecordingService::class.java).apply { action = RecordingService.ACTION_STOP }
+        val intent = Intent(this, AudioService::class.java).apply { action = AudioService.ACTION_STOP_RECORDING }
         startService(intent)
     }
 }
@@ -333,7 +324,7 @@ private fun WelcomeDialog(
         textContentColor = Zinc300,
         title = {
             Text(
-                "Welcome to AudioLoop!",
+                "Welcome to Loop & Learn Audio!",
                 style = androidx.compose.ui.text.TextStyle(
                     brush = Brush.linearGradient(
                         listOf(themeColors.primary400, themeColors.primary200)
@@ -345,7 +336,7 @@ private fun WelcomeDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("AudioLoop supports two recording modes:", color = Color.White, fontWeight = FontWeight.Medium)
+                Text("Loop & Learn Audio supports two recording modes:", color = Color.White, fontWeight = FontWeight.Medium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("\uD83C\uDFA4", fontSize = 16.sp)
                     Column {

@@ -33,10 +33,10 @@
         </activity>
 
         <service
-            android:name=".RecordingService"
+            android:name=".AudioService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="microphone|mediaProjection" />
+            android:foregroundServiceType="microphone|mediaProjection|mediaPlayback" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

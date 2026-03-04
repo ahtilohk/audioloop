@@ -10,6 +10,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.content.Intent
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
@@ -21,10 +22,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.audioloop.data.AudioRepository
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
@@ -42,22 +46,30 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val ctx: Context get() = getApplication()
     private val filesDir: File get() = ctx.filesDir
+    private val repository = AudioRepository(ctx)
 
     // ── State ──
     private val _uiState = MutableStateFlow(AudioLoopUiState())
     val uiState: StateFlow<AudioLoopUiState> = _uiState.asStateFlow()
 
+
     // Waveform cache (observable map for Compose)
     val waveformCache = mutableStateMapOf<String, List<Int>>()
 
     // ── Internal refs ──
-    private var mediaPlayer: MediaPlayer? = null
     lateinit var mediaSessionManager: MediaSessionManager
         private set
     lateinit var practiceStats: PracticeStatsManager
         private set
     lateinit var coachEngine: CoachEngine
         private set
+
+    // Backup for Undo
+    private var lastDeletedFile: File? = null
+    private var lastDeletedNoteFile: File? = null
+    private var lastDeletedWaveFile: File? = null
+    private var lastDeletedOriginalPath: File? = null
+    private var lastDeletedCategory: String? = null
     private lateinit var playlistManager: PlaylistManager
     lateinit var driveBackupManager: DriveBackupManager
         private set
@@ -67,6 +79,28 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     private var progressJob: Job? = null
     private var sessionTimerJob: Job? = null
     private var sessionStartTimeMs: Long = 0L
+
+    // Service binding
+    private var audioService: AudioService? = null
+    private val mediaPlayer: MediaPlayer? get() = audioService?.getMediaPlayer()
+    private val recordingReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
+                syncDatabase()
+            }
+        }
+    }
+
+    private val serviceConnection = object : android.content.ServiceConnection {
+        override fun onServiceConnected(name: android.content.ComponentName?, service: android.os.IBinder?) {
+            val binder = service as AudioService.AudioBinder
+            audioService = binder.getService()
+            audioService?.setMediaSessionManager(mediaSessionManager)
+        }
+        override fun onServiceDisconnected(name: android.content.ComponentName?) {
+            audioService = null
+        }
+    }
 
     // ── Initialization ──
 
@@ -81,13 +115,15 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         mediaSessionManager = MediaSessionManager(
             context = ctx,
             onPlay = {
-                if (_uiState.value.isPaused && mediaPlayer != null) {
+                val mp = audioService?.getMediaPlayer()
+                if (_uiState.value.isPaused && mp != null) {
                     resumePlaying()
                     mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
                 }
             },
             onPause = {
-                if (mediaPlayer?.isPlaying == true) {
+                val mp = audioService?.getMediaPlayer()
+                if (mp?.isPlaying == true) {
                     pausePlaying()
                     mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
                 }
@@ -122,7 +158,117 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 backupEmail = email
             )
         }
-        refreshPracticeStats()
+        // ... existing init ...
+        val intent = Intent(ctx, AudioService::class.java)
+        ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        // Sync and Observe DB
+        syncDatabaseAndObserve()
+
+        // Scan public Music/AudioLoop folder on first launch after reinstall
+        viewModelScope.launch(Dispatchers.IO) { importFromPublicStorage() }
+
+        // Register receiver for recording completion
+        val filter = android.content.IntentFilter(AudioService.ACTION_RECORDING_SAVED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ctx.registerReceiver(recordingReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            ctx.registerReceiver(recordingReceiver, filter)
+        }
+    }
+
+    private fun syncDatabaseAndObserve() {
+        viewModelScope.launch {
+            // Observe recordings for current category from Repository
+            _uiState.map { it.currentCategory }.distinctUntilChanged().collect { category ->
+                repository.getRecordingsByCategory(category).collect { items ->
+                    _uiState.update { it.copy(savedItems = items) }
+                }
+            }
+        }
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            // Initial sync: for each category, scan disk and put into DB
+            val currentCats = _uiState.value.categories
+            currentCats.forEach { cat ->
+                val diskItems = getSavedRecordings(cat)
+                diskItems.forEach { repository.insertRecording(it, cat) }
+            }
+        }
+    }
+
+    /**
+     * Scans the public Music/AudioLoop folder via MediaStore and copies any
+     * recordings found there into the app's internal storage, respecting
+     * sub-folder → category mapping.
+     *
+     * This is called once on startup so recordings survive app reinstalls
+     * (as long as the user granted READ_MEDIA_AUDIO or READ_EXTERNAL_STORAGE).
+     */
+    suspend fun importFromPublicStorage() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        try {
+            val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.RELATIVE_PATH
+            )
+            val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+            val selectionArgs = arrayOf("Music/AudioLoop/%")
+
+            var importedCount = 0
+            ctx.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                val idCol    = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val nameCol  = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+                val pathCol  = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
+
+                while (cursor.moveToNext()) {
+                    val mediaId = cursor.getLong(idCol)
+                    val name    = cursor.getString(nameCol) ?: continue
+                    val relPath = cursor.getString(pathCol) ?: continue
+
+                    // Derive category from sub-folder, e.g. "Music/AudioLoop/English/" → "English"
+                    val categoryName = relPath
+                        .removePrefix("Music/AudioLoop/")
+                        .trimEnd('/')
+                        .split("/")
+                        .firstOrNull()
+                        ?.takeIf { it.isNotBlank() }
+                        ?: "General"
+
+                    // Resolve destination
+                    val destFolder = if (categoryName == "General") filesDir
+                                     else File(filesDir, categoryName).apply { mkdirs() }
+                    val destFile = File(destFolder, name)
+
+                    // Skip if already present in internal storage
+                    if (destFile.exists()) continue
+
+                    // Copy from MediaStore URI
+                    val uri = android.content.ContentUris.withAppendedId(collection, mediaId)
+                    try {
+                        ctx.contentResolver.openInputStream(uri)?.use { input ->
+                            java.io.FileOutputStream(destFile).use { output -> input.copyTo(output) }
+                        }
+                        // Register in Room
+                        val (durStr, durMs) = getDuration(destFile)
+                        val item = RecordingItem(destFile, name, durStr, durMs, Uri.fromFile(destFile), "")
+                        repository.insertRecording(item, categoryName)
+                        importedCount++
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+            }
+
+            if (importedCount > 0) {
+                withContext(Dispatchers.Main) {
+                    showSnackbar("Found $importedCount recording(s) in public storage – imported!")
+                    loadCategoriesAndFiles()
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     // ── Category & File Management ──
@@ -260,19 +406,26 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         if (item.file.renameTo(targetFile)) {
             if (noteFile.exists()) noteFile.renameTo(getNoteFile(targetFile))
             if (waveFile.exists()) waveFile.renameTo(getWaveformFile(targetFile))
+            viewModelScope.launch {
+                repository.deleteRecording(item.file.absolutePath)
+                repository.insertRecording(item.copy(file = targetFile), targetCategory)
+            }
             updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
             showSnackbar("Moved")
         } else {
             try {
                 item.file.inputStream().use { input -> targetFile.outputStream().use { output -> input.copyTo(output) } }
                 item.file.delete()
+                viewModelScope.launch {
+                    repository.deleteRecording(item.file.absolutePath)
+                    repository.insertRecording(item.copy(file = targetFile), targetCategory)
+                }
                 updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
                 showSnackbar("Moved")
             } catch (e: Exception) {
                 showSnackbar("Error moving", isError = true)
             }
         }
-        refreshFileList()
     }
 
     private fun updateOrderAfterMove(fileName: String, fromCategory: String, toCategory: String) {
@@ -308,13 +461,65 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         oldFile.renameTo(newFile)
         if (oldNote.exists()) oldNote.renameTo(getNoteFile(newFile))
         if (oldWave.exists()) oldWave.renameTo(getWaveformFile(newFile))
+        viewModelScope.launch {
+            repository.deleteRecording(oldFile.absolutePath)
+            repository.insertRecording(item.copy(file = newFile, name = newFileName), _uiState.value.currentCategory)
+        }
         refreshFileList()
     }
 
     fun deleteFile(item: RecordingItem) {
-        getNoteFile(item.file).delete()
-        getWaveformFile(item.file).delete()
-        if (item.file.delete()) refreshFileList()
+        viewModelScope.launch {
+            val file = item.file
+            val noteFile = getNoteFile(file)
+            val waveFile = getWaveformFile(file)
+            
+            // 1. Prepare Trash folder
+            val trashDir = File(filesDir, ".trash").apply { mkdirs() }
+            val timestamp = System.currentTimeMillis()
+            val trashFile = File(trashDir, "${timestamp}_${file.name}")
+            val trashNote = File(trashDir, "${timestamp}_${file.name}.note")
+            val trashWave = File(trashDir, "${timestamp}_${file.name}.wave")
+
+            // 2. Backup current state for Undo
+            lastDeletedFile = trashFile
+            lastDeletedNoteFile = if (noteFile.exists()) trashNote else null
+            lastDeletedWaveFile = if (waveFile.exists()) trashWave else null
+            lastDeletedOriginalPath = file
+            lastDeletedCategory = _uiState.value.currentCategory
+
+            // 3. Move to trash
+            val moved = file.renameTo(trashFile)
+            if (moved) {
+                if (noteFile.exists()) noteFile.renameTo(trashNote)
+                if (waveFile.exists()) waveFile.renameTo(trashWave)
+                
+                repository.deleteRecording(file.absolutePath)
+                showSnackbar(
+                    message = "Deleted ${item.name}",
+                    actionLabel = "Undo"
+                )
+            } else {
+                showSnackbar("Error deleting file", isError = true)
+            }
+        }
+    }
+
+    fun undoDelete() {
+        val original = lastDeletedOriginalPath ?: return
+        val trash = lastDeletedFile ?: return
+        
+        if (trash.exists()) {
+            trash.renameTo(original)
+            lastDeletedNoteFile?.let { if (it.exists()) it.renameTo(getNoteFile(original)) }
+            lastDeletedWaveFile?.let { if (it.exists()) it.renameTo(getWaveformFile(original)) }
+            
+            lastDeletedFile = null
+            lastDeletedOriginalPath = null
+            
+            refreshFileList()
+            showSnackbar("Restored")
+        }
     }
 
     fun shareFile(item: RecordingItem) {
@@ -335,29 +540,40 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun importFile(uri: Uri) {
         val category = _uiState.value.currentCategory
-        try {
-            var fileName = "import_${System.currentTimeMillis()}"
-            ctx.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                    if (idx != -1) fileName = cursor.getString(idx)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                var fileName = "import_${System.currentTimeMillis()}"
+                ctx.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                        if (idx != -1) fileName = cursor.getString(idx)
+                    }
+                }
+                val extension = fileName.substringAfterLast('.', "")
+                val nameWithoutExt = if (extension.isNotEmpty()) fileName.substringBeforeLast('.') else fileName
+                var safeName = sanitizeName(nameWithoutExt)
+                if (safeName.isBlank()) safeName = "untitled_audio"
+                val finalFileName = if (extension.isNotEmpty()) "$safeName.$extension" else "$safeName.m4a"
+                val folder = if (category == "General") filesDir else File(filesDir, category).apply { mkdirs() }
+                val targetFile = File(folder, finalFileName)
+                
+                ctx.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(targetFile).use { output -> input.copyTo(output) }
+                }
+                
+                val (durStr, durMs) = getDuration(targetFile)
+                val newItem = RecordingItem(targetFile, targetFile.name, durStr, durMs, Uri.fromFile(targetFile), "")
+                repository.insertRecording(newItem, category)
+                
+                withContext(Dispatchers.Main) {
+                    showSnackbar("Imported: $safeName")
+                    precomputeWaveformAsync(targetFile)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showSnackbar("Error importing", isError = true)
                 }
             }
-            val extension = fileName.substringAfterLast('.', "")
-            val nameWithoutExt = if (extension.isNotEmpty()) fileName.substringBeforeLast('.') else fileName
-            var safeName = sanitizeName(nameWithoutExt)
-            if (safeName.isBlank()) safeName = "untitled_audio"
-            val finalFileName = if (extension.isNotEmpty()) "$safeName.$extension" else "$safeName.m4a"
-            val folder = if (category == "General") filesDir else File(filesDir, category).apply { mkdirs() }
-            val targetFile = File(folder, finalFileName)
-            ctx.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(targetFile).use { output -> input.copyTo(output) }
-            }
-            showSnackbar("Imported: $safeName")
-            precomputeWaveformAsync(targetFile)
-            refreshFileList()
-        } catch (e: Exception) {
-            showSnackbar("Error importing", isError = true)
         }
     }
 
@@ -517,15 +733,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
     }
 
-    private fun stopPlaying(endSession: Boolean = true) {
+    fun stopPlaying(endSession: Boolean = true) {
+        audioService?.stopPlayback()
+        _uiState.update { it.copy(isPaused = false) }
         shadowingJob?.cancel()
         shadowingJob = null
         _uiState.update { it.copy(shadowCountdownText = "") }
         if (endSession) onSessionEnd()
-        try { mediaPlayer?.stop() } catch (_: IllegalStateException) {}
-        try { mediaPlayer?.release() } catch (_: Exception) {}
-        mediaPlayer = null
-        _uiState.update { it.copy(isPaused = false) }
         if (::mediaSessionManager.isInitialized) {
             mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
             mediaSessionManager.abandonAudioFocus()
@@ -537,9 +751,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         progressJob = viewModelScope.launch {
             while (true) {
                 val state = _uiState.value
-                if (state.playingFileName.isNotEmpty() && mediaPlayer?.isPlaying == true) {
-                    val current = mediaPlayer?.currentPosition ?: 0
-                    val total = mediaPlayer?.duration ?: 1
+                val mp = audioService?.getMediaPlayer()
+                if (state.playingFileName.isNotEmpty() && mp?.isPlaying == true) {
+                    val current = mp.currentPosition
+                    val total = mp.duration
                     _uiState.update {
                         it.copy(
                             currentProgress = current.toFloat() / total.toFloat(),
@@ -604,99 +819,63 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             return
         }
 
-        stopPlaying(endSession = false)
-
+        // DELEGATE TO SERVICE
+        val itemToPlay = allFiles[currentIndex]
+        onNext(itemToPlay.name)
+        
         if (currentIndex == 0 && sessionStartTimeMs == 0L) {
             onSessionStart()
         }
 
-        val itemToPlay = allFiles[currentIndex]
-        onNext(itemToPlay.name)
-
-        try {
-            val newPlayer = MediaPlayer()
-            mediaPlayer = newPlayer
-            newPlayer.apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                if (itemToPlay.uri != Uri.EMPTY) {
-                    setDataSource(ctx, itemToPlay.uri)
-                } else {
-                    java.io.FileInputStream(itemToPlay.file).use { fis -> setDataSource(fis.fd) }
-                }
-
-                setOnPreparedListener { mp ->
-                    if (mp != mediaPlayer) return@setOnPreparedListener
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        try { mp.playbackParams = mp.playbackParams.setSpeed(speed).setPitch(pitch) } catch (_: Exception) {}
-                    }
-                    mp.isLooping = false
-                    if (!mediaSessionManager.requestAudioFocus()) {
-                        stopPlaying()
-                        _uiState.update { it.copy(playingFileName = "") }
-                        onComplete()
-                        return@setOnPreparedListener
-                    }
-                    mp.start()
-                    _uiState.update { it.copy(isPaused = false) }
-                    mediaSessionManager.updateMetadata(itemToPlay.name, mp.duration.toLong())
-                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-                }
-
-                setOnCompletionListener {
-                    if (isShadowing) {
-                        val duration = it.duration.toLong()
-                        val pauseDuration = if (_uiState.value.shadowPauseSeconds > 0) {
-                            _uiState.value.shadowPauseSeconds * 1000L
-                        } else {
-                            duration.coerceAtMost(15000L)
-                        }
-                        shadowingJob = viewModelScope.launch(Dispatchers.Main) {
-                            _uiState.update { s -> s.copy(isPaused = true) }
-                            var remaining = pauseDuration
-                            while (remaining > 0 && isActive) {
-                                val secs = (remaining / 1000) + 1
-                                _uiState.update { s -> s.copy(shadowCountdownText = "Repeat in ${secs}s...") }
-                                delay(1000L.coerceAtMost(remaining))
-                                remaining -= 1000L
-                            }
-                            _uiState.update { s -> s.copy(shadowCountdownText = "") }
-                            if (isActive) {
-                                playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                            }
-                        }
-                    } else {
-                        if (gapSeconds > 0 && currentIndex + 1 < allFiles.size) {
-                            shadowingJob = viewModelScope.launch(Dispatchers.Main) {
-                                _uiState.update { s -> s.copy(isPaused = true) }
-                                delay(gapSeconds * 1000L)
-                                if (isActive) {
-                                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                                }
-                            }
-                        } else {
+        audioService?.setOnCompletionListener {
+            if (isShadowing) {
+                 // Shadowing logic
+                 val duration = audioService?.getMediaPlayer()?.duration?.toLong() ?: 0L
+                 val pauseDuration = if (_uiState.value.shadowPauseSeconds > 0) {
+                     _uiState.value.shadowPauseSeconds * 1000L
+                 } else {
+                     duration.coerceAtMost(15000L)
+                 }
+                 shadowingJob = viewModelScope.launch(Dispatchers.Main) {
+                     _uiState.update { s -> s.copy(isPaused = true) }
+                     var remaining = pauseDuration
+                     while (remaining > 0 && isActive) {
+                         val secs = (remaining / 1000) + 1
+                         _uiState.update { s -> s.copy(shadowCountdownText = "Repeat in ${secs}s...") }
+                         delay(1000L.coerceAtMost(remaining))
+                         remaining -= 1000L
+                     }
+                     _uiState.update { s -> s.copy(shadowCountdownText = "") }
+                     if (isActive) {
+                         playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
+                     }
+                 }
+            } else {
+                if (gapSeconds > 0 && currentIndex + 1 < allFiles.size) {
+                    shadowingJob = viewModelScope.launch(Dispatchers.Main) {
+                        _uiState.update { s -> s.copy(isPaused = true) }
+                        delay(gapSeconds * 1000L)
+                        if (isActive) {
                             playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
                         }
                     }
-                }
-
-                setOnErrorListener { _, what, extra ->
-                    showSnackbar("Playback error: $what / $extra", isError = true)
+                } else {
                     playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                    true
                 }
-                prepareAsync()
             }
-        } catch (e: Exception) {
-            try { mediaPlayer?.release() } catch (_: Exception) {}
-            mediaPlayer = null
-            showSnackbar("Error opening file: ${e.message}", isError = true)
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
         }
+
+        audioService?.playFile(itemToPlay, speed, pitch)
+        _uiState.update { it.copy(isPaused = false) }
+
+        // Start progress tracking locally in VM for UI updates
+        startProgressTracking()
+
+        // Listen for completion through service?
+        // Actually we can set a listener on the player in the service
+        // But for easier playlist logic, we can use the completion broadcast
+        // Or better: pass the complete callback to the service? 
+        // No, Binder is better. Let's assume progress tracking will detect completion or we use completion observer.
     }
 
     private fun updatePlaybackParams(speed: Float, pitch: Float) {
@@ -1482,11 +1661,146 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         return list
     }
 
-    // ── Cleanup ──
+    // --- UI Actions ---
+
+    fun setNavTab(tab: String) {
+        _uiState.update { it.copy(currentNavTab = tab) }
+    }
+
+    fun setSearchVisible(visible: Boolean) {
+        _uiState.update { it.copy(isSearchVisible = visible) }
+    }
+
+    fun setRecording(recording: Boolean) {
+        _uiState.update { it.copy(isRecording = recording) }
+    }
+
+    fun setSelectionMode(enabled: Boolean) {
+        _uiState.update { it.copy(isSelectionMode = enabled) }
+        if (!enabled) clearSelection()
+    }
+
+    fun toggleFileSelection(name: String) {
+        val current = _uiState.value.selectedFiles.toMutableSet()
+        if (current.contains(name)) current.remove(name) else current.add(name)
+        _uiState.update { it.copy(selectedFiles = current) }
+    }
+
+    fun clearSelection() {
+        _uiState.update { it.copy(selectedFiles = emptySet()) }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        _uiState.update { it.copy(playbackSpeed = speed) }
+    }
+
+    fun setLoopMode(mode: Int) {
+        _uiState.update { it.copy(loopMode = mode) }
+    }
+
+    fun setShadowingMode(enabled: Boolean) {
+        _uiState.update { it.copy(isShadowingMode = enabled) }
+    }
+
+    fun setShadowPauseSeconds(seconds: Int) {
+        _uiState.update { it.copy(shadowPauseSeconds = seconds) }
+    }
+
+    fun setSettingsOpen(open: Boolean) {
+        _uiState.update { it.copy(settingsOpen = open) }
+    }
+
+    fun setShowCategorySheet(show: Boolean) {
+        _uiState.update { it.copy(showCategorySheet = show) }
+    }
+
+    fun setShowPlaylistSheet(show: Boolean) {
+        _uiState.update { it.copy(showPlaylistSheet = show) }
+    }
+
+    fun setShowBackupSheet(show: Boolean) {
+        _uiState.update { it.copy(showBackupSheet = show) }
+    }
+
+    fun openRenameDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showRenameDialog = true, itemToModify = item) }
+    }
+
+    fun closeRenameDialog() {
+        _uiState.update { it.copy(showRenameDialog = false, itemToModify = null) }
+    }
+
+    fun openMoveDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showMoveDialog = true, itemToModify = item) }
+    }
+
+    fun closeMoveDialog() {
+        _uiState.update { it.copy(showMoveDialog = false, itemToModify = null) }
+    }
+
+    fun openDeleteDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showDeleteDialog = true, recordingToDelete = item) }
+    }
+
+    fun closeDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = false, recordingToDelete = null) }
+    }
+
+    fun openTrimDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showTrimDialog = true, recordingToTrim = item) }
+    }
+
+    fun closeTrimDialog() {
+        _uiState.update { it.copy(showTrimDialog = false, recordingToTrim = null) }
+    }
+
+    fun openNoteDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showNoteDialog = true, recordingToNote = item) }
+    }
+
+    fun closeNoteDialog() {
+        _uiState.update { it.copy(showNoteDialog = false, recordingToNote = null) }
+    }
+
+    fun openInfoDialog(item: RecordingItem) {
+        _uiState.update { it.copy(showInfoDialog = true, recordingToInfo = item) }
+    }
+
+    fun closeInfoDialog() {
+        _uiState.update { it.copy(showInfoDialog = false, recordingToInfo = null) }
+    }
+
+    fun openPlaylistView(playlistId: String) {
+        _uiState.update { it.copy(showPlaylistView = true, viewingPlaylistId = playlistId) }
+    }
+
+    fun closePlaylistView() {
+        _uiState.update { it.copy(showPlaylistView = false, viewingPlaylistId = null) }
+    }
+
+    fun openPlaylistEditor(playlist: Playlist?) {
+        _uiState.update { it.copy(editingPlaylist = playlist) }
+    }
+
+    fun closePlaylistEditor() {
+        _uiState.update { it.copy(editingPlaylist = null) }
+    }
 
     override fun onCleared() {
         stopPlaying()
+        try { ctx.unregisterReceiver(recordingReceiver) } catch (_: Exception) {}
         if (::mediaSessionManager.isInitialized) mediaSessionManager.release()
+        try { ctx.unbindService(serviceConnection) } catch (_: Exception) {}
         super.onCleared()
+    }
+
+    fun syncDatabase() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val categories = _uiState.value.categories
+            categories.forEach { cat ->
+                val items = getSavedRecordings(cat)
+                items.forEach { repository.insertRecording(it, cat) }
+            }
+        }
     }
 }
