@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -44,7 +44,7 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
     
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -59,11 +59,11 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                     modifier = Modifier.focusRequester(focusRequester),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
-                        unfocusedTextColor = Zinc300,
-                        focusedBorderColor = themeColors.primary500,
-                        unfocusedBorderColor = Zinc600,
-                        focusedLabelColor = themeColors.primary500,
-                        unfocusedLabelColor = Zinc500
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                 )
@@ -73,10 +73,10 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                 Spacer(modifier = Modifier.height(20.dp))
                 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
+                    TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     Button(
                         onClick = { onConfirm(textState.text) },
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) { Text("Save") }
                 }
             }
@@ -88,7 +88,7 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
 fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (String) -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp).heightIn(max = 400.dp)) {
@@ -97,18 +97,18 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
                     items(categories) { cat ->
                         Text(
                             text = cat,
-                            color = Zinc200,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onSelect(cat) }
                                 .padding(vertical = 12.dp),
                             fontSize = 16.sp
                         )
-                        HorizontalDivider(color = Zinc800)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     }
                 }
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
+                    TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
             }
         }
@@ -129,7 +129,7 @@ fun NoteEditDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
@@ -143,7 +143,7 @@ fun NoteEditDialog(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     fileName,
-                    style = TextStyle(color = Zinc500, fontSize = 12.sp),
+                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp),
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -157,11 +157,11 @@ fun NoteEditDialog(
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
-                        unfocusedTextColor = Zinc300,
-                        focusedBorderColor = themeColors.primary500,
-                        unfocusedBorderColor = Zinc600,
-                        focusedLabelColor = themeColors.primary500,
-                        unfocusedLabelColor = Zinc500
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                 )
@@ -182,10 +182,10 @@ fun NoteEditDialog(
                         Spacer(modifier = Modifier.width(1.dp))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) }
+                        TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         Button(
                             onClick = { onConfirm(textState.text) },
-                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) { Text("Save") }
                     }
                 }
@@ -198,9 +198,9 @@ fun NoteEditDialog(
 fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Zinc900,
+        containerColor = MaterialTheme.colorScheme.surface,
         titleContentColor = Color.White,
-        textContentColor = Zinc300,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
         title = { Text(title) },
         text = { Text(text) },
         confirmButton = { 
@@ -209,7 +209,7 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
                 colors = ButtonDefaults.buttonColors(containerColor = Red600)
             ) { Text("Delete") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = Zinc400) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) } }
     )
 }
 
@@ -235,9 +235,9 @@ fun FileInfoDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Zinc600)
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp).widthIn(max = 400.dp)
@@ -250,7 +250,7 @@ fun FileInfoDialog(
                 Text(
                     item.name.substringBeforeLast(".")
                         .replace(Regex("(\\d{2})_(\\d{2})_(\\d{2})"), "$1:$2:$3"),
-                    style = TextStyle(color = themeColors.primary400, fontSize = 13.sp),
+                    style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -260,8 +260,8 @@ fun FileInfoDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Zinc800.copy(alpha = 0.5f))
-                        .border(1.dp, Zinc700, RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -270,7 +270,7 @@ fun FileInfoDialog(
                     InfoRow("Size", formatFileSize(file.length()))
 
                     if (audioInfo.value.sampleRate > 0) {
-                        HorizontalDivider(color = Zinc700)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         InfoRow("Sample Rate", "${audioInfo.value.sampleRate} Hz")
                         InfoRow("Channels", if (audioInfo.value.channels == 1) "Mono" else "Stereo")
                         if (audioInfo.value.bitRate > 0) {
@@ -281,7 +281,7 @@ fun FileInfoDialog(
                         }
                     }
 
-                    HorizontalDivider(color = Zinc700)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     InfoRow("Location", file.parent ?: "Unknown", isPath = true)
                 }
 
@@ -290,7 +290,7 @@ fun FileInfoDialog(
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Button(
                         onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) { Text("Close") }
                 }
             }
@@ -307,13 +307,13 @@ private fun InfoRow(label: String, value: String, isPath: Boolean = false) {
     ) {
         Text(
             label,
-            style = TextStyle(color = Zinc500, fontSize = 13.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Medium),
             modifier = Modifier.widthIn(min = 80.dp)
         )
         Text(
             value,
             style = TextStyle(
-                color = Zinc200,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 13.sp,
                 fontFamily = if (isPath) FontFamily.Monospace else FontFamily.Default
             ),
@@ -395,3 +395,4 @@ private fun readCompressedInfo(file: File): AudioInfo {
         try { extractor.release() } catch (_: Exception) {}
     }
 }
+

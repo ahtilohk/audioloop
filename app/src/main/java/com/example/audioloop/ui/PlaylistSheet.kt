@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -75,7 +75,7 @@ fun PlaylistListSheet(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Zinc950)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -86,8 +86,8 @@ fun PlaylistListSheet(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                themeColors.primary900.copy(alpha = 0.4f),
-                                Zinc950
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                MaterialTheme.colorScheme.background
                             )
                         )
                     )
@@ -107,10 +107,10 @@ fun PlaylistListSheet(
                             onClick = onClose,
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Zinc900, CircleShape)
-                                .border(1.dp, Zinc700, CircleShape)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Zinc300)
+                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                         }
 
                         Column {
@@ -124,7 +124,7 @@ fun PlaylistListSheet(
                             )
                             Text(
                                 "${playlists.size} playlist${if (playlists.size != 1) "s" else ""}",
-                                style = TextStyle(color = themeColors.primary400, fontSize = 13.sp)
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
                             )
                         }
                     }
@@ -132,7 +132,7 @@ fun PlaylistListSheet(
                     // New playlist button
                     Button(
                         onClick = onCreateNew,
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
@@ -156,14 +156,14 @@ fun PlaylistListSheet(
                     Icon(
                         AppIcons.QueueMusic,
                         contentDescription = null,
-                        tint = Zinc700,
+                        tint = MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier.size(64.dp)
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
                         "No playlists yet",
                         style = TextStyle(
-                            color = Zinc400,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -171,13 +171,13 @@ fun PlaylistListSheet(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "Create a study session to get started",
-                        style = TextStyle(color = Zinc500, fontSize = 13.sp)
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                     )
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = onCreateNew,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = themeColors.primary600
+                            containerColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -209,18 +209,18 @@ fun PlaylistListSheet(
                                 .then(
                                     if (isPlaying) Modifier.border(
                                         1.5.dp,
-                                        themeColors.primary400.copy(alpha = glowAlpha),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
                                         RoundedCornerShape(14.dp)
                                     ) else Modifier.border(
-                                        1.dp, Zinc700, RoundedCornerShape(14.dp)
+                                        1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp)
                                     )
                                 )
                                 .clickable { onView(playlist) },
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isPlaying)
-                                    themeColors.primary900.copy(alpha = 0.4f)
-                                else Zinc800.copy(alpha = 0.7f)
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
                             )
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
@@ -251,7 +251,7 @@ fun PlaylistListSheet(
                                             Text(
                                                 "${playlist.files.size} tracks",
                                                 style = TextStyle(
-                                                    color = Zinc400,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     fontSize = 12.sp
                                                 )
                                             )
@@ -259,7 +259,7 @@ fun PlaylistListSheet(
                                             Text(
                                                 formatDuration(playlist),
                                                 style = TextStyle(
-                                                    color = themeColors.primary400,
+                                                    color = MaterialTheme.colorScheme.primary,
                                                     fontSize = 12.sp
                                                 )
                                             )
@@ -268,7 +268,7 @@ fun PlaylistListSheet(
                                                 Box(
                                                     modifier = Modifier
                                                         .background(
-                                                            themeColors.primary800.copy(alpha = 0.5f),
+                                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                                             RoundedCornerShape(6.dp)
                                                         )
                                                         .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -276,7 +276,7 @@ fun PlaylistListSheet(
                                                     Text(
                                                         "${playlist.playCount}x",
                                                         style = TextStyle(
-                                                            color = themeColors.primary300,
+                                                            color = MaterialTheme.colorScheme.primary,
                                                             fontSize = 11.sp,
                                                             fontWeight = FontWeight.Medium
                                                         )
@@ -288,7 +288,7 @@ fun PlaylistListSheet(
                                                 Text(
                                                     "Shuffle",
                                                     style = TextStyle(
-                                                        color = Zinc500,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         fontSize = 11.sp
                                                     )
                                                 )
@@ -306,7 +306,7 @@ fun PlaylistListSheet(
                                                 .background(
                                                     Brush.linearGradient(
                                                         listOf(
-                                                            themeColors.primary500,
+                                                            MaterialTheme.colorScheme.primary,
                                                             themeColors.primary700
                                                         )
                                                     ),
@@ -325,12 +325,12 @@ fun PlaylistListSheet(
                                             onClick = { onEdit(playlist) },
                                             modifier = Modifier
                                                 .size(40.dp)
-                                                .background(Zinc700.copy(alpha = 0.3f), CircleShape)
+                                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), CircleShape)
                                         ) {
                                             Icon(
                                                 AppIcons.Edit,
                                                 contentDescription = "Edit",
-                                                tint = Zinc400,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -339,12 +339,12 @@ fun PlaylistListSheet(
                                             onClick = { playlistToDelete = playlist },
                                             modifier = Modifier
                                                 .size(40.dp)
-                                                .background(Zinc700.copy(alpha = 0.5f), CircleShape)
+                                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), CircleShape)
                                         ) {
                                             Icon(
                                                 AppIcons.Delete,
                                                 contentDescription = "Delete",
-                                                tint = Zinc400,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -382,7 +382,7 @@ fun FilePickerSheet(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Zinc950)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -392,7 +392,7 @@ fun FilePickerSheet(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(themeColors.primary900.copy(alpha = 0.3f), Zinc950)
+                            listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), MaterialTheme.colorScheme.background)
                         )
                     )
                     .padding(horizontal = 16.dp, vertical = 14.dp),
@@ -403,13 +403,13 @@ fun FilePickerSheet(
                     onClick = onClose,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Zinc900, CircleShape)
-                        .border(1.dp, Zinc700, CircleShape)
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 ) {
                     Icon(
                         AppIcons.ArrowBack,
                         contentDescription = "Back",
-                        tint = Zinc300
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(
@@ -424,15 +424,15 @@ fun FilePickerSheet(
                     onClick = { onConfirm(selected.toList()) },
                     enabled = selected.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = themeColors.primary600,
-                        disabledContainerColor = Zinc700
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.outlineVariant
                     ),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Text(
                         if (selected.isEmpty()) "Select" else "Add ${selected.size}",
-                        color = if (selected.isNotEmpty()) Color.White else Zinc500,
+                        color = if (selected.isNotEmpty()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -452,12 +452,12 @@ fun FilePickerSheet(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(
-                                if (isActive) themeColors.primary600
-                                else Zinc800
+                                if (isActive) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant
                             )
                             .border(
                                 1.dp,
-                                if (isActive) themeColors.primary500 else Zinc700,
+                                if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 RoundedCornerShape(8.dp)
                             )
                             .clickable { selectedCategory = category }
@@ -465,7 +465,7 @@ fun FilePickerSheet(
                     ) {
                         Text(
                             category,
-                            color = if (isActive) Color.White else Zinc400,
+                            color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
                         )
@@ -481,7 +481,7 @@ fun FilePickerSheet(
                 ) {
                     Text(
                         "No files in this category",
-                        style = TextStyle(color = Zinc500, fontSize = 14.sp)
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     )
                 }
             } else {
@@ -505,16 +505,16 @@ fun FilePickerSheet(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
-                                        isAlready -> Zinc800.copy(alpha = 0.3f)
-                                        isSelected -> themeColors.primary900.copy(alpha = 0.3f)
-                                        else -> Zinc800.copy(alpha = 0.5f)
+                                        isAlready -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                        isSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                     }
                                 )
                                 .border(
                                     1.dp,
                                     when {
-                                        isAlready -> Zinc700
-                                        isSelected -> themeColors.primary500
+                                        isAlready -> MaterialTheme.colorScheme.outlineVariant
+                                        isSelected -> MaterialTheme.colorScheme.primary
                                         else -> Color.Transparent
                                     },
                                     RoundedCornerShape(10.dp)
@@ -534,17 +534,17 @@ fun FilePickerSheet(
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(
                                         when {
-                                            isAlready -> Zinc700
-                                            isSelected -> themeColors.primary600
-                                            else -> Zinc700
+                                            isAlready -> MaterialTheme.colorScheme.outlineVariant
+                                            isSelected -> MaterialTheme.colorScheme.primary
+                                            else -> MaterialTheme.colorScheme.outlineVariant
                                         }
                                     )
                                     .border(
                                         1.dp,
                                         when {
-                                            isAlready -> Zinc600
-                                            isSelected -> themeColors.primary400
-                                            else -> Zinc600
+                                            isAlready -> MaterialTheme.colorScheme.outline
+                                            isSelected -> MaterialTheme.colorScheme.primary
+                                            else -> MaterialTheme.colorScheme.outline
                                         },
                                         RoundedCornerShape(6.dp)
                                     ),
@@ -554,7 +554,7 @@ fun FilePickerSheet(
                                     Icon(
                                         AppIcons.Check,
                                         contentDescription = null,
-                                        tint = if (isAlready) Zinc500 else Color.White,
+                                        tint = if (isAlready) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
                                         modifier = Modifier.size(14.dp)
                                     )
                                 }
@@ -564,14 +564,14 @@ fun FilePickerSheet(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     item.name,
-                                    color = if (isAlready) Zinc500 else Zinc200,
+                                    color = if (isAlready) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                     fontSize = 13.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     item.durationString,
-                                    color = Zinc500,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             }
@@ -579,7 +579,7 @@ fun FilePickerSheet(
                             if (isAlready) {
                                 Text(
                                     "added",
-                                    color = Zinc600,
+                                    color = MaterialTheme.colorScheme.outline,
                                     fontSize = 11.sp
                                 )
                             }
@@ -592,3 +592,4 @@ fun FilePickerSheet(
         }
     }
 }
+

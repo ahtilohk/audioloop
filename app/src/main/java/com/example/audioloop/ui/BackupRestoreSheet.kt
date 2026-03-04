@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -47,9 +47,9 @@ fun BackupRestoreSheet(
     restoreConfirmBackup?.let { backup ->
         AlertDialog(
             onDismissRequest = { restoreConfirmBackup = null },
-            containerColor = Zinc900,
+            containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = Color.White,
-            textContentColor = Zinc300,
+            textContentColor = MaterialTheme.colorScheme.onSurface,
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -58,7 +58,7 @@ fun BackupRestoreSheet(
                     Icon(
                         imageVector = AppIcons.CloudDownload,
                         contentDescription = null,
-                        tint = themeColors.primary400,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
                     Text("Restore Backup?")
@@ -72,7 +72,7 @@ fun BackupRestoreSheet(
                     )
                     Text(
                         backup.name,
-                        style = TextStyle(color = Zinc400, fontSize = 12.sp),
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -80,7 +80,7 @@ fun BackupRestoreSheet(
                         val mb = backup.sizeBytes / (1024.0 * 1024.0)
                         Text(
                             String.format("%.1f MB", mb),
-                            style = TextStyle(color = Zinc500, fontSize = 12.sp)
+                            style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -96,7 +96,7 @@ fun BackupRestoreSheet(
                         onRestoreFromBackup(backup.id)
                         restoreConfirmBackup = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
                         imageVector = AppIcons.CloudDownload,
@@ -110,7 +110,7 @@ fun BackupRestoreSheet(
             },
             dismissButton = {
                 TextButton(onClick = { restoreConfirmBackup = null }) {
-                    Text("Cancel", color = Zinc400)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -121,7 +121,7 @@ fun BackupRestoreSheet(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Zinc950)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -132,8 +132,8 @@ fun BackupRestoreSheet(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                themeColors.primary900.copy(alpha = 0.4f),
-                                Zinc950
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                MaterialTheme.colorScheme.background
                             )
                         )
                     )
@@ -153,10 +153,10 @@ fun BackupRestoreSheet(
                             onClick = onClose,
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Zinc900, CircleShape)
-                                .border(1.dp, Zinc700, CircleShape)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Zinc300)
+                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                         }
 
                         Column {
@@ -174,7 +174,7 @@ fun BackupRestoreSheet(
                             }
                             Text(
                                 statusText,
-                                style = TextStyle(color = themeColors.primary400, fontSize = 13.sp),
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -195,11 +195,11 @@ fun BackupRestoreSheet(
                     val progressColor = when {
                         backupProgress.startsWith("✅") -> Forest400
                         backupProgress.startsWith("❌") -> Red400
-                        else -> themeColors.primary300
+                        else -> MaterialTheme.colorScheme.primary
                     }
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Zinc900.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
                         border = BorderStroke(1.dp, progressColor.copy(alpha = 0.3f))
                     ) {
                         Text(
@@ -215,8 +215,8 @@ fun BackupRestoreSheet(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = Zinc900.copy(alpha = 0.5f),
-                        border = BorderStroke(1.dp, Zinc700)
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -226,13 +226,13 @@ fun BackupRestoreSheet(
                             Icon(
                                 imageVector = AppIcons.CloudSync,
                                 contentDescription = null,
-                                tint = Zinc500,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(48.dp)
                             )
                             Text(
                                 "Sign in to back up your recordings and settings to Google Drive",
                                 style = TextStyle(
-                                    color = Zinc400,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp,
                                     lineHeight = 20.sp
                                 ),
@@ -242,7 +242,7 @@ fun BackupRestoreSheet(
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
-                                color = if (isBackupRunning) Zinc700 else themeColors.primary600,
+                                color = if (isBackupRunning) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary,
                                 onClick = { if (!isBackupRunning) onBackupSignIn() }
                             ) {
                                 Box(
@@ -266,8 +266,8 @@ fun BackupRestoreSheet(
                     // Account info card
                     Surface(
                         shape = RoundedCornerShape(14.dp),
-                        color = Zinc900.copy(alpha = 0.5f),
-                        border = BorderStroke(1.dp, Zinc700)
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Row(
                             modifier = Modifier
@@ -288,7 +288,7 @@ fun BackupRestoreSheet(
                                 )
                                 Text(
                                     backupEmail,
-                                    style = TextStyle(color = Zinc200, fontSize = 14.sp),
+                                    style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f, fill = false)
@@ -297,7 +297,7 @@ fun BackupRestoreSheet(
                             Text(
                                 "Sign out",
                                 style = TextStyle(
-                                    color = Zinc500,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium
                                 ),
@@ -317,7 +317,7 @@ fun BackupRestoreSheet(
                         Surface(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
-                            color = if (isBackupRunning) Zinc700 else themeColors.primary600,
+                            color = if (isBackupRunning) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary,
                             onClick = { if (!isBackupRunning) onBackupCreate() }
                         ) {
                             Row(
@@ -345,8 +345,8 @@ fun BackupRestoreSheet(
                         Surface(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
-                            color = if (isBackupRunning) Zinc700 else Zinc800,
-                            border = BorderStroke(1.dp, themeColors.primary600.copy(alpha = 0.6f)),
+                            color = if (isBackupRunning) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
                             onClick = { if (!isBackupRunning) onBackupList() }
                         ) {
                             Row(
@@ -357,14 +357,14 @@ fun BackupRestoreSheet(
                                 Icon(
                                     imageVector = AppIcons.CloudDownload,
                                     contentDescription = null,
-                                    tint = themeColors.primary300,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     "Restore",
                                     style = TextStyle(
-                                        color = themeColors.primary300,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -377,8 +377,8 @@ fun BackupRestoreSheet(
                     if (backupList.isNotEmpty()) {
                         Surface(
                             shape = RoundedCornerShape(14.dp),
-                            color = Zinc900.copy(alpha = 0.5f),
-                            border = BorderStroke(1.dp, Zinc700)
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
@@ -387,7 +387,7 @@ fun BackupRestoreSheet(
                                 Text(
                                     "Available backups",
                                     style = TextStyle(
-                                        color = Zinc400,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -396,7 +396,7 @@ fun BackupRestoreSheet(
                                     Surface(
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(12.dp),
-                                        color = Zinc800,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
                                         onClick = { restoreConfirmBackup = backup }
                                     ) {
                                         Row(
@@ -410,14 +410,14 @@ fun BackupRestoreSheet(
                                                 Text(
                                                     backup.date,
                                                     style = TextStyle(
-                                                        color = Zinc200,
+                                                        color = MaterialTheme.colorScheme.onSurface,
                                                         fontSize = 14.sp,
                                                         fontWeight = FontWeight.Medium
                                                     )
                                                 )
                                                 Text(
                                                     backup.name,
-                                                    style = TextStyle(color = Zinc500, fontSize = 11.sp),
+                                                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp),
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -430,13 +430,13 @@ fun BackupRestoreSheet(
                                                     val mb = backup.sizeBytes / (1024.0 * 1024.0)
                                                     Text(
                                                         String.format("%.1f MB", mb),
-                                                        style = TextStyle(color = Zinc500, fontSize = 11.sp)
+                                                        style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                                                     )
                                                 }
                                                 Icon(
                                                     imageVector = AppIcons.CloudDownload,
                                                     contentDescription = "Restore",
-                                                    tint = themeColors.primary400,
+                                                    tint = MaterialTheme.colorScheme.primary,
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                             }
@@ -451,3 +451,4 @@ fun BackupRestoreSheet(
         }
     }
 }
+

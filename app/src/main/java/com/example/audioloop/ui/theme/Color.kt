@@ -1,4 +1,4 @@
-package com.example.audioloop.ui.theme
+﻿package com.example.audioloop.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -152,3 +152,4 @@ val Primary = Cyan500
 val OnPrimary = Color.White
 val OnBackground = Color.White
 val OnSurface = Color.White
+

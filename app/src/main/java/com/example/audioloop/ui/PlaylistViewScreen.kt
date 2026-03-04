@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -74,7 +74,7 @@ fun PlaylistViewScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .background(themeColors.primary900.copy(alpha = 0.5f))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .statusBarsPadding()
     ) {
         // ── Header ──
@@ -84,8 +84,8 @@ fun PlaylistViewScreen(
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            themeColors.primary900.copy(alpha = 0.9f),
-                            themeColors.primary900.copy(alpha = 0.0f)
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.0f)
                         )
                     )
                 )
@@ -102,7 +102,7 @@ fun PlaylistViewScreen(
                     Icon(
                         imageVector = AppIcons.ArrowBack,
                         contentDescription = "Back",
-                        tint = themeColors.primary300,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -121,9 +121,9 @@ fun PlaylistViewScreen(
                                 .clip(CircleShape)
                                 .background(
                                     when {
-                                        !isActive -> Zinc600
-                                        isPaused -> Zinc500
-                                        else -> themeColors.primary400.copy(alpha = 0.5f + 0.5f * glowAlpha)
+                                        !isActive -> MaterialTheme.colorScheme.outline
+                                        isPaused -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + 0.5f * glowAlpha)
                                     }
                                 )
                         )
@@ -135,9 +135,9 @@ fun PlaylistViewScreen(
                             },
                             style = TextStyle(
                                 color = when {
-                                    !isActive -> Zinc600
-                                    isPaused -> Zinc500
-                                    else -> themeColors.primary400
+                                    !isActive -> MaterialTheme.colorScheme.outline
+                                    isPaused -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    else -> MaterialTheme.colorScheme.primary
                                 },
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
@@ -166,12 +166,12 @@ fun PlaylistViewScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(themeColors.primary800.copy(alpha = 0.5f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     ) {
                         Icon(
                             imageVector = if (isPaused) AppIcons.PlayArrow else AppIcons.Pause,
                             contentDescription = if (isPaused) "Resume" else "Pause",
-                            tint = themeColors.primary300,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -184,12 +184,12 @@ fun PlaylistViewScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Zinc800.copy(alpha = 0.6f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                     ) {
                         Icon(
                             imageVector = AppIcons.Stop,
                             contentDescription = "Stop",
-                            tint = Zinc400,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -208,15 +208,15 @@ fun PlaylistViewScreen(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                InfoPill("🔁 $loopText", themeColors.primary700.copy(alpha = 0.6f), themeColors.primary500.copy(alpha = 0.4f), themeColors.primary200)
+                InfoPill("🔁 $loopText", themeColors.primary700.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), themeColors.primary200)
                 if (playlist.speed != 1.0f)
-                    InfoPill("🎚 ${"%.1f".format(playlist.speed)}×", Zinc700.copy(alpha = 0.6f), Zinc600, Zinc300)
+                    InfoPill("🎚 ${"%.1f".format(playlist.speed)}×", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 if (playlist.gapSeconds > 0)
-                    InfoPill("⏱ ${playlist.gapSeconds}s gap", Zinc700.copy(alpha = 0.6f), Zinc600, Zinc300)
+                    InfoPill("⏱ ${playlist.gapSeconds}s gap", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 if (playlist.shuffle)
-                    InfoPill("🔀 Shuffle", Zinc700.copy(alpha = 0.6f), Zinc600, Zinc300)
+                    InfoPill("🔀 Shuffle", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.weight(1f))
-                Text("${playlist.files.size} tracks", color = Zinc500, fontSize = 11.sp)
+                Text("${playlist.files.size} tracks", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
             }
 
             HorizontalDivider(color = themeColors.primary700.copy(alpha = 0.3f), thickness = 1.dp)
@@ -237,13 +237,13 @@ fun PlaylistViewScreen(
                 val rowBg = if (isPlaying)
                     Brush.horizontalGradient(
                         listOf(
-                            themeColors.primary800.copy(alpha = 0.7f),
-                            themeColors.primary800.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                         )
                     )
                 else
                     Brush.horizontalGradient(
-                        listOf(Zinc800.copy(alpha = 0.4f), Zinc800.copy(alpha = 0.4f))
+                        listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                     )
 
                 Row(
@@ -254,9 +254,9 @@ fun PlaylistViewScreen(
                         .then(
                             if (isPlaying) Modifier.border(
                                 1.dp,
-                                themeColors.primary500.copy(alpha = 0.5f + 0.3f * glowAlpha),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + 0.3f * glowAlpha),
                                 RoundedCornerShape(12.dp)
-                            ) else Modifier.border(1.dp, Zinc700.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            ) else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                         )
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -269,7 +269,7 @@ fun PlaylistViewScreen(
                             .clip(CircleShape)
                             .background(
                                 if (isPlaying) themeColors.primary700.copy(alpha = 0.6f)
-                                else Zinc700.copy(alpha = 0.4f)
+                                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -277,13 +277,13 @@ fun PlaylistViewScreen(
                             Icon(
                                 imageVector = AppIcons.GraphicEq,
                                 contentDescription = null,
-                                tint = themeColors.primary300,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                         } else {
                             Text(
                                 text = "${idx + 1}",
-                                color = Zinc400,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -294,7 +294,7 @@ fun PlaylistViewScreen(
                         Text(
                             text = fileName.substringBeforeLast("."),
                             style = TextStyle(
-                                color = if (isPlaying) Color.White else Zinc200,
+                                color = if (isPlaying) Color.White else MaterialTheme.colorScheme.onSurface,
                                 fontSize = 14.sp,
                                 fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Normal
                             ),
@@ -310,7 +310,7 @@ fun PlaylistViewScreen(
                             val durStr = if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
                             Text(
                                 text = "$cat · $durStr",
-                                color = Zinc500,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.sp
                             )
                         }
@@ -320,7 +320,7 @@ fun PlaylistViewScreen(
                         Icon(
                             imageVector = AppIcons.GraphicEq,
                             contentDescription = null,
-                            tint = themeColors.primary400.copy(alpha = 0.5f + 0.5f * glowAlpha),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + 0.5f * glowAlpha),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -349,3 +349,4 @@ private fun InfoPill(
         Text(text, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
+

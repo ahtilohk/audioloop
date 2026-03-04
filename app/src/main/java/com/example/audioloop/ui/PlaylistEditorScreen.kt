@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -62,7 +62,7 @@ fun PlaylistEditorScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Zinc950)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -72,7 +72,7 @@ fun PlaylistEditorScreen(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(themeColors.primary900.copy(alpha = 0.4f), Zinc950)
+                            listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), MaterialTheme.colorScheme.background)
                         )
                     )
                     .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -86,10 +86,10 @@ fun PlaylistEditorScreen(
                         onClick = onClose,
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Zinc900, CircleShape)
-                            .border(1.dp, Zinc700, CircleShape)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     ) {
-                        Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Zinc300)
+                        Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Text(
@@ -115,7 +115,7 @@ fun PlaylistEditorScreen(
                                 )
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
@@ -136,7 +136,7 @@ fun PlaylistEditorScreen(
                     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                         Text(
                             "PLAYLIST NAME",
-                            style = TextStyle(color = Zinc500, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                            style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                             modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
                         )
                         OutlinedTextField(
@@ -144,12 +144,12 @@ fun PlaylistEditorScreen(
                             onValueChange = { name = it },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                            placeholder = { Text("Enter name...", color = Zinc600) },
+                            placeholder = { Text("Enter name...", color = MaterialTheme.colorScheme.outline) },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = themeColors.primary,
-                                unfocusedBorderColor = Zinc700,
-                                focusedContainerColor = Zinc900,
-                                unfocusedContainerColor = Zinc900
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
                             ),
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true
@@ -189,14 +189,14 @@ fun PlaylistEditorScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 12.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (shuffle) themeColors.primary900.copy(alpha = 0.3f) else Zinc900)
-                            .border(1.dp, if (shuffle) themeColors.primary600 else Zinc700, RoundedCornerShape(16.dp))
+                            .background(if (shuffle) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface)
+                            .border(1.dp, if (shuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                             .clickable { shuffle = !shuffle }
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(if (shuffle) themeColors.primary600 else Zinc800),
+                            modifier = Modifier.size(36.dp).clip(CircleShape).background(if (shuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("🔀", fontSize = 18.sp)
@@ -204,7 +204,7 @@ fun PlaylistEditorScreen(
                         Spacer(Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Shuffle Playback", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Play tracks in random order", color = Zinc500, fontSize = 12.sp)
+                            Text("Play tracks in random order", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         }
                         Switch(
                             checked = shuffle,
@@ -212,8 +212,8 @@ fun PlaylistEditorScreen(
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = themeColors.primary,
-                                uncheckedThumbColor = Zinc400,
-                                uncheckedTrackColor = Zinc800
+                                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                     }
@@ -231,17 +231,17 @@ fun PlaylistEditorScreen(
                         Column {
                             Text(
                                 "TRACKS",
-                                style = TextStyle(color = Zinc500, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             )
                             Text(
                                 "${files.size} songs selected",
-                                style = TextStyle(color = Zinc300, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             )
                         }
                         
                         TextButton(
                             onClick = { showFilePicker = true },
-                            colors = ButtonDefaults.textButtonColors(contentColor = themeColors.primary400)
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
@@ -259,7 +259,7 @@ fun PlaylistEditorScreen(
                         ) {
                             Text("🎵", fontSize = 40.sp)
                             Spacer(Modifier.height(12.dp))
-                            Text("No tracks added", color = Zinc500)
+                            Text("No tracks added", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else {
@@ -320,17 +320,17 @@ private fun TrackItem(
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Zinc900)
-            .border(1.dp, Zinc800, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Track Handle / Index
         Box(
-            modifier = Modifier.size(32.dp).clip(CircleShape).background(Zinc800),
+            modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Text("${index + 1}", color = Zinc400, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("${index + 1}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         
         Spacer(Modifier.width(16.dp))
@@ -345,13 +345,14 @@ private fun TrackItem(
             )
             Text(
                 "$category \u00b7 $duration",
-                color = Zinc500,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp
             )
         }
 
         IconButton(onClick = onRemove) {
-            Icon(AppIcons.Close, contentDescription = "Remove", tint = Zinc600, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
         }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import kotlinx.coroutines.*
@@ -123,14 +123,14 @@ fun FileItem(
         isDragging -> themeColors.primaryContainer.copy(alpha = 0.6f)
         isPlaying -> themeColors.primaryContainer.copy(alpha = 0.4f)
         isSelected -> themeColors.secondaryContainer.copy(alpha = 0.3f)
-        else -> Zinc800.copy(alpha = 0.3f)
+        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     }
 
     val borderColor = when {
         isDragging -> themeColors.primary
         isPlaying -> themeColors.primary
         isSelected -> themeColors.secondary.copy(alpha = 0.8f)
-        else -> Zinc600
+        else -> MaterialTheme.colorScheme.outline
     }
 
     val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
@@ -172,7 +172,7 @@ fun FileItem(
                     Icon(
                         imageVector = AppIcons.GripVertical,
                         contentDescription = "Drag to reorder",
-                        tint = if (isDragging) themeColors.primary400 else Zinc600, // Visual feedback
+                        tint = if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, // Visual feedback
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -185,7 +185,7 @@ fun FileItem(
                     color = if (isSelected) themeColors.primary else Color.Transparent,
                     border = BorderStroke(
                         2.dp,
-                        if (isSelected) themeColors.primary else Zinc500
+                        if (isSelected) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     Box(
@@ -196,7 +196,7 @@ fun FileItem(
                             Text(
                                 text = selectionOrder.toString(),
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    color = Color.White,
+                                    color = Color.White, // Always white on secondary solid color
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -286,7 +286,7 @@ fun FileItem(
                     Text(
                         text = displayName,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isPlaying) Color.White else Zinc200,
+                            color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Medium
                         ),
                         maxLines = 1,
@@ -297,12 +297,12 @@ fun FileItem(
                     if (item.note.isNotBlank()) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = themeColors.primary900.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                         ) {
                             Text(
                                 text = "Aa",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = themeColors.primary300,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 9.sp
                                 ),
@@ -340,7 +340,7 @@ fun FileItem(
                     Text(
                         text = "\u23F8 $shadowCountdownText",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = themeColors.primary300,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -348,7 +348,8 @@ fun FileItem(
                     Text(
                         text = "${if(isPlaying) "Playing \u2022 " else ""}${item.durationString}",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = if (isPlaying) themeColors.primary else Zinc500
+                            color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
                         )
                     )
                 }
@@ -363,7 +364,7 @@ fun FileItem(
                         Icon(
                             imageVector = AppIcons.MoreVert,
                             contentDescription = "Menu",
-                            tint = Zinc500,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -371,49 +372,49 @@ fun FileItem(
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(Zinc900).border(1.dp, Zinc600, RoundedCornerShape(4.dp))
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Rename", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.Edit, null, tint = Zinc400) },
+                            text = { Text("Rename", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onRename() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Trim", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = Zinc400) },
+                            text = { Text("Trim", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onTrim() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Auto-trim Silence", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = Zinc400) },
+                            text = { Text("Auto-trim Silence", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onAutoTrim() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Normalize", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = Zinc400) },
+                            text = { Text("Normalize", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onNormalize() }
                         )
                         DropdownMenuItem(
-                            text = { Text(if (item.note.isNotBlank()) "Edit Note" else "Add Note", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.Edit, null, tint = Zinc400) },
+                            text = { Text(if (item.note.isNotBlank()) "Edit Note" else "Add Note", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onEditNote() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Move", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = Zinc400) },
+                            text = { Text("Move", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onMove() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Share", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.Share, null, tint = Zinc400) },
+                            text = { Text("Share", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.Share, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onShare() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Info", color = Zinc200) },
-                            leadingIcon = { Icon(AppIcons.Info, null, tint = Zinc400) },
+                            text = { Text("Info", color = MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = { Icon(AppIcons.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onShowInfo() }
                         )
-                        HorizontalDivider(color = Zinc800)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         DropdownMenuItem(
                             text = { Text("Delete", color = Red400) },
                             leadingIcon = { Icon(AppIcons.Delete, null, tint = Red400) },
@@ -447,7 +448,7 @@ fun FileItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Zinc900.copy(alpha = 0.6f))
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
                         .padding(horizontal = 4.dp, vertical = 6.dp)
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
@@ -475,6 +476,9 @@ fun FileItem(
 
                         val bars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
                         val barCount = bars.size
+                        
+                        val primaryColor = MaterialTheme.colorScheme.primary
+                        val outlineVariantColor = MaterialTheme.colorScheme.outlineVariant
 
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
@@ -503,7 +507,7 @@ fun FileItem(
                             // A-B loop region highlight
                             if (abActive) {
                                 drawRect(
-                                    color = themeColors.primary500.copy(alpha = 0.15f),
+                                    color = primaryColor.copy(alpha = 0.15f),
                                     topLeft = Offset(abLoopA * w, 0f),
                                     size = androidx.compose.ui.geometry.Size((abLoopB - abLoopA) * w, h)
                                 )
@@ -518,8 +522,8 @@ fun FileItem(
                                 val barProgress = (i + 0.5f) / bars.size
 
                                 val color = when {
-                                    barProgress <= currentProgress -> themeColors.primary400
-                                    else -> Zinc700.copy(alpha = 0.5f)
+                                    barProgress <= currentProgress -> primaryColor
+                                    else -> outlineVariantColor.copy(alpha = 0.5f)
                                 }
                                 
                                 drawLine(
@@ -534,12 +538,12 @@ fun FileItem(
                             // A marker line
                             if (abLoopA >= 0f) {
                                 val ax = abLoopA * w
-                                drawLine(themeColors.primary300, Offset(ax, 0f), Offset(ax, h), strokeWidth = 2.dp.toPx())
+                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = 2.dp.toPx())
                             }
                             // B marker line
                             if (abLoopB >= 0f) {
                                 val bx = abLoopB * w
-                                drawLine(themeColors.primary300, Offset(bx, 0f), Offset(bx, h), strokeWidth = 2.dp.toPx())
+                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = 2.dp.toPx())
                             }
 
                             // Playhead
@@ -557,7 +561,7 @@ fun FileItem(
                         ) {
                             Text(
                                 text = "$currentTimeString / ${item.durationString}",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Medium)
                             )
 
                             // A-B Loop controls
@@ -569,32 +573,32 @@ fun FileItem(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(if (abLoopA >= 0f) themeColors.primary700 else Zinc700.copy(alpha = 0.5f))
+                                        .background(if (abLoopA >= 0f) themeColors.primary700 else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                                         .clickable { abLoopA = if (abLoopA >= 0f) -1f else currentProgress }
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
-                                    Text("A", style = TextStyle(color = if (abLoopA >= 0f) themeColors.primary200 else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                                    Text("A", style = TextStyle(color = if (abLoopA >= 0f) themeColors.primary200 else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold))
                                 }
                                 // Set B
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(if (abLoopB >= 0f) themeColors.primary700 else Zinc700.copy(alpha = 0.5f))
+                                        .background(if (abLoopB >= 0f) themeColors.primary700 else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                                         .clickable { abLoopB = if (abLoopB >= 0f) -1f else currentProgress }
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
-                                    Text("B", style = TextStyle(color = if (abLoopB >= 0f) themeColors.primary200 else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                                    Text("B", style = TextStyle(color = if (abLoopB >= 0f) themeColors.primary200 else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold))
                                 }
                                 // Clear A-B
                                 if (abActive) {
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))
-                                            .background(Zinc700.copy(alpha = 0.5f))
+                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                                             .clickable { abLoopA = -1f; abLoopB = -1f }
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = "Clear", tint = Zinc400, modifier = Modifier.size(12.dp))
+                                        Icon(AppIcons.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
                                     }
                                 }
                             }
@@ -610,15 +614,15 @@ fun FileItem(
                         .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Zinc900.copy(alpha = 0.6f))
-                        .border(1.dp, themeColors.primary900.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
                         .padding(12.dp)
                 ) {
                     Column {
                         Text(
                             text = "Note",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = themeColors.primary400,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 9.sp,
                                 letterSpacing = 1.sp
@@ -628,7 +632,7 @@ fun FileItem(
                         Text(
                             text = item.note,
                             style = MaterialTheme.typography.bodySmall.copy(
-                                color = Zinc200,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 lineHeight = 18.sp
                             ),
                             maxLines = 10,
@@ -642,3 +646,4 @@ fun FileItem(
     }
 }
 }
+

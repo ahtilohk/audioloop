@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import kotlinx.coroutines.*
@@ -120,8 +120,8 @@ fun CategoryManagementSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Zinc900, RoundedCornerShape(16.dp))
-            .border(1.dp, Zinc600, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp)
     ) {
         // Header
@@ -139,16 +139,16 @@ fun CategoryManagementSheet(
                 )
                 Text(
                     text = "Drag handle to reorder",
-                    style = TextStyle(color = Zinc500, fontSize = 12.sp)
+                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 )
             }
             IconButton(
                 onClick = onClose,
                 modifier = Modifier
                     .size(36.dp)
-                    .background(Zinc800, CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
             ) {
-                Icon(AppIcons.Close, contentDescription = "Close", tint = Zinc400, modifier = Modifier.size(20.dp))
+                Icon(AppIcons.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
 
@@ -165,16 +165,16 @@ fun CategoryManagementSheet(
                 onValueChange = { newCategoryName = it },
                 singleLine = true,
                 textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                cursorBrush = SolidColor(themeColors.primary500),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp)
-                    .background(Zinc800, RoundedCornerShape(12.dp))
-                    .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     .padding(horizontal = 16.dp),
                 decorationBox = { innerTextField ->
                     Box(contentAlignment = Alignment.CenterStart) {
-                        if (newCategoryName.isEmpty()) Text("Category name...", color = Zinc500, fontSize = 14.sp)
+                        if (newCategoryName.isEmpty()) Text("Category name...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         innerTextField()
                     }
                 }
@@ -191,7 +191,7 @@ fun CategoryManagementSheet(
                     }
                 },
                 modifier = Modifier.height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 enabled = newCategoryName.isNotBlank()
             ) {
@@ -199,7 +199,7 @@ fun CategoryManagementSheet(
             }
         }
 
-        HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
 
         // List with drag reorder
         val scrollState = rememberLazyListState()
@@ -342,10 +342,10 @@ fun CategoryManagementSheet(
                             }
                             .alpha(if (isDragging) 0f else 1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (currentCategory == cat) themeColors.primary900.copy(alpha = 0.3f) else Zinc800.copy(alpha = 0.5f))
+                            .background(if (currentCategory == cat) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .border(
                                 1.dp,
-                                if (currentCategory == cat) themeColors.primary500.copy(alpha = 0.8f) else Zinc600,
+                                if (currentCategory == cat) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.outline,
                                 RoundedCornerShape(12.dp)
                             )
                             .padding(start = 4.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
@@ -361,7 +361,7 @@ fun CategoryManagementSheet(
                             Icon(
                                 AppIcons.GripVertical,
                                 contentDescription = "Drag to reorder",
-                                tint = if (cat == "General") Zinc700 else Zinc500,
+                                tint = if (cat == "General") MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -374,8 +374,8 @@ fun CategoryManagementSheet(
                                 textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Zinc900, RoundedCornerShape(8.dp))
-                                    .border(1.dp, themeColors.primary500, RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                                    .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
                                     .padding(8.dp),
                                 keyboardActions = KeyboardActions(onDone = {
                                     if (editName.isNotBlank() && editName != cat) {
@@ -388,7 +388,7 @@ fun CategoryManagementSheet(
                             Text(
                                 text = cat,
                                 style = TextStyle(
-                                    color = if (currentCategory == cat) themeColors.primary300 else Zinc200,
+                                    color = if (currentCategory == cat) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
                                 ),
@@ -405,26 +405,26 @@ fun CategoryManagementSheet(
                                     },
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                                 ) {
-                                    Icon(AppIcons.Edit, contentDescription = "Edit", tint = Zinc400, modifier = Modifier.size(14.dp))
+                                    Icon(AppIcons.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                                 }
                                 IconButton(
                                     onClick = { categoryToDelete = cat },
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                                 ) {
-                                    Icon(AppIcons.Delete, contentDescription = "Delete", tint = Zinc400, modifier = Modifier.size(14.dp))
+                                    Icon(AppIcons.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                                 }
                             }
                         } else if (cat == "General") {
                             Box(
                                 modifier = Modifier
-                                    .background(Zinc800, RoundedCornerShape(4.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
-                                Text("default", color = Zinc500, fontSize = 10.sp)
+                                Text("default", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                             }
                         } else if (isEditing) {
                             IconButton(
@@ -436,7 +436,7 @@ fun CategoryManagementSheet(
                                 },
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .background(themeColors.primary600, RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
                             ) {
                                 Icon(AppIcons.Check, contentDescription = "Save", tint = Color.White, modifier = Modifier.size(14.dp))
                             }
@@ -455,8 +455,8 @@ fun CategoryManagementSheet(
                         .shadow(8.dp, RoundedCornerShape(12.dp))
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(themeColors.primary900.copy(alpha = 0.6f))
-                        .border(1.5.dp, themeColors.primary500, RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                        .border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
                         .padding(start = 4.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -468,7 +468,7 @@ fun CategoryManagementSheet(
                         Icon(
                             AppIcons.GripVertical,
                             contentDescription = null,
-                            tint = themeColors.primary400,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -482,3 +482,4 @@ fun CategoryManagementSheet(
         }
     }
 }
+

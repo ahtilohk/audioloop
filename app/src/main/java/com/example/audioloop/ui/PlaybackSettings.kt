@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
@@ -44,8 +44,8 @@ fun PlaybackSettingsCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = Zinc800.copy(alpha = 0.3f),
-        border = BorderStroke(1.dp, Zinc600)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column {
             // Settings Header (Collapsible)
@@ -60,7 +60,7 @@ fun PlaybackSettingsCard(
                 Icon(
                     imageVector = AppIcons.Settings,
                     contentDescription = null,
-                    tint = if (settingsOpen) themeColors.primary else Zinc400,
+                    tint = if (settingsOpen) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
 
@@ -68,7 +68,7 @@ fun PlaybackSettingsCard(
                     Text(
                         text = "Playback Settings",
                         style = MaterialTheme.typography.labelLarge.copy(
-                            color = if (settingsOpen) themeColors.onPrimaryContainer else Zinc300,
+                            color = if (settingsOpen) themeColors.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -168,7 +168,7 @@ fun PlaybackSettingsCard(
                 Icon(
                     imageVector = if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
                     contentDescription = null,
-                    tint = if (settingsOpen) themeColors.primary else Zinc500,
+                    tint = if (settingsOpen) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -180,8 +180,8 @@ fun PlaybackSettingsCard(
                         .padding(bottom = 8.dp)
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
-                        .background(Zinc900.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                        .border(1.dp, Zinc600, RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                         .padding(12.dp)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -189,8 +189,8 @@ fun PlaybackSettingsCard(
                     // Speed
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Speed:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
-                            Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold))
+                            Text("Speed:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                         }
                         Row(
                             Modifier.fillMaxWidth(),
@@ -202,13 +202,13 @@ fun PlaybackSettingsCard(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (active) themeColors.primary600 else Zinc800)
+                                        .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { onSpeedChange(s) }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     val label = if (s == s.toInt().toFloat()) "${s.toInt()}" else "$s"
-                                    Text("${label}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    Text("${label}x", style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                 }
                             }
                         }
@@ -217,10 +217,10 @@ fun PlaybackSettingsCard(
                     // Repeats
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Repeats:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
+                            Text("Repeats:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text(
                                 if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                         }
                         Row(
@@ -233,12 +233,12 @@ fun PlaybackSettingsCard(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (active) themeColors.primary600 else Zinc800)
+                                        .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { onLoopCountChange(r) }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${r}x", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    Text("${r}x", style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                 }
                             }
                             // ∞ button
@@ -246,12 +246,12 @@ fun PlaybackSettingsCard(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(if (selectedLoopCount == -1) themeColors.primary600 else Zinc800)
+                                    .background(if (selectedLoopCount == -1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable { onLoopCountChange(-1) }
                                     .padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else Zinc400, fontSize = 13.sp, fontWeight = FontWeight.Bold))
+                                Text("∞", style = TextStyle(color = if (selectedLoopCount == -1) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                             }
                         }
                     }
@@ -260,8 +260,8 @@ fun PlaybackSettingsCard(
                     if (onGapChange != null) {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Gap between tracks:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
-                                Text("${gapSeconds}s", style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold))
+                                Text("Gap between tracks:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                                Text("${gapSeconds}s", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOf(0, 1, 2, 3, 5, 10).forEach { gap ->
@@ -270,12 +270,12 @@ fun PlaybackSettingsCard(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) themeColors.primary600 else Zinc800)
+                                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                             .clickable { onGapChange(gap) }
                                             .padding(vertical = 5.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("${gap}s", style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                        Text("${gap}s", style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                     }
                                 }
                             }
@@ -285,15 +285,15 @@ fun PlaybackSettingsCard(
                     // Listen & Repeat
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("Listen & Repeat", style = TextStyle(color = Zinc300, fontSize = 13.sp))
-                            Text("Pause after playback to practice", style = TextStyle(color = Zinc600, fontSize = 10.sp))
+                            Text("Listen & Repeat", style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp))
+                            Text("Pause after playback to practice", style = TextStyle(color = MaterialTheme.colorScheme.outline, fontSize = 10.sp))
                         }
                         Box(
                             modifier = Modifier
                                 .width(44.dp)
                                 .height(24.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (isShadowing) themeColors.primary600 else Zinc700)
+                                .background(if (isShadowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
                                 .clickable { onShadowingChange(!isShadowing) }
                         ) {
                             Box(
@@ -304,25 +304,25 @@ fun PlaybackSettingsCard(
                                     .background(Color.White),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = themeColors.primary600, modifier = Modifier.size(10.dp))
+                                if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(10.dp))
                             }
                         }
                     }
 
                     if (isShadowing) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Pause duration:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
+                            Text("Pause duration:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 listOf(0 to "Auto", 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
                                     val active = shadowPauseSeconds == secs
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) themeColors.primary600 else Zinc800)
+                                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                             .clickable { onShadowPauseChange(secs) }
                                             .padding(horizontal = 8.dp, vertical = 5.dp)
                                     ) {
-                                        Text(label, style = TextStyle(color = if (active) Color.White else Zinc400, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                        Text(label, style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium))
                                     }
                                 }
                             }
@@ -332,10 +332,10 @@ fun PlaybackSettingsCard(
                     // Sleep Timer
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Sleep Timer:", style = TextStyle(color = Zinc400, fontSize = 13.sp))
+                            Text("Sleep Timer:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text(
                                 if (selectedSleepMinutes == 0) "Off" else "${selectedSleepMinutes}m",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                         }
                         Row(
@@ -347,12 +347,12 @@ fun PlaybackSettingsCard(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isOffSelected) themeColors.primary600 else Zinc800)
+                                    .background(if (isOffSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable { onSleepTimerChange(0) }
                                     .padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                             listOf(15, 30, 45, 60).forEach { m ->
                                 val isSelected = selectedSleepMinutes == m
@@ -360,12 +360,12 @@ fun PlaybackSettingsCard(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) themeColors.primary600 else Zinc800)
+                                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { onSleepTimerChange(m) }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else Zinc400, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                                 }
                             }
                         }
@@ -383,11 +383,11 @@ fun PlaybackSettingsCard(
                         ) {
                             Text(
                                 "Stops in $remaining",
-                                style = TextStyle(color = themeColors.primary300, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             )
                             Text(
                                 "Cancel",
-                                style = TextStyle(color = Zinc500, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium),
                                 modifier = Modifier.clickable { onSleepTimerChange(0) }
                             )
                         }
@@ -396,8 +396,8 @@ fun PlaybackSettingsCard(
                     // Theme Selector (conditionally show only if callbacks provided)
                     if (onThemeChange != null && currentTheme != null) {
                         Column {
-                            HorizontalDivider(color = Zinc700, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
-                            Text("App Theme:", style = TextStyle(color = Zinc400, fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+                            Text("App Theme:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -410,10 +410,10 @@ fun PlaybackSettingsCard(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(if (isSelected) theme.palette.primary600 else Zinc800)
+                                            .background(if (isSelected) theme.palette.primary600 else MaterialTheme.colorScheme.surfaceVariant)
                                             .border(
                                                 width = if (isSelected) 2.dp else 1.dp,
-                                                color = if (isSelected) theme.palette.primary400 else Zinc600,
+                                                color = if (isSelected) theme.palette.primary400 else MaterialTheme.colorScheme.outline,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { onThemeChange(theme) }
@@ -436,3 +436,4 @@ fun PlaybackSettingsCard(
         }
     }
 }
+

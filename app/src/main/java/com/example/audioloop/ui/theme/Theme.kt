@@ -1,4 +1,4 @@
-package com.example.audioloop.ui.theme
+﻿package com.example.audioloop.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -14,46 +14,39 @@ import androidx.compose.ui.graphics.Color
 
 // Creates a dark color scheme for a given theme palette
 fun createDarkColorScheme(palette: AppColorPalette) = darkColorScheme(
-    // Primary colors
     primary = palette.primary,
     onPrimary = Color.White,
     primaryContainer = palette.primaryContainer,
     onPrimaryContainer = palette.onPrimaryContainer,
 
-    // Secondary colors
     secondary = palette.secondary,
     onSecondary = Color.White,
     secondaryContainer = palette.secondaryContainer,
     onSecondaryContainer = palette.onSecondaryContainer,
 
-    // Tertiary colors
     tertiary = palette.tertiary,
     onTertiary = palette.onTertiary,
     tertiaryContainer = palette.tertiaryContainer,
     onTertiaryContainer = palette.onTertiaryContainer,
 
-    // Error colors
     error = Red500,
     onError = Color.White,
     errorContainer = Red800,
     onErrorContainer = Red400,
 
-    // Surface colors
     background = Zinc950,
-    onBackground = Zinc200,
+    onBackground = Color.White,
     surface = Zinc900,
-    onSurface = Zinc200,
+    onSurface = Color.White,
     surfaceVariant = Zinc800,
     onSurfaceVariant = Zinc400,
 
-    // Outline colors
-    outline = Zinc600,
-    outlineVariant = Zinc700,
+    outline = Zinc700,
+    outlineVariant = Zinc600,
 
-    // Other
     scrim = Color.Black,
-    inverseSurface = Zinc200,
-    inverseOnSurface = Zinc900,
+    inverseSurface = Color.White,
+    inverseOnSurface = Zinc950,
     inversePrimary = palette.primary700,
     surfaceTint = palette.primary
 )
@@ -63,39 +56,33 @@ private val DarkColorScheme = createDarkColorScheme(AppTheme.SLATE.palette)
 
 // Creates a light color scheme for a given theme palette
 fun createLightColorScheme(palette: AppColorPalette) = lightColorScheme(
-    // Primary colors
     primary = palette.primary600,
     onPrimary = Color.White,
     primaryContainer = palette.primary200,
     onPrimaryContainer = palette.primary900,
 
-    // Secondary colors
     secondary = palette.primary700,
     onSecondary = Color.White,
     secondaryContainer = palette.primary300,
     onSecondaryContainer = palette.primary800,
 
-    // Tertiary colors
     tertiary = palette.primary500,
     onTertiary = Color.White,
     tertiaryContainer = palette.primary100,
     onTertiaryContainer = palette.primary900,
 
-    // Error colors
     error = Red600,
     onError = Color.White,
     errorContainer = Red400,
     onErrorContainer = Red900,
 
-    // Surface colors
     background = Zinc100,
-    onBackground = Zinc900,
+    onBackground = Zinc950,
     surface = Color.White,
-    onSurface = Zinc900,
+    onSurface = Zinc950,
     surfaceVariant = Zinc200,
-    onSurfaceVariant = Zinc700,
+    onSurfaceVariant = Zinc600,
 
-    // Outline colors
     outline = Zinc500,
     outlineVariant = Zinc300
 )

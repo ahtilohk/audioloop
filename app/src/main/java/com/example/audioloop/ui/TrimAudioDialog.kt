@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
@@ -154,7 +154,7 @@ fun TrimAudioScreen(
     
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Zinc950
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
             // Top Bar
@@ -168,7 +168,7 @@ fun TrimAudioScreen(
                     onClick = onDismiss,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Zinc800, CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 ) {
                     Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
@@ -186,7 +186,7 @@ fun TrimAudioScreen(
                     Text(
                         "Studio Editor",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = themeColors.primary400
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -195,9 +195,9 @@ fun TrimAudioScreen(
                 
                 // Compact Segmented Control for Mode
                 Surface(
-                    color = Zinc900,
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Zinc700)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Row(modifier = Modifier.padding(2.dp)) {
                         val keepSelected = trimMode == TrimMode.Keep
@@ -211,7 +211,7 @@ fun TrimAudioScreen(
                                 .clickable { trimMode = TrimMode.Keep }
                                 .then(itemModifier)
                         ) {
-                            Text("Keep", color = if (keepSelected) Color.White else Zinc500, style = MaterialTheme.typography.labelMedium)
+                            Text("Keep", color = if (keepSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         }
                         Box(
                             modifier = Modifier
@@ -219,7 +219,7 @@ fun TrimAudioScreen(
                                 .clickable { trimMode = TrimMode.Remove }
                                 .then(itemModifier)
                         ) {
-                            Text("Cut", color = if (!keepSelected) Red100 else Zinc500, style = MaterialTheme.typography.labelMedium)
+                            Text("Cut", color = if (!keepSelected) Red100 else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
@@ -244,7 +244,7 @@ fun TrimAudioScreen(
                             .fillMaxWidth()
                             .height(180.dp) // Adjusted to fit screen without scrolling
                             .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
-                            .border(1.dp, Zinc700, RoundedCornerShape(20.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                             .clip(RoundedCornerShape(20.dp))
                             .padding(horizontal = 8.dp, vertical = 6.dp)
                     ) {
@@ -388,6 +388,10 @@ fun TrimAudioScreen(
                              }
                         }
 
+                        val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+                        val primaryColor = MaterialTheme.colorScheme.primary
+                        val outlineColor = MaterialTheme.colorScheme.outline
+
                         // Drawing
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             // Grid lines (fixed to screen)
@@ -395,7 +399,7 @@ fun TrimAudioScreen(
                             val stepPx = size.width / steps
                             for (i in 1 until steps) {
                                 drawLine(
-                                    color = Zinc800,
+                                    color = surfaceVariantColor,
                                     start = Offset(i * stepPx, 0f),
                                     end = Offset(i * stepPx, size.height),
                                     strokeWidth = 1.dp.toPx()
@@ -453,13 +457,13 @@ fun TrimAudioScreen(
 
                                     val rawHeight = (amplitude / 100f) * size.height * 0.8f
                                     val barHeight = rawHeight * fadeMultiplier
-                                    val barColor = if (isKept) {
-                                        if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
-                                        else themeColors.primary400
-                                    } else Zinc600
+                                     val barColor = if (isKept) {
+                                         if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
+                                         else primaryColor
+                                     } else outlineColor
 
-                                    drawLine(
-                                        color = barColor,
+                                     drawLine(
+                                         color = barColor,
                                         start = Offset(x, (size.height - barHeight) / 2),
                                         end = Offset(x, (size.height + barHeight) / 2),
                                         strokeWidth = (barWidth * 0.7f).coerceAtLeast(1f),
@@ -485,10 +489,10 @@ fun TrimAudioScreen(
                             val tabCorner = CornerRadius(3.dp.toPx())
                             val hLineW = with(density) { 2.dp.toPx() }
 
-                            // Start Handle
-                            drawLine(color = themeColors.primary400, start = Offset(startX, 0f), end = Offset(startX, handleH), strokeWidth = hLineW)
-                            drawRoundRect(color = themeColors.primary500, topLeft = Offset(startX - handleTabWidth / 2, 0f), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
-                            drawRoundRect(color = themeColors.primary500, topLeft = Offset(startX - handleTabWidth / 2, handleH - handleTabHeight), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
+                             // Start Handle
+                             drawLine(color = primaryColor, start = Offset(startX, 0f), end = Offset(startX, handleH), strokeWidth = hLineW)
+                             drawRoundRect(color = primaryColor, topLeft = Offset(startX - handleTabWidth / 2, 0f), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
+                             drawRoundRect(color = primaryColor, topLeft = Offset(startX - handleTabWidth / 2, handleH - handleTabHeight), size = Size(handleTabWidth, handleTabHeight), cornerRadius = tabCorner)
 
                             // End Handle
                             drawLine(color = Red400, start = Offset(endX, 0f), end = Offset(endX, handleH), strokeWidth = hLineW)
@@ -637,8 +641,8 @@ fun TrimAudioScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Zinc800.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-                            .border(1.dp, Zinc600.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -651,7 +655,7 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                                     .clip(RoundedCornerShape(10.dp))
                                     .clickable {
                                         previewPositionMs = 0L
@@ -659,7 +663,7 @@ fun TrimAudioScreen(
                                     }
                                     .padding(10.dp)
                             ) {
-                                Text("CURRENT", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Text("CURRENT", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(previewPositionMs),
@@ -673,7 +677,7 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                                     .padding(10.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
@@ -685,7 +689,7 @@ fun TrimAudioScreen(
                                     (durationMs - (end - start)).coerceAtLeast(0L)
                                 }
 
-                                Text("NEW LENGTH", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Text("NEW LENGTH", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(projectedDuration),
@@ -706,7 +710,7 @@ fun TrimAudioScreen(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                                     .padding(horizontal = 6.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -714,14 +718,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(Zinc800, RoundedCornerShape(6.dp))
-                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
                                         .clickable {
                                             startMs = (startMs - nudgeMs).coerceAtLeast(0f)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowBack, contentDescription = "Start earlier", tint = themeColors.primary300, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowBack, contentDescription = "Start earlier", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 }
                                 // Time display
                                 Column(
@@ -730,7 +734,7 @@ fun TrimAudioScreen(
                                         .padding(horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("START", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("START", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.start.toLong()),
                                         color = themeColors.primary200,
@@ -742,14 +746,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(Zinc800, RoundedCornerShape(6.dp))
-                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
                                         .clickable {
                                             startMs = (startMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowForward, contentDescription = "Start later", tint = themeColors.primary300, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowForward, contentDescription = "Start later", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 }
                             }
 
@@ -757,7 +761,7 @@ fun TrimAudioScreen(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Zinc900.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                                     .padding(horizontal = 6.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -765,8 +769,8 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(Zinc800, RoundedCornerShape(6.dp))
-                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
                                         .clickable {
                                             endMs = (endMs - nudgeMs).coerceAtLeast(0f)
                                         },
@@ -781,7 +785,7 @@ fun TrimAudioScreen(
                                         .padding(horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("END", color = Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("END", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.endInclusive.toLong()),
                                         color = Red200,
@@ -793,8 +797,8 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(Zinc800, RoundedCornerShape(6.dp))
-                                        .border(1.dp, Zinc600, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
                                         .clickable {
                                             endMs = (endMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
@@ -815,25 +819,25 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (fadeInEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (fadeInEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .background(if (fadeInEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (fadeInEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
                                         .clickable { fadeInEnabled = !fadeInEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Fade In", color = if (fadeInEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("Fade In", color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                                 // Fade Out toggle
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (fadeOutEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (fadeOutEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .background(if (fadeOutEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (fadeOutEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
                                         .clickable { fadeOutEnabled = !fadeOutEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Fade Out", color = if (fadeOutEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("Fade Out", color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                             Row(
@@ -844,25 +848,25 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (autoTrimSilence) Amber700 else Zinc800, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (autoTrimSilence) Amber500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .background(if (autoTrimSilence) Amber700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (autoTrimSilence) Amber500 else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
                                         .clickable { autoTrimSilence = !autoTrimSilence }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Silence", color = if (autoTrimSilence) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("Silence", color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                                 // Normalize toggle
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (normalizeEnabled) themeColors.primary700 else Zinc800, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (normalizeEnabled) themeColors.primary500 else Zinc600, RoundedCornerShape(10.dp))
+                                        .background(if (normalizeEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                                        .border(1.dp, if (normalizeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
                                         .clickable { normalizeEnabled = !normalizeEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Normalize", color = if (normalizeEnabled) Color.White else Zinc500, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("Normalize", color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -878,8 +882,8 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(44.dp)
-                                        .background(Zinc800, CircleShape)
-                                        .border(1.dp, Zinc600, CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                                         .clickable {
                                             previewPositionMs = 0L
                                             try { previewPlayer.seekTo(0) } catch (_: Exception) {}
@@ -889,7 +893,7 @@ fun TrimAudioScreen(
                                     Icon(
                                         imageVector = AppIcons.Replay,
                                         contentDescription = "Reset",
-                                        tint = Zinc400,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -901,10 +905,10 @@ fun TrimAudioScreen(
                                         .shadow(
                                             elevation = if (isPreviewPlaying) 16.dp else 8.dp,
                                             shape = CircleShape,
-                                            spotColor = if (isPreviewPlaying) themeColors.primary500 else Color.Black
+                                            spotColor = if (isPreviewPlaying) MaterialTheme.colorScheme.primary else Color.Black
                                         )
-                                        .background(if (isPreviewPlaying) themeColors.primary500 else Zinc800, CircleShape)
-                                        .border(1.dp, if (isPreviewPlaying) themeColors.primary400 else Zinc600, CircleShape)
+                                        .background(if (isPreviewPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                        .border(1.dp, if (isPreviewPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, CircleShape)
                                         .clickable {
                                              try {
                                                  if (isPreviewPlaying) {
@@ -955,22 +959,22 @@ fun TrimAudioScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "The file may be corrupted or in an unsupported format.",
-                        color = Zinc500,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedButton(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Zinc600),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Zinc300)
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                     ) {
                         Text("Go Back")
                     }
                 }
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = themeColors.primary500)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -979,7 +983,7 @@ fun TrimAudioScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Zinc950)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -989,8 +993,8 @@ fun TrimAudioScreen(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f).height(50.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc900, contentColor = Zinc400),
-                            border = BorderStroke(1.dp, Zinc800)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Text("Cancel", fontWeight = FontWeight.SemiBold)
                         }
@@ -1004,8 +1008,8 @@ fun TrimAudioScreen(
                             },
                             modifier = Modifier.weight(1.2f).height(50.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Zinc800, contentColor = Color.White),
-                            border = BorderStroke(1.dp, Zinc700)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = Color.White),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Icon(AppIcons.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
@@ -1023,7 +1027,7 @@ fun TrimAudioScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Icon(AppIcons.Check, null, Modifier.size(20.dp))
@@ -1035,3 +1039,4 @@ fun TrimAudioScreen(
         }
     }
 }
+

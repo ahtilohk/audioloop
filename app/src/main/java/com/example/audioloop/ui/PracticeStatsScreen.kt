@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -58,7 +58,7 @@ fun PracticeStatsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .background(themeColors.primary900.copy(alpha = 0.4f))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
@@ -70,11 +70,11 @@ fun PracticeStatsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Text(
                 "Statistics",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
@@ -86,13 +86,13 @@ fun PracticeStatsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "WEEKLY OVERVIEW",
-                    color = themeColors.primary400,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
@@ -103,13 +103,13 @@ fun PracticeStatsScreen(
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         "${weeklyMin.toInt()}",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 42.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         " / $goal min",
-                        color = Zinc500,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -124,8 +124,8 @@ fun PracticeStatsScreen(
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp)),
-                    color = if (progress >= 1f) Forest400 else themeColors.primary500,
-                    trackColor = Zinc800,
+                    color = if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     strokeCap = StrokeCap.Round
                 )
 
@@ -137,12 +137,12 @@ fun PracticeStatsScreen(
                 ) {
                     Text(
                         if (progress >= 1f) "Goal reached!" else "${((1f - progress) * goal).toInt()} min remaining",
-                        color = if (progress >= 1f) Forest400 else Zinc500,
+                        color = if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Text(
                         "Change goal",
-                        color = themeColors.primary400,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         modifier = Modifier.clickable { showGoalPicker = true }
                     )
@@ -157,8 +157,8 @@ fun PracticeStatsScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Streak", "${streak}d", if (streak >= 3) Sunset400 else Zinc400, Modifier.weight(1f))
-            StatCard("Today", formatMin(todayMin), themeColors.primary400, Modifier.weight(1f))
+            StatCard("Streak", "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+            StatCard("Today", formatMin(todayMin), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
@@ -166,8 +166,8 @@ fun PracticeStatsScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Sessions", "$sessions", Zinc400, Modifier.weight(1f))
-            StatCard("Edits", "$edits", Zinc400, Modifier.weight(1f))
+            StatCard("Sessions", "$sessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+            StatCard("Edits", "$edits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
@@ -175,8 +175,8 @@ fun PracticeStatsScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Avg. daily", formatMin(avgDaily), themeColors.primary300, Modifier.weight(1f))
-            StatCard("Progress", "${(progress * 100).toInt()}%", if (progress >= 1f) Forest400 else themeColors.primary400, Modifier.weight(1f))
+            StatCard("Avg. daily", formatMin(avgDaily), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            StatCard("Progress", "${(progress * 100).toInt()}%", if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(8.dp))
@@ -186,13 +186,13 @@ fun PracticeStatsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "LAST 7 DAYS",
-                    color = themeColors.primary400,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
@@ -200,7 +200,7 @@ fun PracticeStatsScreen(
                 Spacer(Modifier.height(12.dp))
                 WeeklyBarChart(
                     data = dailyHistory,
-                    barColor = themeColors.primary500,
+                    barColor = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
@@ -213,24 +213,24 @@ fun PracticeStatsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Zinc900),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "RECOMMENDATION",
-                    color = themeColors.primary400,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
                 )
                 Spacer(Modifier.height(8.dp))
-                Text(recommendation.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                Text(recommendation.subtitle, color = Zinc400, fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp))
+                Text(recommendation.title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(recommendation.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp))
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = { onStartRecommended(recommendation.suggestedMinutes) },
-                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -262,7 +262,7 @@ fun PracticeStatsScreen(
 private fun StatCard(label: String, value: String, valueColor: Color, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Zinc900),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -273,7 +273,7 @@ private fun StatCard(label: String, value: String, valueColor: Color, modifier: 
         ) {
             Text(value, color = valueColor, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(2.dp))
-            Text(label, color = Zinc500, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -301,7 +301,7 @@ private fun WeeklyBarChart(
                 if (minutes > 0) {
                     Text(
                         "${minutes.toInt()}",
-                        color = Zinc500,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 9.sp,
                         textAlign = TextAlign.Center
                     )
@@ -315,13 +315,13 @@ private fun WeeklyBarChart(
                         .fillMaxWidth()
                         .height(barHeight.dp)
                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                        .background(if (minutes > 0) barColor else Zinc800)
+                        .background(if (minutes > 0) barColor else MaterialTheme.colorScheme.surfaceVariant)
                 )
                 Spacer(Modifier.height(4.dp))
                 // Day label
                 Text(
                     dayLabels.getOrElse(index) { "" },
-                    color = Zinc500,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -342,23 +342,23 @@ private fun GoalPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Zinc900,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Weekly goal", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Weekly goal", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("How many minutes per week do you want to practice?", color = Zinc400, fontSize = 13.sp)
+                Text("How many minutes per week do you want to practice?", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 options.forEach { minutes ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (selected == minutes) themeColors.primary800.copy(alpha = 0.6f) else Color.Transparent)
+                            .background(if (selected == minutes) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f) else Color.Transparent)
                             .border(
                                 1.dp,
-                                if (selected == minutes) themeColors.primary600 else Zinc700,
+                                if (selected == minutes) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 RoundedCornerShape(10.dp)
                             )
                             .clickable { selected = minutes }
@@ -366,10 +366,10 @@ private fun GoalPickerDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(formatMin(minutes.toFloat()), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(formatMin(minutes.toFloat()), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Text(
                             "~${(minutes / 7)} min/day",
-                            color = Zinc500,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -379,14 +379,14 @@ private fun GoalPickerDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(selected) },
-                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Save", color = Color.White, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Zinc400)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -396,3 +396,4 @@ private fun formatMin(minutes: Float): String {
     val m = minutes.toInt()
     return if (m < 60) "${m} min" else "${m / 60}h ${m % 60}m"
 }
+

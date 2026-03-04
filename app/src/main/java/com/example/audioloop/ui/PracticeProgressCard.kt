@@ -1,4 +1,4 @@
-package com.example.audioloop.ui
+﻿package com.example.audioloop.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,8 +50,8 @@ fun PracticeProgressCard(
             .background(
                 Brush.horizontalGradient(
                     listOf(
-                        themeColors.primary900.copy(alpha = 0.5f),
-                        themeColors.primary900.copy(alpha = 0.25f)
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                     )
                 )
             )
@@ -69,7 +69,7 @@ fun PracticeProgressCard(
             Text(
                 "SMART COACH",
                 style = TextStyle(
-                    color = themeColors.primary300,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
@@ -80,7 +80,7 @@ fun PracticeProgressCard(
                 AppIcons.ChevronDown,
                 contentDescription = "Open",
                 modifier = Modifier.size(14.dp),
-                tint = themeColors.primary500
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -90,7 +90,7 @@ fun PracticeProgressCard(
             Text(
                 formatHhMmSs(totalTodayMs),
                 style = TextStyle(
-                    color = themeColors.primary300,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
@@ -101,7 +101,7 @@ fun PracticeProgressCard(
             Text(
                 "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
                 style = TextStyle(
-                    color = Zinc500,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -152,7 +152,7 @@ private fun SmartCoachDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .background(Zinc900)
+                .background(MaterialTheme.colorScheme.surface)
                 .border(1.dp, themeColors.primary700.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
                 .padding(20.dp)
         ) {
@@ -165,7 +165,7 @@ private fun SmartCoachDialog(
                 Text(
                     "SMART COACH",
                     style = TextStyle(
-                        color = themeColors.primary300,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
@@ -174,7 +174,7 @@ private fun SmartCoachDialog(
                 Text(
                     "View details",
                     style = TextStyle(
-                        color = themeColors.primary400,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     ),
@@ -199,8 +199,8 @@ private fun SmartCoachDialog(
                     CircularProgressIndicator(
                         progress = { goalProgress.coerceIn(0f, 1f) },
                         modifier = Modifier.size(56.dp),
-                        color = if (goalProgress >= 1f) Forest400 else themeColors.primary400,
-                        trackColor = Zinc800,
+                        color = if (goalProgress >= 1f) Forest400 else MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         strokeWidth = 5.dp,
                         strokeCap = StrokeCap.Round
                     )
@@ -223,7 +223,7 @@ private fun SmartCoachDialog(
                     )
                     Text(
                         "this week",
-                        color = Zinc500,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
@@ -233,7 +233,7 @@ private fun SmartCoachDialog(
                     Text(
                         formatHhMmSs(totalTodayMs),
                         style = TextStyle(
-                            color = themeColors.primary300,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
@@ -249,10 +249,10 @@ private fun SmartCoachDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatPill("Streak", "${streak}d", if (streak >= 3) Sunset400 else Zinc400, Modifier.weight(1f))
-                StatPill("Today", formatMinutes(todayMinutes), themeColors.primary400, Modifier.weight(1f))
-                StatPill("Sessions", "$weeklySessions", Zinc400, Modifier.weight(1f))
-                StatPill("Edits", "$weeklyEdits", Zinc400, Modifier.weight(1f))
+                StatPill("Streak", "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+                StatPill("Today", formatMinutes(todayMinutes), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                StatPill("Sessions", "$weeklySessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+                StatPill("Edits", "$weeklyEdits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
             }
 
             Spacer(Modifier.height(14.dp))
@@ -262,7 +262,7 @@ private fun SmartCoachDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(themeColors.primary800.copy(alpha = 0.5f))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     .padding(12.dp)
             ) {
                 Text(
@@ -273,7 +273,7 @@ private fun SmartCoachDialog(
                 )
                 Text(
                     recommendation.subtitle,
-                    color = Zinc400,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
@@ -284,7 +284,7 @@ private fun SmartCoachDialog(
                         if (!isPlaying) onDismiss()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isPlaying) Zinc700 else themeColors.primary600
+                        containerColor = if (isPlaying) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary
                     ),
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -320,7 +320,7 @@ private fun StatPill(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(Zinc800.copy(alpha = 0.6f))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
             .padding(vertical = 8.dp, horizontal = 4.dp)
     ) {
         Text(
@@ -331,7 +331,7 @@ private fun StatPill(
         )
         Text(
             label,
-            color = Zinc500,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
@@ -351,3 +351,4 @@ private fun formatMinutes(minutes: Float): String {
     val m = minutes.toInt()
     return if (m < 60) "${m} min" else "${m / 60}h ${m % 60}m"
 }
+

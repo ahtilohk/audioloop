@@ -318,7 +318,7 @@ fun AudioLoopMainScreen(
         bottomBar = {
             if (!isSelectionMode && !showCategorySheet && !showPlaylistSheet && !showBackupSheet && !showTrimDialog && editingPlaylist == null && !showPlaylistView) {
                 NavigationBar(
-                    containerColor = Zinc950.copy(alpha = 0.98f),
+                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.98f),
                     tonalElevation = 8.dp
                 ) {
                     NavigationBarItem(
@@ -327,11 +327,11 @@ fun AudioLoopMainScreen(
                         selected = currentNavTab == "library",
                         onClick = { currentNavTab = "library" },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = themeColors.primary300,
-                            selectedTextColor = themeColors.primary300,
-                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
-                            unselectedIconColor = Zinc500,
-                            unselectedTextColor = Zinc500
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     NavigationBarItem(
@@ -340,11 +340,11 @@ fun AudioLoopMainScreen(
                         selected = currentNavTab == "record",
                         onClick = { currentNavTab = "record" },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = themeColors.primary300,
-                            selectedTextColor = themeColors.primary300,
-                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
-                            unselectedIconColor = Zinc500,
-                            unselectedTextColor = Zinc500
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     NavigationBarItem(
@@ -353,11 +353,11 @@ fun AudioLoopMainScreen(
                         selected = currentNavTab == "coach",
                         onClick = { currentNavTab = "coach" },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = themeColors.primary300,
-                            selectedTextColor = themeColors.primary300,
-                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
-                            unselectedIconColor = Zinc500,
-                            unselectedTextColor = Zinc500
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     NavigationBarItem(
@@ -366,11 +366,11 @@ fun AudioLoopMainScreen(
                         selected = currentNavTab == "settings",
                         onClick = { currentNavTab = "settings" },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = themeColors.primary300,
-                            selectedTextColor = themeColors.primary300,
-                            indicatorColor = themeColors.primary800.copy(alpha = 0.5f),
-                            unselectedIconColor = Zinc500,
-                            unselectedTextColor = Zinc500
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -381,7 +381,7 @@ fun AudioLoopMainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .background(themeColors.primary900.copy(alpha = 0.4f))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                 .padding(innerPadding)
         ) {
         Column(
@@ -405,14 +405,14 @@ fun AudioLoopMainScreen(
                     Icon(
                         imageVector = AppIcons.GraphicEq, 
                         contentDescription = "Logo", 
-                        tint = themeColors.primary400,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = "Loop & Learn",
                         style = MaterialTheme.typography.titleLarge.copy(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(themeColors.primary300, themeColors.primary400)
+                                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                             ),
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
@@ -435,7 +435,7 @@ fun AudioLoopMainScreen(
                         Icon(
                             imageVector = AppIcons.Search,
                             contentDescription = "Search files",
-                            tint = if (searchQuery.isNotEmpty()) themeColors.primary400 else Zinc500,
+                            tint = if (searchQuery.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -448,7 +448,7 @@ fun AudioLoopMainScreen(
                         Icon(
                             imageVector = AppIcons.CloudSync,
                             contentDescription = "Backup & Restore",
-                            tint = if (isBackupSignedIn) themeColors.primary400 else Zinc500,
+                            tint = if (isBackupSignedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -511,7 +511,7 @@ fun AudioLoopMainScreen(
                             Text(
                                 text = cat,
                                 style = MaterialTheme.typography.labelLarge.copy(
-                                    color = if (isActive) themeColors.primary300 else Zinc500,
+                                    color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
                                 ),
                                 modifier = Modifier.padding(vertical = 12.dp)
@@ -522,7 +522,7 @@ fun AudioLoopMainScreen(
                                     .height(2.dp)
                                     .fillMaxWidth()
                                     .background(
-                                        if (isActive) themeColors.primary400
+                                        if (isActive) MaterialTheme.colorScheme.primary
                                         else Color.Transparent,
                                         RoundedCornerShape(1.dp)
                                     )
@@ -539,7 +539,7 @@ fun AudioLoopMainScreen(
                    Icon(
                        imageVector = AppIcons.Edit,
                        contentDescription = "Manage Categories",
-                       tint = Zinc500,
+                       tint = MaterialTheme.colorScheme.onSurfaceVariant,
                        modifier = Modifier.size(18.dp)
                    )
                 }
@@ -548,7 +548,7 @@ fun AudioLoopMainScreen(
 
             if (currentNavTab == "library") {
             HorizontalDivider(
-                color = Zinc700.copy(alpha = 0.3f),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
@@ -569,14 +569,14 @@ fun AudioLoopMainScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(40.dp)
-                            .background(Zinc800.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp),
                         textStyle = TextStyle(
                             color = Color.White,
                             fontSize = 14.sp
                         ),
                         singleLine = true,
-                        cursorBrush = SolidColor(themeColors.primary400),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         decorationBox = { innerTextField ->
                             Row(
                                 modifier = Modifier.fillMaxSize(),
@@ -585,13 +585,13 @@ fun AudioLoopMainScreen(
                                 Icon(
                                     imageVector = AppIcons.Search,
                                     contentDescription = "Search",
-                                    tint = Zinc500,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Box(modifier = Modifier.weight(1f)) {
                                     if (searchQuery.isEmpty()) {
-                                        Text("Search files...", color = Zinc500, fontSize = 14.sp)
+                                        Text("Search files...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                                     }
                                     innerTextField()
                                 }
@@ -599,7 +599,7 @@ fun AudioLoopMainScreen(
                                     Icon(
                                         imageVector = AppIcons.Close,
                                         contentDescription = "Clear search",
-                                        tint = Zinc400,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier
                                             .size(18.dp)
                                             .clickable { onSearchQueryChange("") }
@@ -612,7 +612,7 @@ fun AudioLoopMainScreen(
                     Icon(
                         imageVector = AppIcons.Close,
                         contentDescription = "Close search",
-                        tint = Zinc500,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
@@ -634,8 +634,8 @@ fun AudioLoopMainScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
-                            .background(Zinc800.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                            .border(1.dp, Zinc600, RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
                             .padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -660,14 +660,14 @@ fun AudioLoopMainScreen(
                                     Icon(
                                         imageVector = icon,
                                         contentDescription = null,
-                                        tint = if (active) Color.White else Zinc400,
+                                        tint = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = m,
                                         style = MaterialTheme.typography.labelLarge.copy(
-                                            color = if (active) Color.White else Zinc400,
+                                            color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium
                                         )
                                     )
@@ -691,8 +691,8 @@ fun AudioLoopMainScreen(
                                         radius = 600f
                                     )
                                 } else {
-                                    // Idle: Studio Dark (Zinc900)
-                                    SolidColor(Zinc900)
+                                    // Idle: Studio Dark (MaterialTheme.colorScheme.surface)
+                                    SolidColor(MaterialTheme.colorScheme.surface)
                                 }
                             )
                             .border(
@@ -732,12 +732,12 @@ fun AudioLoopMainScreen(
                                         shape = CircleShape
                                     )
                                     .background(
-                                        color = if (isRecording) Red600 else Zinc800,
+                                        color = if (isRecording) Red600 else MaterialTheme.colorScheme.surfaceVariant,
                                         shape = CircleShape
                                     )
                                     .border(
                                         width = 1.dp,
-                                        color = if (isRecording) Red400 else Zinc600,
+                                        color = if (isRecording) Red400 else MaterialTheme.colorScheme.outline,
                                         shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -814,7 +814,7 @@ fun AudioLoopMainScreen(
                                     Text(
                                         text = "$mode mode",
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = Zinc500,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontWeight = FontWeight.Medium
                                         )
                                     )
@@ -834,20 +834,20 @@ fun AudioLoopMainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(AppIcons.School, contentDescription = null, tint = themeColors.primary400, modifier = Modifier.size(64.dp))
+                    Icon(AppIcons.School, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(64.dp))
                     Text(
                         "Smart Practice Coach",
                         style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
                     )
                     Text(
                         "Track your progress, get personal recommendations, and build a practice habit.",
-                        color = Zinc400,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     Button(
                         onClick = onViewPracticeStats,
-                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
@@ -900,7 +900,7 @@ fun AudioLoopMainScreen(
             }
 
             if (!showCategorySheet && currentNavTab == "library") {
-                HorizontalDivider(color = Zinc800, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
                 Column(
                     modifier = Modifier
@@ -937,7 +937,7 @@ fun AudioLoopMainScreen(
                                             selectedFiles = emptySet()
                                         }
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                     shape = RoundedCornerShape(12.dp),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                                     modifier = Modifier.weight(1f)
@@ -970,15 +970,15 @@ fun AudioLoopMainScreen(
                                         isSelectionMode = false
                                         selectedFiles = emptySet()
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary800),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                     shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(1.dp, themeColors.primary600),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Icon(AppIcons.QueueMusic, contentDescription = null, modifier = Modifier.size(16.dp), tint = themeColors.primary300)
+                                    Icon(AppIcons.QueueMusic, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                                     Spacer(Modifier.width(4.dp))
-                                    Text("PLAYLIST", color = themeColors.primary300, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    Text("PLAYLIST", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                                 }
                                 // Merge (2+ files)
                                 if (selectedFiles.size >= 2) {
@@ -1007,13 +1007,13 @@ fun AudioLoopMainScreen(
                             // â”€â”€ Normal file list header with Select button â”€â”€
                             Text(
                                 text = "Files ($currentCategory):",
-                                style = TextStyle(color = Zinc200, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(
                                     onClick = { filePickerLauncher.launch("audio/*") },
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.height(32.dp)
                                 ) {
@@ -1024,8 +1024,8 @@ fun AudioLoopMainScreen(
                                         isSelectionMode = true
                                     },
                                     shape = RoundedCornerShape(12.dp),
-                                    color = Zinc800.copy(alpha = 0.5f),
-                                    border = BorderStroke(1.dp, Zinc600),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                     modifier = Modifier.height(32.dp)
                                 ) {
                                     Row(
@@ -1036,10 +1036,10 @@ fun AudioLoopMainScreen(
                                         Icon(
                                             AppIcons.DoneAll,
                                             contentDescription = "Select",
-                                            tint = Zinc300,
+                                            tint = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.size(14.dp)
                                         )
-                                        Text("Select", fontSize = 12.sp, color = Zinc300)
+                                        Text("Select", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -1057,7 +1057,7 @@ fun AudioLoopMainScreen(
                         ) {
                             Text(
                                 text = "Tap files to select",
-                                style = TextStyle(color = Zinc500, fontSize = 13.sp)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                             )
                             Surface(
                                 onClick = {
@@ -1101,14 +1101,14 @@ fun AudioLoopMainScreen(
                                 .background(
                                     Brush.horizontalGradient(
                                         listOf(
-                                            themeColors.primary900.copy(alpha = 0.75f),
-                                            themeColors.primary800.copy(alpha = 0.45f)
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                                         )
                                     )
                                 )
                                 .border(
                                     1.5.dp,
-                                    themeColors.primary500.copy(alpha = 0.4f + 0.3f * glowAlpha),
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f + 0.3f * glowAlpha),
                                     RoundedCornerShape(14.dp)
                                 )
                                 .clickable { 
@@ -1128,13 +1128,13 @@ fun AudioLoopMainScreen(
                                     modifier = Modifier
                                         .size(8.dp)
                                         .clip(CircleShape)
-                                        .background(themeColors.primary400.copy(alpha = 0.6f + 0.4f * glowAlpha))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f + 0.4f * glowAlpha))
                                 )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         "NOW PLAYING",
                                         style = TextStyle(
-                                            color = themeColors.primary400,
+                                            color = MaterialTheme.colorScheme.primary,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Bold,
                                             letterSpacing = 1.5.sp
@@ -1167,7 +1167,7 @@ fun AudioLoopMainScreen(
                                         Text(
                                             "Today ${formatSessionTime(totalTodayMs)}",
                                             style = TextStyle(
-                                                color = themeColors.primary400,
+                                                color = MaterialTheme.colorScheme.primary,
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Medium,
                                                 fontFamily = FontFamily.Monospace
@@ -1193,7 +1193,7 @@ fun AudioLoopMainScreen(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
                                         .background(themeColors.primary700.copy(alpha = 0.55f))
-                                        .border(1.dp, themeColors.primary500.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
                                     Text("ðŸ” $loopText",
@@ -1207,12 +1207,12 @@ fun AudioLoopMainScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .background(Zinc700.copy(alpha = 0.7f))
-                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
+                                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
                                         Text("ðŸŽš ${String.format("%.1f", activePlaylist.speed)}Ã—",
-                                            color = Zinc300, fontSize = 12.sp)
+                                            color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
                                     }
                                 }
                                 // Gap pill
@@ -1220,12 +1220,12 @@ fun AudioLoopMainScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .background(Zinc700.copy(alpha = 0.7f))
-                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
+                                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
                                         Text("â± ${activePlaylist.gapSeconds}s gap",
-                                            color = Zinc300, fontSize = 12.sp)
+                                            color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
                                     }
                                 }
                                 // Shuffle pill
@@ -1233,19 +1233,19 @@ fun AudioLoopMainScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .background(Zinc700.copy(alpha = 0.7f))
-                                            .border(1.dp, Zinc600, RoundedCornerShape(20.dp))
+                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
+                                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
                                             .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
                                         Text("ðŸ”€ Shuffle",
-                                            color = Zinc300, fontSize = 12.sp)
+                                            color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
                                     }
                                 }
                                 // Track count
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     "${activePlaylist.files.size} tracks",
-                                    color = Zinc500,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             }
@@ -1379,7 +1379,7 @@ fun AudioLoopMainScreen(
                                 Icon(
                                     imageVector = if (searchQuery.isNotEmpty()) AppIcons.Search else AppIcons.Mic,
                                     contentDescription = null,
-                                    tint = themeColors.primary400.copy(alpha = 0.4f),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
                                     modifier = Modifier.size(64.dp)
                                 )
                                 Spacer(modifier = Modifier.height(20.dp))
@@ -1387,7 +1387,7 @@ fun AudioLoopMainScreen(
                                     text = if (searchQuery.isNotEmpty()) "No matching files"
                                            else "No recordings yet",
                                     style = MaterialTheme.typography.titleMedium.copy(
-                                        color = Zinc300,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 )
@@ -1396,7 +1396,7 @@ fun AudioLoopMainScreen(
                                     text = if (searchQuery.isNotEmpty()) "Try a different search term"
                                            else "Tap the record button above to create your first recording, or import an audio file.",
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = Zinc500
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -1405,19 +1405,19 @@ fun AudioLoopMainScreen(
                                     Spacer(modifier = Modifier.height(24.dp))
                                     OutlinedButton(
                                         onClick = { filePickerLauncher.launch("audio/*") },
-                                        border = BorderStroke(1.dp, themeColors.primary400.copy(alpha = 0.5f)),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
                                         shape = RoundedCornerShape(14.dp)
                                     ) {
                                         Icon(
                                             imageVector = AppIcons.Add,
                                             contentDescription = null,
-                                            tint = themeColors.primary400,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             "Import Audio File",
-                                            color = themeColors.primary300,
+                                            color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Medium
                                         )
                                     }
@@ -1757,6 +1757,7 @@ fun AudioLoopMainScreen(
 // Dialog Definitions moved to ui/Dialogs.kt
 
 // TrimAudioScreen moved to ui/TrimAudioDialog.kt
+
 
 
 
