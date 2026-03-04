@@ -1,227 +1,64 @@
 package com.example.audioloop
 
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.lazy.rememberLazyListState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.isActive
-
-import android.media.MediaMetadataRetriever
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.unit.IntSize
 import android.Manifest
 import android.content.BroadcastReceiver
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.provider.OpenableColumns
-import android.widget.Toast
 
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChanged
-import com.linc.audiowaveform.AudioWaveform
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.ArrowDropDown
-
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.audioloop.ui.theme.AudioLoopTheme
-
+import com.example.audioloop.ui.theme.Zinc300
+import com.example.audioloop.ui.theme.Zinc400
+import com.example.audioloop.ui.theme.Zinc700
+import com.example.audioloop.ui.theme.Zinc900
+import com.example.audioloop.ui.theme.Sunset400
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
-import java.util.concurrent.TimeUnit
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.rememberCoroutineScope
 
-// --- ABIFUNKTSIOONID JA VAHEMÄLU ---
-private val waveformCache = mutableStateMapOf<String, List<Int>>()
-
-private fun getWaveformFile(audioFile: java.io.File): java.io.File {
-    return java.io.File(audioFile.parent, "${audioFile.name}.wave")
-}
-
-private fun saveWaveformToDisk(audioFile: java.io.File, waveform: List<Int>) {
-    try {
-        val waveFile = getWaveformFile(audioFile)
-        waveFile.writeText(waveform.joinToString(","))
-    } catch (e: Exception) { e.printStackTrace() }
-}
-
-private fun loadWaveformFromDisk(audioFile: java.io.File): List<Int>? {
-    return try {
-        val waveFile = getWaveformFile(audioFile)
-        if (!waveFile.exists()) return null
-        val content = waveFile.readText()
-        if (content.isBlank()) return null
-        content.split(",").map { it.toInt() }
-    } catch (e: Exception) { null }
-}
-
-private fun precomputeWaveformAsync(scope: CoroutineScope, file: java.io.File, fullBars: Int = 120, force: Boolean = false) {
-    val key = file.absolutePath
-    if (force) {
-        waveformCache.remove(key)
-        try { getWaveformFile(file).delete() } catch (_: Exception) {}
-    }
-    if (waveformCache.containsKey(key)) return
-    scope.launch(Dispatchers.IO) {
-        try {
-            val cached = loadWaveformFromDisk(file)
-            if (cached != null && cached.isNotEmpty()) {
-                withContext(Dispatchers.Main) { waveformCache[key] = cached }
-                return@launch
-            }
-            val waveform = generateWaveform(file, numBars = fullBars)
-            saveWaveformToDisk(file, waveform)
-            withContext(Dispatchers.Main) { waveformCache[key] = waveform }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-}
-
-fun sanitizeName(name: String): String {
-    val sb = StringBuilder()
-    for (c in name) {
-        if (c == '/' || c == '\\' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') continue
-        if (c == ':') sb.append('_') else sb.append(c)
-    }
-    return sb.toString().trim()
-}
-
-    // Generate waveform using MediaCodec (via WaveformGenerator)
-    private fun generateWaveform(file: File, numBars: Int = 120): List<Int> {
-        return WaveformGenerator.extractWaveform(file, numBars)
-    }
-
-    // --- LOCALE HELPERS ---
-    fun setLocale(context: Context, languageCode: String): Context {
-        val locale = java.util.Locale(languageCode)
-        java.util.Locale.setDefault(locale)
-        val config = android.content.res.Configuration()
-        config.setLocale(locale)
-        return context.createConfigurationContext(config)
-    }
-    
-    fun saveLanguage(context: Context, lang: String) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("app_lang", lang).apply()
-    }
-    
-    fun getSavedLanguage(context: Context): String {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getString("app_lang", "et") ?: "et" // Default to Estonian
-    }
-
-
-
-// --- MAIN ACTIVITY ---
-class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
+/**
+ * MainActivity — slim UI host.
+ *
+ * All state and business logic lives in AudioLoopViewModel.
+ * This Activity is responsible for:
+ * - Lifecycle (onCreate, onDestroy, onNewIntent)
+ * - Permission launchers (recording, screen capture, sign-in)
+ * - Setting Compose content
+ */
+class MainActivity : ComponentActivity() {
 
     private var pendingRecordingName = ""
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
 
-    // --- Notes storage (always in internal .notes/ directory) ---
-    private fun getNotesDir(): File {
-        val dir = File(filesDir, ".notes")
-        if (!dir.exists()) dir.mkdirs()
-        return dir
-    }
-
-    fun getNoteFile(audioFile: File): File {
-        return File(getNotesDir(), "${audioFile.name}.note.txt")
-    }
-
-    private fun getNoteForFile(audioFile: File): String {
-        val noteFile = getNoteFile(audioFile)
-        return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
-    }
-
-    private fun saveNoteForFile(audioFile: File, note: String) {
-        val noteFile = getNoteFile(audioFile)
-        if (note.isBlank()) {
-            noteFile.delete()
-        } else {
-            noteFile.writeText(note)
-        }
-    }
-
-
+    // Late-bound ViewModel ref (set in setContent)
+    private var vm: AudioLoopViewModel? = null
 
     private val screenCaptureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data != null) {
             val resultCode = result.resultCode
             val data = result.data!!
-            
             val finalName = if (pendingCategory == "General") pendingRecordingName else {
                 val folder = File(filesDir, pendingCategory)
                 if (!folder.exists()) folder.mkdirs()
@@ -235,228 +72,104 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             }
             startInternalAudioService(serviceIntent)
         } else {
-            Toast.makeText(this, "Permission required for recording", Toast.LENGTH_SHORT).show()
+            vm?.showSnackbar("Permission required for recording", isError = true)
         }
     }
 
-    private var mediaPlayer: MediaPlayer? = null
-    private lateinit var mediaSessionManager: MediaSessionManager
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-
+        if (isGranted) vm?.showSnackbar("Permission granted")
+        else vm?.showSnackbar("Permission denied", isError = true)
     }
 
-    // State Variables
-    private var playingFileName by mutableStateOf("")
-    private var isPaused by mutableStateOf(false)
-    private var currentProgress by mutableFloatStateOf(0f)
-    private var currentTimeString by mutableStateOf("00:00")
-    private var playbackSpeed by mutableFloatStateOf(1.0f)
-    private var playbackPitch by mutableFloatStateOf(1.0f)
-    private var loopMode by mutableIntStateOf(1) // 0=off, 1=one, -1=inf
-    private var isShadowingMode by mutableStateOf(false)
-    private var shadowPauseSeconds by mutableIntStateOf(0) // 0 = auto
-    private var shadowCountdownText by mutableStateOf("") // countdown text during Listen & Repeat pause
-    private var uiCategory by mutableStateOf("General")
-    private var categories by mutableStateOf(listOf("General"))
-    private var savedItems by mutableStateOf<List<RecordingItem>>(emptyList())
-    private var usePublicStorage by mutableStateOf(true) // Always use public storage (Music/AudioLoop)
-    private var sleepTimerRemainingMs by mutableLongStateOf(0L)
-    private var selectedSleepMinutes by mutableIntStateOf(0)
-    private var sleepTimerJob: kotlinx.coroutines.Job? = null
-    private var currentTheme by mutableStateOf(com.example.audioloop.ui.theme.AppTheme.SLATE)
-    
-    // Practice Coach state
-    private lateinit var practiceStats: PracticeStatsManager
-    private lateinit var coachEngine: CoachEngine
-    private var practiceWeeklyMinutes by mutableFloatStateOf(0f)
-    private var practiceWeeklyGoal by mutableIntStateOf(120)
-    private var practiceStreak by mutableIntStateOf(0)
-    private var practiceTodayMinutes by mutableFloatStateOf(0f)
-    private var practiceWeeklySessions by mutableIntStateOf(0)
-    private var practiceWeeklyEdits by mutableIntStateOf(0)
-    private var practiceGoalProgress by mutableFloatStateOf(0f)
-    private var practiceRecommendation by mutableStateOf(CoachEngine.Recommendation("", "", "", 0))
-    private var showPracticeStats by mutableStateOf(false)
-    private var isSmartCoachExpanded by mutableStateOf(false)
-    // Playback session timing
-    private var sessionStartTimeMs by mutableLongStateOf(0L)
-    private var currentSessionElapsedMs by mutableLongStateOf(0L)
-
-    // Playlists state
-    private lateinit var playlistManager: PlaylistManager
-    private var playlists by mutableStateOf<List<Playlist>>(emptyList())
-    private var currentlyPlayingPlaylistId by mutableStateOf<String?>(null)
-    private var currentPlaylistIteration by mutableStateOf(1)
-
-    // Backup & Restore state
-    private lateinit var driveBackupManager: DriveBackupManager
-    private var isBackupSignedIn by mutableStateOf(false)
-    private var backupEmail by mutableStateOf("")
-    private var backupProgress by mutableStateOf("")
-    private var isBackupRunning by mutableStateOf(false)
-    private var backupList by mutableStateOf<List<BackupInfo>>(emptyList())
-    private val signInLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        // Always try to extract account from intent - don't rely on resultCode
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val data = result.data
         if (data != null) {
             val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(data)
             if (task.isSuccessful) {
-                val account = task.result
-                driveBackupManager.handleSignInResult(account)
-                isBackupSignedIn = true
-                backupEmail = account?.email ?: ""
-                backupProgress = ""
+                vm?.handleSignInResult(task.result)
             } else {
                 val e = task.exception
-                if (e is com.google.android.gms.common.api.ApiException) {
-                    val msg = when (e.statusCode) {
+                val msg = if (e is com.google.android.gms.common.api.ApiException) {
+                    when (e.statusCode) {
                         12501 -> "Sign-in cancelled"
                         12500 -> "Sign-in failed. Check Google Play Services."
                         10 -> "Developer error: check SHA-1 in Google Cloud Console"
                         4 -> "Sign-in interrupted"
                         else -> "Sign-in error (code ${e.statusCode})"
                     }
-                    backupProgress = msg
                 } else {
-                    backupProgress = "Sign-in failed: ${e?.localizedMessage ?: "unknown error"}"
+                    "Sign-in failed: ${e?.localizedMessage ?: "unknown error"}"
                 }
+                vm?.handleSignInError(msg)
             }
         } else {
-            // No intent data - try silentSignIn as last resort
-            driveBackupManager.getSignInClient().silentSignIn()
-                .addOnSuccessListener { account ->
-                    driveBackupManager.handleSignInResult(account)
-                    isBackupSignedIn = true
-                    backupEmail = account?.email ?: ""
-                    backupProgress = ""
-                    isBackupRunning = false
+            vm?.driveBackupManager?.getSignInClient()?.silentSignIn()
+                ?.addOnSuccessListener { account ->
+                    vm?.handleSignInResult(account)
                 }
-                .addOnFailureListener { e ->
-                    backupProgress = "Sign-in failed: ${e.localizedMessage}"
-                    isBackupRunning = false
+                ?.addOnFailureListener { e ->
+                    vm?.handleSignInError("Sign-in failed: ${e.localizedMessage}")
                 }
         }
-        isBackupRunning = false
+        vm?.setBackupRunning(false)
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        
-        currentTheme = getThemePref(this)
-        isSmartCoachExpanded = getSmartCoachExpandedPref(this)
-
-        // Init backup manager
-        driveBackupManager = DriveBackupManager(this)
-        if (driveBackupManager.initFromLastAccount()) {
-            isBackupSignedIn = true
-            backupEmail = driveBackupManager.getSignedInEmail() ?: ""
-        }
-
-        // Init playlist manager
-        playlistManager = PlaylistManager(this)
-        playlists = playlistManager.loadAll()
-
-        // Init practice stats & coach
-        practiceStats = PracticeStatsManager(this)
-        coachEngine = CoachEngine(practiceStats)
-        refreshPracticeStats()
-
-        // Init MediaSession for Bluetooth/headset media button + audio focus
-        mediaSessionManager = MediaSessionManager(
-            context = this,
-            onPlay = {
-                if (isPaused && mediaPlayer != null) {
-                    resumePlaying()
-                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-                }
-            },
-            onPause = {
-                if (mediaPlayer?.isPlaying == true) {
-                    pausePlaying()
-                    mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
-                }
-            },
-            onStop = {
-                stopPlaying()
-                playingFileName = ""
-                currentlyPlayingPlaylistId = null
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
-                mediaSessionManager.abandonAudioFocus()
-            }
-        )
-        mediaSessionManager.initialize()
+        } catch (e: Exception) { e.printStackTrace() }
 
         setContent {
-            AudioLoopTheme(appTheme = currentTheme) {
-                // Tick session elapsed timer every second while playing
-                LaunchedEffect(sessionStartTimeMs) {
-                    if (sessionStartTimeMs > 0L) {
-                        while (true) {
-                            currentSessionElapsedMs = System.currentTimeMillis() - sessionStartTimeMs
-                            kotlinx.coroutines.delay(1000L)
-                        }
-                    } else {
-                        currentSessionElapsedMs = 0L
+            val viewModel: AudioLoopViewModel = viewModel()
+            vm = viewModel
+
+            // Initialize ViewModel once
+            LaunchedEffect(Unit) {
+                viewModel.initialize()
+                viewModel.loadCategoriesAndFiles()
+                viewModel.startProgressTracking()
+            }
+
+            val uiState by viewModel.uiState.collectAsState()
+
+            AudioLoopTheme(appTheme = uiState.currentTheme) {
+                val snackbarHostState = remember { SnackbarHostState() }
+                val coroutineScope = rememberCoroutineScope()
+                val context = this@MainActivity
+
+                // Snackbar handler — replaces Toast
+                LaunchedEffect(uiState.snackbarMessage) {
+                    uiState.snackbarMessage?.let { msg ->
+                        snackbarHostState.showSnackbar(
+                            message = msg.text,
+                            actionLabel = msg.actionLabel,
+                            duration = when (msg.duration) {
+                                SnackbarDuration.Short -> androidx.compose.material3.SnackbarDuration.Short
+                                SnackbarDuration.Long -> androidx.compose.material3.SnackbarDuration.Long
+                                SnackbarDuration.Indefinite -> androidx.compose.material3.SnackbarDuration.Indefinite
+                            }
+                        )
+                        viewModel.clearSnackbar()
                     }
                 }
 
-                val coroutineScope = rememberCoroutineScope()
-
-                val getAllRecordings = {
-                    categories.flatMap { cat -> getSavedRecordings(cat, filesDir) }
-                }
-
-                // First launch welcome dialog
-                var showWelcomeDialog by remember { mutableStateOf(isFirstLaunch(this)) }
-
-                val context = LocalContext.current
-                // Force English always as per user request
-                val currentLanguage = "en" 
-                
-                // Force update on language change can be handled by recreation, avoiding Context wrapper issues.
-                // key(currentLanguage) {
-                     // CompositionLocalProvider causes issues on API 34+ with Dialogs/Surface
-                     // So we use standard context.
-                        // All UI content here
-                        // ...
-
-                // BROADCAST RECEIVER
+                // Broadcast receiver for recording saved
                 DisposableEffect(Unit) {
                     val receiver = object : BroadcastReceiver() {
-                        override fun onReceive(context: Context?, intent: Intent?) {
+                        override fun onReceive(ctx: Context?, intent: Intent?) {
                             if (intent?.action == RecordingService.ACTION_RECORDING_SAVED) {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     try {
-                                        val ctx = context ?: return@launch
-                                        val firstTry = getSavedRecordings(uiCategory, ctx.filesDir)
-                                        withContext(Dispatchers.Main) { savedItems = firstTry }
+                                        viewModel.refreshFileList()
                                         delay(500)
-                                        val secondTry = getSavedRecordings(uiCategory, ctx.filesDir)
-                                        val newFile = secondTry.firstOrNull()?.file
-                                        if (newFile != null) {
-                                            precomputeWaveformAsync(this@MainActivity, newFile)
-                                            // Auto-Export Logic (DISABLED to fix System UI ANR)
-                                            // exportFileToMusic(newFile, uiCategory)
-                                            // withContext(Dispatchers.Main) {
-                                            //    Toast.makeText(ctx, "Saved & Copied to Music/AudioLoop", Toast.LENGTH_SHORT).show()
-                                            // }
-                                        }
-                                        withContext(Dispatchers.Main) { savedItems = secondTry }
-                                        // Update widget with latest file info
-                                        val latestItem = secondTry.firstOrNull()
+                                        viewModel.refreshFileList()
+                                        // Update widget
+                                        val items = viewModel.uiState.value.savedItems
+                                        val latestItem = items.firstOrNull()
                                         com.example.audioloop.widget.WidgetStateHelper.updateWidget(
-                                            ctx,
-                                            category = uiCategory,
+                                            context,
+                                            category = uiState.currentCategory,
                                             lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
                                             lastFileDuration = latestItem?.durationString ?: ""
                                         )
@@ -470,12 +183,11 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     onDispose { context.unregisterReceiver(receiver) }
                 }
 
-                // Request microphone permission on app start
+                // Request permissions
                 LaunchedEffect(Unit) {
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                         requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                     }
-                    // Request notification permission for Android 13+ (needed for foreground service)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -483,558 +195,164 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
                     }
                 }
 
-                LaunchedEffect(uiCategory) {
-                    withContext(Dispatchers.IO) {
-                        // Update categories from internal storage
-                        val realDirs = filesDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }?.map { it.name } ?: emptyList()
-                        val savedOrder = loadCategoryOrder()
-                        
-                        val newOrder = ArrayList<String>()
-                        // 1. Add known ones in order
-                        savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
-                        // 2. Add new ones from internal storage
-                        realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
-                        
-                        // 3. Scan public storage (Music/AudioLoop) for additional categories
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            try {
-                                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                                val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH)
-                                val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
-                                val selectionArgs = arrayOf("Music/AudioLoop/%")
-                                
-                                contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
-                                    val pathCol = cursor.getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH)
-                                    while (cursor.moveToNext()) {
-                                        val path = cursor.getString(pathCol) ?: continue
-                                        // Extract category name: "Music/AudioLoop/CategoryName/" -> "CategoryName"
-                                        val parts = path.removePrefix("Music/AudioLoop/").trimEnd('/').split("/")
-                                        val categoryName = parts.firstOrNull()?.takeIf { it.isNotBlank() }
-                                        if (categoryName != null && !newOrder.contains(categoryName) && categoryName != "General") {
-                                            newOrder.add(categoryName)
-                                        }
-                                    }
-                                }
-                            } catch (e: Exception) { e.printStackTrace() }
-                        }
-                        
-                        // 4. Ensure General exists
-                        if (!newOrder.contains("General")) newOrder.add(0, "General") 
-                        
-                        withContext(Dispatchers.Main) { categories = newOrder }
-
-                        // Update items
-                        val items = getSavedRecordings(uiCategory, filesDir)
-                        items.forEach { precomputeWaveformAsync(this@MainActivity, it.file) }
-                        withContext(Dispatchers.Main) { savedItems = items }
-                    }
-                }
-
-                LaunchedEffect(playingFileName) {
-                    if (playingFileName.isNotEmpty()) {
-                        while (true) {
-                            if (mediaPlayer?.isPlaying == true) {
-                                val current = mediaPlayer?.currentPosition ?: 0
-                                val total = mediaPlayer?.duration ?: 1
-                                currentProgress = current.toFloat() / total.toFloat()
-                                currentTimeString = formatTime(current.toLong())
-                            }
-                            delay(100)
-                        }
-                    } else {
-                        currentProgress = 0f
-                        currentTimeString = "00:00"
-                    }
-                }
-
-                // Welcome Dialog for first launch
+                // Welcome Dialog
+                var showWelcomeDialog by remember { mutableStateOf(viewModel.isFirstLaunch()) }
                 if (showWelcomeDialog) {
-                    androidx.compose.material3.AlertDialog(
-                        onDismissRequest = { },
-                        containerColor = com.example.audioloop.ui.theme.Zinc900,
-                        titleContentColor = Color.White,
-                        textContentColor = com.example.audioloop.ui.theme.Zinc300,
-                        title = {
-                            Text(
-                                "Welcome to AudioLoop!",
-                                style = androidx.compose.ui.text.TextStyle(
-                                    brush = Brush.linearGradient(
-                                        listOf(currentTheme.palette.primary400, currentTheme.palette.primary200)
-                                    ),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                )
-                            )
-                        },
-                        text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text(
-                                    "AudioLoop supports two recording modes:",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("\uD83C\uDFA4", fontSize = 16.sp)
-                                    Column {
-                                        Text("Speech", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
-                                        Text("Records your voice using the microphone.", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)
-                                    }
-                                }
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("\uD83D\uDD0A", fontSize = 16.sp)
-                                    Column {
-                                        Text("Stream", color = currentTheme.palette.primary300, fontWeight = FontWeight.Bold)
-                                        Text("Records audio playing on your device (music, videos, etc).", color = com.example.audioloop.ui.theme.Zinc400, fontSize = 13.sp)
-                                    }
-                                }
-                                androidx.compose.material3.HorizontalDivider(color = com.example.audioloop.ui.theme.Zinc700)
-                                Text(
-                                    "⚠️ Note about Stream recording:",
-                                    color = com.example.audioloop.ui.theme.Sunset400,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    "Android requires permission confirmation each time you start Stream recording. This is a security feature and cannot be bypassed.",
-                                    color = com.example.audioloop.ui.theme.Zinc400,
-                                    fontSize = 13.sp
-                                )
-                            }
-                        },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    setFirstLaunchComplete(this@MainActivity)
-                                    showWelcomeDialog = false
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = currentTheme.palette.primary600)
-                            ) {
-                                Text("Got it!", color = Color.White, fontWeight = FontWeight.Bold)
-                            }
+                    WelcomeDialog(
+                        themeColors = uiState.currentTheme.palette,
+                        onDismiss = {
+                            viewModel.setFirstLaunchComplete()
+                            showWelcomeDialog = false
                         }
                     )
                 }
 
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    com.example.audioloop.ui.AudioLoopMainScreen(
-                        context = this,
-                        recordingItems = savedItems,
-                        categories = categories,
-                        currentCategory = uiCategory,
-                        currentProgress = currentProgress,
-                        currentTimeString = currentTimeString,
-                        playingFileName = playingFileName,
-                        isPaused = isPaused,
-                        onPlayingFileNameChange = { playingFileName = it },
-                        onCategoryChange = { newCat ->
-                            uiCategory = newCat
-                            com.example.audioloop.widget.WidgetStateHelper.updateWidget(this, category = newCat)
-                        },
-                        onAddCategory = { catName ->
-                            val dir = File(filesDir, catName)
-                            if (!dir.exists()) dir.mkdirs()
-                            
-                            // Add to list and save
-                            val newCats = categories.toMutableList()
-                            if (!newCats.contains(catName)) {
-                                newCats.add(catName)
-                                categories = newCats
-                                saveCategoryOrder(newCats)
-                            }
-                            uiCategory = catName
-                        },
-                        onRenameCategory = { oldName, newName ->
-                            renameCategory(oldName, newName)
-                            if (uiCategory == oldName) uiCategory = newName
-                            
-                            // Update order list
-                            val newCats = categories.toMutableList()
-                            val idx = newCats.indexOf(oldName)
-                            if (idx != -1) {
-                                newCats[idx] = newName
-                                categories = newCats
-                                saveCategoryOrder(newCats)
-                            }
-                            
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onDeleteCategory = { catName ->
-                            deleteCategory(catName)
-                            // Update list
-                            val newCats = categories.toMutableList()
-                            newCats.remove(catName)
-                            categories = newCats
-                            saveCategoryOrder(newCats)
-                            
-                            uiCategory = "General"
-                        },
-                        onReorderCategory = { cat, dir -> 
-                            val idx = categories.indexOf(cat)
-                            if (idx != -1) {
-                                val newIdx = idx + dir
-                                if (newIdx in 0 until categories.size) {
-                                    val mutable = categories.toMutableList()
-                                    java.util.Collections.swap(mutable, idx, newIdx)
-                                    categories = mutable
-                                    saveCategoryOrder(mutable)
-                                }
-                            }
-                        },
-                        onReorderCategories = { newOrder ->
-                            categories = newOrder
-                            saveCategoryOrder(newOrder)
-                        },
-                        onMoveFile = { item, targetCat ->
-                            moveFileToCategory(item.file, targetCat)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onReorderFile = { file, direction ->
-                            reorderFile(file, direction)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onReorderFinished = { OrderedFiles ->
-                            updateFileOrder(OrderedFiles)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onStartRecord = { name, useRaw ->
-                            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                                if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    pendingRecordingName = name
-                                    pendingCategory = uiCategory
-                                    val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
-                                    screenCaptureLauncher.launch(captureIntent)
-                                    true
-                                } else {
-                                    startRecording(name, uiCategory, false)
-                                    true
-                                }
-                            } else {
-                                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                                false
-                            }
-                        },
-                        onStopRecord = { stopRecording() },
-                        onStartPlaylist = { files, loop, speed, onComplete ->
-                           // Use providers to access fresh state
-                            playPlaylist(files, 0, { loopMode }, { playbackSpeed }, { playbackPitch }, { isShadowingMode }, { playingFileName = it; isPaused = false }) {
-                                playingFileName = ""
-                                isPaused = false
-                                onComplete()
-                            }
-                        },
-                        onPlaylistUpdate = { },
-                        onSpeedChange = { speed -> playbackSpeed = speed; updatePlaybackParams(speed, playbackPitch) },
-                        onPitchChange = { pitch -> playbackPitch = pitch; updatePlaybackParams(playbackSpeed, pitch) },
-                        onLoopCountChange = { loops -> loopMode = loops },
-                        onSeekTo = { pos -> seekTo(pos) },
-                        onPausePlay = { pausePlaying() },
-                        onResumePlay = { resumePlaying() },
-                        onStopPlay = {
-                            stopPlaying()
-                            playingFileName = ""
-                            currentlyPlayingPlaylistId = null
-                        },
-                        onDeleteFile = { item ->
-                            getNoteFile(item.file).delete()
-                            getWaveformFile(item.file).delete()
-                            if (item.file.delete()) savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onShareFile = { item -> shareFile(item) },
-                        onRenameFile = { item, newName ->
-                            renameFile(item, newName)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onImportFile = { uri ->
-                            importFileFromUri(uri, uiCategory)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                            savedItems.forEach { item -> precomputeWaveformAsync(this@MainActivity, item.file) }
-                        },
-                        onTrimFile = { file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize ->
-                            logEditEvent("trim")
-                            trimAudioFile(file, start, end, replace, removeSelection, fadeInMs, fadeOutMs, normalize) {
-                                savedItems = getSavedRecordings(uiCategory, filesDir)
-                                if (replace) precomputeWaveformAsync(this@MainActivity, file, force = true)
-                                else {
-                                    val items = getSavedRecordings(uiCategory, filesDir)
-                                    val newFile = items.firstOrNull()?.file
-                                    if (newFile != null) precomputeWaveformAsync(this@MainActivity, newFile, force = true)
-                                }
-                            }
-                        },
-                        selectedSpeed = playbackSpeed,
-                        selectedPitch = playbackPitch,
-                        selectedLoopCount = loopMode,
-                        isShadowing = isShadowingMode,
-                        onShadowingChange = { isShadowingMode = it },
-                        shadowPauseSeconds = shadowPauseSeconds,
-                        onShadowPauseChange = { shadowPauseSeconds = it },
-                        shadowCountdownText = shadowCountdownText,
-                        waveformCache = waveformCache,
-                        onSeekAbsolute = { ms -> mediaPlayer?.seekTo(ms) },
-                        onSplitFile = { item ->
-                            logEditEvent("split")
-                            coroutineScope.launch {
-                                splitBySilence(item.file, uiCategory)
-                                savedItems = getSavedRecordings(uiCategory, filesDir)
-                                savedItems.forEach { precomputeWaveformAsync(this@MainActivity, it.file) }
-                            }
-                        },
-                        onAutoTrimFile = { item ->
-                            logEditEvent("auto_trim")
-                            coroutineScope.launch {
-                                autoTrimSilence(item.file, uiCategory)
-                            }
-                        },
-                        onSaveNote = { item, note ->
-                            saveNoteForFile(item.file, note)
-                            savedItems = getSavedRecordings(uiCategory, filesDir)
-                        },
-                        onNormalizeFile = { item ->
-                            logEditEvent("normalize")
-                            coroutineScope.launch {
-                                processFileInPlace(item.file, uiCategory, "Normalizing...") { input, output ->
-                                    AudioProcessor.normalize(input, output)
-                                }
-                            }
-                        },
-                        onFadeFile = { item, fadeInMs, fadeOutMs ->
-                            logEditEvent("fade")
-                            coroutineScope.launch {
-                                processFileInPlace(item.file, uiCategory, "Applying fade...") { input, output ->
-                                    AudioProcessor.applyFade(input, output, fadeInMs = fadeInMs, fadeOutMs = fadeOutMs)
-                                }
-                            }
-                        },
-                        onMergeFiles = { items ->
-                            logEditEvent("merge")
-                            coroutineScope.launch {
-                                mergeFiles(items.map { it.file }, uiCategory)
-                            }
-                        },
-                        usePublicStorage = usePublicStorage,
-                        onPublicStorageChange = { }, // Storage always public now
-                        sleepTimerRemainingMs = sleepTimerRemainingMs,
-                        selectedSleepMinutes = selectedSleepMinutes,
-                        onSleepTimerChange = { minutes -> setSleepTimer(minutes) },
-                        currentTheme = currentTheme,
-                        onThemeChange = { theme ->
-                            currentTheme = theme
-                            saveThemePref(this@MainActivity, theme)
-                            com.example.audioloop.widget.WidgetStateHelper.updateWidget(this@MainActivity, themeName = theme.name)
-                        },
-                        // Backup & Restore
-                        isBackupSignedIn = isBackupSignedIn,
-                        backupEmail = backupEmail,
-                        backupProgress = backupProgress,
-                        isBackupRunning = isBackupRunning,
-                        onBackupSignIn = {
-                            isBackupRunning = true
-                            signInLauncher.launch(driveBackupManager.getSignInIntent())
-                        },
-                        onBackupSignOut = {
-                            coroutineScope.launch {
-                                driveBackupManager.signOut()
-                                isBackupSignedIn = false
-                                backupEmail = ""
-                                backupList = emptyList()
-                                backupProgress = ""
-                            }
-                        },
-                        onBackupCreate = {
-                            coroutineScope.launch {
-                                isBackupRunning = true
-                                val result = driveBackupManager.createAndUploadBackup { progress ->
-                                    backupProgress = progress
-                                }
-                                result.onSuccess { name ->
-                                    backupProgress = "✅ Backup saved: $name"
-                                    delay(3000)
-                                    backupProgress = ""
-                                }.onFailure { e ->
-                                    backupProgress = "❌ Backup failed: ${e.localizedMessage}"
-                                    delay(5000)
-                                    backupProgress = ""
-                                }
-                                isBackupRunning = false
-                            }
-                        },
-                        onBackupList = {
-                            coroutineScope.launch {
-                                isBackupRunning = true
-                                backupProgress = "Loading backups..."
-                                val result = driveBackupManager.listBackups()
-                                result.onSuccess { list ->
-                                    backupList = list
-                                    backupProgress = if (list.isEmpty()) "No backups found" else ""
-                                }.onFailure { e ->
-                                    backupProgress = "❌ ${e.localizedMessage}"
-                                }
-                                isBackupRunning = false
-                            }
-                        },
-                        backupList = backupList,
-                        onRestoreFromBackup = { backupId ->
-                            coroutineScope.launch {
-                                isBackupRunning = true
-                                backupList = emptyList()
-                                val result = driveBackupManager.downloadAndRestore(backupId) { progress ->
-                                    backupProgress = progress
-                                }
-                                result.onSuccess {
-                                    backupProgress = "✅ Restoring settings..."
-                                    // Reload theme
-                                    currentTheme = getThemePref(this@MainActivity)
-                                    // Reload categories and files
-                                    val newOrder = loadCategoryOrder()
-                                    categories = if ("General" in newOrder) newOrder else listOf("General") + newOrder
-                                    savedItems = getSavedRecordings(uiCategory, filesDir)
-                                    backupProgress = "✅ Restore complete!"
-                                    delay(3000)
-                                    backupProgress = ""
-                                }.onFailure { e ->
-                                    backupProgress = "❌ Restore failed: ${e.localizedMessage}"
-                                    delay(5000)
-                                    backupProgress = ""
-                                }
-                                isBackupRunning = false
-                            }
-                        },
-                        onDeleteBackup = { backupId ->
-                            coroutineScope.launch {
-                                driveBackupManager.deleteBackup(backupId)
-                                backupList = driveBackupManager.listBackups().getOrDefault(emptyList())
-                                backupProgress = "Backup deleted"
-                                delay(2000)
-                                backupProgress = ""
-                            }
-                        },
-
-                        // Playlists
-                        playlists = playlists,
-                        onPlayPlaylist = { playlist ->
-                            val resolvedItems = playlistManager.resolveFiles(playlist, getAllRecordings())
-                            if (resolvedItems.isNotEmpty()) {
-                                currentlyPlayingPlaylistId = playlist.id
-                                currentPlaylistIteration = 1
-                                playPlaylist(
-                                    allFiles = resolvedItems,
-                                    currentIndex = 0,
-                                    loopCountProvider = { playlist.loopCount },
-                                    speedProvider = { playlist.speed },
-                                    pitchProvider = { playlist.pitch },
-                                    shadowingProvider = { isShadowingMode },
-                                    onNext = { playingFileName = it },
-                                    onIterationChange = { currentPlaylistIteration = it },
-                                    gapSeconds = playlist.gapSeconds,
-                                    onComplete = {
-                                        currentlyPlayingPlaylistId = null
-                                        currentPlaylistIteration = 1
-                                        playingFileName = ""
-                                        // Increment play count
-                                        playlistManager.incrementPlayCount(playlist.id)
-                                        playlists = playlistManager.loadAll()
+                Scaffold(
+                    snackbarHost = { SnackbarHost(snackbarHostState) }
+                ) { paddingValues ->
+                    Box(modifier = Modifier.padding(paddingValues)) {
+                        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                            com.example.audioloop.ui.AudioLoopMainScreen(
+                                context = context,
+                                recordingItems = viewModel.getFilteredItems(),
+                                categories = uiState.categories,
+                                currentCategory = uiState.currentCategory,
+                                currentProgress = uiState.currentProgress,
+                                currentTimeString = uiState.currentTimeString,
+                                playingFileName = uiState.playingFileName,
+                                isPaused = uiState.isPaused,
+                                onPlayingFileNameChange = { /* managed by ViewModel */ },
+                                onCategoryChange = { newCat ->
+                                    viewModel.changeCategory(newCat)
+                                    com.example.audioloop.widget.WidgetStateHelper.updateWidget(context, category = newCat)
+                                },
+                                onAddCategory = { viewModel.addCategory(it) },
+                                onRenameCategory = { old, new -> viewModel.renameCategory(old, new) },
+                                onDeleteCategory = { viewModel.deleteCategory(it) },
+                                onReorderCategory = { cat, dir -> viewModel.reorderCategory(cat, dir) },
+                                onReorderCategories = { viewModel.reorderCategories(it) },
+                                onMoveFile = { item, cat -> viewModel.moveFile(item, cat) },
+                                onReorderFile = { file, dir -> viewModel.reorderFile(file, dir) },
+                                onReorderFinished = { viewModel.reorderFinished(it) },
+                                onStartRecord = { name, useRaw ->
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                        if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            pendingRecordingName = name
+                                            pendingCategory = uiState.currentCategory
+                                            val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
+                                            screenCaptureLauncher.launch(captureIntent)
+                                            true
+                                        } else {
+                                            startRecording(name, uiState.currentCategory, false)
+                                            true
+                                        }
+                                    } else {
+                                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                        false
                                     }
+                                },
+                                onStopRecord = { stopRecording() },
+                                onStartPlaylist = { files, loop, speed, onComplete ->
+                                    viewModel.startPlaylistPlayback(files, loop, speed, onComplete)
+                                },
+                                onPlaylistUpdate = { },
+                                onSpeedChange = { viewModel.changeSpeed(it) },
+                                onPitchChange = { viewModel.changePitch(it) },
+                                onLoopCountChange = { viewModel.changeLoopMode(it) },
+                                onSeekTo = { viewModel.seekTo(it) },
+                                onPausePlay = { viewModel.pausePlaying() },
+                                onResumePlay = { viewModel.resumePlaying() },
+                                onStopPlay = { viewModel.stopPlayingAndReset() },
+                                onDeleteFile = { viewModel.deleteFile(it) },
+                                onShareFile = { viewModel.shareFile(it) },
+                                onRenameFile = { item, name -> viewModel.renameFile(item, name) },
+                                onImportFile = { uri -> viewModel.importFile(uri) },
+                                onTrimFile = { file, start, end, replace, remove, fadeIn, fadeOut, norm ->
+                                    viewModel.trimAudioFile(file, start, end, replace, remove, fadeIn, fadeOut, norm) {
+                                        if (replace) viewModel.precomputeWaveformAsync(file, force = true)
+                                    }
+                                },
+                                selectedSpeed = uiState.playbackSpeed,
+                                selectedPitch = uiState.playbackPitch,
+                                selectedLoopCount = uiState.loopMode,
+                                isShadowing = uiState.isShadowingMode,
+                                onShadowingChange = { viewModel.changeShadowingMode(it) },
+                                shadowPauseSeconds = uiState.shadowPauseSeconds,
+                                onShadowPauseChange = { viewModel.changeShadowPause(it) },
+                                shadowCountdownText = uiState.shadowCountdownText,
+                                waveformCache = viewModel.waveformCache,
+                                onSeekAbsolute = { viewModel.seekAbsolute(it) },
+                                onSplitFile = { viewModel.splitFile(it) },
+                                onNormalizeFile = { viewModel.normalizeFile(it) },
+                                onAutoTrimFile = { viewModel.autoTrimFile(it) },
+                                onSaveNote = { item, note -> viewModel.saveNote(item, note) },
+                                onFadeFile = { item, fadeIn, fadeOut -> viewModel.fadeFile(item, fadeIn, fadeOut) },
+                                onMergeFiles = { viewModel.mergeFiles(it) },
+                                usePublicStorage = uiState.usePublicStorage,
+                                onPublicStorageChange = { },
+                                sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
+                                selectedSleepMinutes = uiState.selectedSleepMinutes,
+                                onSleepTimerChange = { viewModel.setSleepTimer(it) },
+                                currentTheme = uiState.currentTheme,
+                                onThemeChange = { viewModel.changeTheme(it) },
+                                // Backup & Restore
+                                isBackupSignedIn = uiState.isBackupSignedIn,
+                                backupEmail = uiState.backupEmail,
+                                backupProgress = uiState.backupProgress,
+                                isBackupRunning = uiState.isBackupRunning,
+                                onBackupSignIn = {
+                                    viewModel.setBackupRunning(true)
+                                    signInLauncher.launch(viewModel.driveBackupManager.getSignInIntent())
+                                },
+                                onBackupSignOut = { viewModel.signOutBackup() },
+                                onBackupCreate = { viewModel.createBackup() },
+                                onBackupRestore = { },
+                                onBackupList = { viewModel.listBackups() },
+                                backupList = uiState.backupList,
+                                onRestoreFromBackup = { viewModel.restoreFromBackup(it) },
+                                onDeleteBackup = { viewModel.deleteBackup(it) },
+                                // Playlists
+                                playlists = uiState.playlists,
+                                onSavePlaylist = { viewModel.savePlaylist(it) },
+                                onDeletePlaylist = { viewModel.deletePlaylist(it) },
+                                onPlayPlaylist = { viewModel.playPlaylistFromPlaylist(it) },
+                                currentlyPlayingPlaylistId = uiState.currentlyPlayingPlaylistId,
+                                currentPlaylistIteration = uiState.currentPlaylistIteration,
+                                onGetAllRecordings = { viewModel.getAllRecordings() },
+                                // Practice Coach
+                                practiceWeeklyMinutes = uiState.practiceWeeklyMinutes,
+                                practiceWeeklyGoal = uiState.practiceWeeklyGoal,
+                                practiceStreak = uiState.practiceStreak,
+                                practiceTodayMinutes = uiState.practiceTodayMinutes,
+                                practiceWeeklySessions = uiState.practiceWeeklySessions,
+                                practiceWeeklyEdits = uiState.practiceWeeklyEdits,
+                                practiceGoalProgress = uiState.practiceGoalProgress,
+                                practiceRecommendation = uiState.practiceRecommendation,
+                                onStartRecommendedSession = { viewModel.startRecommendedSession(it) },
+                                onViewPracticeStats = { viewModel.setShowPracticeStats(true) },
+                                isSmartCoachExpanded = uiState.isSmartCoachExpanded,
+                                onSmartCoachToggle = { viewModel.toggleSmartCoach() },
+                                currentSessionElapsedMs = uiState.currentSessionElapsedMs,
+                                // Search
+                                searchQuery = uiState.searchQuery,
+                                onSearchQueryChange = { viewModel.updateSearchQuery(it) }
+                            )
+
+                            // Practice Stats overlay
+                            if (uiState.showPracticeStats) {
+                                com.example.audioloop.ui.PracticeStatsScreen(
+                                    stats = viewModel.practiceStats,
+                                    coach = viewModel.coachEngine,
+                                    themeColors = uiState.currentTheme.palette,
+                                    onBack = { viewModel.setShowPracticeStats(false) },
+                                    onStartRecommended = { suggestedMinutes ->
+                                        viewModel.setShowPracticeStats(false)
+                                        viewModel.startRecommendedSession(suggestedMinutes)
+                                    },
+                                    onGoalChange = { viewModel.setPracticeGoal(it) }
                                 )
-                                // Apply playlist-specific sleep timer if set
-                                if (playlist.sleepMinutes > 0) {
-                                    setSleepTimer(playlist.sleepMinutes)
-                                }
-                            } else {
-                                currentlyPlayingPlaylistId = null
-                                Toast.makeText(this@MainActivity, "Playlist is empty or files missing", Toast.LENGTH_SHORT).show()
                             }
-                        },
-                        onSavePlaylist = { playlist ->
-                            playlistManager.save(playlist)
-                            playlists = playlistManager.loadAll()
-                        },
-                        onDeletePlaylist = { playlist ->
-                            playlistManager.delete(playlist.id)
-                            playlists = playlistManager.loadAll()
-                        },
-                        currentlyPlayingPlaylistId = currentlyPlayingPlaylistId,
-                        currentPlaylistIteration = currentPlaylistIteration,
-                        onGetAllRecordings = getAllRecordings,
-
-                        // Practice Coach
-                        practiceWeeklyMinutes = practiceWeeklyMinutes,
-                        practiceWeeklyGoal = practiceWeeklyGoal,
-                        practiceStreak = practiceStreak,
-                        practiceTodayMinutes = practiceTodayMinutes,
-                        practiceWeeklySessions = practiceWeeklySessions,
-                        practiceWeeklyEdits = practiceWeeklyEdits,
-                        practiceGoalProgress = practiceGoalProgress,
-                        practiceRecommendation = practiceRecommendation,
-                        onStartRecommendedSession = { suggestedMinutes ->
-                            if (playingFileName.isNotEmpty()) {
-                                // Already playing - stop
-                                stopPlaying()
-                                playingFileName = ""
-                            } else {
-                                practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
-                                val items = savedItems
-                                if (items.isNotEmpty()) {
-                                    playingFileName = items.first().file.name
-                                    playPlaylist(
-                                        allFiles = items,
-                                        currentIndex = 0,
-                                        loopCountProvider = { loopMode },
-                                        speedProvider = { playbackSpeed },
-                                        pitchProvider = { playbackPitch },
-                                        shadowingProvider = { isShadowingMode },
-                                        onNext = { playingFileName = it },
-                                        gapSeconds = 0,
-                                        onComplete = {
-                                            playingFileName = ""
-                                            refreshPracticeStats()
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        onViewPracticeStats = { showPracticeStats = true },
-                        isSmartCoachExpanded = isSmartCoachExpanded,
-                        onSmartCoachToggle = {
-                            isSmartCoachExpanded = !isSmartCoachExpanded
-                            saveSmartCoachExpandedPref(this@MainActivity, isSmartCoachExpanded)
-                        },
-                        currentSessionElapsedMs = currentSessionElapsedMs
-                    )
-
-                    // Practice Stats overlay
-                    if (showPracticeStats) {
-                        com.example.audioloop.ui.PracticeStatsScreen(
-                            stats = practiceStats,
-                            coach = coachEngine,
-                            themeColors = currentTheme.palette,
-                            onBack = { showPracticeStats = false },
-                            onStartRecommended = { suggestedMinutes ->
-                                practiceStats.logEvent("recommended_session_start", "${suggestedMinutes}min")
-                                showPracticeStats = false
-                                val items = savedItems
-                                if (items.isNotEmpty()) {
-                                    playingFileName = items.first().file.name
-                                    playPlaylist(
-                                        allFiles = items,
-                                        currentIndex = 0,
-                                        loopCountProvider = { loopMode },
-                                        speedProvider = { playbackSpeed },
-                                        pitchProvider = { playbackPitch },
-                                        shadowingProvider = { isShadowingMode },
-                                        onNext = { playingFileName = it },
-                                        gapSeconds = 0,
-                                        onComplete = {
-                                            playingFileName = ""
-                                            refreshPracticeStats()
-                                        }
-                                    )
-                                }
-                            },
-                            onGoalChange = { newGoal ->
-                                practiceStats.setWeeklyGoal(newGoal)
-                                refreshPracticeStats()
-                            }
-                        )
+                        }
                     }
                 }
             }
@@ -1051,175 +369,29 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
         if (intent == null) return
         val uris = extractUrisFromIntent(intent)
         if (uris.isEmpty()) return
-        val targetCategory = if (uiCategory.isBlank()) "General" else uiCategory
-        uris.forEach { uri -> importFileFromUri(uri, targetCategory) }
-        savedItems = getSavedRecordings(targetCategory, filesDir)
-        savedItems.forEach { item -> precomputeWaveformAsync(this, item.file) }
+        uris.forEach { uri -> vm?.importFile(uri) }
     }
 
     private fun extractUrisFromIntent(intent: Intent): List<Uri> {
         val results = LinkedHashSet<Uri>()
         when (intent.action) {
-            Intent.ACTION_SEND -> {
-                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.add(it) }
-            }
-            Intent.ACTION_SEND_MULTIPLE -> {
-                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.addAll(it) }
-            }
-            Intent.ACTION_VIEW -> {
-                intent.data?.let { results.add(it) }
-            }
+            Intent.ACTION_SEND -> intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.add(it) }
+            Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.addAll(it) }
+            Intent.ACTION_VIEW -> intent.data?.let { results.add(it) }
         }
         intent.clipData?.let { clip ->
-            for (i in 0 until clip.itemCount) {
-                clip.getItemAt(i).uri?.let { results.add(it) }
-            }
+            for (i in 0 until clip.itemCount) clip.getItemAt(i).uri?.let { results.add(it) }
         }
         return results.toList()
     }
-    private fun getDuration(file: File): Pair<String, Long> {
-        if (!file.exists() || file.length() < 10) return Pair("00:00", 0L)
-        var millis = 0L
-
-        // WAV: arvuta kestus otse headerist (kõige usaldusväärsem)
-        if (file.extension.equals("wav", ignoreCase = true)) {
-            try {
-                java.io.RandomAccessFile(file, "r").use { raf ->
-                    // Read WAV header fields in little-endian
-                    val headerBytes = ByteArray(36)
-                    raf.read(headerBytes)
-                    val hdr = java.nio.ByteBuffer.wrap(headerBytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
-                    hdr.position(22)
-                    val channels = hdr.getShort().toInt().and(0xFFFF)
-                    val sampleRate = hdr.getInt() // offset 24
-                    hdr.position(34)
-                    val bitsPerSample = hdr.getShort().toInt().and(0xFFFF)
-                    if (sampleRate > 0 && channels > 0 && bitsPerSample > 0) {
-                        val bytesPerSecond = sampleRate.toLong() * channels * (bitsPerSample / 8)
-                        if (bytesPerSecond > 0) {
-                            // Otsi data chunk
-                            raf.seek(12)
-                            val chunkHeader = ByteArray(4)
-                            val sizeBuf = ByteArray(4)
-                            while (raf.read(chunkHeader) == 4) {
-                                val chunkId = String(chunkHeader)
-                                raf.read(sizeBuf)
-                                val chunkSize = java.nio.ByteBuffer.wrap(sizeBuf).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt()
-                                if (chunkId == "data") {
-                                    millis = (chunkSize.toLong().and(0xFFFFFFFFL) * 1000L) / bytesPerSecond
-                                    break
-                                } else {
-                                    raf.skipBytes(chunkSize)
-                                }
-                            }
-                        }
-                    }
-                }
-                if (millis > 0) return Pair(formatTime(millis), millis)
-            } catch (_: Exception) { }
-        }
-
-        val mmr = MediaMetadataRetriever()
-        try {
-            mmr.setDataSource(file.absolutePath)
-            val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            millis = durationStr?.toLongOrNull() ?: 0L
-        } catch (e: Exception) { }
-        finally { try { mmr.release() } catch (e: Exception) {} }
-
-        // Varuplaan: MediaPlayer
-        if (millis == 0L) {
-            var mp: MediaPlayer? = null
-            try {
-                mp = MediaPlayer()
-                mp.setDataSource(file.absolutePath)
-                mp.prepare()
-                millis = mp.duration.toLong()
-            } catch (_: Exception) { }
-            finally { try { mp?.release() } catch (_: Exception) {} }
-        }
-        // Varuplaan 2: MediaExtractor
-        if (millis == 0L) {
-            var extractor: MediaExtractor? = null
-            try {
-                extractor = MediaExtractor()
-                extractor.setDataSource(file.absolutePath)
-                for (i in 0 until extractor.trackCount) {
-                    val format = extractor.getTrackFormat(i)
-                    val mime = format.getString(MediaFormat.KEY_MIME)
-                    if (mime?.startsWith("audio/") == true) {
-                        if (format.containsKey(MediaFormat.KEY_DURATION)) {
-                            millis = format.getLong(MediaFormat.KEY_DURATION) / 1000
-                            break
-                        }
-                    }
-                }
-            } catch (_: Exception) { }
-            finally { try { extractor?.release() } catch (_: Exception) {} }
-        }
-
-        if (millis == 0L) return Pair("00:00", 0L)
-        return Pair(formatTime(millis), millis)
-    }
-
-    private fun formatTime(millis: Long): String {
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-        return String.format("%02d:%02d", minutes, seconds)
-    }
-
-    fun savePublicStoragePref(context: Context, enabled: Boolean) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("use_public_storage", enabled).apply()
-    }
-    
-    fun getPublicStoragePref(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("use_public_storage", true)
-    }
-
-    fun saveThemePref(context: Context, theme: com.example.audioloop.ui.theme.AppTheme) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("app_theme", theme.name).apply()
-    }
-
-    fun getThemePref(context: Context): com.example.audioloop.ui.theme.AppTheme {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        val themeName = prefs.getString("app_theme", "SLATE") ?: "SLATE"
-        return try {
-            com.example.audioloop.ui.theme.AppTheme.valueOf(themeName)
-        } catch (e: Exception) {
-            com.example.audioloop.ui.theme.AppTheme.SLATE
-        }
-    }
-
-    fun saveSmartCoachExpandedPref(context: Context, expanded: Boolean) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("smart_coach_expanded", expanded).apply()
-    }
-
-    fun getSmartCoachExpandedPref(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("smart_coach_expanded", false)
-    }
-
-    fun isFirstLaunch(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("is_first_launch", true)
-    }
-
-    fun setFirstLaunchComplete(context: Context) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("is_first_launch", false).apply()
-    }
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
-        val usePublic = getPublicStoragePref(this)
+        val usePublic = vm?.getPublicStoragePref() ?: true
         val finalName = if (category == "General") fileName else {
             if (usePublic) fileName else {
-                 val folder = File(filesDir, category)
-                 if (!folder.exists()) folder.mkdirs()
-                 "$category/$fileName"
+                val folder = File(filesDir, category)
+                if (!folder.exists()) folder.mkdirs()
+                "$category/$fileName"
             }
         }
         val intent = Intent(this, RecordingService::class.java).apply {
@@ -1232,875 +404,75 @@ class MainActivity : ComponentActivity(), CoroutineScope by MainScope() {
             } else { MediaRecorder.AudioSource.MIC }
             putExtra(RecordingService.EXTRA_AUDIO_SOURCE, source)
         }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
     }
 
     private fun startInternalAudioService(serviceIntent: Intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent) else startService(serviceIntent)
     }
 
     private fun stopRecording() {
         val intent = Intent(this, RecordingService::class.java).apply { action = RecordingService.ACTION_STOP }
         startService(intent)
     }
-
-
-
-    private fun importFileFromUri(uri: Uri, category: String) {
-        try {
-            var fileName = "import_${System.currentTimeMillis()}"
-            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    if (idx != -1) fileName = cursor.getString(idx)
-                }
-            }
-            val extension = fileName.substringAfterLast('.', "")
-            val nameWithoutExt = if (extension.isNotEmpty()) fileName.substringBeforeLast('.') else fileName
-            var safeName = sanitizeName(nameWithoutExt)
-            if (safeName.isBlank()) safeName = "untitled_audio"
-            val finalFileName = if (extension.isNotEmpty()) "$safeName.$extension" else "$safeName.m4a"
-            val folder = if (category == "General") filesDir else File(filesDir, category).apply { mkdirs() }
-            val targetFile = File(folder, finalFileName)
-            contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(targetFile).use { output -> input.copyTo(output) }
-            }
-            Toast.makeText(this, "Imported: $safeName", Toast.LENGTH_SHORT).show()
-            
-            // Start waveform computation immediately
-            precomputeWaveformAsync(this, targetFile)
-            
-            // Note: UI needs to refresh separately if observing file system, 
-            // or user navigates back/forth.
-        } catch (e: Exception) { Toast.makeText(this, "Error importing", Toast.LENGTH_SHORT).show() }
-    }
-
-    // -- File Order Persistence --
-    private fun getOrderFile(category: String): File {
-        val dir = if (category == "General") filesDir else File(filesDir, category)
-        if (!dir.exists()) dir.mkdirs()
-        return File(dir, "ordering.json")
-    }
-
-    private fun saveFileOrder(category: String, order: List<String>) {
-        try {
-            val file = getOrderFile(category)
-            val jsonArray = org.json.JSONArray()
-            order.forEach { jsonArray.put(it) }
-            file.writeText(jsonArray.toString())
-        } catch (e: Exception) { e.printStackTrace() }
-    }
-
-    private fun loadFileOrder(category: String): List<String> {
-        val list = mutableListOf<String>()
-        try {
-            val file = getOrderFile(category)
-            if (file.exists()) {
-                val content = file.readText()
-                if (content.isNotBlank()) {
-                    val array = org.json.JSONArray(content)
-                    for (i in 0 until array.length()) {
-                        list.add(array.getString(i))
-                    }
-                }
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-        return list
-    }
-
-    private fun updateFileOrder(orderedFiles: List<File>) {
-        // Just save the names in the new order
-        if (orderedFiles.isEmpty()) return
-        // Assuming all files are in the same category/directory
-        // We need to resolve the category from the file path or just use current uiCategory if strictly coupled?
-        // safer to deduce from parent dir, but 'uiCategory' is state.
-        // Let's rely on 'uiCategory' as this is called from UI for current list.
-        
-        val names = orderedFiles.map { it.name }
-        saveFileOrder(uiCategory, names)
-    }
-
-    // Legacy support, kept empty to satisfy callback signature if needed, or remove usage
-    private fun reorderFile(file: File, direction: Int) {
-         // Moved to drag-and-drop 'updateFileOrder'
-    }
-
-    private fun moveFileToCategory(file: File, targetCategory: String) {
-        val targetDir = if (targetCategory == "General") filesDir else File(filesDir, targetCategory)
-        if (!targetDir.exists()) targetDir.mkdirs()
-        
-        // Ensure name conflict resolution if needed, but for now simple rename
-        val targetFile = File(targetDir, file.name)
-        // Move associated files (note, waveform)
-        val noteFile = getNoteFile(file)
-        val waveFile = getWaveformFile(file)
-        if (file.renameTo(targetFile)) {
-            if (noteFile.exists()) noteFile.renameTo(getNoteFile(targetFile))
-            if (waveFile.exists()) waveFile.renameTo(getWaveformFile(targetFile))
-             // Remove from old order
-             val oldOrder = loadFileOrder(uiCategory).toMutableList()
-             oldOrder.remove(file.name)
-             saveFileOrder(uiCategory, oldOrder)
-             
-             // Add to new order (top)
-             val newOrder = loadFileOrder(targetCategory).toMutableList()
-             if (!newOrder.contains(file.name)) {
-                 newOrder.add(0, file.name)
-                 saveFileOrder(targetCategory, newOrder)
-             }
-             
-            Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
-        } else {
-             // Fallback copy-delete
-            try {
-                file.inputStream().use { input -> targetFile.outputStream().use { output -> input.copyTo(output) } }
-                file.delete()
-                
-                 // Update orders
-                 val oldOrder = loadFileOrder(uiCategory).toMutableList()
-                 oldOrder.remove(file.name)
-                 saveFileOrder(uiCategory, oldOrder)
-                 
-                 val newOrder = loadFileOrder(targetCategory).toMutableList()
-                 if (!newOrder.contains(file.name)) {
-                     newOrder.add(0, file.name)
-                     saveFileOrder(targetCategory, newOrder)
-                 }
-
-                Toast.makeText(this, "Moved", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) { Toast.makeText(this, "Error moving", Toast.LENGTH_SHORT).show() }
-        }
-    }
-    
-    // -- Category Order Helpers --
-    private fun getCategoryOrderFile(): File {
-        return File(filesDir, "category_order.json") // Simple JSON array
-    }
-    
-    private fun saveCategoryOrder(categories: List<String>) {
-        try {
-            val jsonArray = org.json.JSONArray()
-            categories.forEach { jsonArray.put(it) }
-            getCategoryOrderFile().writeText(jsonArray.toString())
-        } catch (e: Exception) { e.printStackTrace() }
-    }
-    
-    private fun loadCategoryOrder(): List<String> {
-        val list = mutableListOf<String>()
-        try {
-            val file = getCategoryOrderFile()
-            if (file.exists() && file.length() > 0) {
-                val content = file.readText()
-                if (content.isNotBlank()) {
-                    val array = org.json.JSONArray(content)
-                    for (i in 0 until array.length()) {
-                        list.add(array.getString(i))
-                    }
-                }
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-        return list
-    }
-
-    private fun renameFile(item: RecordingItem, newName: String) {
-        val oldFile = item.file
-        val ext = oldFile.extension
-        val newFileName = if (newName.endsWith(".$ext")) newName else "$newName.$ext"
-        val newFile = File(oldFile.parent, newFileName)
-        // Rename associated files (note, waveform)
-        val oldNote = getNoteFile(oldFile)
-        val oldWave = getWaveformFile(oldFile)
-        oldFile.renameTo(newFile)
-        if (oldNote.exists()) oldNote.renameTo(getNoteFile(newFile))
-        if (oldWave.exists()) oldWave.renameTo(getWaveformFile(newFile))
-    }
-
-    private fun shareFile(item: RecordingItem) {
-        try {
-            val uri = if (item.uri != Uri.EMPTY) item.uri else FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", item.file)
-            
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "audio/*"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                clipData = android.content.ClipData.newRawUri(null, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, "Share audio via"))
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error sharing: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-
-
-    private fun deleteCategory(catName: String) {
-        if (catName == "General") return
-        File(filesDir, catName).deleteRecursively()
-    }
-
-    private fun renameCategory(oldName: String, newName: String) {
-        if (oldName == "General") return
-        val oldDir = File(filesDir, oldName)
-        val newDir = File(filesDir, sanitizeName(newName))
-        oldDir.renameTo(newDir)
-    }
-
-    private fun trimAudioFile(
-        file: File,
-        start: Long,
-        end: Long,
-        replace: Boolean,
-        removeSelection: Boolean,
-        fadeInMs: Long = 0,
-        fadeOutMs: Long = 0,
-        normalize: Boolean = false,
-        onSuccess: () -> Unit
-    ) {
-        stopPlaying()
-        val ext = file.extension
-        val isWav = ext.equals("wav", ignoreCase = true)
-
-        launch(Dispatchers.IO) {
-            val ts = System.currentTimeMillis()
-            var currentWorkFile = File(file.parent, "temp_trim_$ts.$ext")
-            
-            // Step 1: Trim/Cut
-            var ok = if (isWav) {
-                if (removeSelection) WavAudioTrimmer.removeSegmentWav(file, currentWorkFile, start, end)
-                else WavAudioTrimmer.trimWav(file, currentWorkFile, start, end)
-            } else {
-                if (removeSelection) AudioTrimmer.removeSegmentAudio(file, currentWorkFile, start, end)
-                else AudioTrimmer.trimAudio(file, currentWorkFile, start, end)
-            }
-
-            if (ok) {
-                // Step 2: Normalize (Apply before fade for consistent results)
-                if (normalize) {
-                    val normFile = File(file.parent, "temp_norm_$ts.$ext")
-                    if (AudioProcessor.normalize(currentWorkFile, normFile)) {
-                        currentWorkFile.delete()
-                        currentWorkFile = normFile
-                    } else {
-                        normFile.delete()
-                        withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Normalization failed", Toast.LENGTH_SHORT).show() }
-                    }
-                }
-
-                // Step 3: Fade
-                if (fadeInMs > 0 || fadeOutMs > 0) {
-                    val fadeFile = File(file.parent, "temp_fade_$ts.$ext")
-                    if (AudioProcessor.applyFade(currentWorkFile, fadeFile, fadeInMs, fadeOutMs)) {
-                        currentWorkFile.delete()
-                        currentWorkFile = fadeFile
-                    } else {
-                        fadeFile.delete()
-                        withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Fade failed", Toast.LENGTH_SHORT).show() }
-                    }
-                }
-            }
-
-            withContext(Dispatchers.Main) {
-                if (ok && currentWorkFile.exists()) {
-                    val finalTarget: File = if (replace) {
-                        file
-                    } else {
-                        val originalName = file.nameWithoutExtension
-                        val baseName = if (originalName.contains("_trim_")) originalName.substringBeforeLast("_trim_") else originalName
-                        var counter = 1
-                        var target = File(file.parent, "${baseName}_trim_$counter.$ext")
-                        while (target.exists()) {
-                            counter++
-                            target = File(file.parent, "${baseName}_trim_$counter.$ext")
-                        }
-                        target
-                    }
-
-                    // Windows: MUST delete original before rename during replace
-                    if (replace && file.exists()) {
-                        if (!file.delete()) {
-                            currentWorkFile.delete()
-                            Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
-                            return@withContext
-                        }
-                    }
-
-                    if (currentWorkFile.renameTo(finalTarget)) {
-                        if (replace) {
-                            waveformCache.remove(finalTarget.absolutePath)
-                            getWaveformFile(finalTarget).delete()
-                            Toast.makeText(this@MainActivity, "Studio: Original replaced", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Studio: Saved as ${finalTarget.name}", Toast.LENGTH_SHORT).show()
-                        }
-                        onSuccess()
-                    } else {
-                        Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
-                        currentWorkFile.delete()
-                    }
-                } else {
-                    currentWorkFile.delete()
-                    Toast.makeText(this@MainActivity, "Studio: Processing failed", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    /**
-     * Processes an audio file in-place: runs the given processor, replaces the original,
-     * refreshes file list and waveform cache.
-     */
-    private suspend fun processFileInPlace(
-        file: File,
-        category: String,
-        toastMsg: String,
-        processor: suspend (File, File) -> Boolean
-    ) {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
-        }
-        val ext = file.extension.ifEmpty { "m4a" }
-        val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
-        val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
-        
-        withContext(Dispatchers.Main) {
-            if (success && tempFile.exists()) {
-                val finalFile = File(file.parent, "${file.nameWithoutExtension}.$ext")
-                waveformCache.remove(file.absolutePath)
-                getWaveformFile(file).delete()
-                
-                // For replace, we MUST delete original first on Windows
-                if (file.exists()) {
-                    if (!file.delete()) {
-                        tempFile.delete()
-                        Toast.makeText(this@MainActivity, "Access denied: Original file in use", Toast.LENGTH_SHORT).show()
-                        return@withContext
-                    }
-                }
-                
-                if (tempFile.renameTo(finalFile)) {
-                    precomputeWaveformAsync(this@MainActivity, finalFile)
-                    savedItems = getSavedRecordings(category, filesDir)
-                    Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
-                } else {
-                    tempFile.delete()
-                    Toast.makeText(this@MainActivity, "Error finalizing file!", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                tempFile.delete()
-                Toast.makeText(this@MainActivity, "Processing failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-
-
-
-
-    private fun getSavedRecordings(category: String, rootDir: File): List<RecordingItem> {
-        val items = mutableListOf<RecordingItem>()
-        
-        // 1. Internal Storage
-        try {
-            val targetDir = if (category == "General") rootDir else File(rootDir, category)
-            if (targetDir.exists()) {
-                val files = targetDir.listFiles { _, name ->
-                    name.endsWith(".m4a", ignoreCase = true) || name.endsWith(".mp3", ignoreCase = true) || name.endsWith(".wav", ignoreCase = true)
-                }
-                files?.forEach { file ->
-                    val (aegTekst, aegNumber) = getDuration(file)
-                    val uri = try {
-                        FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", file)
-                    } catch (e: Exception) { Uri.EMPTY }
-                    val note = getNoteForFile(file)
-                    items.add(RecordingItem(file, file.name, aegTekst, aegNumber, uri, note))
-                }
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-
-        // 2. Public Storage (MediaStore)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Minimal support for feature
-            try {
-                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                val projection = arrayOf(
-                    MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Media.DISPLAY_NAME,
-                    MediaStore.Audio.Media.DURATION, // is ms
-                    MediaStore.Audio.Media.DATA, // Deprecated but useful for File object
-                    MediaStore.Audio.Media.RELATIVE_PATH
-                )
-                
-                // Construct selection
-                val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
-                val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?" // Matches exact start
-                val selectionArgs = arrayOf("$targetPath%")
-                
-                contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
-                     val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
-                     val nameCol = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
-                     val durCol = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
-                     val dataCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-                     
-                     while (cursor.moveToNext()) {
-                         val id = cursor.getLong(idCol)
-                         val name = cursor.getString(nameCol)
-                         val durationMs = cursor.getLong(durCol)
-                         val path = cursor.getString(dataCol)
-                         // Avoid duplicates if saved both places?? Unlikely, different paths.
-                         
-                         // Skip if name matches existing (e.g. if we copied it manually? but path diff)
-                         // Let's filter by name?
-                         if (items.any { it.name == name }) continue 
-
-                         val file = File(path)
-                         val uri = android.content.ContentUris.withAppendedId(collection, id)
-                         // Loe kestus failist otse, mitte MediaStore'i cache'ist
-                         val (durStr, durMs) = if (file.exists()) getDuration(file) else Pair(formatTime(durationMs), durationMs)
-                         val note = getNoteForFile(file)
-                         items.add(RecordingItem(file, name, durStr, durMs, uri, note))
-                     }
-                }
-            } catch (e: Exception) { e.printStackTrace() }
-        }
-
-        // Sort and Organize
-        val fileMap = items.associateBy { it.name }
-        val order = loadFileOrder(category)
-        
-        val orderedItems = mutableListOf<RecordingItem>()
-        val visited = mutableSetOf<String>()
-        
-        // Add ordered
-        order.forEach { name ->
-            if (fileMap.containsKey(name)) {
-                orderedItems.add(fileMap[name]!!)
-                visited.add(name)
-            }
-        }
-        
-        // Add new (unvisited)
-        // Sort new items by date from file?
-        // Public file date might be modified time.
-        // RecordingItem needs 'date' or use file.lastModified()
-        // File(path).lastModified() works if we have permission. MediaStore has DATE_ADDED.
-        // For simplicity, let's use file.lastModified() fallback.
-        val newItems = items.filter { !visited.contains(it.name) }.sortedByDescending { it.file.lastModified() }
-        
-        return newItems + orderedItems
-    }
-
-
-
-    private fun playPlaylist(
-        allFiles: List<RecordingItem>,
-        currentIndex: Int,
-        loopCountProvider: () -> Int,
-        speedProvider: () -> Float,
-        pitchProvider: () -> Float,
-        shadowingProvider: () -> Boolean,
-        onNext: (String) -> Unit,
-        onIterationChange: (Int) -> Unit = {},
-        currentIteration: Int = 1,
-        gapSeconds: Int = 0,
-        onComplete: () -> Unit
-    ) {
-        if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
-
-        // Dynamically fetch current settings
-        val loopCount = loopCountProvider()
-        val speed = speedProvider()
-        val pitch = pitchProvider()
-        val isShadowing = shadowingProvider()
-
-        if (currentIndex >= allFiles.size) {
-            // End of playlist - check if we should loop
-            when {
-                loopCount == -1 -> {
-                    // Infinite loop - restart from beginning
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-                }
-                currentIteration < loopCount -> {
-                    // More iterations remaining - restart with incremented counter
-                    val next = currentIteration + 1
-                    onIterationChange(next)
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, next, gapSeconds) { onComplete() }
-                }
-                else -> {
-                    // All iterations complete - end session and notify
-                    stopPlaying()
-                    playingFileName = ""
-                    onComplete()
-                }
-            }
-            return
-        }
-        // Release previous MediaPlayer without ending the practice session
-        // (session spans the entire playlist, not individual tracks)
-        stopPlaying(endSession = false)
-
-        // Track session start (first file in a playlist)
-        if (currentIndex == 0 && sessionStartTimeMs == 0L) {
-            onSessionStart()
-        }
-
-        val itemToPlay = allFiles[currentIndex]
-        onNext(itemToPlay.name)
-
-        try {
-            val newPlayer = MediaPlayer()
-            mediaPlayer = newPlayer
-            newPlayer.apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                // Use URI logic
-                if (itemToPlay.uri != Uri.EMPTY) {
-                   setDataSource(applicationContext, itemToPlay.uri)
-                } else {
-                   // Fallback for file access if URI failed (e.g. invalid provider?)
-                   java.io.FileInputStream(itemToPlay.file).use { fis ->
-                       setDataSource(fis.fd)
-                   }
-                }
-
-                setOnPreparedListener { mp ->
-                    if (mp != mediaPlayer) return@setOnPreparedListener // stale callback
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        try { mp.playbackParams = mp.playbackParams.setSpeed(speed).setPitch(pitch) } catch (e: Exception) { }
-                    }
-                    mp.isLooping = false
-                    // Request audio focus before starting playback
-                    if (!mediaSessionManager.requestAudioFocus()) {
-                        // Audio focus denied - stop gracefully
-                        stopPlaying()
-                        playingFileName = ""
-                        onComplete()
-                        return@setOnPreparedListener
-                    }
-                    mp.start()
-                    // Set isPaused to false when playback starts
-                    isPaused = false
-                    // Update MediaSession state
-                    mediaSessionManager.updateMetadata(itemToPlay.name, mp.duration.toLong())
-                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-                }
-                setOnCompletionListener {
-                    if (isShadowing) {
-                       // Listen & Repeat: Pause -> Repeat Same
-                       val duration = it.duration.toLong()
-                       val pauseDuration = if (shadowPauseSeconds > 0) {
-                           shadowPauseSeconds * 1000L
-                       } else {
-                           // Auto: match duration, max 15s
-                           duration.coerceAtMost(15000L)
-                       }
-
-                       shadowingJob = launch(Dispatchers.Main) {
-                           // Countdown display - keep playingFileName as the actual file
-                           isPaused = true // Show as paused during countdown
-                           var remaining = pauseDuration
-                           while (remaining > 0 && isActive) {
-                               val secs = (remaining / 1000) + 1
-                               shadowCountdownText = "Repeat in ${secs}s..."
-                               delay(1000L.coerceAtMost(remaining))
-                               remaining -= 1000L
-                           }
-                           shadowCountdownText = ""
-                           if (isActive) {
-                            playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-                        }
-                    }
-                 } else {
-                    // Normal transition - handle gapSeconds if any
-                    if (gapSeconds > 0 && currentIndex + 1 < allFiles.size) {
-                        shadowingJob = launch(Dispatchers.Main) {
-                            isPaused = true
-                            delay(gapSeconds * 1000L)
-                            if (isActive) {
-                                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-                            }
-                        }
-                    } else {
-                        playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-                    }
-                 }
-            }
-            setOnErrorListener { _, what, extra ->
-                Toast.makeText(this@MainActivity, "Playback error: $what / $extra", Toast.LENGTH_SHORT).show()
-                playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-                true
-            }
-                prepareAsync()
-            }
-        } catch (e: Exception) {
-            // Release leaked MediaPlayer on setup failure
-            try { mediaPlayer?.release() } catch (_: Exception) {}
-            mediaPlayer = null
-            Toast.makeText(this, "Error opening file: ${e.message}", Toast.LENGTH_SHORT).show()
-            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds) { onComplete() }
-        }
-    }
-
-    private var shadowingJob: kotlinx.coroutines.Job? = null
-
-    private fun stopPlaying(endSession: Boolean = true) {
-        shadowingJob?.cancel()
-        shadowingJob = null
-        shadowCountdownText = ""
-        if (endSession) onSessionEnd() // log practice session duration
-        try { mediaPlayer?.stop() } catch (_: IllegalStateException) {}
-        try { mediaPlayer?.release() } catch (_: Exception) {}
-        mediaPlayer = null
-        isPaused = false
-        // Update MediaSession & release audio focus
-        if (::mediaSessionManager.isInitialized) {
-            mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
-            mediaSessionManager.abandonAudioFocus()
-        }
-    }
-
-    private fun setSleepTimer(minutes: Int) {
-        sleepTimerJob?.cancel()
-        sleepTimerJob = null
-        selectedSleepMinutes = minutes
-        if (minutes <= 0) {
-            sleepTimerRemainingMs = 0L
-            return
-        }
-        sleepTimerRemainingMs = minutes * 60_000L
-        sleepTimerJob = launch(Dispatchers.Main) {
-            while (isActive && sleepTimerRemainingMs > 0L) {
-                delay(1000L)
-                sleepTimerRemainingMs -= 1000L
-                if (sleepTimerRemainingMs <= 0L) {
-                    sleepTimerRemainingMs = 0L
-                    fadeOutAndStop()
-                    break
-                }
-            }
-        }
-    }
-
-    private suspend fun fadeOutAndStop() {
-        mediaPlayer?.let { mp ->
-            // Ensure we start from full volume
-            try { mp.setVolume(1f, 1f) } catch (_: Exception) {}
-            // Only fade if actually playing
-            if (mp.isPlaying) {
-                for (i in 20 downTo 0) {
-                    val vol = i / 20f
-                    try { mp.setVolume(vol, vol) } catch (_: Exception) {}
-                    delay(150L)
-                }
-            }
-        }
-        stopPlaying()
-        playingFileName = ""
-        currentlyPlayingPlaylistId = null
-        mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
-    }
-
-    private fun pausePlaying() {
-        val wasShadowCountdown = shadowCountdownText.isNotEmpty()
-        shadowingJob?.cancel()
-        shadowingJob = null
-        shadowCountdownText = ""
-        try {
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
-                isPaused = true
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
-            } else if (wasShadowCountdown) {
-                // Was in shadow countdown pause - stop fully
-                stopPlaying()
-                playingFileName = ""
-                currentlyPlayingPlaylistId = null
-            }
-        } catch (_: IllegalStateException) {
-            // MediaPlayer in invalid state
-            stopPlaying()
-            playingFileName = ""
-            currentlyPlayingPlaylistId = null
-        }
-    }
-    fun resumePlaying() {
-        if (shadowCountdownText.isNotEmpty()) {
-            // During shadow countdown - skip wait and replay immediately
-            shadowingJob?.cancel()
-            shadowingJob = null
-            shadowCountdownText = ""
-        }
-        try {
-            val mp = mediaPlayer ?: return
-            if (!mp.isPlaying) {
-                mp.start()
-                isPaused = false
-                mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-            }
-        } catch (_: IllegalStateException) {
-            // MediaPlayer in invalid state - cannot resume
-        }
-    }
-    fun seekTo(pos: Float) {
-        try { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
-        catch (_: IllegalStateException) {}
-    }
-
-    private suspend fun splitBySilence(file: File, category: String) {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, "Splitting by silence...", Toast.LENGTH_SHORT).show()
-        }
-        val segments = withContext(Dispatchers.IO) {
-            SilenceSplitter.detectSegments(file)
-        }
-        if (segments.size <= 1) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, "No silence gaps found to split on", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-
-        val baseName = file.nameWithoutExtension
-        val usePublic = getPublicStoragePref(this@MainActivity)
-        val outputDir = if (usePublic) {
-            if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
-        } else {
-            if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
-        }
-
-        val created = withContext(Dispatchers.IO) {
-            SilenceSplitter.splitFile(file, outputDir, segments, baseName)
-        }
-
-        created.forEach { precomputeWaveformAsync(this@MainActivity, it) }
-
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, "Split into ${created.size} segments", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private suspend fun autoTrimSilence(file: File, category: String) {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, "Detecting silence...", Toast.LENGTH_SHORT).show()
-        }
-        val bounds = SilenceSplitter.detectContentBounds(file)
-        if (bounds == null) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, "No silence detected to trim", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-        val (contentStart, contentEnd) = bounds
-        val (_, totalMs) = getDuration(file)
-        val startMs = contentStart
-        val endMs = contentEnd.coerceAtMost(totalMs) 
-        if (startMs < 100 && totalMs - endMs < 100) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, "No significant silence to trim", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-        withContext(Dispatchers.Main) {
-            stopPlaying()
-        }
-        val ext = file.extension
-        val isWav = ext.equals("wav", ignoreCase = true)
-        val tempFile = File(file.parent, "temp_autotrim_${System.currentTimeMillis()}.$ext")
-        val success = withContext(Dispatchers.IO) {
-            if (isWav) WavAudioTrimmer.trimWav(file, tempFile, startMs, endMs)
-            else AudioTrimmer.trimAudio(file, tempFile, startMs, endMs)
-        }
-        withContext(Dispatchers.Main) {
-            if (success && tempFile.exists()) {
-                waveformCache.remove(file.absolutePath)
-                getWaveformFile(file).delete()
-                file.delete()
-                tempFile.renameTo(file)
-                precomputeWaveformAsync(this@MainActivity, file)
-                savedItems = getSavedRecordings(category, filesDir)
-                Toast.makeText(this@MainActivity, "Done!", Toast.LENGTH_SHORT).show()
-            } else {
-                tempFile.delete()
-                Toast.makeText(this@MainActivity, "Auto-trim failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private suspend fun mergeFiles(files: List<File>, category: String) {
-        if (files.size < 2) return
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@MainActivity, "Merging ${files.size} files...", Toast.LENGTH_SHORT).show()
-        }
-        val ext = if (files.all { it.extension.equals("wav", ignoreCase = true) }) "wav" else "m4a"
-        val baseName = files.first().nameWithoutExtension
-        val outputDir = if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
-        var counter = 1
-        var outputFile = File(outputDir, "${baseName}_merged.$ext")
-        while (outputFile.exists()) {
-            counter++
-            outputFile = File(outputDir, "${baseName}_merged_$counter.$ext")
-        }
-        val success = withContext(Dispatchers.IO) { AudioMerger.mergeFiles(files, outputFile) }
-        withContext(Dispatchers.Main) {
-            if (success) {
-                precomputeWaveformAsync(this@MainActivity, outputFile)
-                savedItems = getSavedRecordings(category, filesDir)
-                Toast.makeText(this@MainActivity, "Merged into ${outputFile.name}", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this@MainActivity, "Merge failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    fun updatePlaybackParams(speed: Float, pitch: Float) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            try {
-                mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
-            } catch (_: IllegalStateException) {}
-        }
-    }
-
-    override fun onDestroy() {
-        stopPlaying()
-        mediaSessionManager.release()
-        super.onDestroy()
-    }
-
-    // ── Practice Stats Helpers ──
-
-    private fun refreshPracticeStats() {
-        practiceWeeklyMinutes = practiceStats.weeklyMinutes()
-        practiceWeeklyGoal = practiceStats.weeklyGoalMinutes()
-        practiceStreak = practiceStats.streak()
-        practiceTodayMinutes = practiceStats.todayMinutes()
-        practiceWeeklySessions = practiceStats.weeklySessions()
-        practiceWeeklyEdits = practiceStats.weeklyEdits()
-        practiceGoalProgress = practiceStats.goalProgress()
-        practiceRecommendation = coachEngine.recommend()
-    }
-
-    private fun onSessionStart() {
-        sessionStartTimeMs = System.currentTimeMillis()
-    }
-
-    private fun onSessionEnd() {
-        if (sessionStartTimeMs > 0) {
-            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
-            practiceStats.logSession(durationMs)
-            sessionStartTimeMs = 0L
-            refreshPracticeStats()
-        }
-    }
-
-    private fun logEditEvent(type: String) {
-        practiceStats.logEdit(type)
-        refreshPracticeStats()
-    }
 }
 
+// ── Welcome Dialog (extracted) ──
+
+@Composable
+private fun WelcomeDialog(
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { },
+        containerColor = Zinc900,
+        titleContentColor = Color.White,
+        textContentColor = Zinc300,
+        title = {
+            Text(
+                "Welcome to AudioLoop!",
+                style = androidx.compose.ui.text.TextStyle(
+                    brush = Brush.linearGradient(
+                        listOf(themeColors.primary400, themeColors.primary200)
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("AudioLoop supports two recording modes:", color = Color.White, fontWeight = FontWeight.Medium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("\uD83C\uDFA4", fontSize = 16.sp)
+                    Column {
+                        Text("Speech", color = themeColors.primary300, fontWeight = FontWeight.Bold)
+                        Text("Records your voice using the microphone.", color = Zinc400, fontSize = 13.sp)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("\uD83D\uDD0A", fontSize = 16.sp)
+                    Column {
+                        Text("Stream", color = themeColors.primary300, fontWeight = FontWeight.Bold)
+                        Text("Records audio playing on your device (music, videos, etc).", color = Zinc400, fontSize = 13.sp)
+                    }
+                }
+                HorizontalDivider(color = Zinc700)
+                Text("Note about Stream recording:", color = Sunset400, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text(
+                    "Android requires permission confirmation each time you start Stream recording. This is a security feature and cannot be bypassed.",
+                    color = Zinc400, fontSize = 13.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
+            ) {
+                Text("Got it!", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}

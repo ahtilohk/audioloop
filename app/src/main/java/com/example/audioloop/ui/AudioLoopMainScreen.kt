@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.IntOffset
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -214,7 +215,10 @@ fun AudioLoopMainScreen(
     onViewPracticeStats: () -> Unit = {},
     isSmartCoachExpanded: Boolean = false,
     onSmartCoachToggle: () -> Unit = {},
-    currentSessionElapsedMs: Long = 0L
+    currentSessionElapsedMs: Long = 0L,
+    // Search
+    searchQuery: String = "",
+    onSearchQueryChange: (String) -> Unit = {}
 ) {
     // Get theme colors
     val themeColors = currentTheme.palette
@@ -225,6 +229,7 @@ fun AudioLoopMainScreen(
     var playingPlaylistFiles by remember { mutableStateOf(listOf<String>()) } // Track files in current playlist
     var showCategorySheet by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
+    var isSearchVisible by remember { mutableStateOf(searchQuery.isNotEmpty()) }
     
     // Local source of truth for the list to allow live updates
     val uiRecordingItems = remember { mutableStateListOf<RecordingItem>() }
@@ -343,6 +348,19 @@ fun AudioLoopMainScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.wrapContentWidth()
                 ) {
+                    // Search icon button
+                    IconButton(
+                        onClick = { isSearchVisible = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Search,
+                            contentDescription = "Search files",
+                            tint = if (searchQuery.isNotEmpty()) themeColors.primary400 else Zinc500,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
                     // Backup & Restore icon button
                     IconButton(
                         onClick = { showBackupSheet = true },
@@ -453,6 +471,74 @@ fun AudioLoopMainScreen(
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
+            // Search Bar
+            AnimatedVisibility(visible = isSearchVisible) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .background(Zinc800.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 12.dp),
+                        textStyle = TextStyle(
+                            color = Color.White,
+                            fontSize = 14.sp
+                        ),
+                        singleLine = true,
+                        cursorBrush = SolidColor(themeColors.primary400),
+                        decorationBox = { innerTextField ->
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Search,
+                                    contentDescription = "Search",
+                                    tint = Zinc500,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(modifier = Modifier.weight(1f)) {
+                                    if (searchQuery.isEmpty()) {
+                                        Text("Search files...", color = Zinc500, fontSize = 14.sp)
+                                    }
+                                    innerTextField()
+                                }
+                                if (searchQuery.isNotEmpty()) {
+                                    Icon(
+                                        imageVector = AppIcons.Close,
+                                        contentDescription = "Clear search",
+                                        tint = Zinc400,
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .clickable { onSearchQueryChange("") }
+                                    )
+                                }
+                            }
+                        }
+                    )
+                    // Close search
+                    Icon(
+                        imageVector = AppIcons.Close,
+                        contentDescription = "Close search",
+                        tint = Zinc500,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                onSearchQueryChange("")
+                                isSearchVisible = false
+                            }
+                    )
+                }
+            }
 
             // Recording Section - Modern MD3 Design
             AnimatedVisibility(visible = !isSelectionMode && !showCategorySheet) {
@@ -1164,6 +1250,65 @@ fun AudioLoopMainScreen(
                                 }
                             }
                     ) {
+                        if (uiRecordingItems.isEmpty()) {
+                            // ── Empty State ──
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 32.dp, vertical = 48.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                // Large icon
+                                Icon(
+                                    imageVector = if (searchQuery.isNotEmpty()) AppIcons.Search else AppIcons.Mic,
+                                    contentDescription = null,
+                                    tint = themeColors.primary400.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = if (searchQuery.isNotEmpty()) "No matching files"
+                                           else "No recordings yet",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        color = Zinc300,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = if (searchQuery.isNotEmpty()) "Try a different search term"
+                                           else "Tap the record button above to create your first recording, or import an audio file.",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = Zinc500
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                if (searchQuery.isEmpty()) {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    OutlinedButton(
+                                        onClick = { filePickerLauncher.launch("audio/*") },
+                                        border = BorderStroke(1.dp, themeColors.primary400.copy(alpha = 0.5f)),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Add,
+                                            contentDescription = null,
+                                            tint = themeColors.primary400,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "Import Audio File",
+                                            color = themeColors.primary300,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             state = scrollState,
