@@ -4,9 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.audioloop.AudioLoopViewModel
-import com.example.audioloop.AudioLoopUiState
-import com.example.audioloop.ui.screens.*
+import com.example.audioloop.*
+import com.example.audioloop.ui.components.*
+import com.example.audioloop.ui.*
+import androidx.navigation.compose.*
 
 sealed class Screen(val route: String) {
     object Library : Screen("library")
@@ -32,20 +33,37 @@ fun SetupNavGraph(
     ) {
         composable(Screen.Library.route) {
             // We might need to wrap current tabs in their own composables if they aren't already
-            LibraryScreen(uiState, viewModel)
+            LibraryTab(uiState, viewModel, onImportClick = {})
         }
         composable(Screen.Record.route) {
-            RecordScreen(uiState, onStartRecord, onStopRecord)
+            RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
         }
         composable(Screen.Coach.route) {
-            CoachScreen(uiState, viewModel)
+            CoachTab(uiState, viewModel)
         }
         composable(Screen.Settings.route) {
-            SettingsScreen(uiState, viewModel)
+            SettingsTab(uiState, viewModel)
         }
         composable(Screen.PlaylistView.route) { backStackEntry ->
-            val playlistId = backStackEntry.arguments?.getString("playlistId") ?: return@composable
-            PlaylistViewScreen(playlistId, uiState, viewModel, onClose = { navController.popBackStack() })
+            val playlistId = backStackEntry.arguments?.getString("playlistId")
+            val playlist = uiState.playlists.find { it.id == playlistId }
+            if (playlist != null) {
+                PlaylistViewScreen(
+                    playlist = playlist,
+                    playingFileName = uiState.playingFileName,
+                    currentIteration = uiState.currentPlaylistIteration,
+                    isPaused = uiState.isPaused,
+                    allRecordings = viewModel.getAllRecordings(),
+                    themeColors = uiState.currentTheme.palette,
+                    onBack = { navController.popBackStack() },
+                    onPause = { viewModel.pausePlaying() },
+                    onResume = { viewModel.resumePlaying() },
+                    onStop = { 
+                        viewModel.stopPlaying()
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }

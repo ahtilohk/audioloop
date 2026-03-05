@@ -10,13 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.audioloop.AudioLoopUiState
-import com.example.audioloop.AudioLoopViewModel
+import com.example.audioloop.*
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.*
 import com.example.audioloop.ui.navigation.Screen
 import com.example.audioloop.ui.components.*
 import com.example.audioloop.ui.theme.*
@@ -138,15 +134,5 @@ fun AudioLoopMainScreen(
 
         // Overlay Sheets & Dialogs
         MainOverlays(uiState, viewModel, themeColors, onBackupSignIn)
-        
-        // Playlist View as a specific overlay (for now, or use navigation)
-        if (uiState.showPlaylistView && uiState.viewingPlaylistId != null) {
-            PlaylistViewScreen(
-                playlistId = uiState.viewingPlaylistId,
-                uiState = uiState,
-                viewModel = viewModel,
-                onClose = { viewModel.closePlaylistView() }
-            )
-        }
     }
 }

@@ -23,12 +23,12 @@ object WaveformGenerator {
                  val content = waveFile.readText()
                  if (content.isNotEmpty()) {
                      val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
-                     if (list.isNotEmpty()) return list
+                     if (list.isNotEmpty()) return@withContext list
                  }
              } catch (e: Exception) { e.printStackTrace() }
         }
 
-        if (!file.exists() || file.length() < 100) return emptyList()
+        if (!file.exists() || file.length() < 100) return@withContext emptyList()
 
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
@@ -61,7 +61,7 @@ object WaveformGenerator {
 
             if (audioTrackIndex == -1 || codec == null) {
                 Log.e(TAG, "No audio track found in $file")
-                return emptyList()
+                return@withContext emptyList()
             }
 
 
@@ -113,7 +113,7 @@ object WaveformGenerator {
             }
 
             // Downsample rawAmplitudes to numBars
-            return if (rawAmplitudes.isNotEmpty()) {
+            if (rawAmplitudes.isNotEmpty()) {
                 downsample(rawAmplitudes, numBars)
             } else {
                 List(numBars) { 10 } // Vaikus
@@ -121,7 +121,7 @@ object WaveformGenerator {
 
         } catch (e: Exception) {
             Log.e(TAG, "Error generating waveform", e)
-            return List(numBars) { 10 } // Fallback vaikus
+            List(numBars) { 10 } // Fallback vaikus
         } finally {
             try {
                 codec?.stop()
