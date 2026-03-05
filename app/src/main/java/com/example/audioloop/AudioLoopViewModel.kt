@@ -500,6 +500,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     // ── Search / Filter ──
+    fun getAllRecordings(): List<RecordingItem> {
+        return runBlocking { repository.getAllRecordingsSync() }
+    }
+
 
     fun updateSearchQuery(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
