@@ -307,7 +307,6 @@
     <string name="label_no_tracks">Lugusid pole lisatud</string>
     <string name="a11y_remove">Eemalda</string>
     <string name="a11y_start_recording">Alusta salvestamist</string>
-    <string name="a11y_stop_recording">Löpeta salvestamine</string>
     <string name="a11y_drag_reorder">Lohista reastamiseks</string>
     <string name="a11y_playing">Mängib</string>
     <string name="a11y_paused">Pausil</string>
@@ -317,7 +316,6 @@
     <string name="search_header_all">Otsingu tulemused (%d)</string>
     <string name="search_header_category">Tulemused kategoorias %1$s (%2$d)</string>
     <string name="a11y_select_theme">Vali %s teema</string>
-    <string name="a11y_search">Otsi salvestusi</string>
     <string name="label_playing_indicator">Mängib • </string>
     <string name="a11y_menu">Menüü</string>
     <string name="label_auto_trim_silence">Automaatne vaikuse kärpimine</string>

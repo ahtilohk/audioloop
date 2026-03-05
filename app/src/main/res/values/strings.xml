@@ -236,6 +236,7 @@
     <string name="a11y_playlist">Create playlist from selection</string>
     <string name="a11y_recording_active">Recording active</string>
     <string name="a11y_playlists">Open playlists</string>
+    <string name="a11y_delete">Delete</string>
     <string name="settings_theme_label">Theme Color</string>
     <string name="settings_theme_mode_label">Theme Mode</string>
     <string name="theme_mode_auto">Auto</string>
@@ -256,7 +257,6 @@
     <string name="settings_speed_label">Speed:</string>
     <string name="settings_listen_repeat_label">Listen &amp; Repeat:</string>
     <string name="settings_sleep_timer_label">Sleep Timer:</string>
-    <string name="settings_theme_label">App Theme:</string>
     <string name="settings_language_label">App Language:</string>
     <string name="dialog_delete_playlist_title">Delete playlist?</string>
     <string name="dialog_delete_playlist_confirm">Delete \"%s\"? This cannot be undone.</string>
@@ -311,7 +311,6 @@
     <string name="label_no_tracks">No tracks added</string>
     <string name="a11y_remove">Remove</string>
     <string name="a11y_start_recording">Start recording</string>
-    <string name="a11y_stop_recording">Stop recording</string>
     <string name="a11y_drag_reorder">Drag to reorder</string>
     <string name="a11y_playing">Playing</string>
     <string name="a11y_paused">Paused</string>
@@ -321,7 +320,7 @@
     <string name="search_header_all">Search results (%d)</string>
     <string name="search_header_category">Results in %1$s (%2$d)</string>
     <string name="a11y_select_theme">Select %s theme</string>
-    <string name="a11y_search">Search recordings</string>
+    <string name="label_playing_indicator">Playing • </string>
     <string name="a11y_menu">Menu</string>
     <string name="label_auto_trim_silence">Auto-trim Silence</string>
     <string name="a11y_clear">Clear</string>

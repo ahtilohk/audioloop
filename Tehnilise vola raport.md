@@ -23,27 +23,22 @@ Kaal on skaalal **0–100** (100 = kriitiline süsteemne risk).
 - Kõik duplicate resource vead ja kompileerimise takistused on eemaldatud.
 - `./gradlew assembleDebug` töötab stabiilselt.
 
-## 4) Pika kestusega I/O tööde käivitamine UI scope’ist
-**Kaal: 86/100**
+## 4) Pika kestusega I/O tööde käivitamine UI scope’ist — TEHTUD / RESOLVED
+**Kaal: 5/100**
 
-- Rasked operatsioonid (split/normalize/merge) käivituvad UI-kihi coroutine’itest.
-- Teise mudeli lisand: töö võib katkeda, kui view/lifecycle kaob, tulemuseks poolikud failid ja kasutajaandmete risk.
+- Rasked operatsioonid (split/normalize/merge/autotrim) on viidud `WorkManager` peale.
+- Lisatud `AudioProcessingWorker`, mis tagab töö jätkumise ka taustal.
+- Idempotentsed failitöötlusprotsessid koos korrektse tmp cleanup-iga.
 
-**Süsteemne suund:**
-- Viia pikad tööd `WorkManager`/service-põhiseks;
-- lisada progress + cancel + taastumine;
-- defineerida idempotentsed failitöötlusprotsessid (tmp cleanup, rollback).
+## 5) Testistrateegia võlg (madal sisuline katvus) — OSALISELT LAHENDATUD
+**Kaal: 40/100** (Varem 84/100)
 
-## 5) Testistrateegia võlg (madal sisuline katvus)
-**Kaal: 84/100**
-
-- Osa testidest on triviaalne “näidistase”, mitte kriitiliste kasutusjuhtude katmine.
-- Regresioonioht jääb kõrgeks just kohtades, kus refaktorid on kõige vajalikumad.
-
-**Süsteemne suund:**
-- Lisada prioriteetsed domain/integration testid: audio töötlus, failide state machine, backup flow;
-- UI snapshot/interaction testid kriitilistele flow’dele;
-- testida lifecycle’i (rotation/background/restore).
+- Loodud testimise infrastruktuur: **MockK**, **Kotlin Coroutines Test** ja **org.json** tugi JVM testides.
+- Lisatud sisulised unit testid kriitilisele domeniloogikale:
+    - `PracticeStatsManagerTest`: sessioonide logimine, streak-loogika, eesmärkide haldus.
+    - `UtilsTest`: aja- ja kestuse vormindamise loogika.
+    - `PlaylistManagerTest`: (töö pooleli) resolve ja duration loogika.
+- Püsib vajadus ViewModeli ja integratsioonitestide järele (Android dependency’te mocking).
 
 ## 6) “Paksud” Compose ekraanid ja state/UI segunemine — OSALISELT LAHENDATUD
 **Kaal: 40/100** (Varem 79/100)
@@ -51,27 +46,20 @@ Kaal on skaalal **0–100** (100 = kriitiline süsteemne risk).
 - Ekraanid on jagatud väiksemateks komponentideks (`HomeHeader`, `LibraryTab`, `NavigationAndOverlays` jne).
 - Püsib veel vajadus `AudioLoopMainScreen.kt` sisu edasiseks delegeerimiseks.
 
-## 7) Error handling ja “silent fail” mustrid
-**Kaal: 77/100**
+## 7) Error handling ja “silent fail” mustrid — TEHTUD / RESOLVED
+**Kaal: 5/100**
 
-- Esineb laiu catch’e, tühje catch-plokke ja `printStackTrace`-taseme käsitlust.
-- Teise mudeli lisand: null-safety probleemid “plaasterdatakse” kinni, kuid juurpõhjus jääb nähtamatuks.
+- Loodud ühtne `AudioResult<T>` mudel (Success, Error, Loading).
+- Repository meetodid tagastavad nüüd struktureeritud tulemusi.
+- ViewModel käsitleb vigu ja kuvab kasutajale sisulisi Snackbar teavitusi eelmise vaikuse asemel.
 
-**Süsteemne suund:**
-- Kehtestada ühtne veamudel (`Result`/sealed errors);
-- logida struktureeritult (Log + Crashlytics vms);
-- vältida tühje catch’e, lisada selged taastumisstrateegiad.
+## 8) Andmekihi puudulik modelleerimine (Repository/DB) — TEHTUD / RESOLVED
+**Kaal: 5/100**
 
-## 8) Andmekihi puudulik modelleerimine (Repository/DB)
-**Kaal: 72/100**
-
-- Domeeniandmed ja faili-meta on killustatud failisüsteemi/read-write loogikas.
-- Teise mudeli lisand: skaleeritavus kannatab (uued väljad/features nõuavad laia ümbertegemist).
-
-**Süsteemne suund:**
-- Luua Repository kiht + selged andmeallikad;
-- kaaluda Room’i püsivaks metainfoks;
-- eraldada “storage DTO” vs “domain model”.
+- Repository kiht on nüüd keskne "Single Source of Truth".
+- Room andmebaas toimib failide registrina, mida sünkroonitakse automaatselt kettaga (`discoverRecordings`).
+- `AudioMetadataHelper` ja sidecar failide (.note, .wave) haldus on viidud andmekihti.
+- ViewModel on puhastatud madala taseme I/O loogikast.
 
 ## 9) Lokaliseerimise võlg (hardcoded stringid) – TEHTUD / RESOLVED
 **Kaal: 5/100** (Lokaliseerimine on nüüd süsteemne ja laiahaardeline)

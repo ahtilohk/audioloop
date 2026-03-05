@@ -306,6 +306,7 @@ private fun NormalHeader(
 @Composable
 private fun SortMenuButton(currentSort: SortMode, onSortSelected: (SortMode) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
     
     Box {
         Surface(

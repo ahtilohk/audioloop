@@ -133,7 +133,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             // Initialize ViewModel once
             LaunchedEffect(Unit) {
                 viewModel.initialize()
-                viewModel.loadCategoriesAndFiles()
+                viewModel.refreshFileList()
                 viewModel.startProgressTracking()
             }
 

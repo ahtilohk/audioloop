@@ -8,8 +8,14 @@ interface RecordingDao {
     @Query("SELECT * FROM recordings ORDER BY timestamp DESC")
     fun getAllRecordings(): Flow<List<RecordingEntity>>
 
+    @Query("SELECT * FROM recordings")
+    suspend fun getAllRecords(): List<RecordingEntity>
+
     @Query("SELECT * FROM recordings WHERE category = :category ORDER BY timestamp DESC")
     fun getRecordingsByCategory(category: String): Flow<List<RecordingEntity>>
+
+    @Query("SELECT * FROM recordings WHERE category = :category ORDER BY timestamp DESC")
+    suspend fun getRecordingsByCategorySync(category: String): List<RecordingEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecording(recording: RecordingEntity)
@@ -25,4 +31,10 @@ interface RecordingDao {
 
     @Query("SELECT * FROM recordings WHERE filePath = :path LIMIT 1")
     suspend fun getByPath(path: String): RecordingEntity?
+
+    @Query("SELECT DISTINCT category FROM recordings")
+    fun getDistinctCategories(): Flow<List<String>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM recordings WHERE filePath = :path)")
+    suspend fun exists(path: String): Boolean
 }

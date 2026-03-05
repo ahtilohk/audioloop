@@ -146,6 +146,7 @@ fun LanguageSelector(
     onLanguageChange: (String) -> Unit,
     themeColors: AppColorPalette
 ) {
+    val haptic = LocalHapticFeedback.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,7 +180,7 @@ fun LanguageSelector(
                 Surface(
                     onClick = { 
                         onLanguageChange(code)
-                        LocalHapticFeedback.current.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     },
                     shape = RoundedCornerShape(12.dp),
                     color = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.surface,
@@ -262,6 +263,7 @@ fun ColorThemeSelector(
     onThemeChange: (AppTheme) -> Unit,
     themeColors: AppColorPalette
 ) {
+    val haptic = LocalHapticFeedback.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -292,7 +294,7 @@ fun ColorThemeSelector(
                             onClickLabel = stringResource(R.string.a11y_select_theme, theme.name)
                         ) { 
                             onThemeChange(theme)
-                            LocalHapticFeedback.current.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         },
                     contentAlignment = Alignment.Center
                 ) {
