@@ -46,7 +46,7 @@ fun PracticeProgressCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 Brush.horizontalGradient(
                     listOf(
@@ -58,10 +58,10 @@ fun PracticeProgressCard(
             .border(
                 1.dp,
                 themeColors.primary700.copy(alpha = 0.25f),
-                RoundedCornerShape(12.dp)
+                RoundedCornerShape(16.dp)
             )
             .clickable { onToggleExpanded() }
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -261,7 +261,7 @@ private fun SmartCoachDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     .padding(12.dp)
             ) {
@@ -286,7 +286,7 @@ private fun SmartCoachDialog(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isPlaying) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary
                     ),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -319,7 +319,7 @@ private fun StatPill(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
             .padding(vertical = 8.dp, horizontal = 4.dp)
     ) {

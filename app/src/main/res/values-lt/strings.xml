@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Bendra</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Atšaukti</string>
+    <string name="btn_save">Išsaugoti</string>
+    <string name="btn_delete">Ištrinti</string>
+    <string name="btn_play_selected">Groti %d parinktus</string>
+    <string name="btn_add_file">Importuoti failą</string>
+    <string name="btn_record_new">NAUJAS ĮRAŠAS</string>
+    <string name="btn_go_back">Atgal</string>
+    <string name="btn_got_it">Supratau!</string>
+    <string name="btn_import_audio">Importuoti garso failą</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Įrašoma…</string>
+    <string name="label_empty_title">Įrašų dar nėra</string>
+    <string name="label_empty_subtitle">Paspauskite įrašymo mygtuką viršuje arba importuokite garso failą.</string>
+    <string name="label_no_matching_files">Atitinkamų failų nerasta</string>
+    <string name="label_try_different_search">Išbandykite kitą paieškos žodį</string>
+    <string name="label_tap_to_select">Bakstelėkite failus, kad pasirinktumėte</string>
+    <string name="label_playlists">Grojaraščiai</string>
+    <string name="label_on">Įjungta</string>
+    <string name="label_off">Išjungta</string>
+
+    <!-- Search -->
+    <string name="search_hint">Ieškoti failų…</string>
+    <string name="search_files">Ieškoti failų</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Pervadinti</string>
+    <string name="menu_trim">Apkarpyti / Koreguoti</string>
+    <string name="menu_move">Perkelti į kategoriją</string>
+    <string name="menu_share">Bendrinti</string>
+    <string name="menu_download">Atsisiųsti</string>
+    <string name="menu_split">Padalinti ties tyla</string>
+    <string name="menu_normalize">Normalizuoti</string>
+    <string name="menu_auto_trim">Automatinis tylos apkarpymas</string>
+    <string name="menu_fade">Išblukimas</string>
+    <string name="menu_merge">Sujungti pasirinktus</string>
+    <string name="menu_note">Redaguoti pastabą</string>
+    <string name="menu_info">Informacija</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Pervadinti failą</string>
+    <string name="dialog_create_category">Nauja kategorija</string>
+    <string name="dialog_delete_confirm">Ar esate tikri?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Kalba</string>
+    <string name="mode_stream">Srautas</string>
+    <string name="mode_speech_desc">Įrašo jūsų balsą per mikrofoną.</string>
+    <string name="mode_stream_desc">Įrašo garsą iš įrenginio (muzika, vaizdo įrašai ir kt.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Išsaugota</string>
+    <string name="toast_error">Klaida</string>
+    <string name="msg_moved">Perkelta</string>
+    <string name="msg_imported">Importuota: %s</string>
+    <string name="msg_error_moving">Klaida perkeliant</string>
+    <string name="msg_error_importing">Klaida importuojant</string>
+    <string name="msg_error_sharing">Bendrinimo klaida: %s</string>
+    <string name="msg_permission_granted">Leidimas suteiktas</string>
+    <string name="msg_permission_denied">Leidimas atmestas</string>
+    <string name="msg_permission_required">Įrašymui reikalingas leidimas</string>
+    <string name="msg_splitting">Padalinama ties tyla…</string>
+    <string name="msg_split_done">Padalinta į %d segmentų</string>
+    <string name="msg_no_silence_gaps">Tylos tarpų padalinimui nerasta</string>
+    <string name="msg_normalizing">Normalizuojama…</string>
+    <string name="msg_detecting_silence">Ieškoma tylos…</string>
+    <string name="msg_no_silence_to_trim">Tylos apkarpymui nerasta</string>
+    <string name="msg_no_significant_silence">Reikšmingos tylos apkarpymui nerasta</string>
+    <string name="msg_applying_fade">Taikomas išblukimas…</string>
+    <string name="msg_merging">Sujungiama %d failų…</string>
+    <string name="msg_merged">Sujungta į %s</string>
+    <string name="msg_merge_failed">Sujungti nepavyko</string>
+    <string name="msg_done">Atlikta!</string>
+    <string name="msg_processing_failed">Apdorojimas nepavyko</string>
+    <string name="msg_access_denied">Prieiga uždrausta: originalus failas naudojamas</string>
+    <string name="msg_error_finalizing">Klaida užbaigiant failą!</string>
+    <string name="msg_studio_replaced">Studio: Originalas pakeistas</string>
+    <string name="msg_studio_saved_as">Studio: Išsaugota kaip %s</string>
+    <string name="msg_normalization_failed">Normalizuoti nepavyko</string>
+    <string name="msg_fade_failed">Išblukimas nepavyko</string>
+    <string name="msg_auto_trim_failed">Auto-apkarpymas nepavyko</string>
+    <string name="msg_playback_error">Atkūrimo klaida: %d / %d</string>
+    <string name="msg_error_opening">Klaida atidarant: %s</string>
+    <string name="msg_playlist_empty">Grojaraštis tuščias arba trūksta failų</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Atsarginė kopija ir atkūrimas</string>
+    <string name="backup_saved">Kopija išsaugota: %s</string>
+    <string name="backup_failed">Kopijavimas nepavyko: %s</string>
+    <string name="backup_loading">Įkeliamos kopijos…</string>
+    <string name="backup_no_backups">Kopijų nerasta</string>
+    <string name="backup_restoring">Atkuriami nustatymai…</string>
+    <string name="backup_restore_complete">Atkūrimas baigtas!</string>
+    <string name="backup_restore_failed">Atkūrimas nepavyko: %s</string>
+    <string name="backup_deleted">Kopija ištrinta</string>
+    <string name="signin_cancelled">Prisijungimas atšauktas</string>
+    <string name="signin_failed_play_services">Prisijungti nepavyko (patikrinkite „Google Play“ paslaugas).</string>
+    <string name="signin_dev_error">Kūrėjo klaida (patikrinkite SHA-1).</string>
+    <string name="signin_interrupted">Prisijungimas nutrauktas</string>
+    <string name="signin_error">Prisijungimo klaida (kodas %d)</string>
+    <string name="signin_failed">Prisijungti nepavyko: %s</string>
+    <string name="title_restore_backup">Atkurti atsarginę kopiją?</string>
+    <string name="msg_restore_warning">Tai pakeis jūsų dabartinius failus, kategorijas ir nustatymus.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Prisijunkite, kad saugotumėte įrašus „Google Drive“</string>
+    <string name="btn_signing_in">Prisijungiama…</string>
+    <string name="btn_google_signin">Prisijungti su „Google“</string>
+    <string name="btn_sign_out">Atsijungti</string>
+    <string name="btn_backup">Kurti kopiją</string>
+    <string name="btn_restore">Atkurti</string>
+    <string name="label_available_backups">Galimos kopijos</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Ciklas</string>
+    <string name="settings_speed">Greitis</string>
+    <string name="settings_pitch">Aukštis</string>
+    <string name="settings_sleep_timer">Miego laikmatis</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Klausyti ir kartoti</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Sveiki atvykę į „AudioLoop“!</string>
+    <string name="welcome_modes_intro">„AudioLoop“ palaiko du režimus:</string>
+    <string name="welcome_stream_note">Pastaba dėl srauto įrašymo:</string>
+    <string name="welcome_stream_warning">„Android“ kaskart prašo patvirtinimo. Tai sistemos saugumo funkcija.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Išmanus treneris</string>
+    <string name="coach_practice_stats">Praktikos statistika</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Greitas įrašymas ir atkūrimas iš namų ekrano</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Tvarkyti kategorijas</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Biblioteka</string>
+    <string name="nav_record">Įrašyti</string>
+    <string name="nav_coach">Treneris</string>
+    <string name="nav_settings">Nustatymai</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Išmanus praktikos treneris</string>
+    <string name="coach_description">Sekite progresą ir ugdykite praktikos įpročius.</string>
+    <string name="coach_open_stats">Atidaryti visą statistiką</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Pradėti įrašymą</string>
+    <string name="record_mode_format">%s režimas</string>
+    <string name="record_recording">Įrašoma…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Failai (%s):</string>
+    <string name="library_add">+ Pridėti</string>
+    <string name="library_select">Pasirinkti</string>
+    <string name="library_play_count">GROTI %d</string>
+    <string name="library_playlist">GROJARAŠTIS</string>
+    <string name="library_merge_count">SUJUNGTI %d</string>
+    <string name="library_now_playing">DABAR GROJAMA</string>
+    <string name="library_today_format">Šiandien %s</string>
+    <string name="library_tracks_count">%d kūriniai</string>
+    <string name="library_shuffle">Maišyti</string>
+    <string name="library_gap_format">%ds pauzė</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Ieškoti įrašų…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Pervadinti</string>
+    <string name="dialog_new_name">Naujas pavadinimas</string>
+    <string name="dialog_select_category">Pasirinkti kategoriją</string>
+    <string name="dialog_add_note">Pridėti pastabą</string>
+    <string name="dialog_edit_note">Redaguoti pastabą</string>
+    <string name="dialog_note_hint">Tekstas, eilės, vertimas…</string>
+    <string name="dialog_remove">Pašalinti</string>
+    <string name="dialog_close">Uždaryti</string>
+    <string name="dialog_delete_file">Ištrinti failą?</string>
+    <string name="dialog_delete_confirm_format">Ar tikrai norite ištrinti \'%s\'?</string>
+    <string name="dialog_file_info">Failo informacija</string>
+
+    <!-- File Info -->
+    <string name="info_format">Formatas</string>
+    <string name="info_duration">Trukmė</string>
+    <string name="info_size">Dydis</string>
+    <string name="info_sample_rate">Diskretizavimo dažnis</string>
+    <string name="info_channels">Kanalai</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitų dažnis</string>
+    <string name="info_codec">Kodekas</string>
+    <string name="info_location">Vieta</string>
+    <string name="info_unknown">Nežinoma</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logotipas</string>
+    <string name="a11y_search">Ieškoti failų</string>
+    <string name="a11y_backup">Atsarginė kopija ir atkūrimas</string>
+    <string name="a11y_close">Uždaryti</string>
+    <string name="a11y_cancel_selection">Atšaukti pasirinkimą</string>
+    <string name="a11y_manage_categories">Tvarkyti kategorijas</string>
+    <string name="a11y_record_speech">Įrašyti kalbą</string>
+    <string name="a11y_record_stream">Įrašyti srautą</string>
+    <string name="a11y_stop_recording">Sustabdyti įrašymą</string>
+    <string name="a11y_import_file">Importuoti garso failą</string>
+    <string name="a11y_play_selected">Groti pasirinktus failus</string>
+    <string name="a11y_playlist">Sukurti grojaraštį iš pasirinkimo</string>
+    <string name="a11y_recording_active">Vyksta įrašymas</string>
+    <string name="a11y_playlists">Atidaryti grojaraščius</string>
+    <string name="settings_playback_title">Atkūrimo nustatymai</string>
+    <string name="settings_speed_label">Greitis:</string>
+    <string name="settings_repeats">Kartojimai:</string>
+    <string name="settings_gap">Pauzė tarp kūrinių:</string>
+    <string name="settings_listen_repeat_desc">Pauzė po atkūrimo praktikai</string>
+    <string name="settings_pause_duration">Pauzės trukmė:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Miego laikmatis:</string>
+    <string name="settings_sleep_off">Išj.</string>
+    <string name="settings_sleep_stops_in">Sustos po %s</string>
+    <string name="settings_theme_label">Programėlės tema:</string>
+    <string name="settings_language_label">Programėlės kalba:</string>
+    <string name="dialog_delete_playlist_title">Ištrinti grojaraštį?</string>
+    <string name="dialog_delete_playlist_confirm">Ištrinti \"%s\"? Šio veiksmo atšaukti negalima.</string>
+    <string name="label_playlists_count">%d grojaraščiai</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d kūriniai</string>
+    <string name="label_playlist_no_playlists">Grojaraščių dar nėra</string>
+    <string name="label_playlist_create_desc">Sukurkite sesiją, kad pradėtumėte</string>
+    <string name="btn_new">Naujas</string>
+    <string name="btn_create_playlist">Sukurti grojaraštį</string>
+    <string name="btn_add_files">Pridėti failus</string>
+    <string name="label_added">pridėta</string>
+    <string name="label_no_files_category">Šioje kategorijoje failų nėra</string>
+    <string name="label_select">Pasirinkti</string>
+    <string name="label_add_count">Pridėti %d</string>
+    <string name="title_trim_audio">Apkarpyti garsą</string>
+    <string name="label_studio_editor">Studio redaktorius</string>
+    <string name="label_keep">Palikti</string>
+    <string name="label_cut">Kirpti</string>
+    <string name="label_current">DABARTINIS</string>
+    <string name="label_new_length">NAUJA TRUKMĖ</string>
+    <string name="label_start">PRADŽIA</string>
+    <string name="label_end">PABAIGA</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Tyla</string>
+    <string name="label_normalize">Normalizuoti</string>
+    <string name="error_open_audio">Nepavyko atidaryti garso</string>
+    <string name="error_corrupted_format">Failas sugadintas arba formatas nepalaikomas.</string>
+    <string name="btn_save_copy">Išsaugoti kopiją</string>
+    <string name="btn_replace_original">Pakeisti originalą</string>
+    <string name="label_status_completed">BAIGTA</string>
+    <string name="label_status_paused">SUSTABDYTA</string>
+    <string name="label_status_now_playing">DABAR GROJAMA</string>
+    <string name="label_shuffle">Maišyti</string>
+    <string name="label_gap_pill">%ds pauzė</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Bendra</string>
+    <string name="btn_resume">Tęsti</string>
+    <string name="btn_stop">Stop</string>
+    <string name="title_new_playlist">Naujas grojaraštis</string>
+    <string name="title_edit_playlist">Redaguoti grojaraštį</string>
+    <string name="label_untitled">Be pavadinimo</string>
+    <string name="label_playlist_name_header">PAVADINIMAS</string>
+    <string name="hint_enter_name">Įveskite pavadinimą…</string>
+    <string name="label_shuffle_playback">Atsitiktinis atkūrimas</string>
+    <string name="label_shuffle_desc">Kūriniai atsitiktine tvarka</string>
+    <string name="label_tracks_header">KŪRINIAI</string>
+    <string name="label_no_tracks">Pridėtų kūrinių nėra</string>
+    <string name="a11y_remove">Pašalinti</string>
+    <string name="a11y_drag_reorder">Vilkite, kad pakeistumėte tvarką</string>
+    <string name="label_playing_indicator">Groja • </string>
+    <string name="a11y_menu">Meniu</string>
+    <string name="label_auto_trim_silence">Auto-apkarpymas</string>
+    <string name="a11y_clear">Išvalyti</string>
+    <string name="label_note">Pastaba</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bitai</string>
+    <string name="label_categories">Kategorijos</string>
+    <string name="label_drag_reorder_hint">Vilkite už rankenėlės, kad pakeistumėte tvarką</string>
+    <string name="hint_category_name">Kategorijos pavadinimas…</string>
+    <string name="label_default">numatytoji</string>
+    <string name="a11y_save">Išsaugoti</string>
+    <string name="msg_deleted">Ištrinta: %s</string>
+    <string name="msg_restored">Atkurta</string>
+    <string name="msg_found_imported">Importuoti %d įrašai!</string>
+    <string name="btn_undo">Atšaukti</string>
+    <string name="a11y_edit">Redaguoti</string>
+    <string name="label_statistics">Statistika</string>
+    <string name="label_weekly_overview">SAVAITĖS APŽVALGA</string>
+    <string name="label_goal_reached">Tikslas pasiektas!</string>
+    <string name="label_min_remaining">liko %d min</string>
+    <string name="label_change_goal">Keisti tikslą</string>
+    <string name="label_streak">Serija</string>
+    <string name="label_today">Šiandien</string>
+    <string name="label_sessions">Sesijos</string>
+    <string name="label_edits">Redagavimai</string>
+    <string name="label_avg_daily">Vidurkis per dieną</string>
+    <string name="label_last_7_days">PASKUTINĖS 7 DIENOS</string>
+    <string name="label_recommendation">REKOMENDACIJA</string>
+    <string name="title_weekly_goal">Savaitės tikslas</string>
+    <string name="msg_goal_question">Kiek minučių per savaitę norite praktikuotis?</string>
+    <string name="label_min_per_day">~%d min/per dieną</string>
+    <string name="btn_reset">Atstatyti</string>
+    <string name="btn_reset_zoom">Atstatyti mąstelį</string>
+    <string name="label_earlier">Anksčiau</string>
+    <string name="label_later">Vėliau</string>
+</resources>

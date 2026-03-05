@@ -30,6 +30,8 @@ import com.example.audioloop.AppIcons
 import com.example.audioloop.PracticeStatsManager
 import com.example.audioloop.CoachEngine
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,14 +68,14 @@ fun PracticeStatsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
+                Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.btn_go_back), tint = MaterialTheme.colorScheme.onBackground)
             }
             Text(
-                "Statistics",
+                stringResource(R.string.label_statistics),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -85,13 +87,13 @@ fun PracticeStatsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "WEEKLY OVERVIEW",
+                    stringResource(R.string.label_weekly_overview),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -108,7 +110,7 @@ fun PracticeStatsScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        " / $goal min",
+                        " / " + stringResource(R.string.label_min, goal),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -136,12 +138,12 @@ fun PracticeStatsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        if (progress >= 1f) "Goal reached!" else "${((1f - progress) * goal).toInt()} min remaining",
+                        if (progress >= 1f) stringResource(R.string.label_goal_reached) else stringResource(R.string.label_min_remaining, ((1f - progress) * goal).toInt()),
                         color = if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Text(
-                        "Change goal",
+                        stringResource(R.string.label_change_goal),
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         modifier = Modifier.clickable { showGoalPicker = true }
@@ -154,29 +156,29 @@ fun PracticeStatsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(horizontal = 20.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Streak", "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
-            StatCard("Today", formatMin(todayMin), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            StatCard(stringResource(R.string.label_streak), "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+            StatCard(stringResource(R.string.label_today), formatMin(todayMin), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(horizontal = 20.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Sessions", "$sessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
-            StatCard("Edits", "$edits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+            StatCard(stringResource(R.string.label_sessions), "$sessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+            StatCard(stringResource(R.string.label_edits), "$edits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(horizontal = 20.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatCard("Avg. daily", formatMin(avgDaily), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-            StatCard("Progress", "${(progress * 100).toInt()}%", if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            StatCard(stringResource(R.string.label_avg_daily), formatMin(avgDaily), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            StatCard(stringResource(R.string.settings_theme_label).replace(":", ""), "${(progress * 100).toInt()}%", if (progress >= 1f) Forest400 else MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(8.dp))
@@ -185,13 +187,13 @@ fun PracticeStatsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "LAST 7 DAYS",
+                    stringResource(R.string.label_last_7_days),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -212,13 +214,13 @@ fun PracticeStatsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "RECOMMENDATION",
+                    stringResource(R.string.label_recommendation),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -231,7 +233,7 @@ fun PracticeStatsScreen(
                 Button(
                     onClick = { onStartRecommended(recommendation.suggestedMinutes) },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(AppIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
@@ -263,7 +265,7 @@ private fun StatCard(label: String, value: String, valueColor: Color, modifier: 
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -344,22 +346,22 @@ private fun GoalPickerDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Weekly goal", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.title_weekly_goal), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("How many minutes per week do you want to practice?", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                Text(stringResource(R.string.msg_goal_question), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 options.forEach { minutes ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .background(if (selected == minutes) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f) else Color.Transparent)
                             .border(
                                 1.dp,
                                 if (selected == minutes) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                RoundedCornerShape(10.dp)
+                                RoundedCornerShape(12.dp)
                             )
                             .clickable { selected = minutes }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
@@ -368,7 +370,7 @@ private fun GoalPickerDialog(
                     ) {
                         Text(formatMin(minutes.toFloat()), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Text(
-                            "~${(minutes / 7)} min/day",
+                            stringResource(R.string.label_min_per_day, (minutes / 7)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
@@ -381,19 +383,20 @@ private fun GoalPickerDialog(
                 onClick = { onConfirm(selected) },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Save", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_save), color = Color.White, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
 }
 
+@Composable
 private fun formatMin(minutes: Float): String {
     val m = minutes.toInt()
-    return if (m < 60) "${m} min" else "${m / 60}h ${m % 60}m"
+    return if (m < 60) stringResource(R.string.label_min, m) else stringResource(R.string.label_duration_hour_min, (m / 60), (m % 60))
 }
 

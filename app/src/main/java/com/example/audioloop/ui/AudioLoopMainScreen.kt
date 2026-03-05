@@ -60,9 +60,9 @@ fun AudioLoopMainScreen(
             HomeHeader(
                 uiState = uiState,
                 onSearchClick = { viewModel.setSearchVisible(true) },
-                onBackupClick = { viewModel.setShowBackupSheet(true) },
                 onPlaylistClick = { viewModel.setShowPlaylistSheet(true) }
             )
+
 
             // Category Navigation (Library Tab only)
             if (uiState.currentNavTab == "library") {
@@ -77,40 +77,18 @@ fun AudioLoopMainScreen(
                 )
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
 
-            // Sticky Coaching Card (Library & Record)
-            if (uiState.currentNavTab == "library" || uiState.currentNavTab == "record") {
-                if (uiState.practiceRecommendation.title.isNotEmpty()) {
-                    PracticeProgressCard(
-                        weeklyMinutes = uiState.practiceWeeklyMinutes,
-                        weeklyGoal = uiState.practiceWeeklyGoal,
-                        streak = uiState.practiceStreak,
-                        todayMinutes = uiState.practiceTodayMinutes,
-                        weeklySessions = uiState.practiceWeeklySessions,
-                        weeklyEdits = uiState.practiceWeeklyEdits,
-                        recommendation = uiState.practiceRecommendation,
-                        goalProgress = uiState.practiceGoalProgress,
-                        themeColors = themeColors,
-                        onStartRecommended = { viewModel.startRecommendedSession(it) },
-                        onViewDetails = { viewModel.setShowPracticeStats(true) },
-                        isExpanded = uiState.isSmartCoachExpanded,
-                        onToggleExpanded = { viewModel.toggleSmartCoach() },
-                        isPlaying = uiState.playingFileName.isNotEmpty(),
-                        currentSessionElapsedMs = uiState.currentSessionElapsedMs,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-                    )
-                }
-            }
 
             // Main Content Area
             Box(modifier = Modifier.weight(1f)) {
                 when (uiState.currentNavTab) {
                     "library" -> LibraryTab(uiState, viewModel, onImportClick = { filePickerLauncher.launch("audio/*") })
                     "record" -> RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
-                    "coach" -> CoachTab(onOpenStats = { viewModel.setShowPracticeStats(true) })
+                    "coach" -> CoachTab(uiState, viewModel)
                     "settings" -> SettingsTab(uiState, viewModel)
                 }
+
 
                 // Category Management Overlay
                 if (uiState.showCategorySheet) {

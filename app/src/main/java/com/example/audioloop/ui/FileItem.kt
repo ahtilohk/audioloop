@@ -56,6 +56,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.semantics.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -63,6 +64,8 @@ import android.media.MediaPlayer
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -116,6 +119,7 @@ fun FileItem(
     onSeekAbsolute: (Int) -> Unit = {}, // seek to absolute ms position
     shadowCountdownText: String = "" // countdown text during Listen & Repeat pause
 ) {
+    val ctx = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
 
     // Modern MD3 card states
@@ -142,10 +146,18 @@ fun FileItem(
         },
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 0.dp, horizontal = 20.dp)
+            .padding(vertical = 0.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
+            }
+            .semantics(mergeDescendants = true) {
+                val status = when {
+                    isPlaying && isPaused -> ctx.getString(R.string.a11y_paused)
+                    isPlaying -> ctx.getString(R.string.a11y_playing)
+                    else -> ""
+                }
+                contentDescription = "${item.name}, ${item.durationString}. $status"
             },
         shape = RoundedCornerShape(16.dp),
         color = backgroundColor,
@@ -171,7 +183,7 @@ fun FileItem(
                 ) {
                     Icon(
                         imageVector = AppIcons.GripVertical,
-                        contentDescription = "Drag to reorder",
+                        contentDescription = stringResource(R.string.a11y_drag_reorder),
                         tint = if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, // Visual feedback
                         modifier = Modifier.size(20.dp)
                     )
@@ -232,7 +244,7 @@ fun FileItem(
                     ) {
                         Icon(
                             imageVector = AppIcons.PlayArrow,
-                            contentDescription = "Resume",
+                            contentDescription = stringResource(R.string.btn_resume),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -265,7 +277,7 @@ fun FileItem(
                 ) {
                     Icon(
                         imageVector = AppIcons.PlayArrow,
-                        contentDescription = "Play",
+                        contentDescription = stringResource(R.string.menu_play),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -346,7 +358,7 @@ fun FileItem(
                     )
                 } else {
                     Text(
-                        text = "${if(isPlaying) "Playing \u2022 " else ""}${item.durationString}",
+                        text = "${if(isPlaying) stringResource(R.string.label_playing_indicator) else ""}${item.durationString}",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
@@ -363,7 +375,7 @@ fun FileItem(
                     ) {
                         Icon(
                             imageVector = AppIcons.MoreVert,
-                            contentDescription = "Menu",
+                            contentDescription = stringResource(R.string.a11y_menu),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
@@ -375,48 +387,48 @@ fun FileItem(
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Rename", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_rename), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onRename() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Trim", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_trim), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onTrim() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Auto-trim Silence", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.label_auto_trim_silence), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onAutoTrim() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Normalize", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_normalize), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onNormalize() }
                         )
                         DropdownMenuItem(
-                            text = { Text(if (item.note.isNotBlank()) "Edit Note" else "Add Note", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(if (item.note.isNotBlank()) stringResource(R.string.menu_note_edit) else stringResource(R.string.menu_note_add), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onEditNote() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Move", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_move), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onMove() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Share", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_share), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.Share, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onShare() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Info", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(stringResource(R.string.menu_info), color = MaterialTheme.colorScheme.onSurface) },
                             leadingIcon = { Icon(AppIcons.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             onClick = { menuExpanded = false; onShowInfo() }
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         DropdownMenuItem(
-                            text = { Text("Delete", color = Red400) },
+                            text = { Text(stringResource(R.string.btn_delete), color = Red400) },
                             leadingIcon = { Icon(AppIcons.Delete, null, tint = Red400) },
                             onClick = { menuExpanded = false; onDelete() }
                         )
@@ -598,7 +610,7 @@ fun FileItem(
                                             .clickable { abLoopA = -1f; abLoopB = -1f }
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
+                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
                                     }
                                 }
                             }
@@ -620,7 +632,7 @@ fun FileItem(
                 ) {
                     Column {
                         Text(
-                            text = "Note",
+                            text = stringResource(R.string.label_note),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold,

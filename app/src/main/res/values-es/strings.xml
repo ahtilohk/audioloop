@@ -1,0 +1,324 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">General</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_delete">Eliminar</string>
+    <string name="btn_play_selected">Reproducir %d seleccionados</string>
+    <string name="btn_add_file">Importar archivo</string>
+    <string name="btn_record_new">GRABAR NUEVO</string>
+    <string name="btn_go_back">Volver</string>
+    <string name="btn_got_it">¡Entendido!</string>
+    <string name="btn_import_audio">Importar archivo de audio</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Grabando…</string>
+    <string name="label_empty_title">Aún no hay grabaciones</string>
+    <string name="label_empty_subtitle">Toca el botón de grabar arriba para crear tu primera grabación o importa un archivo de audio.</string>
+    <string name="label_no_matching_files">Sin archivos coincidentes</string>
+    <string name="label_try_different_search">Prueba con un término de búsqueda diferente</string>
+    <string name="label_tap_to_select">Toca archivos para seleccionar</string>
+    <string name="label_playlists">Listas de reproducción</string>
+    <string name="label_on">Encendido</string>
+    <string name="label_off">Apagado</string>
+
+    <!-- Search -->
+    <string name="search_hint">Buscar archivos…</string>
+    <string name="search_files">Buscar archivos</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Renombrar</string>
+    <string name="menu_trim">Recortar / Cortar</string>
+    <string name="menu_move">Mover a categoría</string>
+    <string name="menu_share">Compartir</string>
+    <string name="menu_download">Descargar</string>
+    <string name="menu_split">Dividir por silencios</string>
+    <string name="menu_normalize">Normalizar</string>
+    <string name="menu_auto_trim">Recorte automático</string>
+    <string name="menu_fade">Desvanecimiento</string>
+    <string name="menu_merge">Combinar seleccionados</string>
+    <string name="menu_note">Editar nota</string>
+    <string name="menu_info">Información</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Renombrar archivo</string>
+    <string name="dialog_create_category">Nueva categoría</string>
+    <string name="dialog_delete_confirm">¿Estás seguro?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Voz</string>
+    <string name="mode_stream">Transmisión</string>
+    <string name="mode_speech_desc">Graba tu voz usando el micrófono.</string>
+    <string name="mode_stream_desc">Graba el audio que se reproduce en tu dispositivo (música, videos, etc.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Guardado</string>
+    <string name="toast_error">Error</string>
+    <string name="msg_moved">Movido</string>
+    <string name="msg_imported">Importado: %s</string>
+    <string name="msg_error_moving">Error al mover</string>
+    <string name="msg_error_importing">Error al importar</string>
+    <string name="msg_error_sharing">Error al compartir: %s</string>
+    <string name="msg_permission_granted">Permiso concedido</string>
+    <string name="msg_permission_denied">Permiso denegado</string>
+    <string name="msg_permission_required">Se requiere permiso para grabar</string>
+    <string name="msg_splitting">Dividiendo por silencios…</string>
+    <string name="msg_split_done">Dividido en %d segmentos</string>
+    <string name="msg_no_silence_gaps">No se encontraron silencios para dividir</string>
+    <string name="msg_normalizing">Normalizando…</string>
+    <string name="msg_detecting_silence">Detectando silencios…</string>
+    <string name="msg_no_silence_to_trim">No se detectó silencio para recortar</string>
+    <string name="msg_no_significant_silence">No hay silencios significativos para recortar</string>
+    <string name="msg_applying_fade">Aplicando desvanecimiento…</string>
+    <string name="msg_merging">Combinando %d archivos…</string>
+    <string name="msg_merged">Combinado en %s</string>
+    <string name="msg_merge_failed">Error al combinar</string>
+    <string name="msg_done">¡Hecho!</string>
+    <string name="msg_processing_failed">Error en el procesamiento</string>
+    <string name="msg_access_denied">Acceso denegado: el archivo original está en uso</string>
+    <string name="msg_error_finalizing">¡Error al finalizar el archivo!</string>
+    <string name="msg_studio_replaced">Estudio: Original reemplazado</string>
+    <string name="msg_studio_saved_as">Estudio: Guardado como %s</string>
+    <string name="msg_normalization_failed">Error en la normalización</string>
+    <string name="msg_fade_failed">Error en el desvanecimiento</string>
+    <string name="msg_auto_trim_failed">Error en el recorte automático</string>
+    <string name="msg_playback_error">Error de reproducción: %d / %d</string>
+    <string name="msg_error_opening">Error al abrir el archivo: %s</string>
+    <string name="msg_playlist_empty">La lista de reproducción está vacía o faltan archivos</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Copia de seguridad y restauración</string>
+    <string name="backup_saved">Copia guardada: %s</string>
+    <string name="backup_failed">Fallo en copia de seguridad: %s</string>
+    <string name="backup_loading">Cargando copias de seguridad…</string>
+    <string name="backup_no_backups">No se encontraron copias de seguridad</string>
+    <string name="backup_restoring">Restaurando ajustes…</string>
+    <string name="backup_restore_complete">¡Restauración completa!</string>
+    <string name="backup_restore_failed">Fallo en restauración: %s</string>
+    <string name="backup_deleted">Copia de seguridad eliminada</string>
+    <string name="signin_cancelled">Inicio de sesión cancelado</string>
+    <string name="signin_failed_play_services">Inicio de sesión fallido. Comprueba Google Play Services.</string>
+    <string name="signin_dev_error">Error de desarrollador: comprueba el SHA-1</string>
+    <string name="signin_interrupted">Inicio de sesión interrumpido</string>
+    <string name="signin_error">Error de inicio de sesión (código %d)</string>
+    <string name="signin_failed">Inicio de sesión fallido: %s</string>
+    <string name="title_restore_backup">¿Restaurar copia de seguridad?</string>
+    <string name="msg_restore_warning">Esto reemplazará tus archivos, categorías y ajustes actuales con el contenido de la copia.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Inicia sesión para guardar tus grabaciones y ajustes en Google Drive</string>
+    <string name="btn_signing_in">Iniciando sesión…</string>
+    <string name="btn_google_signin">Iniciar sesión con Google</string>
+    <string name="btn_sign_out">Cerrar sesión</string>
+    <string name="btn_backup">Copia de seguridad</string>
+    <string name="btn_restore">Restaurar</string>
+    <string name="label_available_backups">Copias de seguridad disponibles</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Bucle</string>
+    <string name="settings_speed">Velocidad</string>
+    <string name="settings_pitch">Tono</string>
+    <string name="settings_sleep_timer">Temporizador</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Escuchar y repetir</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">¡Bienvenido a AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop admite dos modos de grabación:</string>
+    <string name="welcome_stream_note">Nota sobre grabación de Transmisión:</string>
+    <string name="welcome_stream_warning">Android requiere confirmación cada vez que inicias una grabación de Transmisión. Es una función de seguridad y no se puede omitir.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Entrenador inteligente</string>
+    <string name="coach_practice_stats">Estadísticas de práctica</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Grabación y reproducción rápida desde la pantalla de inicio</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Gestionar categorías</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_record">Grabar</string>
+    <string name="nav_coach">Entrenador</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Entrenador de práctica inteligente</string>
+    <string name="coach_description">Sigue tu progreso, recibe recomendaciones y crea un hábito de práctica.</string>
+    <string name="coach_open_stats">Abrir estadísticas completas</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Iniciar grabación</string>
+    <string name="record_mode_format">Modo %s</string>
+    <string name="record_recording">Grabando…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Archivos (%s):</string>
+    <string name="library_add">+ Añadir</string>
+    <string name="library_select">Seleccionar</string>
+    <string name="library_play_count">REPRODUCIR %d</string>
+    <string name="library_playlist">LISTA DE REPRODUCCIÓN</string>
+    <string name="library_merge_count">COMBINAR %d</string>
+    <string name="library_now_playing">REPRODUCIENDO AHORA</string>
+    <string name="library_today_format">Hoy %s</string>
+    <string name="library_tracks_count">%d pistas</string>
+    <string name="library_shuffle">Aleatorio</string>
+    <string name="library_gap_format">pausa de %ds</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Buscar grabaciones…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Renombrar</string>
+    <string name="dialog_new_name">Nuevo nombre</string>
+    <string name="dialog_select_category">Seleccionar categoría</string>
+    <string name="dialog_add_note">Añadir nota</string>
+    <string name="dialog_edit_note">Editar nota</string>
+    <string name="dialog_note_hint">Letra, verso, traducción…</string>
+    <string name="dialog_remove">Eliminar</string>
+    <string name="dialog_close">Cerrar</string>
+    <string name="dialog_delete_file">¿Eliminar archivo?</string>
+    <string name="dialog_delete_confirm_format">¿Seguro que quieres eliminar \'%s\'?</string>
+    <string name="dialog_file_info">Información del archivo</string>
+
+    <!-- File Info -->
+    <string name="info_format">Formato</string>
+    <string name="info_duration">Duración</string>
+    <string name="info_size">Tamaño</string>
+    <string name="info_sample_rate">Muestreo</string>
+    <string name="info_channels">Canales</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Estéreo</string>
+    <string name="info_bit_rate">Bitrate</string>
+    <string name="info_codec">Códec</string>
+    <string name="info_location">Ubicación</string>
+    <string name="info_unknown">Desconocido</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logotipo</string>
+    <string name="a11y_search">Buscar archivos</string>
+    <string name="a11y_backup">Copia de seguridad y restauración</string>
+    <string name="a11y_close">Cerrar</string>
+    <string name="a11y_cancel_selection">Cancelar selección</string>
+    <string name="a11y_manage_categories">Gestionar categorías</string>
+    <string name="a11y_record_speech">Grabar voz</string>
+    <string name="a11y_record_stream">Grabar transmisión</string>
+    <string name="a11y_stop_recording">Detener grabación</string>
+    <string name="a11y_import_file">Importar archivo de audio</string>
+    <string name="a11y_play_selected">Reproducir archivos seleccionados</string>
+    <string name="a11y_playlist">Crear lista de la selección</string>
+    <string name="a11y_recording_active">Grabación activa</string>
+    <string name="a11y_playlists">Abrir listas de reproducción</string>
+    <string name="settings_playback_title">Ajustes de reproducción</string>
+    <string name="settings_repeats">Repeticiones:</string>
+    <string name="settings_gap">Espacio entre pistas:</string>
+    <string name="settings_listen_repeat_desc">Pausa tras reproducción para practicar</string>
+    <string name="settings_pause_duration">Duración de la pausa:</string>
+    <string name="settings_pause_auto">Automático</string>
+    <string name="settings_sleep_off">Apagado</string>
+    <string name="settings_sleep_stops_in">Se detiene en %s</string>
+    <string name="settings_theme_label">Tema de la aplicación:</string>
+    <string name="settings_language_label">Idioma de la aplicación:</string>
+    <string name="dialog_delete_playlist_title">¿Eliminar lista?</string>
+    <string name="dialog_delete_playlist_confirm">¿Eliminar \"%s\"? No se puede deshacer.</string>
+    <string name="label_playlists_count">%d lista%s de reproducción</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d pistas</string>
+    <string name="label_playlist_no_playlists">Aún no hay listas</string>
+    <string name="label_playlist_create_desc">Crea una sesión para comenzar</string>
+    <string name="btn_new">Nuevo</string>
+    <string name="btn_create_playlist">Crear lista</string>
+    <string name="btn_add_files">Añadir archivos</string>
+    <string name="label_added">añadido</string>
+    <string name="label_no_files_category">Sin archivos en esta categoría</string>
+    <string name="label_select">Seleccionar</string>
+    <string name="label_add_count">Añadir %d</string>
+    <string name="title_trim_audio">Recortar audio</string>
+    <string name="label_studio_editor">Editor de estudio</string>
+    <string name="label_keep">Mantener</string>
+    <string name="label_cut">Cortar</string>
+    <string name="label_current">ACTUAL</string>
+    <string name="label_new_length">NUEVA DURACIÓN</string>
+    <string name="label_start">INICIO</string>
+    <string name="label_end">FIN</string>
+    <string name="label_fade_in">Aparición gradual</string>
+    <string name="label_fade_out">Desvanecimiento gradual</string>
+    <string name="label_silence">Silencio</string>
+    <string name="label_normalize">Normalizar</string>
+    <string name="error_open_audio">No se pudo abrir el archivo de audio</string>
+    <string name="error_corrupted_format">El archivo puede estar dañado o en un formato no compatible.</string>
+    <string name="btn_save_copy">Guardar copia</string>
+    <string name="btn_replace_original">Reemplazar original</string>
+    <string name="label_status_completed">COMPLETADO</string>
+    <string name="label_status_paused">PAUSADO</string>
+    <string name="label_status_now_playing">REPRODUCIENDO AHORA</string>
+    <string name="label_shuffle">Aleatorio</string>
+    <string name="label_gap_pill">pausa de %ds</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">General</string>
+    <string name="btn_resume">Reanudar</string>
+    <string name="btn_stop">Detener</string>
+    <string name="title_new_playlist">Nueva lista de reproducción</string>
+    <string name="title_edit_playlist">Editar lista de reproducción</string>
+    <string name="label_untitled">Sin título</string>
+    <string name="label_playlist_name_header">NOMBRE DE LA LISTA</string>
+    <string name="hint_enter_name">Introduce nombre…</string>
+    <string name="label_shuffle_playback">Reproducción aleatoria</string>
+    <string name="label_shuffle_desc">Reproducir pistas en orden aleatorio</string>
+    <string name="label_tracks_header">PISTAS</string>
+    <string name="label_no_tracks">No se han añadido pistas</string>
+    <string name="a11y_remove">Eliminar</string>
+    <string name="a11y_drag_reorder">Arrastrar para reordenar</string>
+    <string name="label_playing_indicator">Reproduciendo • </string>
+    <string name="a11y_menu">Menú</string>
+    <string name="label_auto_trim_silence">Recorte automático de silencios</string>
+    <string name="a11y_clear">Limpiar</string>
+    <string name="label_note">Nota</string>
+    <string name="prefix_speech">Voz</string>
+    <string name="prefix_stream">Transmisión</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Categorías</string>
+    <string name="label_drag_reorder_hint">Arrastra para reordenar</string>
+    <string name="hint_category_name">Nombre de la categoría…</string>
+    <string name="label_default">por defecto</string>
+    <string name="a11y_save">Guardar</string>
+    <string name="msg_deleted">Eliminado %s</string>
+    <string name="msg_restored">Restaurado</string>
+    <string name="msg_found_imported">¡Encontradas %d grabaciones en el almacenamiento público – importadas!</string>
+    <string name="btn_undo">Deshacer</string>
+    <string name="a11y_edit">Editar</string>
+    <string name="label_statistics">Estadísticas</string>
+    <string name="label_weekly_overview">RESUMEN SEMANAL</string>
+    <string name="label_goal_reached">¡Ese objetivo cumplido!</string>
+    <string name="label_min_remaining">quedan %d min</string>
+    <string name="label_change_goal">Cambiar objetivo</string>
+    <string name="label_streak">Racha</string>
+    <string name="label_today">Hoy</string>
+    <string name="label_sessions">Sesiones</string>
+    <string name="label_edits">Ediciones</string>
+    <string name="label_avg_daily">Promedio diario</string>
+    <string name="label_last_7_days">ÚLTIMOS 7 DÍAS</string>
+    <string name="label_recommendation">RECOMENDACIÓN</string>
+    <string name="title_weekly_goal">Objetivo semanal</string>
+    <string name="msg_goal_question">¿Cuántos minutos por semana quieres practicar?</string>
+    <string name="label_min_per_day">~%d min/día</string>
+    <string name="btn_reset">Reiniciar</string>
+    <string name="btn_reset_zoom">Reiniciar zoom</string>
+    <string name="label_earlier">Antes</string>
+    <string name="label_later">Después</string>
+</resources>

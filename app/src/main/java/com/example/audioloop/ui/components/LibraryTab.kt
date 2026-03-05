@@ -20,6 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -29,10 +32,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
 import com.example.audioloop.AudioLoopUiState
 import com.example.audioloop.AudioLoopViewModel
 import com.example.audioloop.Playlist
 import com.example.audioloop.RecordingItem
+import com.example.audioloop.SortMode
 import com.example.audioloop.ui.FileItem
 import com.example.audioloop.ui.formatSessionTime
 import com.example.audioloop.ui.theme.Red400
@@ -61,8 +66,19 @@ fun LibraryTab(
             .fillMaxSize()
             .padding(vertical = 8.dp)
     ) {
+        if (uiState.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = uiState.currentTheme.palette.primary,
+                trackColor = Color.Transparent
+            )
+        }
         // Selection/Header Row
         LibraryHeader(uiState, viewModel, recordingItems, onImportClick)
+
+        if (uiState.searchQuery.isNotEmpty()) {
+            SearchFilterBadge(uiState, onClearQuery = { viewModel.updateSearchQuery("") }, onClearCategory = { viewModel.setSearchCategory(null) })
+        }
 
         // Banner if playlist is playing
         val playlists = uiState.playlists
@@ -104,7 +120,7 @@ private fun LibraryHeader(
         if (uiState.isSelectionMode && uiState.selectedFiles.isNotEmpty()) {
             SelectionActionBar(uiState, viewModel, recordingItems)
         } else {
-            NormalHeader(uiState, onImportClick, onSelectClick = { viewModel.setSelectionMode(true) })
+            NormalHeader(uiState, viewModel, onImportClick, onSelectClick = { viewModel.setSelectionMode(true) })
         }
     }
 
@@ -118,7 +134,7 @@ private fun LibraryHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Tap files to select",
+                text = stringResource(R.string.label_tap_to_select),
                 style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
             )
             Surface(
@@ -133,8 +149,8 @@ private fun LibraryHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(AppIcons.Close, contentDescription = null, tint = Red400, modifier = Modifier.size(14.dp))
-                    Text("Cancel", fontSize = 12.sp, color = Red400, fontWeight = FontWeight.Bold)
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red400, modifier = Modifier.size(14.dp))
+                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red400, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -165,12 +181,12 @@ private fun SelectionActionBar(
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.weight(1f)
         ) {
-            Icon(AppIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+            Icon(AppIcons.PlayArrow, contentDescription = stringResource(R.string.a11y_play_selected), modifier = Modifier.size(16.dp), tint = Color.White)
             Spacer(Modifier.width(4.dp))
-            Text("PLAY ${uiState.selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(stringResource(R.string.library_play_count, uiState.selectedFiles.size), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
         }
 
         // Save as Playlist
@@ -197,13 +213,13 @@ private fun SelectionActionBar(
                 viewModel.clearSelection()
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             modifier = Modifier.weight(1f)
         ) {
-            Icon(AppIcons.QueueMusic, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(AppIcons.QueueMusic, contentDescription = stringResource(R.string.a11y_playlist), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(4.dp))
-            Text("PLAYLIST", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(stringResource(R.string.library_playlist), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
         }
 
         if (uiState.selectedFiles.size >= 2) {
@@ -219,10 +235,10 @@ private fun SelectionActionBar(
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = themeColors.secondary),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("MERGE ${uiState.selectedFiles.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                Text(stringResource(R.string.library_merge_count, uiState.selectedFiles.size), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
             }
         }
     }
@@ -231,25 +247,44 @@ private fun SelectionActionBar(
 @Composable
 private fun NormalHeader(
     uiState: AudioLoopUiState,
+    viewModel: AudioLoopViewModel,
     onImportClick: () -> Unit,
     onSelectClick: () -> Unit
 ) {
+    val titleText = if (uiState.searchQuery.isNotEmpty()) {
+        val count = viewModel.getFilteredItems().size
+        if (uiState.searchCategory != null) {
+             stringResource(R.string.search_header_category, uiState.searchCategory, count)
+        } else {
+             stringResource(R.string.search_header_all, count)
+        }
+    } else {
+        stringResource(R.string.library_files_header, uiState.currentCategory)
+    }
+    val haptic = LocalHapticFeedback.current
+
     Text(
-        text = "Files (${uiState.currentCategory}):",
+        text = titleText,
         style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(
-            onClick = onImportClick,
+            onClick = {
+                onImportClick()
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            },
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.height(32.dp)
         ) {
-            Text("+ Add", fontSize = 12.sp, color = Color.White)
+            Text(stringResource(R.string.library_add), fontSize = 12.sp, color = Color.White)
         }
         Surface(
-            onClick = onSelectClick,
+            onClick = {
+                onSelectClick()
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            },
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -260,11 +295,71 @@ private fun NormalHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Icon(AppIcons.DoneAll, contentDescription = "Select", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
-                Text("Select", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                Icon(AppIcons.DoneAll, contentDescription = stringResource(R.string.library_select), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
+                Text(stringResource(R.string.library_select), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
             }
         }
+        SortMenuButton(currentSort = uiState.sortMode, onSortSelected = { viewModel.setSortMode(it) })
     }
+}
+
+@Composable
+private fun SortMenuButton(currentSort: SortMode, onSortSelected: (SortMode) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        Surface(
+            onClick = { 
+                expanded = true
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            },
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier.height(32.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(AppIcons.Sort, contentDescription = stringResource(R.string.menu_sort), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
+                Text(stringResource(R.string.menu_sort), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+        ) {
+            SortMenuItem(SortMode.DATE_DESC, R.string.sort_date_desc, currentSort, onSortSelected) { expanded = false }
+            SortMenuItem(SortMode.DATE_ASC, R.string.sort_date_asc, currentSort, onSortSelected) { expanded = false }
+            SortMenuItem(SortMode.NAME_ASC, R.string.sort_name_asc, currentSort, onSortSelected) { expanded = false }
+            SortMenuItem(SortMode.NAME_DESC, R.string.sort_name_desc, currentSort, onSortSelected) { expanded = false }
+            SortMenuItem(SortMode.LENGTH_DESC, R.string.sort_length_desc, currentSort, onSortSelected) { expanded = false }
+            SortMenuItem(SortMode.LENGTH_ASC, R.string.sort_length_asc, currentSort, onSortSelected) { expanded = false }
+        }
+    }
+}
+
+@Composable
+private fun SortMenuItem(
+    mode: SortMode,
+    labelRes: Int,
+    currentSort: SortMode,
+    onSortSelected: (SortMode) -> Unit,
+    onDismiss: () -> Unit
+) {
+    DropdownMenuItem(
+        text = { Text(stringResource(labelRes), color = if (mode == currentSort) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface) },
+        leadingIcon = { 
+            val icon = if (mode == currentSort) AppIcons.Done else null
+            if (icon != null) Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            else Spacer(Modifier.size(18.dp))
+        },
+        onClick = { onSortSelected(mode); onDismiss() }
+    )
 }
 
 @Composable
@@ -287,7 +382,7 @@ private fun PlaylistPlayingBanner(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 Brush.horizontalGradient(
                     listOf(
@@ -299,7 +394,7 @@ private fun PlaylistPlayingBanner(
             .border(
                 1.5.dp,
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.4f + 0.3f * glowAlpha),
-                RoundedCornerShape(14.dp)
+                RoundedCornerShape(16.dp)
             )
             .clickable { uiState.currentlyPlayingPlaylistId?.let { viewModel.openPlaylistView(it) } }
     ) {
@@ -318,7 +413,7 @@ private fun PlaylistPlayingBanner(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "NOW PLAYING",
+                    stringResource(R.string.library_now_playing),
                     style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                 )
                 Text(
@@ -336,7 +431,7 @@ private fun PlaylistPlayingBanner(
                     )
                     val totalTodayMs = (uiState.practiceTodayMinutes * 60_000L).toLong() + uiState.currentSessionElapsedMs
                     Text(
-                        "Today ${formatSessionTime(totalTodayMs)}",
+                        stringResource(R.string.library_today_format, formatSessionTime(totalTodayMs)),
                         style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Medium, fontFamily = FontFamily.Monospace)
                     )
                 }
@@ -359,13 +454,13 @@ private fun PlaylistPlayingBanner(
                 Pill(text = "🎚 ${String.format("%.1f", activePlaylist.speed)}×", color = MaterialTheme.colorScheme.onSurface)
             }
             if (activePlaylist.gapSeconds > 0) {
-                Pill(text = "⌛ ${activePlaylist.gapSeconds}s gap", color = MaterialTheme.colorScheme.onSurface)
+                Pill(text = "⌛ " + stringResource(R.string.label_gap_pill, activePlaylist.gapSeconds), color = MaterialTheme.colorScheme.onSurface)
             }
             if (activePlaylist.shuffle) {
-                Pill(text = "🔀 Shuffle", color = MaterialTheme.colorScheme.onSurface)
+                Pill(text = "🔀 " + stringResource(R.string.label_shuffle), color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.weight(1f))
-            Text("${activePlaylist.files.size} tracks", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+            Text(stringResource(R.string.library_tracks_count, activePlaylist.files.size), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
         }
     }
 }
@@ -400,13 +495,13 @@ private fun EmptyLibraryState(isSearching: Boolean, onImportClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = if (isSearching) "No matching files" else "No recordings yet",
+            text = if (isSearching) stringResource(R.string.label_no_matching_files) else stringResource(R.string.label_empty_title),
             style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = if (isSearching) "Try a different search term"
-                   else "Tap the record button above to create your first recording, or import an audio file.",
+            text = if (isSearching) stringResource(R.string.label_try_different_search)
+                   else stringResource(R.string.label_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -416,11 +511,11 @@ private fun EmptyLibraryState(isSearching: Boolean, onImportClick: () -> Unit) {
             OutlinedButton(
                 onClick = onImportClick,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(AppIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Icon(AppIcons.Add, contentDescription = stringResource(R.string.a11y_import_file), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Import Audio File", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.btn_import_audio), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -432,6 +527,7 @@ private fun DraggableFileList(
     viewModel: AudioLoopViewModel,
     uiRecordingItems: MutableList<RecordingItem>
 ) {
+    val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -460,6 +556,7 @@ private fun DraggableFileList(
                 val itemToMove = uiRecordingItems.removeAt(draggingItemIndex)
                 uiRecordingItems.add(targetIndex, itemToMove)
                 draggingItemIndex = targetIndex
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             }
         }
     }
@@ -485,6 +582,7 @@ private fun DraggableFileList(
                     val x = down.position.x
                     val hitItem = scrollState.layoutInfo.visibleItemsInfo.find { y >= it.offset && y <= it.offset + it.size }
                     if (hitItem != null && x <= gripWidth) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         down.consume()
                         val index = hitItem.index
                         if (index in uiRecordingItems.indices) {
@@ -577,7 +675,7 @@ private fun DraggableFileList(
             FileItem(
                 modifier = Modifier
                     .offset { IntOffset(0, overlayOffsetY.roundToInt()) }
-                    .shadow(8.dp, RoundedCornerShape(12.dp)),
+                    .shadow(8.dp, RoundedCornerShape(16.dp)),
                 item = item,
                 isPlaying = item.file.name == uiState.playingFileName,
                 isPaused = if (item.file.name == uiState.playingFileName) uiState.isPaused else false,
@@ -601,6 +699,37 @@ private fun DraggableFileList(
                 isDragging = true,
                 themeColors = uiState.currentTheme.palette,
                 playlistPosition = -1
+            )
+        }
+    }
+}
+@Composable
+private fun SearchFilterBadge(
+    uiState: AudioLoopUiState,
+    onClearQuery: () -> Unit,
+    onClearCategory: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (uiState.searchQuery.isNotEmpty()) {
+            InputChip(
+                selected = true,
+                onClick = onClearQuery,
+                label = { Text("${stringResource(R.string.a11y_search)}: ${uiState.searchQuery}") },
+                trailingIcon = { Icon(AppIcons.Close, null, modifier = Modifier.size(16.dp)) }
+            )
+        }
+        if (uiState.searchCategory != null) {
+            InputChip(
+                selected = true,
+                onClick = onClearCategory,
+                label = { Text(uiState.searchCategory) },
+                trailingIcon = { Icon(AppIcons.Close, null, modifier = Modifier.size(16.dp)) }
             )
         }
     }

@@ -25,6 +25,8 @@ import com.example.audioloop.AppIcons
 import com.example.audioloop.Playlist
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun PlaylistViewScreen(
@@ -94,14 +96,14 @@ fun PlaylistViewScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 14.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back button
                 IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
                     Icon(
                         imageVector = AppIcons.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.a11y_close),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
@@ -129,9 +131,9 @@ fun PlaylistViewScreen(
                         )
                         Text(
                             text = when {
-                                !isActive -> "COMPLETED"
-                                isPaused -> "PAUSED"
-                                else -> "NOW PLAYING"
+                                !isActive -> stringResource(R.string.label_status_completed)
+                                isPaused -> stringResource(R.string.label_status_paused)
+                                else -> stringResource(R.string.label_status_now_playing)
                             },
                             style = TextStyle(
                                 color = when {
@@ -170,7 +172,7 @@ fun PlaylistViewScreen(
                     ) {
                         Icon(
                             imageVector = if (isPaused) AppIcons.PlayArrow else AppIcons.Pause,
-                            contentDescription = if (isPaused) "Resume" else "Pause",
+                            contentDescription = if (isPaused) stringResource(R.string.btn_resume) else stringResource(R.string.menu_pause),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -188,7 +190,7 @@ fun PlaylistViewScreen(
                     ) {
                         Icon(
                             imageVector = AppIcons.Stop,
-                            contentDescription = "Stop",
+                            contentDescription = stringResource(R.string.btn_stop),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -204,7 +206,7 @@ fun PlaylistViewScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                    .padding(start = 20.dp, end = 20.dp, bottom = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -212,11 +214,11 @@ fun PlaylistViewScreen(
                 if (playlist.speed != 1.0f)
                     InfoPill("🎚 ${"%.1f".format(playlist.speed)}×", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 if (playlist.gapSeconds > 0)
-                    InfoPill("⏱ ${playlist.gapSeconds}s gap", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
+                    InfoPill("⏱ " + stringResource(R.string.label_gap_pill, playlist.gapSeconds), MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 if (playlist.shuffle)
-                    InfoPill("🔀 Shuffle", MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
+                    InfoPill("🔀 " + stringResource(R.string.label_shuffle), MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.weight(1f))
-                Text("${playlist.files.size} tracks", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                Text(stringResource(R.string.label_playlist_tracks, playlist.files.size), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
             }
 
             HorizontalDivider(color = themeColors.primary700.copy(alpha = 0.3f), thickness = 1.dp)
@@ -226,7 +228,7 @@ fun PlaylistViewScreen(
         LazyColumn(
             state = scrollState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             itemsIndexed(playlist.files) { idx, filePath ->
@@ -255,10 +257,10 @@ fun PlaylistViewScreen(
                             if (isPlaying) Modifier.border(
                                 1.dp,
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + 0.3f * glowAlpha),
-                                RoundedCornerShape(12.dp)
-                            ) else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                RoundedCornerShape(16.dp)
+                            ) else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                         )
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -302,12 +304,13 @@ fun PlaylistViewScreen(
                             overflow = TextOverflow.Ellipsis
                         )
                         if (item != null) {
-                            val cat = filePath.substringBefore("/", "General")
-                                .let { if (it == filePath) "General" else it }
+                            val generalLabel = stringResource(R.string.label_general)
+                            val cat = filePath.substringBefore("/", generalLabel)
+                                .let { if (it == filePath) generalLabel else it }
                             val dur = item.durationMillis
                             val mins = (dur / 1000) / 60
                             val secs = (dur / 1000) % 60
-                            val durStr = if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
+                            val durStr = if (mins > 0) stringResource(R.string.label_duration_min_sec, mins, secs) else stringResource(R.string.label_duration_sec, secs)
                             Text(
                                 text = "$cat · $durStr",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

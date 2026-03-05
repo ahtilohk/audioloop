@@ -3,6 +3,8 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -16,11 +18,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
 import com.example.audioloop.ui.theme.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlaybackSettingsCard(
+
     settingsOpen: Boolean,
     onToggleSettings: () -> Unit,
     selectedSpeed: Float,
@@ -39,8 +47,11 @@ fun PlaybackSettingsCard(
     themeColors: AppColorPalette,
     modifier: Modifier = Modifier,
     currentTheme: AppTheme? = null,
-    onThemeChange: ((AppTheme) -> Unit)? = null
+    onThemeChange: ((AppTheme) -> Unit)? = null,
+    currentLanguage: String? = null,
+    onLanguageChange: ((String) -> Unit)? = null
 ) {
+    val haptic = LocalHapticFeedback.current
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -59,14 +70,14 @@ fun PlaybackSettingsCard(
             ) {
                 Icon(
                     imageVector = AppIcons.Settings,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.settings_playback_title),
                     tint = if (settingsOpen) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Playback Settings",
+                        text = stringResource(R.string.settings_playback_title),
                         style = MaterialTheme.typography.labelLarge.copy(
                             color = if (settingsOpen) themeColors.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold
@@ -81,7 +92,7 @@ fun PlaybackSettingsCard(
                             val minutes = totalSec / 60
                             val seconds = totalSec % 60
                             String.format("%02d:%02d", minutes, seconds)
-                        } else "Off"
+                        } else stringResource(R.string.settings_sleep_off)
 
                         Row(
                             modifier = Modifier
@@ -136,7 +147,7 @@ fun PlaybackSettingsCard(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = if (isShadowing) "On" else "Off",
+                                    text = if (isShadowing) stringResource(R.string.label_on) else stringResource(R.string.label_off),
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = themeColors.primary,
                                         fontWeight = FontWeight.SemiBold
@@ -189,7 +200,7 @@ fun PlaybackSettingsCard(
                     // Speed
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Speed:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            Text(stringResource(R.string.settings_speed), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                         }
                         Row(
@@ -203,7 +214,10 @@ fun PlaybackSettingsCard(
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                        .clickable { onSpeedChange(s) }
+                                        .clickable { 
+                                            onSpeedChange(s)
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -217,7 +231,7 @@ fun PlaybackSettingsCard(
                     // Repeats
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Repeats:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            Text(stringResource(R.string.settings_repeats), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text(
                                 if (selectedLoopCount == -1) "∞" else "${selectedLoopCount}x",
                                 style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -234,7 +248,10 @@ fun PlaybackSettingsCard(
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                        .clickable { onLoopCountChange(r) }
+                                        .clickable { 
+                                            onLoopCountChange(r)
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -260,7 +277,7 @@ fun PlaybackSettingsCard(
                     if (onGapChange != null) {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Gap between tracks:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                                Text(stringResource(R.string.settings_gap), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                                 Text("${gapSeconds}s", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -285,8 +302,8 @@ fun PlaybackSettingsCard(
                     // Listen & Repeat
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("Listen & Repeat", style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp))
-                            Text("Pause after playback to practice", style = TextStyle(color = MaterialTheme.colorScheme.outline, fontSize = 10.sp))
+                            Text(stringResource(R.string.settings_listen_repeat), style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp))
+                            Text(stringResource(R.string.settings_listen_repeat_desc), style = TextStyle(color = MaterialTheme.colorScheme.outline, fontSize = 10.sp))
                         }
                         Box(
                             modifier = Modifier
@@ -294,7 +311,10 @@ fun PlaybackSettingsCard(
                                 .height(24.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (isShadowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
-                                .clickable { onShadowingChange(!isShadowing) }
+                                .clickable { 
+                                    onShadowingChange(!isShadowing)
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
                         ) {
                             Box(
                                 modifier = Modifier
@@ -311,9 +331,9 @@ fun PlaybackSettingsCard(
 
                     if (isShadowing) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Pause duration:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            Text(stringResource(R.string.settings_pause_duration), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(0 to "Auto", 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
+                                listOf(0 to stringResource(R.string.settings_pause_auto), 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
                                     val active = shadowPauseSeconds == secs
                                     Box(
                                         modifier = Modifier
@@ -332,9 +352,9 @@ fun PlaybackSettingsCard(
                     // Sleep Timer
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Sleep Timer:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            Text(stringResource(R.string.settings_sleep_timer), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text(
-                                if (selectedSleepMinutes == 0) "Off" else "${selectedSleepMinutes}m",
+                                if (selectedSleepMinutes == 0) stringResource(R.string.settings_sleep_off) else "${selectedSleepMinutes}m",
                                 style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                         }
@@ -348,11 +368,14 @@ fun PlaybackSettingsCard(
                                     .weight(1f)
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(if (isOffSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { onSleepTimerChange(0) }
+                                    .clickable { 
+                                        onSleepTimerChange(0)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
                                     .padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Off", style = TextStyle(color = if (isOffSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text(stringResource(R.string.settings_sleep_off), style = TextStyle(color = if (isOffSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                             listOf(15, 30, 45, 60).forEach { m ->
                                 val isSelected = selectedSleepMinutes == m
@@ -382,11 +405,11 @@ fun PlaybackSettingsCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "Stops in $remaining",
+                                stringResource(R.string.settings_sleep_stops_in, remaining),
                                 style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             )
                             Text(
-                                "Cancel",
+                                stringResource(R.string.btn_cancel),
                                 style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium),
                                 modifier = Modifier.clickable { onSleepTimerChange(0) }
                             )
@@ -397,7 +420,7 @@ fun PlaybackSettingsCard(
                     if (onThemeChange != null && currentTheme != null) {
                         Column {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
-                            Text("App Theme:", style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
+                            Text(stringResource(R.string.settings_theme_label), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -425,6 +448,84 @@ fun PlaybackSettingsCard(
                                                 .size(14.dp)
                                                 .clip(CircleShape)
                                                 .background(theme.palette.primary500)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Language Selector
+                    if (onLanguageChange != null && currentLanguage != null) {
+                        Column {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+                            Row(
+                                modifier = Modifier.padding(top = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(AppIcons.Language, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                                Text(stringResource(R.string.settings_language_label), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                            }
+                            FlowRow( // Use FlowRow for better wrapping if many languages
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                val languages = listOf(
+                                    "en" to "English",
+                                    "et" to "Eesti",
+                                    "es" to "Español",
+                                    "fr" to "Français",
+                                    "de" to "Deutsch",
+                                    "it" to "Italiano",
+                                    "pt" to "Português",
+                                    "ru" to "Русский",
+                                    "pl" to "Polski",
+                                    "fi" to "Suomi",
+                                    "sv" to "Svenska",
+                                    "no" to "Norsk",
+                                    "lv" to "Latviešu",
+                                    "lt" to "Lietuvių",
+                                    "id" to "Bahasa Indo",
+                                    "ar" to "العربية",
+                                    "hi" to "हिंदी",
+                                    "zh" to "中文",
+                                    "ja" to "日本語",
+                                    "ko" to "한국어",
+                                    "tr" to "Türkçe",
+                                    "vi" to "Tiếng Việt",
+                                    "da" to "Dansk",
+                                    "uk" to "Українська",
+                                    "nl" to "Nederlands",
+                                    "fil" to "Filipino",
+                                    "bn" to "বাংলা"
+                                )
+
+                                languages.forEach { (code, label) ->
+                                    val isSelected = currentLanguage == code
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                            .border(
+                                                width = 1.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .clickable { onLanguageChange(code) }
+                                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = TextStyle(
+                                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            )
                                         )
                                     }
                                 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -14,8 +15,10 @@ import com.example.audioloop.AppIcons
 import com.example.audioloop.AudioLoopUiState
 import com.example.audioloop.AudioLoopViewModel
 import com.example.audioloop.Playlist
+import com.example.audioloop.R
 import com.example.audioloop.ui.*
 import com.example.audioloop.ui.theme.AppColorPalette
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AppNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
@@ -24,10 +27,10 @@ fun AppNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
         tonalElevation = 8.dp
     ) {
         val tabs = listOf(
-            Triple("library", "Library", AppIcons.QueueMusic),
-            Triple("record", "Record", AppIcons.Mic),
-            Triple("coach", "Coach", AppIcons.School),
-            Triple("settings", "Settings", AppIcons.Settings)
+            Triple("library", stringResource(R.string.nav_library), AppIcons.QueueMusic),
+            Triple("record", stringResource(R.string.nav_record), AppIcons.Mic),
+            Triple("coach", stringResource(R.string.nav_coach), AppIcons.School),
+            Triple("settings", stringResource(R.string.nav_settings), AppIcons.Settings)
         )
         tabs.forEach { (route, label, icon) ->
             NavigationBarItem(
@@ -54,6 +57,7 @@ fun MainOverlays(
     themeColors: AppColorPalette,
     onBackupSignIn: () -> Unit
 ) {
+    val context = LocalContext.current
     // Dialogs
     if (uiState.showRenameDialog && uiState.itemToModify != null) {
         RenameDialog(
@@ -74,8 +78,8 @@ fun MainOverlays(
 
     if (uiState.showDeleteDialog && uiState.recordingToDelete != null) {
         DeleteConfirmDialog(
-            title = "Delete file?",
-            text = "Are you sure you want to delete '${uiState.recordingToDelete!!.name}'?",
+            title = stringResource(R.string.dialog_delete_file),
+            text = stringResource(R.string.dialog_delete_confirm_format, uiState.recordingToDelete!!.name),
             onDismiss = { viewModel.closeDeleteDialog() },
             onConfirm = { viewModel.deleteFile(uiState.recordingToDelete!!); viewModel.closeDeleteDialog() }
         )
@@ -128,9 +132,12 @@ fun MainOverlays(
                 }
                 val mins = (totalMs / 1000) / 60
                 val secs = (totalMs / 1000) % 60
-                if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
+                if (mins > 0) context.getString(R.string.label_duration_min_sec, mins, secs) else context.getString(R.string.label_duration_sec, secs)
             },
-            getCategoryForFile = { path -> path.substringBefore("/", "General") },
+            getCategoryForFile = { path -> 
+                val general = context.getString(R.string.label_general)
+                path.substringBefore("/", general) 
+            },
             onCreateNew = {
                 viewModel.openPlaylistEditor(Playlist(
                     id = "new_" + java.util.UUID.randomUUID().toString(),
@@ -159,11 +166,14 @@ fun MainOverlays(
             playlist = uiState.editingPlaylist!!,
             allCategories = uiState.categories,
             getFilesForCategory = { cat -> viewModel.getAllRecordings().filter { it.file.parentFile?.name == cat } },
-            getCategoryForFile = { path -> path.substringBefore("/", "General") },
+            getCategoryForFile = { path -> 
+                val general = context.getString(R.string.label_general)
+                path.substringBefore("/", general) 
+            },
             resolveFileName = { path -> path.substringAfter("/") },
             resolveFileDuration = { path -> 
                 val name = path.substringAfter("/")
-                viewModel.getAllRecordings().find { it.name == name }?.durationString ?: "0s"
+                viewModel.getAllRecordings().find { it.name == name }?.durationString ?: context.getString(R.string.label_duration_sec, 0)
             },
             onSave = { 
                 viewModel.savePlaylist(it)
@@ -228,6 +238,9 @@ fun MainOverlays(
         SearchOverlay(
             query = uiState.searchQuery,
             onQueryChange = { viewModel.updateSearchQuery(it) },
+            categories = uiState.categories,
+            selectedCategory = uiState.searchCategory,
+            onCategorySelect = { viewModel.setSearchCategory(it) },
             onClose = { viewModel.setSearchVisible(false) },
             themeColors = themeColors
         )

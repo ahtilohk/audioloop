@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Yleiset</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Peruuta</string>
+    <string name="btn_save">Tallenna</string>
+    <string name="btn_delete">Poista</string>
+    <string name="btn_play_selected">Toista %d valittua</string>
+    <string name="btn_add_file">Tuo tiedosto</string>
+    <string name="btn_record_new">UUSI TALLENNE</string>
+    <string name="btn_go_back">Takaisin</string>
+    <string name="btn_got_it">Selvä!</string>
+    <string name="btn_import_audio">Tuo äänitiedosto</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Tallennetaan…</string>
+    <string name="label_empty_title">Ei tallenteita vielä</string>
+    <string name="label_empty_subtitle">Paina tallennuspainiketta ylhäällä tai tuo äänitiedosto.</string>
+    <string name="label_no_matching_files">Ei vastaavia tiedostoja</string>
+    <string name="label_try_different_search">Kokeile toista hakusanaa</string>
+    <string name="label_tap_to_select">Valitse tiedostot napauttamalla</string>
+    <string name="label_playlists">Soittolistat</string>
+    <string name="label_on">Päällä</string>
+    <string name="label_off">Pois</string>
+
+    <!-- Search -->
+    <string name="search_hint">Etsi tiedostoja…</string>
+    <string name="search_files">Etsi tiedostoja</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Nimeä uudelleen</string>
+    <string name="menu_trim">Leikkaa / Säädä</string>
+    <string name="menu_move">Siirrä kategoriaan</string>
+    <string name="menu_share">Jaa</string>
+    <string name="menu_download">Lataa</string>
+    <string name="menu_split">Jaa hiljaisuuden kohdalta</string>
+    <string name="menu_normalize">Normalisoi</string>
+    <string name="menu_auto_trim">Automaattinen trimmaus</string>
+    <string name="menu_fade">Häivytys</string>
+    <string name="menu_merge">Yhdistä valitut</string>
+    <string name="menu_note">Muokkaa muistiinpanoa</string>
+    <string name="menu_info">Tiedot</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Nimeä tiedosto</string>
+    <string name="dialog_create_category">Uusi kategoria</string>
+    <string name="dialog_delete_confirm">Oletko varma?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Puhe</string>
+    <string name="mode_stream">Striimi</string>
+    <string name="mode_speech_desc">Tallentaa äänesi mikrofonin kautta.</string>
+    <string name="mode_stream_desc">Tallentaa laitteen äänet (musiikki, videot jne.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Tallennettu</string>
+    <string name="toast_error">Virhe</string>
+    <string name="msg_moved">Siirretty</string>
+    <string name="msg_imported">Tuotu: %s</string>
+    <string name="msg_error_moving">Virhe siirrettäessä</string>
+    <string name="msg_error_importing">Virhe tuotaessa</string>
+    <string name="msg_error_sharing">Jakovirhe: %s</string>
+    <string name="msg_permission_granted">Lupa myönnetty</string>
+    <string name="msg_permission_denied">Lupa evätty</string>
+    <string name="msg_permission_required">Tallennukseen tarvitaan lupa</string>
+    <string name="msg_splitting">Jaetaan hiljaisuuden kohdalta…</string>
+    <string name="msg_split_done">Jaettu %d osaan</string>
+    <string name="msg_no_silence_gaps">Hiljaisuutta ei löytynyt jakamiseen</string>
+    <string name="msg_normalizing">Normalisoidaan…</string>
+    <string name="msg_detecting_silence">Etsitään hiljaisuutta…</string>
+    <string name="msg_no_silence_to_trim">Trimattavaa hiljaisuutta ei löytynyt</string>
+    <string name="msg_no_significant_silence">Merkittävää hiljaisuutta ei löytynyt</string>
+    <string name="msg_applying_fade">Asetetaan häivytystä…</string>
+    <string name="msg_merging">Yhdistetään %d tiedostoa…</string>
+    <string name="msg_merged">Yhdistetty kohteeseen %s</string>
+    <string name="msg_merge_failed">Yhdistäminen epäonnistui</string>
+    <string name="msg_done">Valmis!</string>
+    <string name="msg_processing_failed">Käsittely epäonnistui</string>
+    <string name="msg_access_denied">Pääsy evätty: alkuperäinen tiedosto käytössä</string>
+    <string name="msg_error_finalizing">Virhe tiedostoa viimeisteltäessä!</string>
+    <string name="msg_studio_replaced">Studio: Alkuperäinen korvattu</string>
+    <string name="msg_studio_saved_as">Studio: Tallennettu nimellä %s</string>
+    <string name="msg_normalization_failed">Normalisointi epäonnistui</string>
+    <string name="msg_fade_failed">Häivytys epäonnistui</string>
+    <string name="msg_auto_trim_failed">Automaattinen trimmaus epäonnistui</string>
+    <string name="msg_playback_error">Toistovirhe: %d / %d</string>
+    <string name="msg_error_opening">Virhe avattaessa: %s</string>
+    <string name="msg_playlist_empty">Soittolista tyhjä tai tiedostoja puuttuu</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Varmuuskopiointi ja palautus</string>
+    <string name="backup_saved">Varmuuskopio tallennettu: %s</string>
+    <string name="backup_failed">Varmuuskopiointi epäonnistui: %s</string>
+    <string name="backup_loading">Ladataan varmuuskopioita…</string>
+    <string name="backup_no_backups">Varmuuskopioita ei löytynyt</string>
+    <string name="backup_restoring">Palautetaan asetuksia…</string>
+    <string name="backup_restore_complete">Palautus valmis!</string>
+    <string name="backup_restore_failed">Palautus epäonnistui: %s</string>
+    <string name="backup_deleted">Varmuuskopio poistettu</string>
+    <string name="signin_cancelled">Kirjautuminen peruutettu</string>
+    <string name="signin_failed_play_services">Kirjautumisvirhe (Google Play -palvelut).</string>
+    <string name="signin_dev_error">Kehittäjävirhe (SHA-1).</string>
+    <string name="signin_interrupted">Kirjautuminen keskeytyi</string>
+    <string name="signin_error">Kirjautumisvirhe (koodi %d)</string>
+    <string name="signin_failed">Kirjautuminen epäonnistui: %s</string>
+    <string name="title_restore_backup">Palautetaanko varmuuskopio?</string>
+    <string name="msg_restore_warning">Tämä korvaa nykyiset tiedostot, kategoriat ja asetukset.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Kirjaudu sisään tallentaaksesi tallenteet Google Driveen</string>
+    <string name="btn_signing_in">Kirjaudutaan…</string>
+    <string name="btn_google_signin">Kirjaudu Googlella</string>
+    <string name="btn_sign_out">Kirjaudu ulos</string>
+    <string name="btn_backup">Varmuuskopioi</string>
+    <string name="btn_restore">Palauta</string>
+    <string name="label_available_backups">Saatavilla olevat varmuuskopiot</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Silmukka</string>
+    <string name="settings_speed">Nopeus</string>
+    <string name="settings_pitch">Sävelkorkeus</string>
+    <string name="settings_sleep_timer">Uniajastin</string>
+    <string name="settings_theme">Teema</string>
+    <string name="settings_listen_repeat">Kuuntele ja toista</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Tervetuloa AudioLoopiin!</string>
+    <string name="welcome_modes_intro">AudioLoop tukee kahta tilaa:</string>
+    <string name="welcome_stream_note">Huomio Striimi-tallennuksesta:</string>
+    <string name="welcome_stream_warning">Android vaatii vahvistuksen joka kerta. Se on järjestelmän suojaominaisuus.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Älykäs valmentaja</string>
+    <string name="coach_practice_stats">Harjoittelutilastot</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Nopea tallennus ja toisto aloitusnäytöltä</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Hallitse kategorioita</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Kirjasto</string>
+    <string name="nav_record">Tallenna</string>
+    <string name="nav_coach">Valmentaja</string>
+    <string name="nav_settings">Asetukset</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Älykäs harjoitusvalmentaja</string>
+    <string name="coach_description">Seuraa edistymistäsi ja luo säännöllinen tapa.</string>
+    <string name="coach_open_stats">Avaa tilastot</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Aloita tallennus</string>
+    <string name="record_mode_format">%s-tila</string>
+    <string name="record_recording">Tallennetaan…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Tiedostot (%s):</string>
+    <string name="library_add">+ Lisää</string>
+    <string name="library_select">Valitse</string>
+    <string name="library_play_count">TOISTA %d</string>
+    <string name="library_playlist">SOITTOLISTA</string>
+    <string name="library_merge_count">YHDISTÄ %d</string>
+    <string name="library_now_playing">NYT TOISTETAAN</string>
+    <string name="library_today_format">Tänään %s</string>
+    <string name="library_tracks_count">%d raitaa</string>
+    <string name="library_shuffle">Sekoita</string>
+    <string name="library_gap_format">%ds tauko</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Etsi tallenteita…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Nimeä uudelleen</string>
+    <string name="dialog_new_name">Uusi nimi</string>
+    <string name="dialog_select_category">Valitse kategoria</string>
+    <string name="dialog_add_note">Lisää muistiinpano</string>
+    <string name="dialog_edit_note">Muokkaa muistiinpanoa</string>
+    <string name="dialog_note_hint">Sanat, säkeet, käännös…</string>
+    <string name="dialog_remove">Poista</string>
+    <string name="dialog_close">Sulje</string>
+    <string name="dialog_delete_file">Poistetaanko tiedosto?</string>
+    <string name="dialog_delete_confirm_format">Haluatko varmasti poistaa \'%s\'?</string>
+    <string name="dialog_file_info">Tiedoston tiedot</string>
+
+    <!-- File Info -->
+    <string name="info_format">Formaatti</string>
+    <string name="info_duration">Kesto</string>
+    <string name="info_size">Koko</string>
+    <string name="info_sample_rate">Näytteenottotaajuus</string>
+    <string name="info_channels">Kanavat</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitrate</string>
+    <string name="info_codec">Pakkausformaatti</string>
+    <string name="info_location">Sijainti</string>
+    <string name="info_unknown">Tuntematon</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Etsi tiedostoja</string>
+    <string name="a11y_backup">Varmuuskopiointi ja palautus</string>
+    <string name="a11y_close">Sulje</string>
+    <string name="a11y_cancel_selection">Peruuta valinta</string>
+    <string name="a11y_manage_categories">Hallitse kategorioita</string>
+    <string name="a11y_record_speech">Tallenna puhetta</string>
+    <string name="a11y_record_stream">Tallenna striimiä</string>
+    <string name="a11y_stop_recording">Lopeta tallennus</string>
+    <string name="a11y_import_file">Tuo äänitiedosto</string>
+    <string name="a11y_play_selected">Toista valitut tiedostot</string>
+    <string name="a11y_playlist">Luo soittolista valinnasta</string>
+    <string name="a11y_recording_active">Tallennetaan parhaillaan</string>
+    <string name="a11y_playlists">Avaa soittolistat</string>
+    <string name="settings_playback_title">Toistoasetukset</string>
+    <string name="settings_speed_label">Nopeus:</string>
+    <string name="settings_repeats">Toistot:</string>
+    <string name="settings_gap">Raitojen välinen tauko:</string>
+    <string name="settings_listen_repeat_desc">Tauko toiston jälkeen harjoittelua varten</string>
+    <string name="settings_pause_duration">Tauon pituus:</string>
+    <string name="settings_pause_auto">Automaattinen</string>
+    <string name="settings_sleep_timer_label">Uniajastin:</string>
+    <string name="settings_sleep_off">Off</string>
+    <string name="settings_sleep_stops_in">Pysähtyy kohdassa %s</string>
+    <string name="settings_theme_label">Sovelluksen teema:</string>
+    <string name="settings_language_label">Sovelluksen kieli:</string>
+    <string name="dialog_delete_playlist_title">Poistetaanko soittolista?</string>
+    <string name="dialog_delete_playlist_confirm">Poistetaanko \"%s\"? Tätä ei voi peruuttaa.</string>
+    <string name="label_playlists_count">%d soittolista%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d raitaa</string>
+    <string name="label_playlist_no_playlists">Ei soittolistoja vielä</string>
+    <string name="label_playlist_create_desc">Luo sessio aloittaaksesi</string>
+    <string name="btn_new">Uusi</string>
+    <string name="btn_create_playlist">Luo soittolista</string>
+    <string name="btn_add_files">Lisää tiedostoja</string>
+    <string name="label_added">lisätty</string>
+    <string name="label_no_files_category">Tässä kategoriassa ei ole tiedostoja</string>
+    <string name="label_select">Valitse</string>
+    <string name="label_add_count">Lisää %d</string>
+    <string name="title_trim_audio">Leikkaa ääntä</string>
+    <string name="label_studio_editor">Studio-editori</string>
+    <string name="label_keep">Säilytä</string>
+    <string name="label_cut">Leikkaa</string>
+    <string name="label_current">NYKYINEN</string>
+    <string name="label_new_length">UUSI PITUUS</string>
+    <string name="label_start">ALKU</string>
+    <string name="label_end">LOPPU</string>
+    <string name="label_fade_in">Häivytys sisään</string>
+    <string name="label_fade_out">Häivytys ulos</string>
+    <string name="label_silence">Hiljaisuus</string>
+    <string name="label_normalize">Normalisointi</string>
+    <string name="error_open_audio">Äänen avaaminen epäonnistui</string>
+    <string name="error_corrupted_format">Tiedosto korruptoitunut tai formaatti ei ole tuettu.</string>
+    <string name="btn_save_copy">Tallenna kopio</string>
+    <string name="btn_replace_original">Korvaa alkuperäinen</string>
+    <string name="label_status_completed">VALMIS</string>
+    <string name="label_status_paused">TAUOLLA</string>
+    <string name="label_status_now_playing">NYT TOISTETAAN</string>
+    <string name="label_shuffle">Sekoita</string>
+    <string name="label_gap_pill">%ds tauko</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Yleiset</string>
+    <string name="btn_resume">Jatka</string>
+    <string name="btn_stop">Lopeta</string>
+    <string name="title_new_playlist">Uusi soittolista</string>
+    <string name="title_edit_playlist">Muokkaa soittolistaa</string>
+    <string name="label_untitled">Nimetön</string>
+    <string name="label_playlist_name_header">SOITTOLISTAN NIMI</string>
+    <string name="hint_enter_name">Syötä nimi…</string>
+    <string name="label_shuffle_playback">Satunnaisatoisto</string>
+    <string name="label_shuffle_desc">Soita raidat satunnaisessa järjestyksessä</string>
+    <string name="label_tracks_header">RAIDAT</string>
+    <string name="label_no_tracks">Ei lisättyjä raitoja</string>
+    <string name="a11y_remove">Poista</string>
+    <string name="a11y_drag_reorder">Vedä muuttaaksesi järjestystä</string>
+    <string name="label_playing_indicator">Toistaa • </string>
+    <string name="a11y_menu">Valikko</string>
+    <string name="label_auto_trim_silence">Automaattinen trimmaus</string>
+    <string name="a11y_clear">Tyhjennä</string>
+    <string name="label_note">Muistiinpano</string>
+    <string name="prefix_speech">Puhe</string>
+    <string name="prefix_stream">Striimi</string>
+    <string name="unit_bytes">t</string>
+    <string name="unit_kb">kt</string>
+    <string name="unit_mb">Mt</string>
+    <string name="unit_bit">bittiä</string>
+    <string name="label_categories">Kategoriat</string>
+    <string name="label_drag_reorder_hint">Vedä kahvasta muuttaaksesi järjestystä</string>
+    <string name="hint_category_name">Kategorian nimi…</string>
+    <string name="label_default">oletus</string>
+    <string name="a11y_save">Tallenna</string>
+    <string name="msg_deleted">Poistettu: %s</string>
+    <string name="msg_restored">Palautettu</string>
+    <string name="msg_found_imported">%d tallennetta tuotu!</string>
+    <string name="btn_undo">Kumoa</string>
+    <string name="a11y_edit">Muokkaa</string>
+    <string name="label_statistics">Tilastot</string>
+    <string name="label_weekly_overview">VIIKKOKATSAUS</string>
+    <string name="label_goal_reached">Tavoite saavutettu!</string>
+    <string name="label_min_remaining">%d min jäljellä</string>
+    <string name="label_change_goal">Vaihda tavoite</string>
+    <string name="label_streak">Putki</string>
+    <string name="label_today">Tänään</string>
+    <string name="label_sessions">Sessiot</string>
+    <string name="label_edits">Muokkaukset</string>
+    <string name="label_avg_daily">Päivittäinen keskiarvo</string>
+    <string name="label_last_7_days">VIIMEISET 7 PÄIVÄÄ</string>
+    <string name="label_recommendation">SUOSITUS</string>
+    <string name="title_weekly_goal">Viikkotavoite</string>
+    <string name="msg_goal_question">Kuinka monta minuuttia viikossa?</string>
+    <string name="label_min_per_day">~%d min/pv</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_reset_zoom">Nollaa zoom</string>
+    <string name="label_earlier">Aikaisemmin</string>
+    <string name="label_later">Myöhemmin</string>
+</resources>

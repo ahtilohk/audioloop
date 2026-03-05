@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">عام</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">إلغاء</string>
+    <string name="btn_save">حفظ</string>
+    <string name="btn_delete">حذف</string>
+    <string name="btn_play_selected">تشغيل %d المحدد</string>
+    <string name="btn_add_file">استيراد ملف</string>
+    <string name="btn_record_new">تسجيل جديد</string>
+    <string name="btn_go_back">رجوع</string>
+    <string name="btn_got_it">حسناً!</string>
+    <string name="btn_import_audio">استيراد ملف صوتي</string>
+
+    <!-- Labels -->
+    <string name="label_recording">جاري التسجيل…</string>
+    <string name="label_empty_title">لا يوجد تسجيلات بعد</string>
+    <string name="label_empty_subtitle">اضغط على زر التسجيل أعلاه أو استورد ملفاً صوتياً.</string>
+    <string name="label_no_matching_files">لا توجد ملفات مطابقة</string>
+    <string name="label_try_different_search">حاول البحث بكلمة أخرى</string>
+    <string name="label_tap_to_select">اضغط على الملفات للاختيار</string>
+    <string name="label_playlists">قوائم التشغيل</string>
+    <string name="label_on">تفعيل</string>
+    <string name="label_off">إيقاف</string>
+
+    <!-- Search -->
+    <string name="search_hint">بحث عن ملفات…</string>
+    <string name="search_files">بحث عن ملفات</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">إعادة تسمية</string>
+    <string name="menu_trim">قص / تعديل</string>
+    <string name="menu_move">نقل إلى فئة</string>
+    <string name="menu_share">مشاركة</string>
+    <string name="menu_download">تنزيل</string>
+    <string name="menu_split">تقسيم عند الصمت</string>
+    <string name="menu_normalize">تسوية</string>
+    <string name="menu_auto_trim">قص تلقائي للصمت</string>
+    <string name="menu_fade">تلاشي</string>
+    <string name="menu_merge">دمج المحدد</string>
+    <string name="menu_note">تعديل الملاحظة</string>
+    <string name="menu_info">معلومات</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">إعادة تسمية الملف</string>
+    <string name="dialog_create_category">فئة جديدة</string>
+    <string name="dialog_delete_confirm">هل أنت متأكد؟</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">كلام</string>
+    <string name="mode_stream">بث</string>
+    <string name="mode_speech_desc">يسجل صوتك عبر الميكروفون.</string>
+    <string name="mode_stream_desc">يسجل الصوت من الجهاز (موسيقى، فيديو، إلخ).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">تم الحفظ</string>
+    <string name="toast_error">خطأ</string>
+    <string name="msg_moved">تم النقل</string>
+    <string name="msg_imported">تم الاستيراد: %s</string>
+    <string name="msg_error_moving">خطأ في النقل</string>
+    <string name="msg_error_importing">خطأ في الاستيراد</string>
+    <string name="msg_error_sharing">خطأ في المشاركة: %s</string>
+    <string name="msg_permission_granted">تم منح الإذن</string>
+    <string name="msg_permission_denied">تم رفض الإذن</string>
+    <string name="msg_permission_required">الإذن مطلوب للتسجيل</string>
+    <string name="msg_splitting">جاري التقسيم عند الصمت…</string>
+    <string name="msg_split_done">تم التقسيم إلى %d أجزاء</string>
+    <string name="msg_no_silence_gaps">لم يتم العثور على صمت للتقسيم</string>
+    <string name="msg_normalizing">جاري التسوية…</string>
+    <string name="msg_detecting_silence">جاري اكتشاف الصمت…</string>
+    <string name="msg_no_silence_to_trim">لم يتم اكتشاف صمت للقص</string>
+    <string name="msg_no_significant_silence">لا يوجد صمت كافٍ للقص</string>
+    <string name="msg_applying_fade">جاري تطبيق التلاشي…</string>
+    <string name="msg_merging">جاري دمج %d ملفات…</string>
+    <string name="msg_merged">تم الدمج في %s</string>
+    <string name="msg_merge_failed">فشل الدمج</string>
+    <string name="msg_done">تم!</string>
+    <string name="msg_processing_failed">فشلت المعالجة</string>
+    <string name="msg_access_denied">تم رفض الوصول: الملف الأصلي قيد الاستخدام</string>
+    <string name="msg_error_finalizing">خطأ في إنهاء الملف!</string>
+    <string name="msg_studio_replaced">استوديو: تم استبدال الأصلي</string>
+    <string name="msg_studio_saved_as">استوديو: تم الحفظ باسم %s</string>
+    <string name="msg_normalization_failed">فشلت التسوية</string>
+    <string name="msg_fade_failed">فشل التلاشي</string>
+    <string name="msg_auto_trim_failed">فشل القص التلقائي</string>
+    <string name="msg_playback_error">خطأ في التشغيل: %d / %d</string>
+    <string name="msg_error_opening">خطأ في الفتح: %s</string>
+    <string name="msg_playlist_empty">قائمة التشغيل فارغة أو الملفات مفقودة</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">النسخ الاحتياطي والاستعادة</string>
+    <string name="backup_saved">تم النسخ الاحتياطي: %s</string>
+    <string name="backup_failed">فشل النسخ الاحتياطي: %s</string>
+    <string name="backup_loading">جاري تحميل النسخ الاحتياطية…</string>
+    <string name="backup_no_backups">لم يتم العثور على نسخ احتياطية</string>
+    <string name="backup_restoring">جاري استعادة الإعدادات…</string>
+    <string name="backup_restore_complete">اكتملت الاستعادة!</string>
+    <string name="backup_restore_failed">فشلت الاستعادة: %s</string>
+    <string name="backup_deleted">تم حذف النسخة الاحتياطية</string>
+    <string name="signin_cancelled">تم إلغاء تسجيل الدخول</string>
+    <string name="signin_failed_play_services">فشل تسجيل الدخول (تحقق من خدمات Google Play).</string>
+    <string name="signin_dev_error">خطأ مطور (تحقق من SHA-1).</string>
+    <string name="signin_interrupted">تمت مقاطعة تسجيل الدخول</string>
+    <string name="signin_error">خطأ في تسجيل الدخول (رمز %d)</string>
+    <string name="signin_failed">فشل تسجيل الدخول: %s</string>
+    <string name="title_restore_backup">استعادة النسخة الاحتياطية؟</string>
+    <string name="msg_restore_warning">سيؤدي هذا إلى استبدال ملفاتك وفئاتك وإعداداتك الحالية.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">سجل الدخول لحفظ تسجيلاتك في Google Drive</string>
+    <string name="btn_signing_in">جاري تسجيل الدخول…</string>
+    <string name="btn_google_signin">تسجيل الدخول باستخدام Google</string>
+    <string name="btn_sign_out">تسجيل الخروج</string>
+    <string name="btn_backup">نسخ احتياطي</string>
+    <string name="btn_restore">استعادة</string>
+    <string name="label_available_backups">النسخ الاحتياطية المتاحة</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">تكرار</string>
+    <string name="settings_speed">السرعة</string>
+    <string name="settings_pitch">طبقة الصوت</string>
+    <string name="settings_sleep_timer">مؤقت النوم</string>
+    <string name="settings_theme">المظهر</string>
+    <string name="settings_listen_repeat">استماع وتكرار</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">مرحباً بك في AudioLoop!</string>
+    <string name="welcome_modes_intro">يدعم AudioLoop وضعين:</string>
+    <string name="welcome_stream_note">ملاحظة حول تسجيل البث:</string>
+    <string name="welcome_stream_warning">يتطلب Android تأكيداً في كل مرة. هذه ميزة أمان للنظام.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">المدرب الذكي</string>
+    <string name="coach_practice_stats">إحصائيات التدريب</string>
+
+    <!-- Widget -->
+    <string name="widget_description">تسجيل وتشغيل سريع من الشاشة الرئيسية</string>
+
+    <!-- Categories -->
+    <string name="category_manage">إدارة الفئات</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">المكتبة</string>
+    <string name="nav_record">تسجيل</string>
+    <string name="nav_coach">المدرب</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">مدرب التدريب الذكي</string>
+    <string name="coach_description">تتبع تقدمك وابنِ عادة التدريب.</string>
+    <string name="coach_open_stats">فتح الإحصائيات الكاملة</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">بدء التسجيل</string>
+    <string name="record_mode_format">وضع %s</string>
+    <string name="record_recording">جاري التسجيل…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">الملفات (%s):</string>
+    <string name="library_add">+ إضافة</string>
+    <string name="library_select">اختيار</string>
+    <string name="library_play_count">تشغيل %d</string>
+    <string name="library_playlist">قائمة تشغيل</string>
+    <string name="library_merge_count">دمج %d</string>
+    <string name="library_now_playing">يعمل الآن</string>
+    <string name="library_today_format">اليوم %s</string>
+    <string name="library_tracks_count">%d مقاطع</string>
+    <string name="library_shuffle">عشوائي</string>
+    <string name="library_gap_format">فجوة %d ث</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">بحث عن تسجيلات…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">إعادة تسمية</string>
+    <string name="dialog_new_name">اسم جديد</string>
+    <string name="dialog_select_category">اختيار الفئة</string>
+    <string name="dialog_add_note">إضافة ملاحظة</string>
+    <string name="dialog_edit_note">تعديل الملاحظة</string>
+    <string name="dialog_note_hint">كلمات، أبيات، ترجمة…</string>
+    <string name="dialog_remove">إزالة</string>
+    <string name="dialog_close">إغلاق</string>
+    <string name="dialog_delete_file">حذف الملف؟</string>
+    <string name="dialog_delete_confirm_format">هل تريد حذف \'%s\'؟</string>
+    <string name="dialog_file_info">معلومات الملف</string>
+
+    <!-- File Info -->
+    <string name="info_format">التنسيق</string>
+    <string name="info_duration">المدة</string>
+    <string name="info_size">الحجم</string>
+    <string name="info_sample_rate">معدل العينة</string>
+    <string name="info_channels">القنوات</string>
+    <string name="info_mono">أحادي</string>
+    <string name="info_stereo">ستيريو</string>
+    <string name="info_bit_rate">معدل البت</string>
+    <string name="info_codec">الترميز</string>
+    <string name="info_location">الموقع</string>
+    <string name="info_unknown">غير معروف</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">الشعار</string>
+    <string name="a11y_search">بحث عن ملفات</string>
+    <string name="a11y_backup">النسخ الاحتياطي والاستعادة</string>
+    <string name="a11y_close">إغلاق</string>
+    <string name="a11y_cancel_selection">إلغاء الاختيار</string>
+    <string name="a11y_manage_categories">إدارة الفئات</string>
+    <string name="a11y_record_speech">تسجيل كلام</string>
+    <string name="a11y_record_stream">تسجيل بث</string>
+    <string name="a11y_stop_recording">إيقاف التسجيل</string>
+    <string name="a11y_import_file">استيراد ملف صوتي</string>
+    <string name="a11y_play_selected">تشغيل الملفات المختارة</string>
+    <string name="a11y_playlist">إنشاء قائمة تشغيل من الاختيار</string>
+    <string name="a11y_recording_active">التسجيل نشط الآن</string>
+    <string name="a11y_playlists">فتح قوائم التشغيل</string>
+    <string name="settings_playback_title">إعدادات التشغيل</string>
+    <string name="settings_speed_label">السرعة:</string>
+    <string name="settings_repeats">مرات التكرار:</string>
+    <string name="settings_gap">الفجوة بين المقاطع:</string>
+    <string name="settings_listen_repeat_desc">فترة صمت بعد التشغيل للتدريب</string>
+    <string name="settings_pause_duration">مدة الصمت:</string>
+    <string name="settings_pause_auto">تلقائي</string>
+    <string name="settings_sleep_timer_label">مؤقت النوم:</string>
+    <string name="settings_sleep_off">إيقاف</string>
+    <string name="settings_sleep_stops_in">يتوقف خلال %s</string>
+    <string name="settings_theme_label">مظهر التطبيق:</string>
+    <string name="settings_language_label">لغة التطبيق:</string>
+    <string name="dialog_delete_playlist_title">حذف قائمة التشغيل؟</string>
+    <string name="dialog_delete_playlist_confirm">حذف \"%s\"؟ لا يمكن تراجع عن هذا الإجراء.</string>
+    <string name="label_playlists_count">%d قوائم تشغيل</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d مقاطع</string>
+    <string name="label_playlist_no_playlists">لا توجد قوائم تشغيل</string>
+    <string name="label_playlist_create_desc">أنشئ جلسة للبدء</string>
+    <string name="btn_new">جديد</string>
+    <string name="btn_create_playlist">إنشاء قائمة تشغيل</string>
+    <string name="btn_add_files">إضافة ملفات</string>
+    <string name="label_added">تم الإضافة</string>
+    <string name="label_no_files_category">لا توجد ملفات في هذه الفئة</string>
+    <string name="label_select">اختيار</string>
+    <string name="label_add_count">إضافة %d</string>
+    <string name="title_trim_audio">قص الصوت</string>
+    <string name="label_studio_editor">محرر الاستوديو</string>
+    <string name="label_keep">إبقاء</string>
+    <string name="label_cut">قص</string>
+    <string name="label_current">الحالي</string>
+    <string name="label_new_length">المدة الجديدة</string>
+    <string name="label_start">البداية</string>
+    <string name="label_end">النهاية</string>
+    <string name="label_fade_in">تلاشي للداخل</string>
+    <string name="label_fade_out">تلاشي للخارج</string>
+    <string name="label_silence">صمت</string>
+    <string name="label_normalize">تسوية</string>
+    <string name="error_open_audio">تعذر فتح الصوت</string>
+    <string name="error_corrupted_format">الملف معطوب أو التنسيق غير مدعوم.</string>
+    <string name="btn_save_copy">حفظ نسخة</string>
+    <string name="btn_replace_original">استبدال الأصلي</string>
+    <string name="label_status_completed">مكتمل</string>
+    <string name="label_status_paused">متوقف مؤقتاً</string>
+    <string name="label_status_now_playing">يعمل الآن</string>
+    <string name="label_shuffle">عشوائي</string>
+    <string name="label_gap_pill">فجوة %d ث</string>
+    <string name="label_duration_min_sec">%1$d د %2$d ث</string>
+    <string name="label_duration_hour_min">%1$د س %2$د د</string>
+    <string name="label_duration_sec">%d ث</string>
+    <string name="label_min">%d دقيقة</string>
+    <string name="label_general">عام</string>
+    <string name="btn_resume">استئناف</string>
+    <string name="btn_stop">إيقاف</string>
+    <string name="title_new_playlist">قائمة تشغيل جديدة</string>
+    <string name="title_edit_playlist">تعديل قائمة التشغيل</string>
+    <string name="label_untitled">بدون عنوان</string>
+    <string name="label_playlist_name_header">اسم قائمة التشغيل</string>
+    <string name="hint_enter_name">شغل الاسم…</string>
+    <string name="label_shuffle_playback">تشغيل عشوائي</string>
+    <string name="label_shuffle_desc">المقاطع بترتيب عشوائي</string>
+    <string name="label_tracks_header">المقاطع</string>
+    <string name="label_no_tracks">لا توجد مقاطع مضافة</string>
+    <string name="a11y_remove">إزالة</string>
+    <string name="a11y_drag_reorder">اسحب لإعادة الترتيب</string>
+    <string name="label_playing_indicator">يعمل الآن • </string>
+    <string name="a11y_menu">القائمة</string>
+    <string name="label_auto_trim_silence">قص تلقائي للصمت</string>
+    <string name="a11y_clear">مسح</string>
+    <string name="label_note">ملاحظة</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">بايت</string>
+    <string name="unit_kb">ك.ب</string>
+    <string name="unit_mb">م.ب</string>
+    <string name="unit_bit">بت</string>
+    <string name="label_categories">الفئات</string>
+    <string name="label_drag_reorder_hint">اسحب المقبض لإعادة الترتيب</string>
+    <string name="hint_category_name">اسم الفئة…</string>
+    <string name="label_default">افتراضي</string>
+    <string name="a11y_save">حفظ</string>
+    <string name="msg_deleted">تم الحذف: %s</string>
+    <string name="msg_restored">تمت الاستعادة</string>
+    <string name="msg_found_imported">تم استيراد %d تسجيلات!</string>
+    <string name="btn_undo">تراجع</string>
+    <string name="a11y_edit">تعديل</string>
+    <string name="label_statistics">الإحصائيات</string>
+    <string name="label_weekly_overview">نظرة أسبوعية</string>
+    <string name="label_goal_reached">تم الوصول للهدف!</string>
+    <string name="label_min_remaining">بقي %d دقيقة</string>
+    <string name="label_change_goal">تغيير الهدف</string>
+    <string name="label_streak">تواصل</string>
+    <string name="label_today">اليوم</string>
+    <string name="label_sessions">جلسات</string>
+    <string name="label_edits">تعديلات</string>
+    <string name="label_avg_daily">متوسط يومي</string>
+    <string name="label_last_7_days">آخر 7 أيام</string>
+    <string name="label_recommendation">توصية</string>
+    <string name="title_weekly_goal">الهدف الأسبوعي</string>
+    <string name="msg_goal_question">كم دقيقة تريد التدرب أسبوعياً؟</string>
+    <string name="label_min_per_day">~%d دقيقة/يوم</string>
+    <string name="btn_reset">إعادة تعيين</string>
+    <string name="btn_reset_zoom">إعادة تعيين الزووم</string>
+    <string name="label_earlier">سابقاً</string>
+    <string name="label_later">لاحقاً</string>
+</resources>

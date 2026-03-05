@@ -139,6 +139,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
         // Load persisted state
         val theme = getThemePref(ctx)
+        val mode = getThemeModePref(ctx)
+        val lang = getLanguagePref(ctx)
         val isCoachExpanded = getSmartCoachExpandedPref(ctx)
 
         // Init backup
@@ -152,12 +154,18 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update {
             it.copy(
                 currentTheme = theme,
+                themeMode = mode,
+                appLanguage = lang,
                 isSmartCoachExpanded = isCoachExpanded,
                 playlists = playlistManager.loadAll(),
                 isBackupSignedIn = signedIn,
                 backupEmail = email
             )
         }
+
+        // Apply locale on start
+        val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(lang)
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
         // ... existing init ...
         val intent = Intent(ctx, AudioService::class.java)
         ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
@@ -207,8 +215,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
      * (as long as the user granted READ_MEDIA_AUDIO or READ_EXTERNAL_STORAGE).
      */
     suspend fun importFromPublicStorage() {
+        if (!getPublicStoragePref()) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        _uiState.update { it.copy(isLoading = true) }
         try {
+
             val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
@@ -262,61 +273,74 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             }
 
-            if (importedCount > 0) {
                 withContext(Dispatchers.Main) {
-                    showSnackbar("Found $importedCount recording(s) in public storage – imported!")
+                    showSnackbar(ctx.getString(R.string.msg_found_imported, importedCount))
                     loadCategoriesAndFiles()
                 }
             }
         } catch (e: Exception) { e.printStackTrace() }
+        finally {
+            _uiState.update { it.copy(isLoading = false) }
+        }
     }
 
     // ── Category & File Management ──
 
     fun loadCategoriesAndFiles(category: String? = null) {
+        _uiState.update { it.copy(isLoading = true) }
         val cat = category ?: _uiState.value.currentCategory
         viewModelScope.launch(Dispatchers.IO) {
-            val realDirs = filesDir.listFiles()
-                ?.filter { it.isDirectory && !it.name.startsWith(".") }
-                ?.map { it.name } ?: emptyList()
-            val savedOrder = loadCategoryOrder()
+            try {
+                val realDirs = filesDir.listFiles()
+                    ?.filter { it.isDirectory && !it.name.startsWith(".") }
+                    ?.map { it.name } ?: emptyList()
+                val savedOrder = loadCategoryOrder()
 
-            val newOrder = ArrayList<String>()
-            savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
-            realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
+                val newOrder = ArrayList<String>()
+                savedOrder.forEach { if (realDirs.contains(it)) newOrder.add(it) }
+                realDirs.forEach { if (!newOrder.contains(it)) newOrder.add(it) }
 
-            // Scan public storage categories
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                    val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH)
-                    val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
-                    val selectionArgs = arrayOf("Music/AudioLoop/%")
-                    ctx.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
-                        val pathCol = cursor.getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH)
-                        while (cursor.moveToNext()) {
-                            val path = cursor.getString(pathCol) ?: continue
-                            val parts = path.removePrefix("Music/AudioLoop/").trimEnd('/').split("/")
-                            val categoryName = parts.firstOrNull()?.takeIf { it.isNotBlank() }
-                            if (categoryName != null && !newOrder.contains(categoryName) && categoryName != "General") {
-                                newOrder.add(categoryName)
+                // Scan public storage categories
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                        val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH)
+                        val selection = "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                        val selectionArgs = arrayOf("Music/AudioLoop/%")
+                        ctx.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                            val pathCol = cursor.getColumnIndex(MediaStore.Audio.Media.RELATIVE_PATH)
+                            while (cursor.moveToNext()) {
+                                val path = cursor.getString(pathCol) ?: continue
+                                val parts = path.removePrefix("Music/AudioLoop/").trimEnd('/').split("/")
+                                val categoryName = parts.firstOrNull()?.takeIf { it.isNotBlank() }
+                                if (categoryName != null && !newOrder.contains(categoryName) && categoryName != "General") {
+                                    newOrder.add(categoryName)
+                                }
                             }
                         }
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+
+                if (!newOrder.contains("General")) newOrder.add(0, "General")
+
+                val items = getSavedRecordings(cat)
+                items.forEach { precomputeWaveformAsync(it.file) }
+
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            categories = newOrder,
+                            currentCategory = cat,
+                            savedItems = items
+                        )
                     }
-                } catch (e: Exception) { e.printStackTrace() }
-            }
-
-            if (!newOrder.contains("General")) newOrder.add(0, "General")
-
-            val items = getSavedRecordings(cat)
-            items.forEach { precomputeWaveformAsync(it.file) }
-
-            _uiState.update {
-                it.copy(
-                    categories = newOrder,
-                    currentCategory = cat,
-                    savedItems = items
-                )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }
@@ -411,7 +435,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 repository.insertRecording(item.copy(file = targetFile), targetCategory)
             }
             updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
-            showSnackbar("Moved")
+            showSnackbar(ctx.getString(R.string.msg_moved))
         } else {
             try {
                 item.file.inputStream().use { input -> targetFile.outputStream().use { output -> input.copyTo(output) } }
@@ -421,9 +445,9 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                     repository.insertRecording(item.copy(file = targetFile), targetCategory)
                 }
                 updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
-                showSnackbar("Moved")
+                showSnackbar(ctx.getString(R.string.msg_moved))
             } catch (e: Exception) {
-                showSnackbar("Error moving", isError = true)
+                showSnackbar(ctx.getString(R.string.msg_error_moving), isError = true)
             }
         }
     }
@@ -496,11 +520,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 
                 repository.deleteRecording(file.absolutePath)
                 showSnackbar(
-                    message = "Deleted ${item.name}",
-                    actionLabel = "Undo"
+                    message = ctx.getString(R.string.msg_deleted, item.name),
+                    actionLabel = ctx.getString(R.string.btn_undo)
                 )
             } else {
-                showSnackbar("Error deleting file", isError = true)
+                showSnackbar(ctx.getString(R.string.msg_error_deleting), isError = true)
             }
         }
     }
@@ -518,7 +542,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             lastDeletedOriginalPath = null
             
             refreshFileList()
-            showSnackbar("Restored")
+            showSnackbar(ctx.getString(R.string.msg_restored))
         }
     }
 
@@ -532,14 +556,15 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 clipData = android.content.ClipData.newRawUri(null, uri)
                 addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            ctx.startActivity(android.content.Intent.createChooser(intent, "Share audio via").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            ctx.startActivity(android.content.Intent.createChooser(intent, ctx.getString(R.string.menu_share)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
-            showSnackbar("Error sharing: ${e.message}", isError = true)
+            showSnackbar(ctx.getString(R.string.msg_error_sharing, e.message ?: ""), isError = true)
         }
     }
 
     fun importFile(uri: Uri) {
         val category = _uiState.value.currentCategory
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 var fileName = "import_${System.currentTimeMillis()}"
@@ -566,13 +591,15 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 repository.insertRecording(newItem, category)
                 
                 withContext(Dispatchers.Main) {
-                    showSnackbar("Imported: $safeName")
+                    showSnackbar(ctx.getString(R.string.msg_imported, safeName))
                     precomputeWaveformAsync(targetFile)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    showSnackbar("Error importing", isError = true)
+                    showSnackbar(ctx.getString(R.string.msg_error_importing), isError = true)
                 }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -591,11 +618,44 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun getFilteredItems(): List<RecordingItem> {
         val state = _uiState.value
-        if (state.searchQuery.isBlank()) return state.savedItems
-        val q = state.searchQuery.lowercase()
-        return state.savedItems.filter {
-            it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
+        val baseItems = if (state.searchQuery.isNotBlank()) {
+            if (state.searchCategory != null) {
+                // Search in specific category
+                getSavedRecordings(state.searchCategory)
+            } else {
+                // Global search across all
+                getAllRecordings()
+            }
+        } else {
+            // No search, just current category
+            state.savedItems
         }
+
+        val items = if (state.searchQuery.isBlank()) {
+            baseItems
+        } else {
+            val q = state.searchQuery.lowercase()
+            baseItems.filter {
+                it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
+            }
+        }
+
+        return when (state.sortMode) {
+            SortMode.NAME_ASC -> items.sortedBy { it.name.lowercase() }
+            SortMode.NAME_DESC -> items.sortedByDescending { it.name.lowercase() }
+            SortMode.DATE_DESC -> items.sortedByDescending { it.file.lastModified() }
+            SortMode.DATE_ASC -> items.sortedBy { it.file.lastModified() }
+            SortMode.LENGTH_DESC -> items.sortedByDescending { it.durationMillis }
+            SortMode.LENGTH_ASC -> items.sortedBy { it.durationMillis }
+        }
+    }
+
+    fun setSortMode(mode: SortMode) {
+        _uiState.update { it.copy(sortMode = mode) }
+    }
+
+    fun setSearchCategory(cat: String?) {
+        _uiState.update { it.copy(searchCategory = cat) }
     }
 
     // ── Playback ──
@@ -657,7 +717,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
         } else {
             _uiState.update { it.copy(currentlyPlayingPlaylistId = null) }
-            showSnackbar("Playlist is empty or files missing", isError = true)
+            showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)
         }
     }
 
@@ -936,6 +996,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         stopPlaying()
         val ext = file.extension
         val isWav = ext.equals("wav", ignoreCase = true)
+        _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
             val ts = System.currentTimeMillis()
@@ -949,30 +1010,30 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 else AudioTrimmer.trimAudio(file, currentWorkFile, start, end)
             }
 
-            if (ok) {
-                if (normalize) {
-                    val normFile = File(file.parent, "temp_norm_$ts.$ext")
-                    if (AudioProcessor.normalize(currentWorkFile, normFile)) {
-                        currentWorkFile.delete()
-                        currentWorkFile = normFile
-                    } else {
-                        normFile.delete()
-                        showSnackbar("Normalization failed", isError = true)
-                    }
-                }
-                if (fadeInMs > 0 || fadeOutMs > 0) {
-                    val fadeFile = File(file.parent, "temp_fade_$ts.$ext")
-                    if (AudioProcessor.applyFade(currentWorkFile, fadeFile, fadeInMs, fadeOutMs)) {
-                        currentWorkFile.delete()
-                        currentWorkFile = fadeFile
-                    } else {
-                        fadeFile.delete()
-                        showSnackbar("Fade failed", isError = true)
-                    }
-                }
-            }
-
             withContext(Dispatchers.Main) {
+                if (ok) {
+                    if (normalize) {
+                        val normFile = File(file.parent, "temp_norm_$ts.$ext")
+                        if (AudioProcessor.normalize(currentWorkFile, normFile)) {
+                            currentWorkFile.delete()
+                            currentWorkFile = normFile
+                        } else {
+                            normFile.delete()
+                            showSnackbar("Normalization failed", isError = true)
+                        }
+                    }
+                    if (fadeInMs > 0 || fadeOutMs > 0) {
+                        val fadeFile = File(file.parent, "temp_fade_$ts.$ext")
+                        if (AudioProcessor.applyFade(currentWorkFile, fadeFile, fadeInMs, fadeOutMs)) {
+                            currentWorkFile.delete()
+                            currentWorkFile = fadeFile
+                        } else {
+                            fadeFile.delete()
+                            showSnackbar("Fade failed", isError = true)
+                        }
+                    }
+                }
+
                 if (ok && currentWorkFile.exists()) {
                     val finalTarget: File = if (replace) file else {
                         val originalName = file.nameWithoutExtension
@@ -986,6 +1047,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                         if (!file.delete()) {
                             currentWorkFile.delete()
                             showSnackbar("Access denied: Original file in use", isError = true)
+                            _uiState.update { it.copy(isLoading = false) }
                             return@withContext
                         }
                     }
@@ -1007,17 +1069,20 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                     currentWorkFile.delete()
                     showSnackbar("Studio: Processing failed", isError = true)
                 }
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
     fun splitFile(item: RecordingItem) {
         logEditEvent("split")
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             showSnackbar("Splitting by silence...")
             val segments = withContext(Dispatchers.IO) { SilenceSplitter.detectSegments(item.file) }
             if (segments.size <= 1) {
                 showSnackbar("No silence gaps found to split on")
+                _uiState.update { it.copy(isLoading = false) }
                 return@launch
             }
             val baseName = item.file.nameWithoutExtension
@@ -1027,6 +1092,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             created.forEach { precomputeWaveformAsync(it) }
             showSnackbar("Split into ${created.size} segments")
             refreshFileList()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -1039,11 +1105,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun autoTrimFile(item: RecordingItem) {
         logEditEvent("auto_trim")
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             showSnackbar("Detecting silence...")
             val bounds = SilenceSplitter.detectContentBounds(item.file)
             if (bounds == null) {
                 showSnackbar("No silence detected to trim")
+                _uiState.update { it.copy(isLoading = false) }
                 return@launch
             }
             val (contentStart, contentEnd) = bounds
@@ -1052,6 +1120,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             val endMs = contentEnd.coerceAtMost(totalMs)
             if (startMs < 100 && totalMs - endMs < 100) {
                 showSnackbar("No significant silence to trim")
+                _uiState.update { it.copy(isLoading = false) }
                 return@launch
             }
             stopPlaying()
@@ -1074,6 +1143,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 tempFile.delete()
                 showSnackbar("Auto-trim failed", isError = true)
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -1109,6 +1179,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun processFileInPlace(file: File, toastMsg: String, processor: suspend (File, File) -> Boolean) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             showSnackbar(toastMsg)
             val ext = file.extension.ifEmpty { "m4a" }
@@ -1123,6 +1194,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                     if (!file.delete()) {
                         tempFile.delete()
                         showSnackbar("Access denied: Original file in use", isError = true)
+                        _uiState.update { it.copy(isLoading = false) }
                         return@launch
                     }
                 }
@@ -1138,6 +1210,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 tempFile.delete()
                 showSnackbar("Processing failed", isError = true)
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -1147,6 +1220,20 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(currentTheme = theme) }
         saveThemePref(ctx, theme)
         com.example.audioloop.widget.WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
+    }
+
+    fun changeLanguage(langCode: String) {
+        _uiState.update { it.copy(appLanguage = langCode) }
+        saveLanguagePref(ctx, langCode)
+        
+        // Apply locale using AppCompatDelegate (API 33+ or backward compatible)
+        val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(langCode)
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
+    }
+
+    fun changeThemeMode(mode: ThemeMode) {
+        _uiState.update { it.copy(themeMode = mode) }
+        saveThemeModePref(ctx, mode)
     }
 
     // ── Backup & Restore ──
@@ -1253,7 +1340,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun getAllRecordings(): List<RecordingItem> {
-        return _uiState.value.categories.flatMap { cat -> getSavedRecordings(cat) }
+        return getSavedRecordings(null)
     }
 
     // ── Practice Coach ──
@@ -1405,8 +1492,15 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun getSavedRecordings(category: String): List<RecordingItem> {
+    private fun getSavedRecordings(category: String?): List<RecordingItem> {
         val items = mutableListOf<RecordingItem>()
+        if (category == null) {
+            // Get from all categories
+            _uiState.value.categories.forEach { cat ->
+                items.addAll(getSavedRecordings(cat))
+            }
+            return items.distinctBy { it.file.absolutePath }
+        }
 
         // Internal storage
         try {
@@ -1579,6 +1673,17 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         return try { AppTheme.valueOf(name) } catch (_: Exception) { AppTheme.SLATE }
     }
 
+    private fun saveThemeModePref(context: Context, mode: ThemeMode) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("app_theme_mode", mode.name).apply()
+    }
+
+    private fun getThemeModePref(context: Context): ThemeMode {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        val name = prefs.getString("app_theme_mode", "DARK") ?: "DARK"
+        return try { ThemeMode.valueOf(name) } catch (_: Exception) { ThemeMode.DARK }
+    }
+
     private fun saveSmartCoachExpandedPref(context: Context, expanded: Boolean) {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("smart_coach_expanded", expanded).apply()
@@ -1599,10 +1704,26 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         prefs.edit().putBoolean("is_first_launch", false).apply()
     }
 
+    private fun saveLanguagePref(context: Context, lang: String) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("app_language", lang).apply()
+    }
+
+    private fun getLanguagePref(context: Context): String {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("app_language", "en") ?: "en"
+    }
+
     fun getPublicStoragePref(): Boolean {
         val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("use_public_storage", true)
     }
+
+    fun setPublicStoragePref(enabled: Boolean) {
+        val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("use_public_storage", enabled).apply()
+    }
+
 
     // ── File/Category Order Persistence ──
 
@@ -1803,4 +1924,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
     }
+
+    fun triggerPublicStorageImport() {
+        viewModelScope.launch(Dispatchers.IO) {
+            importFromPublicStorage()
+            refreshFileList()
+        }
+    }
 }
+

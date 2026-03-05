@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Algemeen</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Annuleren</string>
+    <string name="btn_save">Opslaan</string>
+    <string name="btn_delete">Verwijderen</string>
+    <string name="btn_play_selected">Speel %d geselecteerde af</string>
+    <string name="btn_add_file">Bestand importeren</string>
+    <string name="btn_record_new">NIEUWE OPNAME</string>
+    <string name="btn_go_back">Ga terug</string>
+    <string name="btn_got_it">Begrepen!</string>
+    <string name="btn_import_audio">Audiobestand importeren</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Opnemen…</string>
+    <string name="label_empty_title">Nog geen opnames</string>
+    <string name="label_empty_subtitle">Tik op de opnameknop hierboven of importeer een audiobestand.</string>
+    <string name="label_no_matching_files">Geen overeenkomende bestanden</string>
+    <string name="label_try_different_search">Probeer een andere zoekterm</string>
+    <string name="label_tap_to_select">Tik op bestanden om te selecteren</string>
+    <string name="label_playlists">fspeellijsten</string>
+    <string name="label_on">Aan</string>
+    <string name="label_off">Uit</string>
+
+    <!-- Search -->
+    <string name="search_hint">Bestanden zoeken…</string>
+    <string name="search_files">Bestanden zoeken</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Hernoemen</string>
+    <string name="menu_trim">Trimmen / Knippen</string>
+    <string name="menu_move">Naar categorie verplaatsen</string>
+    <string name="menu_share">Delen</string>
+    <string name="menu_download">Downloaden</string>
+    <string name="menu_split">Splitsen op stilte</string>
+    <string name="menu_normalize">Normaliseren</string>
+    <string name="menu_auto_trim">Stilte automatisch trimmen</string>
+    <string name="menu_fade">Fade</string>
+    <string name="menu_merge">Geselecteerde samenvoegen</string>
+    <string name="menu_note">Notitie bewerken</string>
+    <string name="menu_info">Info</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Bestand hernoemen</string>
+    <string name="dialog_create_category">Nieuwe categorie</string>
+    <string name="dialog_delete_confirm">Weet u het zeker?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Spraak</string>
+    <string name="mode_stream">Stream</string>
+    <string name="mode_speech_desc">Neemt uw stem op via de microfoon.</string>
+    <string name="mode_stream_desc">Neemt geluid op dat op uw apparaat wordt afgespeeld (muziek, video\'s, enz.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Opgeslagen</string>
+    <string name="toast_error">Fout</string>
+    <string name="msg_moved">Verplaatst</string>
+    <string name="msg_imported">Geïmporteerd: %s</string>
+    <string name="msg_error_moving">Fout bij verplaatsen</string>
+    <string name="msg_error_importing">Fout bij importeren</string>
+    <string name="msg_error_sharing">Fout bij delen: %s</string>
+    <string name="msg_permission_granted">Toestemming verleend</string>
+    <string name="msg_permission_denied">Toestemming geweigerd</string>
+    <string name="msg_permission_required">Toestemming vereist voor opname</string>
+    <string name="msg_splitting">Splitsen op stilte…</string>
+    <string name="msg_split_done">Gesplitst in %d segmenten</string>
+    <string name="msg_no_silence_gaps">Geen stilte gevonden om op te splitsen</string>
+    <string name="msg_normalizing">Normaliseren…</string>
+    <string name="msg_detecting_silence">Stilte detecteren…</string>
+    <string name="msg_no_silence_to_trim">Geen stilte gedetecteerd om te trimmen</string>
+    <string name="msg_no_significant_silence">Geen significante stilte om te trimmen</string>
+    <string name="msg_applying_fade">Fade toepassen…</string>
+    <string name="msg_merging">%d bestanden samenvoegen…</string>
+    <string name="msg_merged">Samengevoegd in %s</string>
+    <string name="msg_merge_failed">Samenvoegen mislukt</string>
+    <string name="msg_done">Klaar!</string>
+    <string name="msg_processing_failed">Verwerking mislukt</string>
+    <string name="msg_access_denied">Toegang geweigerd: origineel bestand in gebruik</string>
+    <string name="msg_error_finalizing">Fout bij voltooien bestand!</string>
+    <string name="msg_studio_replaced">Studio: Origineel vervangen</string>
+    <string name="msg_studio_saved_as">Studio: Opgeslagen als %s</string>
+    <string name="msg_normalization_failed">Normalisatie mislukt</string>
+    <string name="msg_fade_failed">Fade mislukt</string>
+    <string name="msg_auto_trim_failed">Automatisch trimmen mislukt</string>
+    <string name="msg_playback_error">Afspeelfout: %d / %d</string>
+    <string name="msg_error_opening">Fout bij openen bestand: %s</string>
+    <string name="msg_playlist_empty">Afspeellijst is leeg of bestanden ontbreken</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Back-up maken en herstellen</string>
+    <string name="backup_saved">Back-up opgeslagen: %s</string>
+    <string name="backup_failed">Back-up mislukt: %s</string>
+    <string name="backup_loading">Back-ups laden…</string>
+    <string name="backup_no_backups">Geen back-ups gevonden</string>
+    <string name="backup_restoring">Instellingen herstellen…</string>
+    <string name="backup_restore_complete">Herstel voltooid!</string>
+    <string name="backup_restore_failed">Herstel mislukt: %s</string>
+    <string name="backup_deleted">Back-up verwijderd</string>
+    <string name="signin_cancelled">Inloggen geannuleerd</string>
+    <string name="signin_failed_play_services">Inloggen mislukt. Controleer Google Play Services.</string>
+    <string name="signin_dev_error">Ontwikkelaarsfout: controleer SHA-1 in Google Cloud Console</string>
+    <string name="signin_interrupted">Inloggen onderbroken</string>
+    <string name="signin_error">Inlogfout (code %d)</string>
+    <string name="signin_failed">Inloggen mislukt: %s</string>
+    <string name="title_restore_backup">Back-up herstellen?</string>
+    <string name="msg_restore_warning">Dit vervangt uw huidige bestanden, categorieën en instellingen door de inhoud van de back-up.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Log in om een back-up te maken van uw opnames en instellingen op Google Drive</string>
+    <string name="btn_signing_in">Inloggen…</string>
+    <string name="btn_google_signin">Inloggen met Google</string>
+    <string name="btn_sign_out">Uitloggen</string>
+    <string name="btn_backup">Back-up</string>
+    <string name="btn_restore">Herstellen</string>
+    <string name="label_available_backups">Beschikbare back-ups</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Snelheid</string>
+    <string name="settings_pitch">Toonhoogte</string>
+    <string name="settings_sleep_timer">Slaaptimer</string>
+    <string name="settings_theme">Thema</string>
+    <string name="settings_listen_repeat">Luisteren en herhalen</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Welkom bij AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop ondersteunt twee opnamemodi:</string>
+    <string name="welcome_stream_note">Opmerking over Stream-opname:</string>
+    <string name="welcome_stream_warning">Android vereist elke keer toestemming bij het starten van een Stream-opname. Dit is een beveiligingsfunctie en kan niet worden omzeild.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Smart Coach</string>
+    <string name="coach_practice_stats">Oefenstatistieken</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Snel opnemen en afspelen vanaf uw startscherm</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Categorieën beheren</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Bibliotheek</string>
+    <string name="nav_record">Opnemen</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Instellingen</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Smart Practice Coach</string>
+    <string name="coach_description">Volg uw voortgang, krijg persoonlijke aanbevelingen en bouw een oefengewoonte op.</string>
+    <string name="coach_open_stats">Volledige statistieken openen</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Opname starten</string>
+    <string name="record_mode_format">%s-modus</string>
+    <string name="record_recording">Opnemen…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Bestanden (%s):</string>
+    <string name="library_add">+ Toevoegen</string>
+    <string name="library_select">Selecteren</string>
+    <string name="library_play_count">SPEEL %d</string>
+    <string name="library_playlist">AFSPEELLIJST</string>
+    <string name="library_merge_count">SAMENVOEGEN %d</string>
+    <string name="library_now_playing">NU AAN HET AFSPELEN</string>
+    <string name="library_today_format">Vandaag %s</string>
+    <string name="library_tracks_count">%d tracks</string>
+    <string name="library_shuffle">Shuffle</string>
+    <string name="library_gap_format">%ds pauze</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Opnames zoeken…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Hernoemen</string>
+    <string name="dialog_new_name">Nieuwe naam</string>
+    <string name="dialog_select_category">Selecteer categorie</string>
+    <string name="dialog_add_note">Notitie toevoegen</string>
+    <string name="dialog_edit_note">Notitie bewerken</string>
+    <string name="dialog_note_hint">Songtekst, vers, vertaling…</string>
+    <string name="dialog_remove">Verwijderen</string>
+    <string name="dialog_close">Sluiten</string>
+    <string name="dialog_delete_file">Bestand verwijderen?</string>
+    <string name="dialog_delete_confirm_format">Weet u zeker dat u \'%s\' wilt verwijderen?</string>
+    <string name="dialog_file_info">Bestandsinfo</string>
+
+    <!-- File Info -->
+    <string name="info_format">Formaat</string>
+    <string name="info_duration">Duur</string>
+    <string name="info_size">Grootte</string>
+    <string name="info_sample_rate">Samplerate</string>
+    <string name="info_channels">Kanalen</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitsnelheid</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Locatie</string>
+    <string name="info_unknown">Onbekend</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Bestanden zoeken</string>
+    <string name="a11y_backup">Back-up maken en herstellen</string>
+    <string name="a11y_close">Sluiten</string>
+    <string name="a11y_cancel_selection">Selectie annuleren</string>
+    <string name="a11y_manage_categories">Categorieën beheren</string>
+    <string name="a11y_record_speech">Spraak opnemen</string>
+    <string name="a11y_record_stream">Stream opnemen</string>
+    <string name="a11y_stop_recording">Stop opname</string>
+    <string name="a11y_import_file">Audiobestand importeren</string>
+    <string name="a11y_play_selected">Geselecteerde bestanden afspelen</string>
+    <string name="a11y_playlist">Afspeellijst maken van selectie</string>
+    <string name="a11y_recording_active">Opname actief</string>
+    <string name="a11y_playlists">Afspeellijsten openen</string>
+    <string name="settings_playback_title">Afspeelinstellingen</string>
+    <string name="settings_speed_label">Snelheid:</string>
+    <string name="settings_repeats">Herhalingen:</string>
+    <string name="settings_gap">Tussenruimte tracks:</string>
+    <string name="settings_listen_repeat_desc">Pauzeer na afspelen om te oefenen</string>
+    <string name="settings_pause_duration">Pauzeduur:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Slaaptimer:</string>
+    <string name="settings_sleep_off">Uit</string>
+    <string name="settings_sleep_stops_in">Stopt over %s</string>
+    <string name="settings_theme_label">App-thema:</string>
+    <string name="settings_language_label">App-taal:</string>
+    <string name="dialog_delete_playlist_title">Afspeellijst verwijderen?</string>
+    <string name="dialog_delete_playlist_confirm">\"%s\" verwijderen? Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="label_playlists_count">%d afspeellijst%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d tracks</string>
+    <string name="label_playlist_no_playlists">Nog geen afspeellijsten</string>
+    <string name="label_playlist_create_desc">Maak een studiesessie om aan de slag te gaan</string>
+    <string name="btn_new">Nieuw</string>
+    <string name="btn_create_playlist">Afspeellijst maken</string>
+    <string name="btn_add_files">Bestanden toevoegen</string>
+    <string name="label_added">toegevoegd</string>
+    <string name="label_no_files_category">Geen bestanden in deze categorie</string>
+    <string name="label_select">Selecteren</string>
+    <string name="label_add_count">%d toevoegen</string>
+    <string name="title_trim_audio">Audio trimmen</string>
+    <string name="label_studio_editor">Studio-editor</string>
+    <string name="label_keep">Behouden</string>
+    <string name="label_cut">Knippen</string>
+    <string name="label_current">HUIDIG</string>
+    <string name="label_new_length">NIEUWE LENGTE</string>
+    <string name="label_start">START</string>
+    <string name="label_end">EINDE</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Stilte</string>
+    <string name="label_normalize">Normaliseren</string>
+    <string name="error_open_audio">Kan audiobestand niet openen</string>
+    <string name="error_corrupted_format">Het bestand is mogelijk beschadigd of heeft een niet-ondersteund formaat.</string>
+    <string name="btn_save_copy">Kopie opslaan</string>
+    <string name="btn_replace_original">Origineel vervangen</string>
+    <string name="label_status_completed">VOLTOOID</string>
+    <string name="label_status_paused">GEPAUZEERD</string>
+    <string name="label_status_now_playing">NU AAN HET AFSPELEN</string>
+    <string name="label_shuffle">Shuffle</string>
+    <string name="label_gap_pill">%ds pauze</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$du %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Algemeen</string>
+    <string name="btn_resume">Hervatten</string>
+    <string name="btn_stop">Stop</string>
+    <string name="title_new_playlist">Nieuwe afspeellijst</string>
+    <string name="title_edit_playlist">Afspeellijst bewerken</string>
+    <string name="label_untitled">Naamloos</string>
+    <string name="label_playlist_name_header">NAAM AFSPEELLIJST</string>
+    <string name="hint_enter_name">Naam invoeren…</string>
+    <string name="label_shuffle_playback">Shuffle afspelen</string>
+    <string name="label_shuffle_desc">Tracks in willekeurige volgorde afspelen</string>
+    <string name="label_tracks_header">TRACKS</string>
+    <string name="label_no_tracks">Geen tracks toegevoegd</string>
+    <string name="a11y_remove">Verwijderen</string>
+    <string name="a11y_drag_reorder">Sleep om volgorde te wijzigen</string>
+    <string name="label_playing_indicator">Aan het afspelen • </string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Stilte automatisch trimmen</string>
+    <string name="a11y_clear">Wissen</string>
+    <string name="label_note">Notitie</string>
+    <string name="prefix_speech">Spraak</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Categorieën</string>
+    <string name="label_drag_reorder_hint">Sleep greep om volgorde te wijzigen</string>
+    <string name="hint_category_name">Categorienaam…</string>
+    <string name="label_default">standaard</string>
+    <string name="a11y_save">Opslaan</string>
+    <string name="msg_deleted">%s verwijderd</string>
+    <string name="msg_restored">Hersteld</string>
+    <string name="msg_found_imported">%d opname(s) geïmporteerd!</string>
+    <string name="btn_undo">Ongedaan maken</string>
+    <string name="a11y_edit">Bewerken</string>
+    <string name="label_statistics">Statistieken</string>
+    <string name="label_weekly_overview">WEKELIJKS OVERZICHT</string>
+    <string name="label_goal_reached">Doel bereikt!</string>
+    <string name="label_min_remaining">%d min resterend</string>
+    <string name="label_change_goal">Doel wijzigen</string>
+    <string name="label_streak">Streak</string>
+    <string name="label_today">Vandaag</string>
+    <string name="label_sessions">Sessies</string>
+    <string name="label_edits">Bewerkingen</string>
+    <string name="label_avg_daily">Gem. dagelijks</string>
+    <string name="label_last_7_days">AFGELOPEN 7 DAGEN</string>
+    <string name="label_recommendation">AANBEVELING</string>
+    <string name="title_weekly_goal">Wekelijks doel</string>
+    <string name="msg_goal_question">Hoeveel minuten per week wilt u oefenen?</string>
+    <string name="label_min_per_day">~%d min/dag</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_reset_zoom">Zoom resetten</string>
+    <string name="label_earlier">Eerder</string>
+    <string name="label_later">Later</string>
+</resources>

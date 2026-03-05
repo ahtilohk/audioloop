@@ -32,7 +32,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
 import com.example.audioloop.Playlist
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
@@ -62,8 +64,8 @@ fun PlaylistListSheet(
     // Delete confirmation dialog
     playlistToDelete?.let { p ->
         DeleteConfirmDialog(
-            title = "Delete playlist?",
-            text = "Delete \"${p.name}\"? This cannot be undone.",
+            title = stringResource(R.string.dialog_delete_playlist_title),
+            text = stringResource(R.string.dialog_delete_playlist_confirm, p.name),
             onDismiss = { playlistToDelete = null },
             onConfirm = {
                 onDelete(p)
@@ -91,7 +93,7 @@ fun PlaylistListSheet(
                             )
                         )
                     )
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .padding(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -110,12 +112,12 @@ fun PlaylistListSheet(
                                 .background(MaterialTheme.colorScheme.surface, CircleShape)
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                            Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.a11y_close), tint = MaterialTheme.colorScheme.onSurface)
                         }
 
                         Column {
                             Text(
-                                "Playlists",
+                                stringResource(R.string.label_playlists),
                                 style = TextStyle(
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
@@ -123,7 +125,7 @@ fun PlaylistListSheet(
                                 )
                             )
                             Text(
-                                "${playlists.size} playlist${if (playlists.size != 1) "s" else ""}",
+                                stringResource(R.string.label_playlists_count, playlists.size, if (playlists.size != 1) "s" else ""),
                                 style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
                             )
                         }
@@ -138,7 +140,7 @@ fun PlaylistListSheet(
                     ) {
                         Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("New", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_new), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -161,7 +163,7 @@ fun PlaylistListSheet(
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "No playlists yet",
+                        stringResource(R.string.label_playlist_no_playlists),
                         style = TextStyle(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 18.sp,
@@ -170,7 +172,7 @@ fun PlaylistListSheet(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Create a study session to get started",
+                        stringResource(R.string.label_playlist_create_desc),
                         style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                     )
                     Spacer(Modifier.height(24.dp))
@@ -179,18 +181,18 @@ fun PlaylistListSheet(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Create Playlist", color = Color.White)
+                        Text(stringResource(R.string.btn_create_playlist), color = Color.White)
                     }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(playlists, key = { it.id }) { playlist ->
@@ -210,13 +212,13 @@ fun PlaylistListSheet(
                                     if (isPlaying) Modifier.border(
                                         1.5.dp,
                                         MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
-                                        RoundedCornerShape(14.dp)
+                                        RoundedCornerShape(16.dp)
                                     ) else Modifier.border(
-                                        1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp)
+                                        1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)
                                     )
                                 )
                                 .clickable { onView(playlist) },
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isPlaying)
                                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
@@ -249,7 +251,7 @@ fun PlaylistListSheet(
                                         ) {
                                             // File count
                                             Text(
-                                                "${playlist.files.size} tracks",
+                                                stringResource(R.string.label_playlist_tracks, playlist.files.size),
                                                 style = TextStyle(
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     fontSize = 12.sp
@@ -271,10 +273,10 @@ fun PlaylistListSheet(
                                                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                                             RoundedCornerShape(6.dp)
                                                         )
-                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                        .padding(horizontal = 6.dp, vertical = 2.dp),
                                                 ) {
                                                     Text(
-                                                        "${playlist.playCount}x",
+                                                        stringResource(R.string.label_play_count_compact, playlist.playCount),
                                                         style = TextStyle(
                                                             color = MaterialTheme.colorScheme.primary,
                                                             fontSize = 11.sp,
@@ -286,7 +288,7 @@ fun PlaylistListSheet(
                                             // Shuffle indicator
                                             if (playlist.shuffle) {
                                                 Text(
-                                                    "Shuffle",
+                                                    stringResource(R.string.label_shuffle),
                                                     style = TextStyle(
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         fontSize = 11.sp
@@ -315,7 +317,7 @@ fun PlaylistListSheet(
                                         ) {
                                             Icon(
                                                 if (isPlaying) AppIcons.Pause else AppIcons.PlayArrow,
-                                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                                contentDescription = if (isPlaying) stringResource(R.string.menu_pause) else stringResource(R.string.menu_play),
                                                 tint = Color.White,
                                                 modifier = Modifier.size(22.dp)
                                             )
@@ -329,7 +331,7 @@ fun PlaylistListSheet(
                                         ) {
                                             Icon(
                                                 AppIcons.Edit,
-                                                contentDescription = "Edit",
+                                                contentDescription = stringResource(R.string.a11y_edit),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
                                             )
@@ -343,7 +345,7 @@ fun PlaylistListSheet(
                                         ) {
                                             Icon(
                                                 AppIcons.Delete,
-                                                contentDescription = "Delete",
+                                                contentDescription = stringResource(R.string.btn_delete),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
                                             )
@@ -395,7 +397,7 @@ fun FilePickerSheet(
                             listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), MaterialTheme.colorScheme.background)
                         )
                     )
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -408,12 +410,12 @@ fun FilePickerSheet(
                 ) {
                     Icon(
                         AppIcons.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.a11y_close),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(
-                    "Add Files",
+                    stringResource(R.string.btn_add_files),
                     style = TextStyle(
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -431,7 +433,7 @@ fun FilePickerSheet(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Text(
-                        if (selected.isEmpty()) "Select" else "Add ${selected.size}",
+                        if (selected.isEmpty()) stringResource(R.string.label_select) else stringResource(R.string.label_add_count, selected.size),
                         color = if (selected.isNotEmpty()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
@@ -443,7 +445,7 @@ fun FilePickerSheet(
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(allCategories) { category ->
@@ -464,7 +466,7 @@ fun FilePickerSheet(
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            category,
+                            if (category == "General") stringResource(R.string.label_general) else category,
                             color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
@@ -480,14 +482,14 @@ fun FilePickerSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "No files in this category",
+                        stringResource(R.string.label_no_files_category),
                         style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     )
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(categoryFiles, key = { it.file.absolutePath }) { item ->
@@ -502,7 +504,7 @@ fun FilePickerSheet(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(RoundedCornerShape(12.dp))
                                 .background(
                                     when {
                                         isAlready -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -517,13 +519,13 @@ fun FilePickerSheet(
                                         isSelected -> MaterialTheme.colorScheme.primary
                                         else -> Color.Transparent
                                     },
-                                    RoundedCornerShape(10.dp)
+                                    RoundedCornerShape(12.dp)
                                 )
                                 .clickable(enabled = !isAlready) {
                                     if (isSelected) selected.remove(relativePath)
                                     else selected.add(relativePath)
                                 }
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -578,7 +580,7 @@ fun FilePickerSheet(
 
                             if (isAlready) {
                                 Text(
-                                    "added",
+                                    stringResource(R.string.label_added),
                                     color = MaterialTheme.colorScheme.outline,
                                     fontSize = 11.sp
                                 )

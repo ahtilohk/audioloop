@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Generale</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Annulla</string>
+    <string name="btn_save">Salva</string>
+    <string name="btn_delete">Elimina</string>
+    <string name="btn_play_selected">Riproduci %d selezionati</string>
+    <string name="btn_add_file">Importa file</string>
+    <string name="btn_record_new">NUOVA REG.</string>
+    <string name="btn_go_back">Indietro</string>
+    <string name="btn_got_it">Ho capito!</string>
+    <string name="btn_import_audio">Importa file audio</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Registrazione…</string>
+    <string name="label_empty_title">Ancora nessuna registrazione</string>
+    <string name="label_empty_subtitle">Tocca il pulsante di registrazione sopra o importa un file audio.</string>
+    <string name="label_no_matching_files">Nessun file trovato</string>
+    <string name="label_try_different_search">Prova un altro termine</string>
+    <string name="label_tap_to_select">Tocca i file per selezionarli</string>
+    <string name="label_playlists">Playlist</string>
+    <string name="label_on">On</string>
+    <string name="label_off">Off</string>
+
+    <!-- Search -->
+    <string name="search_hint">Cerca file…</string>
+    <string name="search_files">Cerca file</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Rinomina</string>
+    <string name="menu_trim">Taglia / Regola</string>
+    <string name="menu_move">Sposta in categoria</string>
+    <string name="menu_share">Condividi</string>
+    <string name="menu_download">Scarica</string>
+    <string name="menu_split">Dividi per silenzio</string>
+    <string name="menu_normalize">Normalizza</string>
+    <string name="menu_auto_trim">Trim auto silenzio</string>
+    <string name="menu_fade">Dissolvenza</string>
+    <string name="menu_merge">Unisci selezionati</string>
+    <string name="menu_note">Modifica nota</string>
+    <string name="menu_info">Info</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Rinomina file</string>
+    <string name="dialog_create_category">Nuova categoria</string>
+    <string name="dialog_delete_confirm">Sei sicuro?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Voce</string>
+    <string name="mode_stream">Stream</string>
+    <string name="mode_speech_desc">Registra la tua voce tramite il microfono.</string>
+    <string name="mode_stream_desc">Registra l\'audio del dispositivo (musica, video, ecc.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Salvato</string>
+    <string name="toast_error">Errore</string>
+    <string name="msg_moved">Spostato</string>
+    <string name="msg_imported">Importato: %s</string>
+    <string name="msg_error_moving">Errore nello spostamento</string>
+    <string name="msg_error_importing">Errore nell\'importazione</string>
+    <string name="msg_error_sharing">Errore nella condivisione: %s</string>
+    <string name="msg_permission_granted">Permesso accordato</string>
+    <string name="msg_permission_denied">Permesso negato</string>
+    <string name="msg_permission_required">Permesso richiesto per la registrazione</string>
+    <string name="msg_splitting">Divisione per silenzio…</string>
+    <string name="msg_split_done">Diviso in %d segmenti</string>
+    <string name="msg_no_silence_gaps">Nessun silenzio trovato per dividere</string>
+    <string name="msg_normalizing">Normalizzazione…</string>
+    <string name="msg_detecting_silence">Rilevamento silenzio…</string>
+    <string name="msg_no_silence_to_trim">Nessun silenzio rilevato da tagliare</string>
+    <string name="msg_no_significant_silence">Nessun silenzio significativo da tagliare</string>
+    <string name="msg_applying_fade">Applicazione dissolvenza…</string>
+    <string name="msg_merging">Unione di %d file…</string>
+    <string name="msg_merged">Unito in %s</string>
+    <string name="msg_merge_failed">Unione fallita</string>
+    <string name="msg_done">Fatto!</string>
+    <string name="msg_processing_failed">Elaborazione fallita</string>
+    <string name="msg_access_denied">Accesso negato: file originale in uso</string>
+    <string name="msg_error_finalizing">Errore nella finalizzazione file!</string>
+    <string name="msg_studio_replaced">Studio: Originale sostituito</string>
+    <string name="msg_studio_saved_as">Studio: Salvato come %s</string>
+    <string name="msg_normalization_failed">Normalizzazione fallita</string>
+    <string name="msg_fade_failed">Dissolvenza fallita</string>
+    <string name="msg_auto_trim_failed">Trim auto fallito</string>
+    <string name="msg_playback_error">Errore riproduzione: %d / %d</string>
+    <string name="msg_error_opening">Errore apertura: %s</string>
+    <string name="msg_playlist_empty">Playlist vuota o file mancanti</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Backup e Ripristino</string>
+    <string name="backup_saved">Backup salvato: %s</string>
+    <string name="backup_failed">Backup fallito: %s</string>
+    <string name="backup_loading">Caricamento backup…</string>
+    <string name="backup_no_backups">Nessun backup trovato</string>
+    <string name="backup_restoring">Ripristino impostazioni…</string>
+    <string name="backup_restore_complete">Ripristino completato!</string>
+    <string name="backup_restore_failed">Ripristino fallito: %s</string>
+    <string name="backup_deleted">Backup eliminato</string>
+    <string name="signin_cancelled">Accesso annullato</string>
+    <string name="signin_failed_play_services">Accesso fallito (controlla i servizi Google Play).</string>
+    <string name="signin_dev_error">Errore sviluppatore (controlla SHA-1).</string>
+    <string name="signin_interrupted">Accesso interrotto</string>
+    <string name="signin_error">Errore accesso (codice %d)</string>
+    <string name="signin_failed">Accesso fallito: %s</string>
+    <string name="title_restore_backup">Ripristinare il backup?</string>
+    <string name="msg_restore_warning">Questo sostituirà i file, le categorie e le impostazioni attuali.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Accedi per salvare le registrazioni su Google Drive</string>
+    <string name="btn_signing_in">Accesso in corso…</string>
+    <string name="btn_google_signin">Accedi con Google</string>
+    <string name="btn_sign_out">Esci</string>
+    <string name="btn_backup">Backup</string>
+    <string name="btn_restore">Ripristina</string>
+    <string name="label_available_backups">Backup disponibili</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Velocità</string>
+    <string name="settings_pitch">Tonalità</string>
+    <string name="settings_sleep_timer">Timer sospensione</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Ascolta e Ripeti</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Benvenuto su AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop supporta due modalità:</string>
+    <string name="welcome_stream_note">Nota sulla registrazione Stream:</string>
+    <string name="welcome_stream_warning">Android richiede la conferma ogni volta. È una funzione di sicurezza.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Coach intelligente</string>
+    <string name="coach_practice_stats">Statistiche di pratica</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Registrazione e riproduzione rapida dalla home</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Gestisci categorie</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Libreria</string>
+    <string name="nav_record">Registra</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Impost.</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Coach di pratica intelligente</string>
+    <string name="coach_description">Segui i tuoi progressi e crea un\'abitudine di pratica.</string>
+    <string name="coach_open_stats">Apri statistiche complete</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Avvia registrazione</string>
+    <string name="record_mode_format">Modalità %s</string>
+    <string name="record_recording">Registrazione…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">File (%s):</string>
+    <string name="library_add">+ Aggiungi</string>
+    <string name="library_select">Selez.</string>
+    <string name="library_play_count">PLAY %d</string>
+    <string name="library_playlist">PLAYLIST</string>
+    <string name="library_merge_count">UNISCI %d</string>
+    <string name="library_now_playing">IN RIPRODUZIONE</string>
+    <string name="library_today_format">Oggi %s</string>
+    <string name="library_tracks_count">%d tracce</string>
+    <string name="library_shuffle">Casuale</string>
+    <string name="library_gap_format">Pausa %ds</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Cerca registrazioni…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Rinomina</string>
+    <string name="dialog_new_name">Nuovo nome</string>
+    <string name="dialog_select_category">Scegli categoria</string>
+    <string name="dialog_add_note">Aggiungi nota</string>
+    <string name="dialog_edit_note">Modifica nota</string>
+    <string name="dialog_note_hint">Testo, versi, traduzione…</string>
+    <string name="dialog_remove">Rimuovi</string>
+    <string name="dialog_close">Chiudi</string>
+    <string name="dialog_delete_file">Eliminare file?</string>
+    <string name="dialog_delete_confirm_format">Sicuro di voler eliminare \'%s\'?</string>
+    <string name="dialog_file_info">Info file</string>
+
+    <!-- File Info -->
+    <string name="info_format">Formato</string>
+    <string name="info_duration">Durata</string>
+    <string name="info_size">Dimensione</string>
+    <string name="info_sample_rate">Frequenza</string>
+    <string name="info_channels">Canali</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitrate</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Posizione</string>
+    <string name="info_unknown">Sconosciuto</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Cerca file</string>
+    <string name="a11y_backup">Backup e ripristino</string>
+    <string name="a11y_close">Chiudi</string>
+    <string name="a11y_cancel_selection">Annulla selezione</string>
+    <string name="a11y_manage_categories">Gestisci categorie</string>
+    <string name="a11y_record_speech">Registra voce</string>
+    <string name="a11y_record_stream">Registra stream</string>
+    <string name="a11y_stop_recording">Ferma registrazione</string>
+    <string name="a11y_import_file">Importa file audio</string>
+    <string name="a11y_play_selected">Riproduci file selezionati</string>
+    <string name="a11y_playlist">Crea playlist dalla selezione</string>
+    <string name="a11y_recording_active">Registrazione attiva</string>
+    <string name="a11y_playlists">Apri playlist</string>
+    <string name="settings_playback_title">Impostazioni riproduzione</string>
+    <string name="settings_speed_label">Velocità:</string>
+    <string name="settings_repeats">Ripetizioni:</string>
+    <string name="settings_gap">Pausa tra tracce:</string>
+    <string name="settings_listen_repeat_desc">Pausa dopo riproduzione per fare pratica</string>
+    <string name="settings_pause_duration">Durata pausa:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Timer sospensione:</string>
+    <string name="settings_sleep_off">Off</string>
+    <string name="settings_sleep_stops_in">Si ferma in %s</string>
+    <string name="settings_theme_label">Tema app:</string>
+    <string name="settings_language_label">Lingua app:</string>
+    <string name="dialog_delete_playlist_title">Eliminare playlist?</string>
+    <string name="dialog_delete_playlist_confirm">Eliminare \"%s\"? L\'azione è irreversibile.</string>
+    <string name="label_playlists_count">%d playlist</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d tracce</string>
+    <string name="label_playlist_no_playlists">Ancora nessuna playlist</string>
+    <string name="label_playlist_create_desc">Crea una sessione per iniziare</string>
+    <string name="btn_new">Nuovo</string>
+    <string name="btn_create_playlist">Crea playlist</string>
+    <string name="btn_add_files">Aggiungi file</string>
+    <string name="label_added">aggiunto</string>
+    <string name="label_no_files_category">Nessun file in questa categoria</string>
+    <string name="label_select">Seleziona</string>
+    <string name="label_add_count">Aggiungi %d</string>
+    <string name="title_trim_audio">Taglia audio</string>
+    <string name="label_studio_editor">Editor Studio</string>
+    <string name="label_keep">Tieni</string>
+    <string name="label_cut">Taglia</string>
+    <string name="label_current">ATTUALE</string>
+    <string name="label_new_length">NUOVA LUNGH.</string>
+    <string name="label_start">INIZIO</string>
+    <string name="label_end">FINE</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Silenzio</string>
+    <string name="label_normalize">Normalizza</string>
+    <string name="error_open_audio">Impossibile aprire l\'audio</string>
+    <string name="error_corrupted_format">File corrotto o formato non supportato.</string>
+    <string name="btn_save_copy">Salva copia</string>
+    <string name="btn_replace_original">Sostituisci originale</string>
+    <string name="label_status_completed">COMPLETATO</string>
+    <string name="label_status_paused">IN PAUSA</string>
+    <string name="label_status_now_playing">IN RIPRODUZIONE</string>
+    <string name="label_shuffle">Casuale</string>
+    <string name="label_gap_pill">Pausa %ds</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Generale</string>
+    <string name="btn_resume">Riprendi</string>
+    <string name="btn_stop">Stop</string>
+    <string name="title_new_playlist">Nuova Playlist</string>
+    <string name="title_edit_playlist">Modifica Playlist</string>
+    <string name="label_untitled">Senza titolo</string>
+    <string name="label_playlist_name_header">NOME PLAYLIST</string>
+    <string name="hint_enter_name">Inserisci nome…</string>
+    <string name="label_shuffle_playback">Riproduzione casuale</string>
+    <string name="label_shuffle_desc">Tracce in ordine casuale</string>
+    <string name="label_tracks_header">TRACCE</string>
+    <string name="label_no_tracks">Nessuna traccia aggiunta</string>
+    <string name="a11y_remove">Rimuovi</string>
+    <string name="a11y_drag_reorder">Trascina per riordinare</string>
+    <string name="label_playing_indicator">In riproduzione • </string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Trim auto silenzio</string>
+    <string name="a11y_clear">Cancella</string>
+    <string name="label_note">Nota</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Categorie</string>
+    <string name="label_drag_reorder_hint">Trascina per riordinare</string>
+    <string name="hint_category_name">Nome categoria…</string>
+    <string name="label_default">default</string>
+    <string name="a11y_save">Salva</string>
+    <string name="msg_deleted">Eliminato: %s</string>
+    <string name="msg_restored">Ripristinato</string>
+    <string name="msg_found_imported">%d registrazioni importate!</string>
+    <string name="btn_undo">Annulla</string>
+    <string name="a11y_edit">Modifica</string>
+    <string name="label_statistics">Statistiche</string>
+    <string name="label_weekly_overview">PANORAMICA SETTIMANALE</string>
+    <string name="label_goal_reached">Obiettivo raggiunto!</string>
+    <string name="label_min_remaining">%d min rimasti</string>
+    <string name="label_change_goal">Cambia obiettivo</string>
+    <string name="label_streak">Serie</string>
+    <string name="label_today">Oggi</string>
+    <string name="label_sessions">Sessioni</string>
+    <string name="label_edits">Modifiche</string>
+    <string name="label_avg_daily">Media giorn.</string>
+    <string name="label_last_7_days">ULTIMI 7 GIORNI</string>
+    <string name="label_recommendation">RACCOMANDAZIONE</string>
+    <string name="title_weekly_goal">Obiettivo sett.</string>
+    <string name="msg_goal_question">Quanti minuti a settimana?</string>
+    <string name="label_min_per_day">~%d min/g</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_reset_zoom">Ripristina zoom</string>
+    <string name="label_earlier">Prima</string>
+    <string name="label_later">Dopo</string>
+</resources>

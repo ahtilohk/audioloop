@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Umum</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_save">Simpan</string>
+    <string name="btn_delete">Hapus</string>
+    <string name="btn_play_selected">Putar %d yang dipilih</string>
+    <string name="btn_add_file">Impor file</string>
+    <string name="btn_record_new">REKAMAN BARU</string>
+    <string name="btn_go_back">Kembali</string>
+    <string name="btn_got_it">Mengerti!</string>
+    <string name="btn_import_audio">Impor file audio</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Merekam…</string>
+    <string name="label_empty_title">Belum ada rekaman</string>
+    <string name="label_empty_subtitle">Tekan tombol rekam di atas atau impor file audio.</string>
+    <string name="label_no_matching_files">Tidak ada file yang cocok</string>
+    <string name="label_try_different_search">Coba kata kunci pencarian lain</string>
+    <string name="label_tap_to_select">Ketuk file untuk memilih</string>
+    <string name="label_playlists">Daftar Putar</string>
+    <string name="label_on">Aktif</string>
+    <string name="label_off">Nonaktif</string>
+
+    <!-- Search -->
+    <string name="search_hint">Cari file…</string>
+    <string name="search_files">Cari file</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Ubah nama</string>
+    <string name="menu_trim">Trim / Sesuaikan</string>
+    <string name="menu_move">Pindah ke kategori</string>
+    <string name="menu_share">Bagikan</string>
+    <string name="menu_download">Unduh</string>
+    <string name="menu_split">Bagi dengan hening</string>
+    <string name="menu_normalize">Normalisasi</string>
+    <string name="menu_auto_trim">Trim hening otomatis</string>
+    <string name="menu_fade">Pudarkan</string>
+    <string name="menu_merge">Gabungkan yang dipilih</string>
+    <string name="menu_note">Edit catatan</string>
+    <string name="menu_info">Info</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Ubah nama file</string>
+    <string name="dialog_create_category">Kategori baru</string>
+    <string name="dialog_delete_confirm">Apakah Anda yakin?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Suara</string>
+    <string name="mode_stream">Aliran</string>
+    <string name="mode_speech_desc">Merekam suara Anda melalui mikrofon.</string>
+    <string name="mode_stream_desc">Merekam audio dari perangkat (musik, video, dll).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Tersimpan</string>
+    <string name="toast_error">Error</string>
+    <string name="msg_moved">Dipindahkan</string>
+    <string name="msg_imported">Diimpor: %s</string>
+    <string name="msg_error_moving">Error saat memindahkan</string>
+    <string name="msg_error_importing">Error saat mengimpor</string>
+    <string name="msg_error_sharing">Error berbagi: %s</string>
+    <string name="msg_permission_granted">Izin diberikan</string>
+    <string name="msg_permission_denied">Izin ditolak</string>
+    <string name="msg_permission_required">Izin diperlukan untuk merekam</string>
+    <string name="msg_splitting">Membagi dengan hening…</string>
+    <string name="msg_split_done">Dibagi menjadi %d segmen</string>
+    <string name="msg_no_silence_gaps">Tidak ditemukan jeda hening untuk dibagi</string>
+    <string name="msg_normalizing">Menormalisasi…</string>
+    <string name="msg_detecting_silence">Mendeteksi hening…</string>
+    <string name="msg_no_silence_to_trim">Tidak terdeteksi hening untuk di-trim</string>
+    <string name="msg_no_significant_silence">Tidak ada hening yang signifikan untuk di-trim</string>
+    <string name="msg_applying_fade">Menerapkan pudaran…</string>
+    <string name="msg_merging">Menggabungkan %d file…</string>
+    <string name="msg_merged">Digabungkan ke %s</string>
+    <string name="msg_merge_failed">Penggabungan gagal</string>
+    <string name="msg_done">Selesai!</string>
+    <string name="msg_processing_failed">Pemrosesan gagal</string>
+    <string name="msg_access_denied">Akses ditolak: file asli sedang digunakan</string>
+    <string name="msg_error_finalizing">Error saat memfinalisasi file!</string>
+    <string name="msg_studio_replaced">Studio: Asli diganti</string>
+    <string name="msg_studio_saved_as">Studio: Disimpan sebagai %s</string>
+    <string name="msg_normalization_failed">Normalisasi gagal</string>
+    <string name="msg_fade_failed">Pudaran gagal</string>
+    <string name="msg_auto_trim_failed">Trim otomatis gagal</string>
+    <string name="msg_playback_error">Error pemutaran: %d / %d</string>
+    <string name="msg_error_opening">Error saat membuka: %s</string>
+    <string name="msg_playlist_empty">Daftar putar kosong atau file hilang</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Cadangkan &amp; Pulihkan</string>
+    <string name="backup_saved">Cadangan tersimpan: %s</string>
+    <string name="backup_failed">Cadangan gagal: %s</string>
+    <string name="backup_loading">Memuat cadangan…</string>
+    <string name="backup_no_backups">Tidak ditemukan cadangan</string>
+    <string name="backup_restoring">Memulihkan pengaturan…</string>
+    <string name="backup_restore_complete">Pemulihan selesai!</string>
+    <string name="backup_restore_failed">Pemulihan gagal: %s</string>
+    <string name="backup_deleted">Cadangan dihapus</string>
+    <string name="signin_cancelled">Masuk dibatalkan</string>
+    <string name="signin_failed_play_services">Masuk gagal (periksa Layanan Google Play).</string>
+    <string name="signin_dev_error">Error pengembang (periksa SHA-1).</string>
+    <string name="signin_interrupted">Masuk terputus</string>
+    <string name="signin_error">Error masuk (kode %d)</string>
+    <string name="signin_failed">Masuk gagal: %s</string>
+    <string name="title_restore_backup">Pulihkan cadangan?</string>
+    <string name="msg_restore_warning">Ini akan mengganti file, kategori, dan pengaturan Anda saat ini.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Masuk untuk menyimpan rekaman Anda ke Google Drive</string>
+    <string name="btn_signing_in">Masuk…</string>
+    <string name="btn_google_signin">Masuk dengan Google</string>
+    <string name="btn_sign_out">Keluar</string>
+    <string name="btn_backup">Cadangkan</string>
+    <string name="btn_restore">Pulihkan</string>
+    <string name="label_available_backups">Cadangan yang tersedia</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Kecepatan</string>
+    <string name="settings_pitch">Nada</string>
+    <string name="settings_sleep_timer">Timer Tidur</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Dengar dan Ulangi</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Selamat datang di AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop mendukung dua mode:</string>
+    <string name="welcome_stream_note">Catatan tentang rekaman Aliran:</string>
+    <string name="welcome_stream_warning">Android memerlukan konfirmasi setiap saat. Ini adalah fitur keamanan sistem.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Pelatih Pintar</string>
+    <string name="coach_practice_stats">Statistik Latihan</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Rekaman dan pemutaran cepat dari layar beranda</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Kelola Kategori</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Perpustakaan</string>
+    <string name="nav_record">Rekam</string>
+    <string name="nav_coach">Pelatih</string>
+    <string name="nav_settings">Pengaturan</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Pelatih Latihan Pintar</string>
+    <string name="coach_description">Lacak kemajuan Anda dan bangun kebiasaan latihan.</string>
+    <string name="coach_open_stats">Buka statistik lengkap</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Mulai Rekaman</string>
+    <string name="record_mode_format">Mode %s</string>
+    <string name="record_recording">Merekam…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">File (%s):</string>
+    <string name="library_add">+ Tambah</string>
+    <string name="library_select">Pilih</string>
+    <string name="library_play_count">PUTAR %d</string>
+    <string name="library_playlist">DAFTAR PUTAR</string>
+    <string name="library_merge_count">GABUNG %d</string>
+    <string name="library_now_playing">SEDANG DIPUTAR</string>
+    <string name="library_today_format">Hari ini %s</string>
+    <string name="library_tracks_count">%d trek</string>
+    <string name="library_shuffle">Acak</string>
+    <string name="library_gap_format">Jeda %dd</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Cari rekaman…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Ubah nama</string>
+    <string name="dialog_new_name">Nama baru</string>
+    <string name="dialog_select_category">Pilih kategori</string>
+    <string name="dialog_add_note">Tambah catatan</string>
+    <string name="dialog_edit_note">Edit catatan</string>
+    <string name="dialog_note_hint">Lirik, baris, terjemahan…</string>
+    <string name="dialog_remove">Hapus</string>
+    <string name="dialog_close">Tutup</string>
+    <string name="dialog_delete_file">Hapus file?</string>
+    <string name="dialog_delete_confirm_format">Apakah Anda yakin ingin menghapus \'%s\'?</string>
+    <string name="dialog_file_info">Info file</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Durasi</string>
+    <string name="info_size">Ukuran</string>
+    <string name="info_sample_rate">Laju sampel</string>
+    <string name="info_channels">Saluran</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitrate</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Lokasi</string>
+    <string name="info_unknown">Tidak diketahui</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Cari file</string>
+    <string name="a11y_backup">Cadangkan dan Pulihkan</string>
+    <string name="a11y_close">Tutup</string>
+    <string name="a11y_cancel_selection">Batal pilihan</string>
+    <string name="a11y_manage_categories">Kelola kategori</string>
+    <string name="a11y_record_speech">Rekam ucapan</string>
+    <string name="a11y_record_stream">Rekam aliran</string>
+    <string name="a11y_stop_recording">Hentikan rekaman</string>
+    <string name="a11y_import_file">Impor file audio</string>
+    <string name="a11y_play_selected">Putar file yang dipilih</string>
+    <string name="a11y_playlist">Buat daftar putar dari pilihan</string>
+    <string name="a11y_recording_active">Rekaman sedang aktif</string>
+    <string name="a11y_playlists">Buka daftar putar</string>
+    <string name="settings_playback_title">Pengaturan Pemutaran</string>
+    <string name="settings_speed_label">Kecepatan:</string>
+    <string name="settings_repeats">Pengulangan:</string>
+    <string name="settings_gap">Jeda antar trek:</string>
+    <string name="settings_listen_repeat_desc">Jeda setelah pemutaran untuk latihan</string>
+    <string name="settings_pause_duration">Durasi jeda:</string>
+    <string name="settings_pause_auto">Otomatis</string>
+    <string name="settings_sleep_timer_label">Timer tidur:</string>
+    <string name="settings_sleep_off">Nonaktif</string>
+    <string name="settings_sleep_stops_in">Berhenti dalam %s</string>
+    <string name="settings_theme_label">Tema aplikasi:</string>
+    <string name="settings_language_label">Bahasa aplikasi:</string>
+    <string name="dialog_delete_playlist_title">Hapus daftar putar?</string>
+    <string name="dialog_delete_playlist_confirm">Hapus \"%s\"? Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="label_playlists_count">%d daftar putar</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d trek</string>
+    <string name="label_playlist_no_playlists">Belum ada daftar putar</string>
+    <string name="label_playlist_create_desc">Buat sesi untuk memulai</string>
+    <string name="btn_new">Baru</string>
+    <string name="btn_create_playlist">Buat daftar putar</string>
+    <string name="btn_add_files">Tambah file</string>
+    <string name="label_added">ditambahkan</string>
+    <string name="label_no_files_category">Tidak ada file dalam kategori ini</string>
+    <string name="label_select">Pilih</string>
+    <string name="label_add_count">Tambah %d</string>
+    <string name="title_trim_audio">Trim Audio</string>
+    <string name="label_studio_editor">Studio Editor</string>
+    <string name="label_keep">Simpan</string>
+    <string name="label_cut">Potong</string>
+    <string name="label_current">SAAT INI</string>
+    <string name="label_new_length">DURASI BARU</string>
+    <string name="label_start">MULAI</string>
+    <string name="label_end">AKHIR</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Hening</string>
+    <string name="label_normalize">Normalisasi</string>
+    <string name="error_open_audio">Tidak bisa membuka audio</string>
+    <string name="error_corrupted_format">File korup atau format tidak didukung.</string>
+    <string name="btn_save_copy">Simpan salinan</string>
+    <string name="btn_replace_original">Ganti asli</string>
+    <string name="label_status_completed">SELESAI</string>
+    <string name="label_status_paused">DIJEDA</string>
+    <string name="label_status_now_playing">SEDANG DIPUTAR</string>
+    <string name="label_shuffle">Acak</string>
+    <string name="label_gap_pill">Jeda %dd</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dj %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d mnt</string>
+    <string name="label_general">Umum</string>
+    <string name="btn_resume">Lanjutkan</string>
+    <string name="btn_stop">Berhenti</string>
+    <string name="title_new_playlist">Daftar putar baru</string>
+    <string name="title_edit_playlist">Edit daftar putar</string>
+    <string name="label_untitled">Tanpa judul</string>
+    <string name="label_playlist_name_header">NAMA DAFTAR PUTAR</string>
+    <string name="hint_enter_name">Masukkan nama…</string>
+    <string name="label_shuffle_playback">Putar acak</string>
+    <string name="label_shuffle_desc">Mainkan trek dalam urutan acak</string>
+    <string name="label_tracks_header">TREK</string>
+    <string name="label_no_tracks">Belum ada trek yang ditambahkan</string>
+    <string name="a11y_remove">Hapus</string>
+    <string name="a11y_drag_reorder">Tarik untuk mengubah urutan</string>
+    <string name="label_playing_indicator">Memutar • </string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Trim hening otomatis</string>
+    <string name="a11y_clear">Bersihkan</string>
+    <string name="label_note">Catatan</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Kategori</string>
+    <string name="label_drag_reorder_hint">Tarik pada pegangan untuk mengubah urutan</string>
+    <string name="hint_category_name">Nama kategori…</string>
+    <string name="label_default">default</string>
+    <string name="a11y_save">Simpan</string>
+    <string name="msg_deleted">Dihapus: %s</string>
+    <string name="msg_restored">Dipulihkan</string>
+    <string name="msg_found_imported">%d rekaman diimpor!</string>
+    <string name="btn_undo">Urungkan</string>
+    <string name="a11y_edit">Edit</string>
+    <string name="label_statistics">Statistik</string>
+    <string name="label_weekly_overview">RINGKASAN MINGGUAN</string>
+    <string name="label_goal_reached">Target tercapai!</string>
+    <string name="label_min_remaining">%d mnt tersisa</string>
+    <string name="label_change_goal">Ubah target</string>
+    <string name="label_streak">Streak</string>
+    <string name="label_today">Hari ini</string>
+    <string name="label_sessions">Sesi</string>
+    <string name="label_edits">Edit</string>
+    <string name="label_avg_daily">Rata-rata harian</string>
+    <string name="label_last_7_days">7 HARI TERAKHIR</string>
+    <string name="label_recommendation">REKOMENDASI</string>
+    <string name="title_weekly_goal">Target Mingguan</string>
+    <string name="msg_goal_question">Berapa menit Anda ingin berlatih setiap minggu?</string>
+    <string name="label_min_per_day">~%d mnt/hari</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_reset_zoom">Reset Zoom</string>
+    <string name="label_earlier">Sebelumnya</string>
+    <string name="label_later">Selanjutnya</string>
+</resources>

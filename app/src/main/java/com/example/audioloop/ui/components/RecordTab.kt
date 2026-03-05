@@ -1,6 +1,9 @@
 package com.example.audioloop.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.ui.graphics.graphicsLayer
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,12 +19,16 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.example.audioloop.AppIcons
 import com.example.audioloop.AudioLoopUiState
+import com.example.audioloop.R
 import com.example.audioloop.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -32,34 +39,41 @@ fun RecordTab(
     onStartRecord: (String, Boolean) -> Unit,
     onStopRecord: () -> Unit
 ) {
-    var mode by remember { mutableStateOf("Speech") }
+    var mode by remember { mutableStateOf("speech") }
     val themeColors = uiState.currentTheme.palette
+    val haptic = LocalHapticFeedback.current
+    val speechLabel = stringResource(R.string.mode_speech)
+    val streamLabel = stringResource(R.string.mode_stream)
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 24.dp),
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.Center
     ) {
-        // Mode Toggle
+        // Mode Selector (Top)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
+                .width(280.dp)
+                .height(56.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(28.dp))
                 .padding(6.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            listOf("Speech" to AppIcons.Mic, "Stream" to AppIcons.Stream).forEach { (m, icon) ->
-                val active = mode == m
+            listOf("speech" to (speechLabel to AppIcons.Mic), "stream" to (streamLabel to AppIcons.Stream)).forEach { (key, labelAndIcon) ->
+                val (label, icon) = labelAndIcon
+                val active = mode == key
                 Surface(
-                    onClick = { mode = m },
+                    onClick = { 
+                        mode = key
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(22.dp),
                     color = if (active) themeColors.primary else Color.Transparent
                 ) {
                     Row(
@@ -69,16 +83,16 @@ fun RecordTab(
                     ) {
                         Icon(
                             imageVector = icon,
-                            contentDescription = null,
+                            contentDescription = label,
                             tint = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = m,
+                            text = label,
                             style = MaterialTheme.typography.labelLarge.copy(
                                 color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium
+                                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium
                             )
                         )
                     }
@@ -86,128 +100,131 @@ fun RecordTab(
             }
         }
 
-        // Record Button
+        Spacer(modifier = Modifier.height(64.dp))
+
+        // Large Premium Record Button
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(84.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .size(240.dp)
+                .shadow(
+                    elevation = if (uiState.isRecording) 30.dp else 12.dp,
+                    shape = CircleShape,
+                    spotColor = if (uiState.isRecording) Red500 else themeColors.primary,
+                    ambientColor = if (uiState.isRecording) Red900 else themeColors.primary900
+                )
+                .clip(CircleShape)
                 .background(
-                    if (uiState.isRecording) {
-                        Brush.radialGradient(colors = listOf(Red900, Color.Black), radius = 600f)
-                    } else {
-                        SolidColor(MaterialTheme.colorScheme.surface)
-                    }
+                    Brush.verticalGradient(
+                        colors = if (uiState.isRecording) listOf(Red600, Red900) else listOf(themeColors.primary, themeColors.primary900)
+                    )
                 )
-                .border(
-                    width = 2.dp,
-                    color = if (uiState.isRecording) Red500 else Red800,
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .clickable {
+                .clickable(
+                    onClickLabel = if (uiState.isRecording) stringResource(R.string.a11y_stop_recording) else stringResource(R.string.a11y_start_recording)
+                ) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (uiState.isRecording) {
                         onStopRecord()
                     } else {
                         val dateFormat = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm:ss", java.util.Locale.getDefault())
                         val dateStr = dateFormat.format(java.util.Date())
-                        val prefix = if (mode == "Speech") "Speech" else "Stream"
+                        val prefix = if (mode == "speech") speechLabel else streamLabel
                         val name = "${prefix}_$dateStr"
-                        onStartRecord(name, mode == "Stream")
+                        onStartRecord(name, mode == "stream")
                     }
                 },
-            contentAlignment = Alignment.CenterStart
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            ) {
-                // Record Indicator
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .shadow(
-                            elevation = if (uiState.isRecording) 12.dp else 0.dp,
-                            spotColor = Red500,
-                            shape = CircleShape
-                        )
-                        .background(
-                            color = if (uiState.isRecording) Red600 else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = if (uiState.isRecording) Red400 else MaterialTheme.colorScheme.outline,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (uiState.isRecording) {
-                        Box(modifier = Modifier.size(20.dp).background(Color.White, RoundedCornerShape(4.dp)))
-                    } else {
-                        Icon(
-                            imageVector = if (mode == "Speech") AppIcons.Mic else AppIcons.Stream,
-                            contentDescription = null,
-                            tint = Red500,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
+            // Animated pulse/rings when recording
+            if (uiState.isRecording) {
+                RecordingRings()
+            }
 
-                // Text Content
-                Column(verticalArrangement = Arrangement.Center) {
-                    var recordingDurationSeconds by remember { mutableLongStateOf(0L) }
-                    
-                    LaunchedEffect(uiState.isRecording) {
-                        if (uiState.isRecording) {
-                            val startTime = System.currentTimeMillis()
-                            while (isActive) {
-                                recordingDurationSeconds = (System.currentTimeMillis() - startTime) / 1000
-                                delay(1000)
-                            }
-                        } else {
-                            recordingDurationSeconds = 0L
-                        }
-                    }
-
-                    if (uiState.isRecording) {
-                        val hours = recordingDurationSeconds / 3600
-                        val minutes = (recordingDurationSeconds % 3600) / 60
-                        val seconds = recordingDurationSeconds % 60
-                        val timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-                        
-                        Text(
-                            text = timeString,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = 2.sp
-                            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = if (uiState.isRecording) AppIcons.Stop else (if (mode == "speech") AppIcons.Mic else AppIcons.Stream),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(64.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                if (uiState.isRecording) {
+                    RecordingTimer()
+                } else {
+                    Text(
+                        text = stringResource(R.string.record_start).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
                         )
-                        Text(
-                            text = "Recording...",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = Red400, fontWeight = FontWeight.Medium)
-                        )
-                    } else {
-                        Text(
-                            text = "Start Recording",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 20.sp,
-                                letterSpacing = 0.5.sp
-                            )
-                        )
-                        Text(
-                            text = "$mode mode",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
-                        )
-                    }
+                    )
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(64.dp))
+
+        // Context info (Bottom)
+        Text(
+            text = if (uiState.isRecording) stringResource(R.string.record_recording) else stringResource(R.string.record_mode_format, if (mode == "speech") speechLabel else streamLabel),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = if (uiState.isRecording) Red400 else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
+            )
+        )
     }
 }
+
+@Composable
+fun RecordingRings() {
+    val infiniteTransition = rememberInfiniteTransition(label = "rings")
+    val ring1Scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(animation = tween(1500, easing = LinearOutSlowInEasing), repeatMode = RepeatMode.Restart),
+        label = "ring1"
+    )
+    val ring1Alpha by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(animation = tween(1500, easing = LinearOutSlowInEasing), repeatMode = RepeatMode.Restart),
+        label = "ring1_alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(240.dp)
+            .graphicsLayer {
+                scaleX = ring1Scale
+                scaleY = ring1Scale
+                alpha = ring1Alpha
+            }
+            .border(4.dp, Red500, CircleShape)
+    )
+}
+
+@Composable
+fun RecordingTimer() {
+    var seconds by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(Unit) {
+        val startTime = System.currentTimeMillis()
+        while (isActive) {
+            seconds = (System.currentTimeMillis() - startTime) / 1000
+            delay(1000)
+        }
+    }
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    Text(
+        text = String.format("%02d:%02d:%02d", h, m, s),
+        style = MaterialTheme.typography.headlineMedium.copy(
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
+    )
+}
+

@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Generelt</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Avbryt</string>
+    <string name="btn_save">Lagre</string>
+    <string name="btn_delete">Slett</string>
+    <string name="btn_play_selected">Spill %d valgte</string>
+    <string name="btn_add_file">Importer fil</string>
+    <string name="btn_record_new">NYTT OPPTAK</string>
+    <string name="btn_go_back">Tilbake</string>
+    <string name="btn_got_it">Oppfattet!</string>
+    <string name="btn_import_audio">Importer lydfil</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Spiller inn…</string>
+    <string name="label_empty_title">Ingen opptak ennå</string>
+    <string name="label_empty_subtitle">Trykk på opptaksknappen over eller importer en lydfil.</string>
+    <string name="label_no_matching_files">Ingen samsvarende filer</string>
+    <string name="label_try_different_search">Prøv et annet søkeord</string>
+    <string name="label_tap_to_select">Trykk på filer for å velge</string>
+    <string name="label_playlists">Spillelister</string>
+    <string name="label_on">På</string>
+    <string name="label_off">Av</string>
+
+    <!-- Search -->
+    <string name="search_hint">Søk i filer…</string>
+    <string name="search_files">Søk i filer</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Gi nytt navn</string>
+    <string name="menu_trim">Trim / Juster</string>
+    <string name="menu_move">Flytt til kategori</string>
+    <string name="menu_share">Del</string>
+    <string name="menu_download">Last ned</string>
+    <string name="menu_split">Del ved stillhet</string>
+    <string name="menu_normalize">Normaliser</string>
+    <string name="menu_auto_trim">Auto-trim stillhet</string>
+    <string name="menu_fade">Fade</string>
+    <string name="menu_merge">Slå sammen valgte</string>
+    <string name="menu_note">Rediger notat</string>
+    <string name="menu_info">Info</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Gi nytt navn til fil</string>
+    <string name="dialog_create_category">Ny kategori</string>
+    <string name="dialog_delete_confirm">Er du sikker?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Tale</string>
+    <string name="mode_stream">Strøm</string>
+    <string name="mode_speech_desc">Spiller inn stemmen din via mikrofonen.</string>
+    <string name="mode_stream_desc">Spiller inn lyd fra enheten (musikk, videoer osv.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Lagret</string>
+    <string name="toast_error">Feil</string>
+    <string name="msg_moved">Flyttet</string>
+    <string name="msg_imported">Importert: %s</string>
+    <string name="msg_error_moving">Feil ved flytting</string>
+    <string name="msg_error_importing">Feil ved importering</string>
+    <string name="msg_error_sharing">Delingsfeil: %s</string>
+    <string name="msg_permission_granted">Tillatelse gitt</string>
+    <string name="msg_permission_denied">Tillatelse nektet</string>
+    <string name="msg_permission_required">Tillatelse kreves for opptak</string>
+    <string name="msg_splitting">Deler ved stillhet…</string>
+    <string name="msg_split_done">Delt inn i %d segmenter</string>
+    <string name="msg_no_silence_gaps">Ingen stillhet funnet for deling</string>
+    <string name="msg_normalizing">Normaliserer…</string>
+    <string name="msg_detecting_silence">Detekterer stillhet…</string>
+    <string name="msg_no_silence_to_trim">Ingen stillhet detektert for trimming</string>
+    <string name="msg_no_significant_silence">Ingen betydelig stillhet funnet for trimming</string>
+    <string name="msg_applying_fade">Bruker fade…</string>
+    <string name="msg_merging">Slår sammen %d filer…</string>
+    <string name="msg_merged">Slått sammen til %s</string>
+    <string name="msg_merge_failed">Sammenslåing feilet</string>
+    <string name="msg_done">Ferdig!</string>
+    <string name="msg_processing_failed">Behandling feilet</string>
+    <string name="msg_access_denied">Tilgang nektet: originalfilen er i bruk</string>
+    <string name="msg_error_finalizing">Feil ved ferdigstilling av fil!</string>
+    <string name="msg_studio_replaced">Studio: Original erstattet</string>
+    <string name="msg_studio_saved_as">Studio: Lagret som %s</string>
+    <string name="msg_normalization_failed">Normalisering feilet</string>
+    <string name="msg_fade_failed">Fade feilet</string>
+    <string name="msg_auto_trim_failed">Auto-trim feilet</string>
+    <string name="msg_playback_error">Avspillingsfeil: %d / %d</string>
+    <string name="msg_error_opening">Feil ved åpning: %s</string>
+    <string name="msg_playlist_empty">Spillelisten er tom eller filer mangler</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Sikkerhetskopiering og gjenoppretting</string>
+    <string name="backup_saved">Sikkerhetskopi lagret: %s</string>
+    <string name="backup_failed">Sikkerhetskopiering feilet: %s</string>
+    <string name="backup_loading">Laster sikkerhetskopier…</string>
+    <string name="backup_no_backups">Ingen sikkerhetskopier funnet</string>
+    <string name="backup_restoring">Gjenoppretter innstillinger…</string>
+    <string name="backup_restore_complete">Gjenoppretting fullført!</string>
+    <string name="backup_restore_failed">Gjenoppretting feilet: %s</string>
+    <string name="backup_deleted">Sikkerhetskopi slettet</string>
+    <string name="signin_cancelled">Innlogging avbrutt</string>
+    <string name="signin_failed_play_services">Innlogging feilet (sjekk Google Play-tjenester).</string>
+    <string name="signin_dev_error">Utviklerfeil (sjekk SHA-1).</string>
+    <string name="signin_interrupted">Innlogging avbrutt</string>
+    <string name="signin_error">Innloggingsfeil (kode %d)</string>
+    <string name="signin_failed">Innlogging feilet: %s</string>
+    <string name="title_restore_backup">Gjenopprette sikkerhetskopi?</string>
+    <string name="msg_restore_warning">Dette vil erstatte nåværende filer, kategorier og innstillinger.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Logg inn for å lagre opptakene dine på Google Drive</string>
+    <string name="btn_signing_in">Logger inn…</string>
+    <string name="btn_google_signin">Logg inn med Google</string>
+    <string name="btn_sign_out">Logg ut</string>
+    <string name="btn_backup">Sikkerhetskopier</string>
+    <string name="btn_restore">Gjenopprett</string>
+    <string name="label_available_backups">Tilgjengelige sikkerhetskopier</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Hastighet</string>
+    <string name="settings_pitch">Tonehøyde</string>
+    <string name="settings_sleep_timer">Sovertimer</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Lytt og gjenta</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Velkommen til AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop støtter to moduser:</string>
+    <string name="welcome_stream_note">Info om strømopptak:</string>
+    <string name="welcome_stream_warning">Android krever bekreftelse hver gang. Dette er en sikkerhetsfunksjon i systemet.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Smart coach</string>
+    <string name="coach_practice_stats">Øvingsstatistikk</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Raskt opptak og avspilling fra hjemskjermen</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Administrer kategorier</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Bibliotek</string>
+    <string name="nav_record">Ta opp</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Innstillinger</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Smart øvingscoach</string>
+    <string name="coach_description">Følg med på fremgangen din og skap en øvingsvane.</string>
+    <string name="coach_open_stats">Åpne fullstendig statistikk</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Start opptak</string>
+    <string name="record_mode_format">%s-modus</string>
+    <string name="record_recording">Spiller inn…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Filer (%s):</string>
+    <string name="library_add">+ Legg til</string>
+    <string name="library_select">Velg</string>
+    <string name="library_play_count">SPILL %d</string>
+    <string name="library_playlist">SPILLELISTE</string>
+    <string name="library_merge_count">SLÅ SAMMEN %d</string>
+    <string name="library_now_playing">SPILLER NÅ</string>
+    <string name="library_today_format">I dag %s</string>
+    <string name="library_tracks_count">%d spor</string>
+    <string name="library_shuffle">Bland</string>
+    <string name="library_gap_format">%ds pause</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Søk i opptak…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Gi nytt navn</string>
+    <string name="dialog_new_name">Nytt navn</string>
+    <string name="dialog_select_category">Velg kategori</string>
+    <string name="dialog_add_note">Legg til notat</string>
+    <string name="dialog_edit_note">Rediger notat</string>
+    <string name="dialog_note_hint">Sangtekst, vers, oversettelse…</string>
+    <string name="dialog_remove">Fjern</string>
+    <string name="dialog_close">Lukk</string>
+    <string name="dialog_delete_file">Slett fil?</string>
+    <string name="dialog_delete_confirm_format">Vil du virkelig slette \'%s\'?</string>
+    <string name="dialog_file_info">Filinfo</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Lengde</string>
+    <string name="info_size">Størrelse</string>
+    <string name="info_sample_rate">Samplingsfrekvens</string>
+    <string name="info_channels">Kanaler</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bithastighet</string>
+    <string name="info_codec">Kodek</string>
+    <string name="info_location">Plassering</string>
+    <string name="info_unknown">Ukjent</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Søk i filer</string>
+    <string name="a11y_backup">Sikkerhetskopiering og gjenoppretting</string>
+    <string name="a11y_close">Lukk</string>
+    <string name="a11y_cancel_selection">Avbryt valg</string>
+    <string name="a11y_manage_categories">Administrer kategorier</string>
+    <string name="a11y_record_speech">Spill inn tale</string>
+    <string name="a11y_record_stream">Spill inn strøm</string>
+    <string name="a11y_stop_recording">Stopp opptak</string>
+    <string name="a11y_import_file">Importer lydfil</string>
+    <string name="a11y_play_selected">Spill valgte filer</string>
+    <string name="a11y_playlist">Lag spilleliste fra utvalg</string>
+    <string name="a11y_recording_active">Opptak pågår</string>
+    <string name="a11y_playlists">Åpne spillelister</string>
+    <string name="settings_playback_title">Avspillingsinnstillinger</string>
+    <string name="settings_speed_label">Hastighet:</string>
+    <string name="settings_repeats">Gjentakelser:</string>
+    <string name="settings_gap">Pause mellom spor:</string>
+    <string name="settings_listen_repeat_desc">Pause etter avspilling for øving</string>
+    <string name="settings_pause_duration">Pauselengde:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Sovertimer:</string>
+    <string name="settings_sleep_off">Av</string>
+    <string name="settings_sleep_stops_in">Stopper om %s</string>
+    <string name="settings_theme_label">Appens tema:</string>
+    <string name="settings_language_label">Appens språk:</string>
+    <string name="dialog_delete_playlist_title">Slett spilleliste?</string>
+    <string name="dialog_delete_playlist_confirm">Slette \"%s\"? Dette kan ikke angres.</string>
+    <string name="label_playlists_count">%d spillelist%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d spor</string>
+    <string name="label_playlist_no_playlists">Ingen spillelister ennå</string>
+    <string name="label_playlist_create_desc">Lag en økt for å starte</string>
+    <string name="btn_new">Ny</string>
+    <string name="btn_create_playlist">Lag spilleliste</string>
+    <string name="btn_add_files">Legg til filer</string>
+    <string name="label_added">lagt til</string>
+    <string name="label_no_files_category">Ingen filer i denne kategorien</string>
+    <string name="label_select">Velg</string>
+    <string name="label_add_count">Legg til %d</string>
+    <string name="title_trim_audio">Trim lyd</string>
+    <string name="label_studio_editor">Studio-redigerer</string>
+    <string name="label_keep">Behold</string>
+    <string name="label_cut">Klipp</string>
+    <string name="label_current">NÅVÆRENDE</string>
+    <string name="label_new_length">NY LENGDE</string>
+    <string name="label_start">START</string>
+    <string name="label_end">SLUTT</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Stillhet</string>
+    <string name="label_normalize">Normaliser</string>
+    <string name="error_open_audio">Kunne ikke åpne lyd</string>
+    <string name="error_corrupted_format">Filen er skadet eller formatet støttes ikke.</string>
+    <string name="btn_save_copy">Lagre kopi</string>
+    <string name="btn_replace_original">Erstatt original</string>
+    <string name="label_status_completed">FERDIG</string>
+    <string name="label_status_paused">PAUSET</string>
+    <string name="label_status_now_playing">SPILLER NÅ</string>
+    <string name="label_shuffle">Bland</string>
+    <string name="label_gap_pill">%ds pause</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dt %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Generelt</string>
+    <string name="btn_resume">Fortsett</string>
+    <string name="btn_stop">Stopp</string>
+    <string name="title_new_playlist">Ny spilleliste</string>
+    <string name="title_edit_playlist">Rediger spilleliste</string>
+    <string name="label_untitled">Uten navn</string>
+    <string name="label_playlist_name_header">NAVN PÅ SPILLELISTE</string>
+    <string name="hint_enter_name">Skriv inn navn…</string>
+    <string name="label_shuffle_playback">Tilfeldig avspilling</string>
+    <string name="label_shuffle_desc">Spill sporene i tilfeldig rekkefølge</string>
+    <string name="label_tracks_header">SPOR</string>
+    <string name="label_no_tracks">Ingen spor lagt til</string>
+    <string name="a11y_remove">Fjern</string>
+    <string name="a11y_drag_reorder">Dra for å endre rekkefølge</string>
+    <string name="label_playing_indicator">Spiller • </string>
+    <string name="a11y_menu">Meny</string>
+    <string name="label_auto_trim_silence">Auto-trim stillhet</string>
+    <string name="a11y_clear">Tøm</string>
+    <string name="label_note">Notat</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Kategorier</string>
+    <string name="label_drag_reorder_hint">Dra i håndtaket for å endre rekkefølge</string>
+    <string name="hint_category_name">Kategorinavn…</string>
+    <string name="label_default">standard</string>
+    <string name="a11y_save">Lagre</string>
+    <string name="msg_deleted">Slettet: %s</string>
+    <string name="msg_restored">Gjenopprettet</string>
+    <string name="msg_found_imported">%d opptak importert!</string>
+    <string name="btn_undo">Angre</string>
+    <string name="a11y_edit">Rediger</string>
+    <string name="label_statistics">Statistikk</string>
+    <string name="label_weekly_overview">UKESOVERSIKT</string>
+    <string name="label_goal_reached">Mål nådd!</string>
+    <string name="label_min_remaining">%d min gjenstår</string>
+    <string name="label_change_goal">Endre mål</string>
+    <string name="label_streak">Streak</string>
+    <string name="label_today">I dag</string>
+    <string name="label_sessions">Økter</string>
+    <string name="label_edits">Redigeringer</string>
+    <string name="label_avg_daily">Snitt per dag</string>
+    <string name="label_last_7_days">SISTE 7 DAGER</string>
+    <string name="label_recommendation">ANBEFALING</string>
+    <string name="title_weekly_goal">Ukentlig mål</string>
+    <string name="msg_goal_question">Hvor mange minutter i uken?</string>
+    <string name="label_min_per_day">~%d min/dag</string>
+    <string name="btn_reset">Nullstill</string>
+    <string name="btn_reset_zoom">Nullstill zoom</string>
+    <string name="label_earlier">Tidligere</string>
+    <string name="label_later">Senere</string>
+</resources>

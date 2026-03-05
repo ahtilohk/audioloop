@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.audioloop.RecordingItem
+import com.example.audioloop.R
 import com.example.audioloop.ui.theme.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,13 +50,13 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Rename", style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                Text(stringResource(R.string.dialog_rename), style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold))
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 OutlinedTextField(
                     value = textState,
                     onValueChange = { textState = it },
-                    label = { Text("New name") },
+                    label = { Text(stringResource(R.string.dialog_new_name)) },
                     singleLine = true,
                     modifier = Modifier.focusRequester(focusRequester),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -73,11 +75,11 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                 Spacer(modifier = Modifier.height(20.dp))
                 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     Button(
                         onClick = { onConfirm(textState.text) },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) { Text("Save") }
+                    ) { Text(stringResource(R.string.btn_save)) }
                 }
             }
         }
@@ -92,7 +94,7 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp).heightIn(max = 400.dp)) {
-                Text("Select Category", style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 12.dp))
+                Text(stringResource(R.string.dialog_select_category), style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 12.dp))
                 LazyColumn {
                     items(categories) { cat ->
                         Text(
@@ -108,7 +110,7 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
                     }
                 }
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
             }
         }
@@ -137,7 +139,7 @@ fun NoteEditDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    if (hasNote) "Edit Note" else "Add Note",
+                    if (hasNote) stringResource(R.string.dialog_edit_note) else stringResource(R.string.dialog_add_note),
                     style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -151,7 +153,7 @@ fun NoteEditDialog(
                 OutlinedTextField(
                     value = textState,
                     onValueChange = { textState = it },
-                    label = { Text("Lyrics, verse, translation...") },
+                    label = { Text(stringResource(R.string.dialog_note_hint)) },
                     minLines = 4,
                     maxLines = 12,
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
@@ -176,17 +178,17 @@ fun NoteEditDialog(
                 ) {
                     if (hasNote) {
                         TextButton(onClick = { onConfirm("") }) {
-                            Text("Remove", color = Red400)
+                            Text(stringResource(R.string.dialog_remove), color = Red400)
                         }
                     } else {
                         Spacer(modifier = Modifier.width(1.dp))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         Button(
                             onClick = { onConfirm(textState.text) },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) { Text("Save") }
+                        ) { Text(stringResource(R.string.btn_save)) }
                     }
                 }
             }
@@ -207,9 +209,9 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = Red600)
-            ) { Text("Delete") }
+            ) { Text(stringResource(R.string.btn_delete)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) } }
     )
 }
 
@@ -243,7 +245,7 @@ fun FileInfoDialog(
                 modifier = Modifier.padding(20.dp).widthIn(max = 400.dp)
             ) {
                 Text(
-                    "File Info",
+                    stringResource(R.string.dialog_file_info),
                     style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -265,24 +267,24 @@ fun FileInfoDialog(
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    InfoRow("Format", file.extension.uppercase())
-                    InfoRow("Duration", item.durationString)
-                    InfoRow("Size", formatFileSize(file.length()))
+                    InfoRow(stringResource(R.string.info_format), file.extension.uppercase())
+                    InfoRow(stringResource(R.string.info_duration), item.durationString)
+                    InfoRow(stringResource(R.string.info_size), formatFileSize(file.length()))
 
                     if (audioInfo.value.sampleRate > 0) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        InfoRow("Sample Rate", "${audioInfo.value.sampleRate} Hz")
-                        InfoRow("Channels", if (audioInfo.value.channels == 1) "Mono" else "Stereo")
+                        InfoRow(stringResource(R.string.info_sample_rate), "${audioInfo.value.sampleRate} Hz")
+                        InfoRow(stringResource(R.string.info_channels), if (audioInfo.value.channels == 1) stringResource(R.string.info_mono) else stringResource(R.string.info_stereo))
                         if (audioInfo.value.bitRate > 0) {
-                            InfoRow("Bit Rate", "${audioInfo.value.bitRate / 1000} kbps")
+                            InfoRow(stringResource(R.string.info_bit_rate), "${audioInfo.value.bitRate / 1000} kbps")
                         }
                         if (audioInfo.value.codec.isNotEmpty()) {
-                            InfoRow("Codec", audioInfo.value.codec)
+                            InfoRow(stringResource(R.string.info_codec), audioInfo.value.codec)
                         }
                     }
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    InfoRow("Location", file.parent ?: "Unknown", isPath = true)
+                    InfoRow(stringResource(R.string.info_location), file.parent ?: stringResource(R.string.info_unknown), isPath = true)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -291,7 +293,7 @@ fun FileInfoDialog(
                     Button(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) { Text("Close") }
+                    ) { Text(stringResource(R.string.dialog_close)) }
                 }
             }
         }

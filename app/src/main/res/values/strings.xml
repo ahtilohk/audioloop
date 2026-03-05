@@ -12,8 +12,11 @@
     <string name="btn_play_selected">Play %d selected</string>
     <string name="btn_add_file">Import File</string>
     <string name="btn_record_new">RECORD NEW</string>
+    <string name="btn_go_back">Go Back</string>
     <string name="btn_got_it">Got it!</string>
     <string name="btn_import_audio">Import Audio File</string>
+    <string name="btn_add">Add</string>
+
 
     <!-- Labels -->
     <string name="label_recording">Recording…</string>
@@ -23,6 +26,8 @@
     <string name="label_try_different_search">Try a different search term</string>
     <string name="label_tap_to_select">Tap files to select</string>
     <string name="label_playlists">Playlists</string>
+    <string name="label_on">On</string>
+    <string name="label_off">Off</string>
 
     <!-- Search -->
     <string name="search_hint">Search files…</string>
@@ -40,7 +45,12 @@
     <string name="menu_fade">Fade</string>
     <string name="menu_merge">Merge selected</string>
     <string name="menu_note">Edit note</string>
+    <string name="menu_note_edit">Edit Note</string>
+    <string name="menu_note_add">Add Note</string>
     <string name="menu_info">Info</string>
+    <string name="menu_play">Play</string>
+    <string name="menu_pause">Pause</string>
+
 
     <!-- Dialogs -->
     <string name="dialog_rename_title">Rename File</string>
@@ -59,7 +69,9 @@
     <string name="msg_moved">Moved</string>
     <string name="msg_imported">Imported: %s</string>
     <string name="msg_error_moving">Error moving</string>
+    <string name="msg_error_deleting">Error deleting</string>
     <string name="msg_error_importing">Error importing</string>
+
     <string name="msg_error_sharing">Error sharing: %s</string>
     <string name="msg_permission_granted">Permission granted</string>
     <string name="msg_permission_denied">Permission denied</string>
@@ -104,6 +116,16 @@
     <string name="signin_interrupted">Sign-in interrupted</string>
     <string name="signin_error">Sign-in error (code %d)</string>
     <string name="signin_failed">Sign-in failed: %s</string>
+    <string name="title_restore_backup">Restore Backup?</string>
+    <string name="msg_restore_warning">This will replace your current files, categories, and settings with the backup contents.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Sign in to back up your recordings and settings to Google Drive</string>
+    <string name="btn_signing_in">Signing in…</string>
+    <string name="btn_google_signin">Sign in with Google</string>
+    <string name="btn_sign_out">Sign out</string>
+    <string name="btn_backup">Backup</string>
+    <string name="btn_restore">Restore</string>
+    <string name="label_available_backups">Available backups</string>
 
     <!-- Settings -->
     <string name="settings_loop">Loop</string>
@@ -123,9 +145,229 @@
     <string name="coach_smart_coach">Smart Coach</string>
     <string name="coach_practice_stats">Practice Statistics</string>
 
+    <!-- Sorting -->
+    <string name="menu_sort">Sort by</string>
+    <string name="sort_name_asc">Name (A-Z)</string>
+    <string name="sort_name_desc">Name (Z-A)</string>
+    <string name="sort_date_desc">Newest first</string>
+    <string name="sort_date_asc">Oldest first</string>
+    <string name="sort_length_desc">Longest first</string>
+    <string name="sort_length_asc">Shortest first</string>
+
     <!-- Widget -->
     <string name="widget_description">Quick record and play from your home screen</string>
 
     <!-- Categories -->
     <string name="category_manage">Manage Categories</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Library</string>
+    <string name="nav_record">Record</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Smart Practice Coach</string>
+    <string name="coach_description">Track your progress, get personal recommendations, and build a practice habit.</string>
+    <string name="coach_open_stats">Open Full Statistics</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Start Recording</string>
+    <string name="record_mode_format">%s mode</string>
+    <string name="record_recording">Recording…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Files (%s):</string>
+    <string name="library_add">+ Add</string>
+    <string name="library_select">Select</string>
+    <string name="library_play_count">PLAY %d</string>
+    <string name="library_playlist">PLAYLIST</string>
+    <string name="library_merge_count">MERGE %d</string>
+    <string name="library_now_playing">NOW PLAYING</string>
+    <string name="library_today_format">Today %s</string>
+    <string name="library_tracks_count">%d tracks</string>
+    <string name="library_shuffle">Shuffle</string>
+    <string name="library_gap_format">%ds gap</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Search recordings…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Rename</string>
+    <string name="dialog_new_name">New name</string>
+    <string name="dialog_select_category">Select Category</string>
+    <string name="dialog_add_note">Add Note</string>
+    <string name="dialog_edit_note">Edit Note</string>
+    <string name="dialog_note_hint">Lyrics, verse, translation…</string>
+    <string name="dialog_remove">Remove</string>
+    <string name="dialog_close">Close</string>
+    <string name="dialog_delete_file">Delete file?</string>
+    <string name="dialog_delete_confirm_format">Are you sure you want to delete \'%s\'?</string>
+    <string name="dialog_file_info">File Info</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Duration</string>
+    <string name="info_size">Size</string>
+    <string name="info_sample_rate">Sample Rate</string>
+    <string name="info_channels">Channels</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bit Rate</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Location</string>
+    <string name="info_unknown">Unknown</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Search files</string>
+    <string name="a11y_backup">Backup &amp; Restore</string>
+    <string name="a11y_close">Close</string>
+    <string name="a11y_cancel_selection">Cancel selection</string>
+    <string name="a11y_manage_categories">Manage categories</string>
+    <string name="a11y_record_speech">Record speech</string>
+    <string name="a11y_record_stream">Record stream</string>
+    <string name="a11y_stop_recording">Stop recording</string>
+    <string name="a11y_import_file">Import audio file</string>
+    <string name="a11y_play_selected">Play selected files</string>
+    <string name="a11y_playlist">Create playlist from selection</string>
+    <string name="a11y_recording_active">Recording active</string>
+    <string name="a11y_playlists">Open playlists</string>
+    <string name="settings_theme_label">Theme Color</string>
+    <string name="settings_theme_mode_label">Theme Mode</string>
+    <string name="theme_mode_auto">Auto</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="settings_playback_title">Playback Settings</string>
+    <string name="settings_repeats">Repeats:</string>
+    <string name="settings_gap">Gap between tracks:</string>
+
+    <string name="settings_listen_repeat_desc">Pause after playback to practice</string>
+
+    <string name="settings_pause_duration">Pause duration:</string>
+
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_off">Off</string>
+
+    <string name="settings_sleep_stops_in">Stops in %s</string>
+    <string name="settings_speed_label">Speed:</string>
+    <string name="settings_listen_repeat_label">Listen &amp; Repeat:</string>
+    <string name="settings_sleep_timer_label">Sleep Timer:</string>
+    <string name="settings_theme_label">App Theme:</string>
+    <string name="settings_language_label">App Language:</string>
+    <string name="dialog_delete_playlist_title">Delete playlist?</string>
+    <string name="dialog_delete_playlist_confirm">Delete \"%s\"? This cannot be undone.</string>
+    <string name="label_playlists_count">%d playlist%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d tracks</string>
+    <string name="label_playlist_no_playlists">No playlists yet</string>
+    <string name="label_playlist_create_desc">Create a study session to get started</string>
+    <string name="btn_new">New</string>
+    <string name="btn_create_playlist">Create Playlist</string>
+    <string name="btn_add_files">Add Files</string>
+    <string name="label_added">added</string>
+    <string name="label_no_files_category">No files in this category</string>
+    <string name="label_select">Select</string>
+    <string name="label_add_count">Add %d</string>
+    <string name="title_trim_audio">Trim Audio</string>
+    <string name="label_studio_editor">Studio Editor</string>
+    <string name="label_keep">Keep</string>
+    <string name="label_cut">Cut</string>
+    <string name="label_current">CURRENT</string>
+    <string name="label_new_length">NEW LENGTH</string>
+    <string name="label_start">START</string>
+    <string name="label_end">END</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Silence</string>
+    <string name="label_normalize">Normalize</string>
+    <string name="error_open_audio">Could not open audio file</string>
+    <string name="error_corrupted_format">The file may be corrupted or in an unsupported format.</string>
+    <string name="btn_save_copy">Save Copy</string>
+    <string name="btn_replace_original">Replace Original</string>
+    <string name="label_status_completed">COMPLETED</string>
+    <string name="label_status_paused">PAUSED</string>
+    <string name="label_status_now_playing">NOW PLAYING</string>
+    <string name="label_shuffle">Shuffle</string>
+    <string name="label_gap_pill">%ds gap</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">General</string>
+    <string name="btn_resume">Resume</string>
+    <string name="btn_stop">Stop</string>
+    <string name="title_new_playlist">New Playlist</string>
+    <string name="title_edit_playlist">Edit Playlist</string>
+    <string name="label_untitled">Untitled</string>
+    <string name="label_playlist_name_header">PLAYLIST NAME</string>
+    <string name="hint_enter_name">Enter name…</string>
+    <string name="label_shuffle_playback">Shuffle Playback</string>
+    <string name="label_shuffle_desc">Play tracks in random order</string>
+    <string name="label_tracks_header">TRACKS</string>
+    <string name="label_no_tracks">No tracks added</string>
+    <string name="a11y_remove">Remove</string>
+    <string name="a11y_start_recording">Start recording</string>
+    <string name="a11y_stop_recording">Stop recording</string>
+    <string name="a11y_drag_reorder">Drag to reorder</string>
+    <string name="a11y_playing">Playing</string>
+    <string name="a11y_paused">Paused</string>
+    <string name="a11y_close_search">Close search</string>
+    <string name="label_filter_by_category">Filter by category</string>
+    <string name="category_all">All</string>
+    <string name="search_header_all">Search results (%d)</string>
+    <string name="search_header_category">Results in %1$s (%2$d)</string>
+    <string name="a11y_select_theme">Select %s theme</string>
+    <string name="a11y_search">Search recordings</string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Auto-trim Silence</string>
+    <string name="a11y_clear">Clear</string>
+    <string name="label_note">Note</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Categories</string>
+    <string name="label_drag_reorder_hint">Drag handle to reorder</string>
+    <string name="hint_category_name">Category name…</string>
+    <string name="title_delete_category">Delete category?</string>
+    <string name="msg_delete_category">Are you sure you want to delete category \'%s\'? All recordings in it will be moved to General.</string>
+
+    <string name="label_default">default</string>
+    <string name="a11y_save">Save</string>
+    <string name="msg_deleted">Deleted %s</string>
+    <string name="msg_restored">Restored</string>
+    <string name="msg_found_imported">Found %d recording(s) in public storage – imported!</string>
+    <string name="btn_undo">Undo</string>
+    <string name="a11y_edit">Edit</string>
+    <string name="label_statistics">Statistics</string>
+    <string name="label_weekly_overview">WEEKLY OVERVIEW</string>
+    <string name="label_goal_reached">Goal reached!</string>
+    <string name="label_min_remaining">%d min remaining</string>
+    <string name="label_change_goal">Change goal</string>
+    <string name="label_streak">Streak</string>
+    <string name="label_today">Today</string>
+    <string name="label_sessions">Sessions</string>
+    <string name="label_edits">Edits</string>
+    <string name="label_avg_daily">Avg. daily</string>
+    <string name="label_last_7_days">LAST 7 DAYS</string>
+    <string name="label_recommendation">RECOMMENDATION</string>
+    <string name="title_weekly_goal">Weekly goal</string>
+    <string name="msg_goal_question">How many minutes per week do you want to practice?</string>
+    <string name="label_min_per_day">~%d min/day</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_reset_zoom">Reset Zoom</string>
+    <string name="label_earlier">Earlier</string>
+    <string name="label_later">Later</string>
+
+    <!-- Storage Settings -->
+    <string name="title_storage">Storage</string>
+    <string name="desc_public_storage">Save recordings to public Music folder</string>
+    <string name="btn_scan_now">Scan Now</string>
 </resources>
+

@@ -24,7 +24,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import android.annotation.SuppressLint
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -491,9 +490,5 @@ class AudioService : Service() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
-    }
-
-    fun showToast(message: String) {
-        Handler(Looper.getMainLooper()).post { Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show() }
     }
 }

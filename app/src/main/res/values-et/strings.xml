@@ -1,0 +1,369 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Üldine</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Tühista</string>
+    <string name="btn_save">Salvesta</string>
+    <string name="btn_delete">Kustuta</string>
+    <string name="btn_play_selected">Mängi %d valitut</string>
+    <string name="btn_add_file">Impordi fail</string>
+    <string name="btn_record_new">UUS SALVESTUS</string>
+    <string name="btn_go_back">Mine tagasi</string>
+    <string name="btn_got_it">Sain aru!</string>
+    <string name="btn_import_audio">Impordi helifail</string>
+    <string name="btn_add">Lisa</string>
+
+
+    <!-- Labels -->
+    <string name="label_recording">Salvestamine…</string>
+    <string name="label_empty_title">Salvestusi veel pole</string>
+    <string name="label_empty_subtitle">Koputa üleval olevale salvestusnupule või impordi helifail.</string>
+    <string name="label_no_matching_files">Vastaid faile ei leitud</string>
+    <string name="label_try_different_search">Proovi teist otsingusõna</string>
+    <string name="label_tap_to_select">Valimiseks koputa failidele</string>
+    <string name="label_playlists">Esitusloendid</string>
+    <string name="label_on">Sees</string>
+    <string name="label_off">Väljas</string>
+
+    <!-- Search -->
+    <string name="search_hint">Otsi faile…</string>
+    <string name="search_files">Otsi faile</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Muuda nime</string>
+    <string name="menu_trim">Lõika / Kärbi</string>
+    <string name="menu_move">Liiguta kategooriasse</string>
+    <string name="menu_share">Jaga</string>
+    <string name="menu_download">Laadi alla</string>
+    <string name="menu_split">Tükelda vaikuse järgi</string>
+    <string name="menu_normalize">Normaliseeri</string>
+    <string name="menu_auto_trim">Automaatne kärpimine</string>
+    <string name="menu_fade">Hajutus</string>
+    <string name="menu_merge">Ühenda valitud</string>
+    <string name="menu_note">Muuda märget</string>
+    <string name="menu_note_edit">Muuda märget</string>
+    <string name="menu_note_add">Lisa märge</string>
+    <string name="menu_info">Info</string>
+    <string name="menu_play">Mängi</string>
+    <string name="menu_pause">Paus</string>
+
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Muuda faili nime</string>
+    <string name="dialog_create_category">Uus kategooria</string>
+    <string name="dialog_delete_confirm">Oled sa kindel?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Kõne</string>
+    <string name="mode_stream">Voog</string>
+    <string name="mode_speech_desc">Salvestab sinu häält mikrofoni kaudu.</string>
+    <string name="mode_stream_desc">Salvestab seadmes mängivat heli (muusika, videod jne).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Salvestatud</string>
+    <string name="toast_error">Viga</string>
+    <string name="msg_moved">Liigutatud</string>
+    <string name="msg_imported">Imporditud: %s</string>
+    <string name="msg_error_moving">Viga liigutamisel</string>
+    <string name="msg_error_deleting">Viga kustutamisel</string>
+    <string name="msg_error_importing">Viga importimisel</string>
+
+    <string name="msg_error_sharing">Viga jagamisel: %s</string>
+    <string name="msg_permission_granted">Luba antud</string>
+    <string name="msg_permission_denied">Luba keelatud</string>
+    <string name="msg_permission_required">Salvestamiseks on vaja luba</string>
+    <string name="msg_splitting">Tükeldamine vaikuse järgi…</string>
+    <string name="msg_split_done">Tükeldatud %d segmendiks</string>
+    <string name="msg_no_silence_gaps">Tükeldamiseks ei leitud vaikusepause</string>
+    <string name="msg_normalizing">Normaliseerimine…</string>
+    <string name="msg_detecting_silence">Vaikuse tuvastamine…</string>
+    <string name="msg_no_silence_to_trim">Kärpimiseks ei tuvastatud vaikust</string>
+    <string name="msg_no_significant_silence">Olulist vaikust kärpimiseks ei leitud</string>
+    <string name="msg_applying_fade">Hajutuse rakendamine…</string>
+    <string name="msg_merging">Ühendatakse %d faili…</string>
+    <string name="msg_merged">Ühendatud faili %s</string>
+    <string name="msg_merge_failed">Ühendamine ebaõnnestus</string>
+    <string name="msg_done">Valmis!</string>
+    <string name="msg_processing_failed">Töötlemine ebaõnnestus</string>
+    <string name="msg_access_denied">Juurdepääs keelatud: algfail on kasutusel</string>
+    <string name="msg_error_finalizing">Viga faili lõpetamisel!</string>
+    <string name="msg_studio_replaced">Stuudio: Originaal asendatud</string>
+    <string name="msg_studio_saved_as">Stuudio: Salvestatud kui %s</string>
+    <string name="msg_normalization_failed">Normaliseerimine ebaõnnestus</string>
+    <string name="msg_fade_failed">Hajutus ebaõnnestus</string>
+    <string name="msg_auto_trim_failed">Automaatne kärpimine ebaõnnestus</string>
+    <string name="msg_playback_error">Esitusviga: %d / %d</string>
+    <string name="msg_error_opening">Viga faili avamisel: %s</string>
+    <string name="msg_playlist_empty">Esitusloend on tühi või failid puuduvad</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Varundus ja taastamine</string>
+    <string name="backup_saved">Varundus salvestatud: %s</string>
+    <string name="backup_failed">Varundamine ebaõnnestus: %s</string>
+    <string name="backup_loading">Varunduste laadimine…</string>
+    <string name="backup_no_backups">Varundusi ei leitud</string>
+    <string name="backup_restoring">Seadete taastamine…</string>
+    <string name="backup_restore_complete">Taastamine lõpetatud!</string>
+    <string name="backup_restore_failed">Taastamine ebaõnnestus: %s</string>
+    <string name="backup_deleted">Varundus kustutatud</string>
+    <string name="signin_cancelled">Sisselogimine tühistatud</string>
+    <string name="signin_failed_play_services">Sisselogimine ebaõnnestus. Kontrolli Google Play teenuseid.</string>
+    <string name="signin_dev_error">Arendaja viga: kontrolli SHA-1 võtit</string>
+    <string name="signin_interrupted">Sisselogimine katkestati</string>
+    <string name="signin_error">Sisselogimise viga (kood %d)</string>
+    <string name="signin_failed">Sisselogimine ebaõnnestus: %s</string>
+    <string name="title_restore_backup">Taastada varundusest?</string>
+    <string name="msg_restore_warning">See asendab sinu praegused failid, kategooriad ja seaded varunduse sisuga.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Logi sisse, et varundada oma salvestused ja seaded Google Drive\'i</string>
+    <string name="btn_signing_in">Sisselogimine…</string>
+    <string name="btn_google_signin">Logi sisse Google\'iga</string>
+    <string name="btn_sign_out">Logi välja</string>
+    <string name="btn_backup">Varunda</string>
+    <string name="btn_restore">Taasta</string>
+    <string name="label_available_backups">Saadaolevad varundused</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Kordus</string>
+    <string name="settings_speed">Kiirus</string>
+    <string name="settings_pitch">Helikõrgus</string>
+    <string name="settings_sleep_timer">Unetaimer</string>
+    <string name="settings_theme">Teema</string>
+    <string name="settings_listen_repeat">Kuula ja korda</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Tere tulemast rakendusse AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop toetab kahte salvestusrežiimi:</string>
+    <string name="welcome_stream_note">Märkus Voog-salvestuse kohta:</string>
+    <string name="welcome_stream_warning">Android küsib Voog-salvestuse alustamisel iga kord kinnitust. See on turvafunktsioon ja sellest ei saa mööda minna.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Nutikas treener</string>
+    <string name="coach_practice_stats">Harjutamise statistika</string>
+
+    <!-- Sorting -->
+    <string name="menu_sort">Sorteeri</string>
+    <string name="sort_name_asc">Nimi (A-Z)</string>
+    <string name="sort_name_desc">Nimi (Z-A)</string>
+    <string name="sort_date_desc">Uuemad eespool</string>
+    <string name="sort_date_asc">Vanemad eespool</string>
+    <string name="sort_length_desc">Pikemad eespool</string>
+    <string name="sort_length_asc">Lühemad eespool</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Kiire salvestamine ja esitamine koduekraanilt</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Halda kategooriaid</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Raamatukogu</string>
+    <string name="nav_record">Salvesta</string>
+    <string name="nav_coach">Treener</string>
+    <string name="nav_settings">Seaded</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Nutikas harjutamise treener</string>
+    <string name="coach_description">Jälgi oma mistahes progressi, saa isiklikke soovitusi ja kujunda harjutamisharjumus.</string>
+    <string name="coach_open_stats">Ava täielik statistika</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Alusta salvestamist</string>
+    <string name="record_mode_format">%s režiim</string>
+    <string name="record_recording">Salvestamine…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Failid (%s):</string>
+    <string name="library_add">+ Lisa</string>
+    <string name="library_select">Vali</string>
+    <string name="library_play_count">MÄNGI %d</string>
+    <string name="library_playlist">ESITUSLOEND</string>
+    <string name="library_merge_count">ÜHENDA %d</string>
+    <string name="library_now_playing">HETKEL MÄNGIB</string>
+    <string name="library_today_format">Täna %s</string>
+    <string name="library_tracks_count">%d lugu</string>
+    <string name="library_shuffle">Segamini</string>
+    <string name="library_gap_format">%ds paus</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Otsi salvestusi…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Muuda nime</string>
+    <string name="dialog_new_name">Uus nimi</string>
+    <string name="dialog_select_category">Vali kategooria</string>
+    <string name="dialog_add_note">Lisa märge</string>
+    <string name="dialog_edit_note">Muuda märget</string>
+    <string name="dialog_note_hint">Sõnad, salm, tõlge…</string>
+    <string name="dialog_remove">Eemalda</string>
+    <string name="dialog_close">Sulge</string>
+    <string name="dialog_delete_file">Kustutada fail?</string>
+    <string name="dialog_delete_confirm_format">Oled sa kindel, et soovid kustutada \'%s\'?</string>
+    <string name="dialog_file_info">Faili info</string>
+
+    <!-- File Info -->
+    <string name="info_format">Vorming</string>
+    <string name="info_duration">Kestus</string>
+    <string name="info_size">Suurus</string>
+    <string name="info_sample_rate">Sagedus</string>
+    <string name="info_channels">Kanalid</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bitikiirus</string>
+    <string name="info_codec">Koodek</string>
+    <string name="info_location">Asukoht</string>
+    <string name="info_unknown">Teadmata</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Otsi faile</string>
+    <string name="a11y_backup">Varundus ja taastamine</string>
+    <string name="a11y_close">Sulge</string>
+    <string name="a11y_cancel_selection">Tühista valik</string>
+    <string name="a11y_manage_categories">Halda kategooriaid</string>
+    <string name="a11y_record_speech">Salvesta kõnet</string>
+    <string name="a11y_record_stream">Salvesta voogu</string>
+    <string name="a11y_stop_recording">Peata salvestamine</string>
+    <string name="a11y_import_file">Impordi helifail</string>
+    <string name="a11y_play_selected">Mängi valitud faile</string>
+    <string name="a11y_playlist">Loo valikust esitusloend</string>
+    <string name="a11y_recording_active">Salvestamine aktiivne</string>
+    <string name="a11y_playlists">Ava esitusloendid</string>
+    <string name="a11y_delete">Kustuta</string>
+
+    <string name="settings_playback_title">Esituse seaded</string>
+    <string name="settings_speed_label">Kiirus:</string>
+    <string name="settings_repeats">Kordusi:</string>
+    <string name="settings_gap">Paus lugude vahel:</string>
+    <string name="settings_listen_repeat_desc">Paus pärast esitust harjutamiseks</string>
+    <string name="settings_pause_duration">Pausi kestus:</string>
+    <string name="settings_pause_auto">Automaatne</string>
+    <string name="settings_sleep_timer_label">Unetaimer:</string>
+    <string name="settings_sleep_off">Väljas</string>
+    <string name="settings_sleep_stops_in">Sulgub %s pärast</string>
+    <string name="settings_theme_label">Teema värv:</string>
+    <string name="settings_theme_mode_label">Teema režiim:</string>
+    <string name="theme_mode_auto">Auto</string>
+    <string name="theme_mode_light">Hele</string>
+    <string name="theme_mode_dark">Tume</string>
+    <string name="settings_language_label">Rakenduse keel:</string>
+    <string name="dialog_delete_playlist_title">Kustutada esitusloend?</string>
+    <string name="dialog_delete_playlist_confirm">Kustutada \"%s\"? Seda ei saa tagasi võtta.</string>
+    <string name="label_playlists_count">%d esitusloend%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d lugu</string>
+    <string name="label_playlist_no_playlists">Esitusloendeid veel pole</string>
+    <string name="label_playlist_create_desc">Alustamiseks loo õppesessioon</string>
+    <string name="btn_new">Uus</string>
+    <string name="btn_create_playlist">Loo esitusloend</string>
+    <string name="btn_add_files">Lisa faile</string>
+    <string name="label_added">lisatud</string>
+    <string name="label_no_files_category">Selles kategoorias pole faile</string>
+    <string name="label_select">Vali</string>
+    <string name="label_add_count">Lisa %d</string>
+    <string name="title_trim_audio">Lõika heli</string>
+    <string name="label_studio_editor">Stuudio-redaktor</string>
+    <string name="label_keep">Jäta</string>
+    <string name="label_cut">Lõika</string>
+    <string name="label_current">HETKEL</string>
+    <string name="label_new_length">UUS PIKKUS</string>
+    <string name="label_start">ALGUS</string>
+    <string name="label_end">LÕPP</string>
+    <string name="label_fade_in">Sissehajutus</string>
+    <string name="label_fade_out">Väljahajutus</string>
+    <string name="label_silence">Vaikus</string>
+    <string name="label_normalize">Normaliseeri</string>
+    <string name="error_open_audio">Helifaili ei saanud avada</string>
+    <string name="error_corrupted_format">Fail võib olla rikutud või mittetoetatud vormingus.</string>
+    <string name="btn_save_copy">Salvesta koopia</string>
+    <string name="btn_replace_original">Asenda originaal</string>
+    <string name="label_status_completed">LÕPETATUD</string>
+    <string name="label_status_paused">PEATATUD</string>
+    <string name="label_status_now_playing">HETKEL MÄNGIB</string>
+    <string name="label_shuffle">Segamini</string>
+    <string name="label_gap_pill">%ds paus</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Üldine</string>
+    <string name="btn_resume">Jätka</string>
+    <string name="btn_stop">Peata</string>
+    <string name="title_new_playlist">Uus esitusloend</string>
+    <string name="title_edit_playlist">Muuda esitusloendit</string>
+    <string name="label_untitled">Nimeta</string>
+    <string name="label_playlist_name_header">ESITUSLOENDI NIMI</string>
+    <string name="hint_enter_name">Sisesta nimi…</string>
+    <string name="label_shuffle_playback">Esita segamini</string>
+    <string name="label_shuffle_desc">Esita lugusid juhuslikus järjekorras</string>
+    <string name="label_tracks_header">LOOD</string>
+    <string name="label_no_tracks">Lugusid pole lisatud</string>
+    <string name="a11y_remove">Eemalda</string>
+    <string name="a11y_start_recording">Alusta salvestamist</string>
+    <string name="a11y_stop_recording">Löpeta salvestamine</string>
+    <string name="a11y_drag_reorder">Lohista reastamiseks</string>
+    <string name="a11y_playing">Mängib</string>
+    <string name="a11y_paused">Pausil</string>
+    <string name="a11y_close_search">Sulge otsing</string>
+    <string name="label_filter_by_category">Filtreeri kategooria järgi</string>
+    <string name="category_all">Kõik</string>
+    <string name="search_header_all">Otsingu tulemused (%d)</string>
+    <string name="search_header_category">Tulemused kategoorias %1$s (%2$d)</string>
+    <string name="a11y_select_theme">Vali %s teema</string>
+    <string name="a11y_search">Otsi salvestusi</string>
+    <string name="label_playing_indicator">Mängib • </string>
+    <string name="a11y_menu">Menüü</string>
+    <string name="label_auto_trim_silence">Automaatne vaikuse kärpimine</string>
+    <string name="a11y_clear">Tühjenda</string>
+    <string name="label_note">Märge</string>
+    <string name="prefix_speech">Kõne</string>
+    <string name="prefix_stream">Voog</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Kategooriad</string>
+    <string name="label_drag_reorder_hint">Lohista pidemest reastamiseks</string>
+    <string name="hint_category_name">Kategooria nimi…</string>
+    <string name="title_delete_category">Kustutada kategooria?</string>
+    <string name="msg_delete_category">Oled sa kindel, et soovid kustutada kategooria \'%s\'? Kõik selles olevad salvestused liigutatakse kausta Üldine.</string>
+
+    <string name="label_default">vaikimisi</string>
+    <string name="a11y_save">Salvesta</string>
+    <string name="msg_deleted">Kustutatud %s</string>
+    <string name="msg_restored">Taastatud</string>
+    <string name="msg_found_imported">Leiti %d salvestust avalikust mälust – imporditud!</string>
+    <string name="btn_undo">Võta tagasi</string>
+    <string name="a11y_edit">Muuda</string>
+    <string name="label_statistics">Statistika</string>
+    <string name="label_weekly_overview">NÄDALA ÜLEVAADE</string>
+    <string name="label_goal_reached">Eesmärk täidetud!</string>
+    <string name="label_min_remaining">%d min jäänud</string>
+    <string name="label_change_goal">Muuda eesmärki</string>
+    <string name="label_streak">Seeria</string>
+    <string name="label_today">Täna</string>
+    <string name="label_sessions">Sessioonid</string>
+    <string name="label_edits">Muudatused</string>
+    <string name="label_avg_daily">Päeva keskmine</string>
+    <string name="label_last_7_days">VIIMASED 7 PÄEVA</string>
+    <string name="label_recommendation">SOOVITUS</string>
+    <string name="title_weekly_goal">Nädala eesmärk</string>
+    <string name="msg_goal_question">Mitu minutit nädalas soovid harjutada?</string>
+    <string name="label_min_per_day">~%d min/päev</string>
+    <string name="btn_reset">Lähtesta</string>
+    <string name="btn_reset_zoom">Lähtesta suum</string>
+    <string name="label_earlier">Varem</string>
+    <string name="label_later">Hiljem</string>
+
+    <!-- Storage Settings -->
+    <string name="title_storage">Salvestusruum</string>
+    <string name="desc_public_storage">Salvesta failid avalikku Muusika kausta</string>
+    <string name="btn_scan_now">Skanni kohe</string>
+</resources>

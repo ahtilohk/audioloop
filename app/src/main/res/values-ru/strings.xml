@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Общие</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Отмена</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="btn_delete">Удалить</string>
+    <string name="btn_play_selected">Играть %d выбранных</string>
+    <string name="btn_add_file">Импорт файла</string>
+    <string name="btn_record_new">НОВАЯ ЗАПИСЬ</string>
+    <string name="btn_go_back">Назад</string>
+    <string name="btn_got_it">Понятно!</string>
+    <string name="btn_import_audio">Импорт аудиофайла</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Запись…</string>
+    <string name="label_empty_title">Записей пока нет</string>
+    <string name="label_empty_subtitle">Нажмите кнопку записи выше или импортируйте аудиофайл.</string>
+    <string name="label_no_matching_files">Нет подходящих файлов</string>
+    <string name="label_try_different_search">Попробуйте другой запрос</string>
+    <string name="label_tap_to_select">Нажмите на файлы для выбора</string>
+    <string name="label_playlists">Плейлисты</string>
+    <string name="label_on">Вкл</string>
+    <string name="label_off">Выкл</string>
+
+    <!-- Search -->
+    <string name="search_hint">Поиск файлов…</string>
+    <string name="search_files">Поиск файлов</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Переименовать</string>
+    <string name="menu_trim">Обрезать / Вырезать</string>
+    <string name="menu_move">Переместить в категорию</string>
+    <string name="menu_share">Поделиться</string>
+    <string name="menu_download">Скачать</string>
+    <string name="menu_split">Разделить по тишине</string>
+    <string name="menu_normalize">Нормализовать</string>
+    <string name="menu_auto_trim">Авто-обрезка тишины</string>
+    <string name="menu_fade">Затухание</string>
+    <string name="menu_merge">Объединить выбранные</string>
+    <string name="menu_note">Изм. заметку</string>
+    <string name="menu_info">Инфо</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Переименовать файл</string>
+    <string name="dialog_create_category">Новая категория</string>
+    <string name="dialog_delete_confirm">Вы уверены?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Речь</string>
+    <string name="mode_stream">Поток</string>
+    <string name="mode_speech_desc">Записывает ваш голос через микрофон.</string>
+    <string name="mode_stream_desc">Записывает аудио с устройства (музыка, видео и др.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Сохранено</string>
+    <string name="toast_error">Ошибка</string>
+    <string name="msg_moved">Перемещено</string>
+    <string name="msg_imported">Импортировано: %s</string>
+    <string name="msg_error_moving">Ошибка перемещения</string>
+    <string name="msg_error_importing">Ошибка импорта</string>
+    <string name="msg_error_sharing">Ошибка обмена: %s</string>
+    <string name="msg_permission_granted">Разрешение получено</string>
+    <string name="msg_permission_denied">В разрешении отказано</string>
+    <string name="msg_permission_required">Требуется разрешение на запись</string>
+    <string name="msg_splitting">Разделение по тишине…</string>
+    <string name="msg_split_done">Разделено на %d сегментов</string>
+    <string name="msg_no_silence_gaps">Паузы тишины не найдены</string>
+    <string name="msg_normalizing">Нормализация…</string>
+    <string name="msg_detecting_silence">Поиск тишины…</string>
+    <string name="msg_no_silence_to_trim">Тишина для обрезки не найдена</string>
+    <string name="msg_no_significant_silence">Значимая тишина не найдена</string>
+    <string name="msg_applying_fade">Применение затухания…</string>
+    <string name="msg_merging">Объединение %d файлов…</string>
+    <string name="msg_merged">Объединено в %s</string>
+    <string name="msg_merge_failed">Ошибка объединения</string>
+    <string name="msg_done">Готово!</string>
+    <string name="msg_processing_failed">Ошибка обработки</string>
+    <string name="msg_access_denied">Доступ запрещен: файл занят</string>
+    <string name="msg_error_finalizing">Ошибка при завершении файла!</string>
+    <string name="msg_studio_replaced">Студия: Оригинал заменен</string>
+    <string name="msg_studio_saved_as">Студия: Сохранено как %s</string>
+    <string name="msg_normalization_failed">Ошибка нормализации</string>
+    <string name="msg_fade_failed">Ошибка затухания</string>
+    <string name="msg_auto_trim_failed">Ошибка авто-обрезки</string>
+    <string name="msg_playback_error">Ошибка воспроизведения: %d / %d</string>
+    <string name="msg_error_opening">Ошибка открытия: %s</string>
+    <string name="msg_playlist_empty">Плейлист пуст или файлы отсутствуют</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Резервное копирование</string>
+    <string name="backup_saved">Бэкап сохранен: %s</string>
+    <string name="backup_failed">Бэкап не удался: %s</string>
+    <string name="backup_loading">Загрузка бэкапов…</string>
+    <string name="backup_no_backups">Бэкапы не найдены</string>
+    <string name="backup_restoring">Восстановление настроек…</string>
+    <string name="backup_restore_complete">Восстановление завершено!</string>
+    <string name="backup_restore_failed">Ошибка восстановления: %s</string>
+    <string name="backup_deleted">Бэкап удален</string>
+    <string name="signin_cancelled">Вход отменен</string>
+    <string name="signin_failed_play_services">Ошибка входа (проверьте Play Services).</string>
+    <string name="signin_dev_error">Ошибка разработчика (проверьте SHA-1).</string>
+    <string name="signin_interrupted">Вход прерван</string>
+    <string name="signin_error">Ошибка входа (код %d)</string>
+    <string name="signin_failed">Ошибка входа: %s</string>
+    <string name="title_restore_backup">Восстановить бэкап?</string>
+    <string name="msg_restore_warning">Это заменит ваши текущие файлы, категории и настройки.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Войдите, чтобы сохранять записи в Google Drive</string>
+    <string name="btn_signing_in">Вход…</string>
+    <string name="btn_google_signin">Войти через Google</string>
+    <string name="btn_sign_out">Выйти</string>
+    <string name="btn_backup">Бэкап</string>
+    <string name="btn_restore">Восстановить</string>
+    <string name="label_available_backups">Доступные бэкапы</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Повтор</string>
+    <string name="settings_speed">Скорость</string>
+    <string name="settings_pitch">Тон</string>
+    <string name="settings_sleep_timer">Таймер сна</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_listen_repeat">Слушай и повторяй</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Добро пожаловать в AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop поддерживает два режима:</string>
+    <string name="welcome_stream_note">Заметка о Потоковой записи:</string>
+    <string name="welcome_stream_warning">Android требует подтверждения при каждом запуске. Это мера безопасности.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Смарт-коуч</string>
+    <string name="coach_practice_stats">Статистика занятий</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Быстрая запись и запуск с экрана</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Управление категориями</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Библиотека</string>
+    <string name="nav_record">Запись</string>
+    <string name="nav_coach">Коуч</string>
+    <string name="nav_settings">Настройки</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Умный коуч по практике</string>
+    <string name="coach_description">Отслеживайте прогресс и создавайте привычку заниматься.</string>
+    <string name="coach_open_stats">Открыть полную статистику</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Начать запись</string>
+    <string name="record_mode_format">Режим %s</string>
+    <string name="record_recording">Запись…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Файлы (%s):</string>
+    <string name="library_add">+ Добавить</string>
+    <string name="library_select">Выбор</string>
+    <string name="library_play_count">ИГРАТЬ %d</string>
+    <string name="library_playlist">ПЛЕЙЛИСТ</string>
+    <string name="library_merge_count">СЛИЯНИЕ %d</string>
+    <string name="library_now_playing">ИГРАЕТ СЕЙЧАС</string>
+    <string name="library_today_format">Сегодня %s</string>
+    <string name="library_tracks_count">%d треков</string>
+    <string name="library_shuffle">Случайно</string>
+    <string name="library_gap_format">Пауза %ds</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Поиск по записям…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Переименовать</string>
+    <string name="dialog_new_name">Новое имя</string>
+    <string name="dialog_select_category">Выбор категории</string>
+    <string name="dialog_add_note">Добавить заметку</string>
+    <string name="dialog_edit_note">Изм. заметку</string>
+    <string name="dialog_note_hint">Текст, стихи, перевод…</string>
+    <string name="dialog_remove">Удалить</string>
+    <string name="dialog_close">Закрыть</string>
+    <string name="dialog_delete_file">Удалить файл?</string>
+    <string name="dialog_delete_confirm_format">Удалить \'%s\'?</string>
+    <string name="dialog_file_info">Инфо о файле</string>
+
+    <!-- File Info -->
+    <string name="info_format">Формат</string>
+    <string name="info_duration">Длительность</string>
+    <string name="info_size">Размер</string>
+    <string name="info_sample_rate">Частота</string>
+    <string name="info_channels">Каналы</string>
+    <string name="info_mono">Моно</string>
+    <string name="info_stereo">Стерео</string>
+    <string name="info_bit_rate">Битрейт</string>
+    <string name="info_codec">Кодек</string>
+    <string name="info_location">Путь</string>
+    <string name="info_unknown">Неизвестно</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Логотип</string>
+    <string name="a11y_search">Поиск файлов</string>
+    <string name="a11y_backup">Бэкап и восстановление</string>
+    <string name="a11y_close">Закрыть</string>
+    <string name="a11y_cancel_selection">Отменить выбор</string>
+    <string name="a11y_manage_categories">Управление категориями</string>
+    <string name="a11y_record_speech">Запись речи</string>
+    <string name="a11y_record_stream">Запись потока</string>
+    <string name="a11y_stop_recording">Остановить запись</string>
+    <string name="a11y_import_file">Импорт аудиофайла</string>
+    <string name="a11y_play_selected">Играть выбранные</string>
+    <string name="a11y_playlist">Создать плейлист из выбора</string>
+    <string name="a11y_recording_active">Идет запись</string>
+    <string name="a11y_playlists">Открыть плейлисты</string>
+    <string name="settings_playback_title">Настройки плеера</string>
+    <string name="settings_speed_label">Скорость:</string>
+    <string name="settings_repeats">Повторы:</string>
+    <string name="settings_gap">Пауза между треками:</string>
+    <string name="settings_listen_repeat_desc">Пауза после проигрывания для практики</string>
+    <string name="settings_pause_duration">Длительность паузы:</string>
+    <string name="settings_pause_auto">Авто</string>
+    <string name="settings_sleep_timer_label">Таймер сна:</string>
+    <string name="settings_sleep_off">Выкл</string>
+    <string name="settings_sleep_stops_in">Остановка через %s</string>
+    <string name="settings_theme_label">Тема приложения:</string>
+    <string name="settings_language_label">Язык приложения:</string>
+    <string name="dialog_delete_playlist_title">Удалить плейлист?</string>
+    <string name="dialog_delete_playlist_confirm">Удалить \"%s\"? Это нельзя будет отменить.</string>
+    <string name="label_playlists_count">%d плейлистов</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d треков</string>
+    <string name="label_playlist_no_playlists">Плейлистов пока нет</string>
+    <string name="label_playlist_create_desc">Создайте сессию для начала</string>
+    <string name="btn_new">Новый</string>
+    <string name="btn_create_playlist">Создать плейлист</string>
+    <string name="btn_add_files">Добавить файлы</string>
+    <string name="label_added">добавлено</string>
+    <string name="label_no_files_category">В этой категории нет файлов</string>
+    <string name="label_select">Выбрать</string>
+    <string name="label_add_count">Добавить %d</string>
+    <string name="title_trim_audio">Обрезка аудио</string>
+    <string name="label_studio_editor">Студийный редактор</string>
+    <string name="label_keep">Оставить</string>
+    <string name="label_cut">Вырезать</string>
+    <string name="label_current">ТЕКУЩИЙ</string>
+    <string name="label_new_length">НОВАЯ ДЛИНА</string>
+    <string name="label_start">НАЧАЛО</string>
+    <string name="label_end">КОНЕЦ</string>
+    <string name="label_fade_in">Вступление</string>
+    <string name="label_fade_out">Затухание</string>
+    <string name="label_silence">Тишина</string>
+    <string name="label_normalize">Нормализация</string>
+    <string name="error_open_audio">Не удалось открыть аудио</string>
+    <string name="error_corrupted_format">Файл поврежден или не поддерживается.</string>
+    <string name="btn_save_copy">Копия</string>
+    <string name="btn_replace_original">Заменить оригинал</string>
+    <string name="label_status_completed">ЗАВЕРШЕНО</string>
+    <string name="label_status_paused">ПАУЗА</string>
+    <string name="label_status_now_playing">ИГРАЕТ СЕЙЧАС</string>
+    <string name="label_shuffle">Случайно</string>
+    <string name="label_gap_pill">Пауза %ds</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d мин</string>
+    <string name="label_general">Общие</string>
+    <string name="btn_resume">Продолжить</string>
+    <string name="btn_stop">Стоп</string>
+    <string name="title_new_playlist">Новый плейлист</string>
+    <string name="title_edit_playlist">Изм. плейлист</string>
+    <string name="label_untitled">Без названия</string>
+    <string name="label_playlist_name_header">ИМЯ ПЛЕЙЛИСТА</string>
+    <string name="hint_enter_name">Введите имя…</string>
+    <string name="label_shuffle_playback">Случайное воспр.</string>
+    <string name="label_shuffle_desc">Треки в случайном порядке</string>
+    <string name="label_tracks_header">ТРЕКИ</string>
+    <string name="label_no_tracks">Треки не добавлены</string>
+    <string name="a11y_remove">Удалить</string>
+    <string name="a11y_drag_reorder">Перетащите для изменения порядка</string>
+    <string name="label_playing_indicator">Играет • </string>
+    <string name="a11y_menu">Меню</string>
+    <string name="label_auto_trim_silence">Авто-обрезка тишины</string>
+    <string name="a11y_clear">Очистить</string>
+    <string name="label_note">Заметка</string>
+    <string name="prefix_speech">Речь</string>
+    <string name="prefix_stream">Поток</string>
+    <string name="unit_bytes">Б</string>
+    <string name="unit_kb">КБ</string>
+    <string name="unit_mb">МБ</string>
+    <string name="unit_bit">бит</string>
+    <string name="label_categories">Категории</string>
+    <string name="label_drag_reorder_hint">Тяните за ручку для изменения порядка</string>
+    <string name="hint_category_name">Имя категории…</string>
+    <string name="label_default">по умолчанию</string>
+    <string name="a11y_save">Сохранить</string>
+    <string name="msg_deleted">Удалено: %s</string>
+    <string name="msg_restored">Восстановлено</string>
+    <string name="msg_found_imported">Импортировано %d записей!</string>
+    <string name="btn_undo">Отмена</string>
+    <string name="a11y_edit">Изм.</string>
+    <string name="label_statistics">Статистика</string>
+    <string name="label_weekly_overview">НЕДЕЛЬНЫЙ ОБЗОР</string>
+    <string name="label_goal_reached">Цель достигнута!</string>
+    <string name="label_min_remaining">осталось %d мин</string>
+    <string name="label_change_goal">Изм. цель</string>
+    <string name="label_streak">Страйк</string>
+    <string name="label_today">Сегодня</string>
+    <string name="label_sessions">Сессии</string>
+    <string name="label_edits">Правки</string>
+    <string name="label_avg_daily">Ср. за день</string>
+    <string name="label_last_7_days">ПОСЛЕДНИЕ 7 ДНЕЙ</string>
+    <string name="label_recommendation">РЕКОМЕНДАЦИЯ</string>
+    <string name="title_weekly_goal">Цель на неделю</string>
+    <string name="msg_goal_question">Сколько минут в неделю хотите заниматься?</string>
+    <string name="label_min_per_day">~%d мин/день</string>
+    <string name="btn_reset">Сброс</string>
+    <string name="btn_reset_zoom">Сброс зума</string>
+    <string name="label_earlier">Раньше</string>
+    <string name="label_later">Позже</string>
+</resources>

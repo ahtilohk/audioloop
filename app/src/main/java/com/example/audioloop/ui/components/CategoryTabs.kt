@@ -11,9 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
 
 @Composable
 fun CategoryTabs(
@@ -22,6 +26,7 @@ fun CategoryTabs(
     onCategoryChange: (String) -> Unit,
     onManageCategoriesClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -38,12 +43,15 @@ fun CategoryTabs(
                 Column(
                     modifier = Modifier
                         .width(IntrinsicSize.Max)
-                        .clickable { onCategoryChange(cat) }
+                        .clickable { 
+                            onCategoryChange(cat)
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
                         .padding(horizontal = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = cat,
+                        text = if (cat == "General") stringResource(R.string.label_general) else cat,
                         style = MaterialTheme.typography.labelLarge.copy(
                             color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
@@ -71,7 +79,7 @@ fun CategoryTabs(
         ) {
             Icon(
                 imageVector = AppIcons.Settings, // Or an Edit icon
-                contentDescription = "Manage categories",
+                contentDescription = stringResource(R.string.a11y_manage_categories),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)
             )

@@ -30,6 +30,9 @@ import com.example.audioloop.AppIcons
 import com.example.audioloop.Playlist
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 
 @Composable
@@ -44,6 +47,7 @@ fun PlaylistEditorScreen(
     onClose: () -> Unit,
     themeColors: AppColorPalette
 ) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf(playlist.name) }
     var files = remember { mutableStateListOf<String>().apply { addAll(playlist.files) } }
     
@@ -75,7 +79,7 @@ fun PlaylistEditorScreen(
                             listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), MaterialTheme.colorScheme.background)
                         )
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -89,11 +93,11 @@ fun PlaylistEditorScreen(
                             .background(MaterialTheme.colorScheme.surface, CircleShape)
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     ) {
-                        Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.a11y_close), tint = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Text(
-                        text = if (playlist.id.startsWith("new_")) "New Playlist" else "Edit Playlist",
+                        text = if (playlist.id.startsWith("new_")) stringResource(R.string.title_new_playlist) else stringResource(R.string.title_edit_playlist),
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -105,7 +109,7 @@ fun PlaylistEditorScreen(
                         onClick = {
                             onSave(
                                 playlist.copy(
-                                    name = name.ifBlank { "Untitled" },
+                                    name = name.ifBlank { context.getString(R.string.label_untitled) },
                                     files = files.toList(),
                                     gapSeconds = gapSeconds,
                                     shuffle = shuffle,
@@ -116,12 +120,12 @@ fun PlaylistEditorScreen(
                             )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
                         Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Save", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.menu_rename).replace("Rename", "Save"), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -135,7 +139,7 @@ fun PlaylistEditorScreen(
                 item {
                     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                         Text(
-                            "PLAYLIST NAME",
+                            stringResource(R.string.label_playlist_name_header),
                             style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                             modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
                         )
@@ -144,7 +148,7 @@ fun PlaylistEditorScreen(
                             onValueChange = { name = it },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                            placeholder = { Text("Enter name...", color = MaterialTheme.colorScheme.outline) },
+                            placeholder = { Text(stringResource(R.string.hint_enter_name), color = MaterialTheme.colorScheme.outline) },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = themeColors.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -200,11 +204,12 @@ fun PlaylistEditorScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text("🔀", fontSize = 18.sp)
+
                         }
                         Spacer(Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Shuffle Playback", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Play tracks in random order", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(stringResource(R.string.label_shuffle_playback), color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.label_shuffle_desc), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         }
                         Switch(
                             checked = shuffle,
@@ -230,11 +235,11 @@ fun PlaylistEditorScreen(
                     ) {
                         Column {
                             Text(
-                                "TRACKS",
+                                stringResource(R.string.label_tracks_header),
                                 style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             )
                             Text(
-                                "${files.size} songs selected",
+                                stringResource(R.string.label_playlist_tracks, files.size),
                                 style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             )
                         }
@@ -245,7 +250,7 @@ fun PlaylistEditorScreen(
                         ) {
                             Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Add Tracks", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.btn_add_files).replace("Files", "Tracks"), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -259,7 +264,7 @@ fun PlaylistEditorScreen(
                         ) {
                             Text("🎵", fontSize = 40.sp)
                             Spacer(Modifier.height(12.dp))
-                            Text("No tracks added", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.label_no_tracks), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else {
@@ -319,9 +324,9 @@ private fun TrackItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -351,7 +356,7 @@ private fun TrackItem(
         }
 
         IconButton(onClick = onRemove) {
-            Icon(AppIcons.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_remove), tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
         }
     }
 }

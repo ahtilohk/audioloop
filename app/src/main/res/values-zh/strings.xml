@@ -1,0 +1,324 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">通用</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">取消</string>
+    <string name="btn_save">保存</string>
+    <string name="btn_delete">删除</string>
+    <string name="btn_play_selected">播放 %d 个已选项目</string>
+    <string name="btn_add_file">导入文件</string>
+    <string name="btn_record_new">录制新项</string>
+    <string name="btn_go_back">返回</string>
+    <string name="btn_got_it">知道了！</string>
+    <string name="btn_import_audio">导入音频文件</string>
+
+    <!-- Labels -->
+    <string name="label_recording">录音中…</string>
+    <string name="label_empty_title">暂无录音</string>
+    <string name="label_empty_subtitle">点击上方录音按钮开始录音，或导入音频文件。</string>
+    <string name="label_no_matching_files">未找到匹配文件</string>
+    <string name="label_try_different_search">尝试其他搜索词</string>
+    <string name="label_tap_to_select">点击文件进行选择</string>
+    <string name="label_playlists">播放列表</string>
+    <string name="label_on">开启</string>
+    <string name="label_off">关闭</string>
+
+    <!-- Search -->
+    <string name="search_hint">搜索文件…</string>
+    <string name="search_files">搜索文件</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">重命名</string>
+    <string name="menu_trim">裁剪 / 剪切</string>
+    <string name="menu_move">移动至分类</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_download">下载</string>
+    <string name="menu_split">按静音分割</string>
+    <string name="menu_normalize">标准化</string>
+    <string name="menu_auto_trim">自动裁剪静音</string>
+    <string name="menu_fade">淡入淡出</string>
+    <string name="menu_merge">合并已选项目</string>
+    <string name="menu_note">编辑备注</string>
+    <string name="menu_info">信息</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">重命名文件</string>
+    <string name="dialog_create_category">新建分类</string>
+    <string name="dialog_delete_confirm">确定吗？</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">语音</string>
+    <string name="mode_stream">串流</string>
+    <string name="mode_speech_desc">使用麦克风录制您的声音。</string>
+    <string name="mode_stream_desc">录制设备正在播放的音频（音乐、视频等）。</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">已保存</string>
+    <string name="toast_error">错误</string>
+    <string name="msg_moved">已移动</string>
+    <string name="msg_imported">已导入：%s</string>
+    <string name="msg_error_moving">移动错误</string>
+    <string name="msg_error_importing">导入错误</string>
+    <string name="msg_error_sharing">分享错误：%s</string>
+    <string name="msg_permission_granted">已授予权限</string>
+    <string name="msg_permission_denied">已拒绝权限</string>
+    <string name="msg_permission_required">录音需要相关权限</string>
+    <string name="msg_splitting">正在按静音分割…</string>
+    <string name="msg_split_done">已分割为 %d 个片段</string>
+    <string name="msg_no_silence_gaps">未找到可分割的静音间隙</string>
+    <string name="msg_normalizing">正在标准化…</string>
+    <string name="msg_detecting_silence">正在检测静音…</string>
+    <string name="msg_no_silence_to_trim">未检测到可裁剪的静音</string>
+    <string name="msg_no_significant_silence">无显著静音可裁剪</string>
+    <string name="msg_applying_fade">正在应用淡入淡出…</string>
+    <string name="msg_merging">正在合并 %d 个文件…</string>
+    <string name="msg_merged">已合并至 %s</string>
+    <string name="msg_merge_failed">合并失败</string>
+    <string name="msg_done">完成！</string>
+    <string name="msg_processing_failed">处理失败</string>
+    <string name="msg_access_denied">访问被拒绝：原始文件正被使用</string>
+    <string name="msg_error_finalizing">完成文件时出错！</string>
+    <string name="msg_studio_replaced">编辑器：已替换原文件</string>
+    <string name="msg_studio_saved_as">编辑器：已另存为 %s</string>
+    <string name="msg_normalization_failed">标准化失败</string>
+    <string name="msg_fade_failed">淡入淡出失败</string>
+    <string name="msg_auto_trim_failed">自动裁剪失败</string>
+    <string name="msg_playback_error">播放错误：%d / %d</string>
+    <string name="msg_error_opening">打开文件出错：%s</string>
+    <string name="msg_playlist_empty">播放列表为空或文件丢失</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">备份与恢复</string>
+    <string name="backup_saved">备份已保存：%s</string>
+    <string name="backup_failed">备份失败：%s</string>
+    <string name="backup_loading">正在加载备份…</string>
+    <string name="backup_no_backups">未找到备份</string>
+    <string name="backup_restoring">正在恢复设置…</string>
+    <string name="backup_restore_complete">恢复完成！</string>
+    <string name="backup_restore_failed">恢复失败：%s</string>
+    <string name="backup_deleted">备份已删除</string>
+    <string name="signin_cancelled">登录已取消</string>
+    <string name="signin_failed_play_services">登录失败。请检查 Google Play 服务。</string>
+    <string name="signin_dev_error">开发者错误：请检查 Google Cloud 平台的 SHA-1</string>
+    <string name="signin_interrupted">登录被中断</string>
+    <string name="signin_error">登录错误（代码 %d）</string>
+    <string name="signin_failed">登录失败：%s</string>
+    <string name="title_restore_backup">恢复备份？</string>
+    <string name="msg_restore_warning">这将用备份内容替换您当前的文件、分类和设置。</string>
+    <string name="label_google_drive">Google 云端硬盘</string>
+    <string name="msg_backup_intro">登录以将您的录音和设置备份到 Google 云端硬盘</string>
+    <string name="btn_signing_in">登录中…</string>
+    <string name="btn_google_signin">通过 Google 登录</string>
+    <string name="btn_sign_out">退出登录</string>
+    <string name="btn_backup">备份</string>
+    <string name="btn_restore">恢复</string>
+    <string name="label_available_backups">可用备份</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">循环</string>
+    <string name="settings_speed">速度</string>
+    <string name="settings_pitch">音调</string>
+    <string name="settings_sleep_timer">睡眠定时器</string>
+    <string name="settings_theme">主题</string>
+    <string name="settings_listen_repeat">听录与跟读</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">欢迎使用 AudioLoop！</string>
+    <string name="welcome_modes_intro">AudioLoop 支持两种录音模式：</string>
+    <string name="welcome_stream_note">关于串流录音的提示：</string>
+    <string name="welcome_stream_warning">Android 要求每次开始串流录音时都进行权限确认。这是安全特性，无法绕过。</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">智能教练</string>
+    <string name="coach_practice_stats">练习统计</string>
+
+    <!-- Widget -->
+    <string name="widget_description">从主屏幕快速录音和播放</string>
+
+    <!-- Categories -->
+    <string name="category_manage">管理分类</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">库</string>
+    <string name="nav_record">录音</string>
+    <string name="nav_coach">教练</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">智能练习教练</string>
+    <string name="coach_description">追踪您的进度，获得个性化建议，并养成练习习惯。</string>
+    <string name="coach_open_stats">打开完整统计</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">开始录音</string>
+    <string name="record_mode_format">%s 模式</string>
+    <string name="record_recording">录音中…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">文件 (%s):</string>
+    <string name="library_add">+ 添加</string>
+    <string name="library_select">选择</string>
+    <string name="library_play_count">播放 %d</string>
+    <string name="library_playlist">播放列表</string>
+    <string name="library_merge_count">合并 %d</string>
+    <string name="library_now_playing">正在播放</string>
+    <string name="library_today_format">今天 %s</string>
+    <string name="library_tracks_count">%d 条音轨</string>
+    <string name="library_shuffle">随机播放</string>
+    <string name="library_gap_format">%d秒间隙</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">搜索录音…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">重命名</string>
+    <string name="dialog_new_name">新名称</string>
+    <string name="dialog_select_category">选择分类</string>
+    <string name="dialog_add_note">添加备注</string>
+    <string name="dialog_edit_note">编辑备注</string>
+    <string name="dialog_note_hint">歌词、段落、翻译…</string>
+    <string name="dialog_remove">移除</string>
+    <string name="dialog_close">关闭</string>
+    <string name="dialog_delete_file">删除文件？</string>
+    <string name="dialog_delete_confirm_format">确定要删除 \'%s\' 吗？</string>
+    <string name="dialog_file_info">文件信息</string>
+
+    <!-- File Info -->
+    <string name="info_format">格式</string>
+    <string name="info_duration">时长</string>
+    <string name="info_size">大小</string>
+    <string name="info_sample_rate">采样率</string>
+    <string name="info_channels">声道</string>
+    <string name="info_mono">单声道</string>
+    <string name="info_stereo">立体声</string>
+    <string name="info_bit_rate">比特率</string>
+    <string name="info_codec">解码器</string>
+    <string name="info_location">位置</string>
+    <string name="info_unknown">未知</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">图标</string>
+    <string name="a11y_search">搜索文件</string>
+    <string name="a11y_backup">备份与恢复</string>
+    <string name="a11y_close">关闭</string>
+    <string name="a11y_cancel_selection">取消选择</string>
+    <string name="a11y_manage_categories">管理分类</string>
+    <string name="a11y_record_speech">录制语音</string>
+    <string name="a11y_record_stream">录制串流</string>
+    <string name="a11y_stop_recording">停止录音</string>
+    <string name="a11y_import_file">导入音频文件</string>
+    <string name="a11y_play_selected">播放所选文件</string>
+    <string name="a11y_playlist">从所选内容创建播放列表</string>
+    <string name="a11y_recording_active">正在录音</string>
+    <string name="a11y_playlists">打开播放列表</string>
+    <string name="settings_playback_title">播放设置</string>
+    <string name="settings_repeats">重复次数：</string>
+    <string name="settings_gap">曲目间隙：</string>
+    <string name="settings_listen_repeat_desc">播放后暂停以供练习</string>
+    <string name="settings_pause_duration">暂停时长：</string>
+    <string name="settings_pause_auto">自动</string>
+    <string name="settings_sleep_off">关闭</string>
+    <string name="settings_sleep_stops_in">%s 后停止</string>
+    <string name="settings_theme_label">应用主题：</string>
+    <string name="settings_language_label">应用语言：</string>
+    <string name="dialog_delete_playlist_title">删除播放列表？</string>
+    <string name="dialog_delete_playlist_confirm">删除 \"%s\"？ 此操作无法撤销。</string>
+    <string name="label_playlists_count">%d 个播放列表</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d 条音轨</string>
+    <string name="label_playlist_no_playlists">暂无播放列表</string>
+    <string name="label_playlist_create_desc">创建一个学习课节开始吧</string>
+    <string name="btn_new">新建</string>
+    <string name="btn_create_playlist">创建播放列表</string>
+    <string name="btn_add_files">添加文件</string>
+    <string name="label_added">已添加</string>
+    <string name="label_no_files_category">此分类下无文件</string>
+    <string name="label_select">选择</string>
+    <string name="label_add_count">添加 %d</string>
+    <string name="title_trim_audio">裁剪音频</string>
+    <string name="label_studio_editor">工作室编辑器</string>
+    <string name="label_keep">保留</string>
+    <string name="label_cut">剪切</string>
+    <string name="label_current">当前</string>
+    <string name="label_new_length">新长度</string>
+    <string name="label_start">开始</string>
+    <string name="label_end">结束</string>
+    <string name="label_fade_in">淡入</string>
+    <string name="label_fade_out">淡出</string>
+    <string name="label_silence">静音</string>
+    <string name="label_normalize">标准化</string>
+    <string name="error_open_audio">无法打开音频文件</string>
+    <string name="error_corrupted_format">文件可能已损坏或格式不受支持。</string>
+    <string name="btn_save_copy">保存副本</string>
+    <string name="btn_replace_original">替换原文件</string>
+    <string name="label_status_completed">已完成</string>
+    <string name="label_status_paused">已暂停</string>
+    <string name="label_status_now_playing">正在播放</string>
+    <string name="label_shuffle">随机</string>
+    <string name="label_gap_pill">%d秒间隙</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d 分钟</string>
+    <string name="label_general">通用</string>
+    <string name="btn_resume">恢复</string>
+    <string name="btn_stop">停止</string>
+    <string name="title_new_playlist">新建播放列表</string>
+    <string name="title_edit_playlist">编辑播放列表</string>
+    <string name="label_untitled">未命名</string>
+    <string name="label_playlist_name_header">播放列表名称</string>
+    <string name="hint_enter_name">输入名称…</string>
+    <string name="label_shuffle_playback">随机播放</string>
+    <string name="label_shuffle_desc">按随机顺序播放音轨</string>
+    <string name="label_tracks_header">曲目</string>
+    <string name="label_no_tracks">未添加曲目</string>
+    <string name="a11y_remove">移除</string>
+    <string name="a11y_drag_reorder">拖动以重排</string>
+    <string name="label_playing_indicator">播放中 • </string>
+    <string name="a11y_menu">菜单</string>
+    <string name="label_auto_trim_silence">自动裁剪静音</string>
+    <string name="a11y_clear">清除</string>
+    <string name="label_note">备注</string>
+    <string name="prefix_speech">语音</string>
+    <string name="prefix_stream">串流</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">位</string>
+    <string name="label_categories">分类</string>
+    <string name="label_drag_reorder_hint">拖动把手以重排</string>
+    <string name="hint_category_name">分类名称…</string>
+    <string name="label_default">默认</string>
+    <string name="a11y_save">保存</string>
+    <string name="msg_deleted">已删除 %s</string>
+    <string name="msg_restored">已恢复</string>
+    <string name="msg_found_imported">在公共存储中找到 %d 个录音 – 已导入！</string>
+    <string name="btn_undo">撤销</string>
+    <string name="a11y_edit">编辑</string>
+    <string name="label_statistics">统计</string>
+    <string name="label_weekly_overview">每周概览</string>
+    <string name="label_goal_reached">目标达成！</string>
+    <string name="label_min_remaining">还剩 %d 分钟</string>
+    <string name="label_change_goal">更改目标</string>
+    <string name="label_streak">连续天数</string>
+    <string name="label_today">今天</string>
+    <string name="label_sessions">课节</string>
+    <string name="label_edits">编辑</string>
+    <string name="label_avg_daily">日均</string>
+    <string name="label_last_7_days">过去 7 天</string>
+    <string name="label_recommendation">建议</string>
+    <string name="title_weekly_goal">每周目标</string>
+    <string name="msg_goal_question">您每周想练习多少分钟？</string>
+    <string name="label_min_per_day">约 %d 分钟/天</string>
+    <string name="btn_reset">重置</string>
+    <string name="btn_reset_zoom">重置缩放</string>
+    <string name="label_earlier">更早</string>
+    <string name="label_later">更晚</string>
+</resources>

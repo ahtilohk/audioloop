@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Загальне</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Скасувати</string>
+    <string name="btn_save">Зберегти</string>
+    <string name="btn_delete">Видалити</string>
+    <string name="btn_play_selected">Відтворити %d вибраних</string>
+    <string name="btn_add_file">Імпортувати файл</string>
+    <string name="btn_record_new">НОВИЙ ЗАПИС</string>
+    <string name="btn_go_back">Назад</string>
+    <string name="btn_got_it">Зрозумів!</string>
+    <string name="btn_import_audio">Імпортувати аудіо</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Запис…</string>
+    <string name="label_empty_title">Записів ще немає</string>
+    <string name="label_empty_subtitle">Натисніть кнопку запису вгорі або імпортуйте аудіофайл.</string>
+    <string name="label_no_matching_files">Файлів не знайдено</string>
+    <string name="label_try_different_search">Спробуйте інший термін</string>
+    <string name="label_tap_to_select">Натисніть на файл, щоб вибрати</string>
+    <string name="label_playlists">Плейлисти</string>
+    <string name="label_on">Увімк.</string>
+    <string name="label_off">Вимк.</string>
+
+    <!-- Search -->
+    <string name="search_hint">Пошук файлів…</string>
+    <string name="search_files">Пошук файлів</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Перейменувати</string>
+    <string name="menu_trim">Обрізати / Змінити</string>
+    <string name="menu_move">Перемістити в категорію</string>
+    <string name="menu_share">Поділитися</string>
+    <string name="menu_download">Завантажити</string>
+    <string name="menu_split">Розділити за тишею</string>
+    <string name="menu_normalize">Нормалізувати</string>
+    <string name="menu_auto_trim">Авто-обрізка тиші</string>
+    <string name="menu_fade">Згасання</string>
+    <string name="menu_merge">Об\'єднати вибрані</string>
+    <string name="menu_note">Редагувати нотатку</string>
+    <string name="menu_info">Інформація</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Перейменувати файл</string>
+    <string name="dialog_create_category">Нова категорія</string>
+    <string name="dialog_delete_confirm">Ви впевнені?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Мовлення</string>
+    <string name="mode_stream">Потік</string>
+    <string name="mode_speech_desc">Записує ваш голос через мікрофон.</string>
+    <string name="mode_stream_desc">Записує звук із пристрою (музика, відео тощо).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Збережено</string>
+    <string name="toast_error">Помилка</string>
+    <string name="msg_moved">Переміщено</string>
+    <string name="msg_imported">Імпортовано: %s</string>
+    <string name="msg_error_moving">Помилка переміщення</string>
+    <string name="msg_error_importing">Помилка імпорту</string>
+    <string name="msg_error_sharing">Помилка спільного доступу: %s</string>
+    <string name="msg_permission_granted">Дозвіл надано</string>
+    <string name="msg_permission_denied">У доступі відмовлено</string>
+    <string name="msg_permission_required">Для запису потрібен дозвіл</string>
+    <string name="msg_splitting">Розділення за тишею…</string>
+    <string name="msg_split_done">Розділено на %d сегментів</string>
+    <string name="msg_no_silence_gaps">Пауз тиші для розділення не знайдено</string>
+    <string name="msg_normalizing">Нормалізація…</string>
+    <string name="msg_detecting_silence">Виявлення тиші…</string>
+    <string name="msg_no_silence_to_trim">Тиші для обрізки не виявлено</string>
+    <string name="msg_no_significant_silence">Значущої тиші для обрізки не знайдено</string>
+    <string name="msg_applying_fade">Застосування згасання…</string>
+    <string name="msg_merging">Об\'єднання %d файлів…</string>
+    <string name="msg_merged">Об\'єднано в %s</string>
+    <string name="msg_merge_failed">Помилка об\'єднання</string>
+    <string name="msg_done">Готово!</string>
+    <string name="msg_processing_failed">Помилка обробки</string>
+    <string name="msg_access_denied">Доступ заборонено: файл використовується</string>
+    <string name="msg_error_finalizing">Помилка завершення файлу!</string>
+    <string name="msg_studio_replaced">Студія: оригінал замінено</string>
+    <string name="msg_studio_saved_as">Студія: збережено як %s</string>
+    <string name="msg_normalization_failed">Помилка нормалізації</string>
+    <string name="msg_fade_failed">Помилка згасання</string>
+    <string name="msg_auto_trim_failed">Помилка авто-обрізки</string>
+    <string name="msg_playback_error">Помилка відтворення: %d / %d</string>
+    <string name="msg_error_opening">Помилка відкриття: %s</string>
+    <string name="msg_playlist_empty">Плейлист порожній або файли відсутні</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Резервне копіювання</string>
+    <string name="backup_saved">Копію збережено: %s</string>
+    <string name="backup_failed">Помилка копіювання: %s</string>
+    <string name="backup_loading">Завантаження копій…</string>
+    <string name="backup_no_backups">Копій не знайдено</string>
+    <string name="backup_restoring">Відновлення налаштувань…</string>
+    <string name="backup_restore_complete">Відновлення завершено!</string>
+    <string name="backup_restore_failed">Помилка відновлення: %s</string>
+    <string name="backup_deleted">Копію видалено</string>
+    <string name="signin_cancelled">Вхід скасовано</string>
+    <string name="signin_failed_play_services">Помилка входу (перевірте сервіси Google Play).</string>
+    <string name="signin_dev_error">Помилка розробника (перевірте SHA-1).</string>
+    <string name="signin_interrupted">Вхід перервано</string>
+    <string name="signin_error">Помилка входу (код %d)</string>
+    <string name="signin_failed">Помилка входу: %s</string>
+    <string name="title_restore_backup">Відновити з копії?</string>
+    <string name="msg_restore_warning">Це замінить поточні файли та налаштування вмістом копії.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Увійдіть, щоб зберігати записи на Google Drive</string>
+    <string name="btn_signing_in">Вхід…</string>
+    <string name="btn_google_signin">Увійти через Google</string>
+    <string name="btn_sign_out">Вийти</string>
+    <string name="btn_backup">Копіювати</string>
+    <string name="btn_restore">Відновити</string>
+    <string name="label_available_backups">Доступні копії</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Цикл</string>
+    <string name="settings_speed">Швидкість</string>
+    <string name="settings_pitch">Тональність</string>
+    <string name="settings_sleep_timer">Таймер сну</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_listen_repeat">Слухай і повторюй</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Ласкаво просимо до AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop підтримує два режими:</string>
+    <string name="welcome_stream_note">Про запис потоку:</string>
+    <string name="welcome_stream_warning">Android потребує підтвердження щоразу. Це функція безпеки системи.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Розумний тренер</string>
+    <string name="coach_practice_stats">Статистика практики</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Швидкий запис і гра з головного екрана</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Керування категоріями</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Бібліотека</string>
+    <string name="nav_record">Запис</string>
+    <string name="nav_coach">Тренер</string>
+    <string name="nav_settings">Налаштування</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Розумний тренер практики</string>
+    <string name="coach_description">Відстежуйте прогрес і створюйте звичку тренуватися.</string>
+    <string name="coach_open_stats">Відкрити всю статистику</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Почати запис</string>
+    <string name="record_mode_format">Режим %s</string>
+    <string name="record_recording">Запис…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Файли (%s):</string>
+    <string name="library_add">+ Додати</string>
+    <string name="library_select">Вибрати</string>
+    <string name="library_play_count">ГРАТИ %d</string>
+    <string name="library_playlist">ПЛЕЙЛИСТ</string>
+    <string name="library_merge_count">ОБ\'ЄДНАТИ %d</string>
+    <string name="library_now_playing">ЗАРАЗ ГРАЄ</string>
+    <string name="library_today_format">Сьогодні %s</string>
+    <string name="library_tracks_count">%d треків</string>
+    <string name="library_shuffle">Перемішати</string>
+    <string name="library_gap_format">Пауза %ds</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Пошук записів…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Перейменувати</string>
+    <string name="dialog_new_name">Нова назва</string>
+    <string name="dialog_select_category">Вибрати категорію</string>
+    <string name="dialog_add_note">Додати нотатку</string>
+    <string name="dialog_edit_note">Змінити нотатку</string>
+    <string name="dialog_note_hint">Слова, вірш, переклад…</string>
+    <string name="dialog_remove">Вилучити</string>
+    <string name="dialog_close">Закрити</string>
+    <string name="dialog_delete_file">Видалити файл?</string>
+    <string name="dialog_delete_confirm_format">Ви справді хочете видалити \'%s\'?</string>
+    <string name="dialog_file_info">Інфо про файл</string>
+
+    <!-- File Info -->
+    <string name="info_format">Формат</string>
+    <string name="info_duration">Тривалість</string>
+    <string name="info_size">Розмір</string>
+    <string name="info_sample_rate">Частота</string>
+    <string name="info_channels">Канали</string>
+    <string name="info_mono">Моно</string>
+    <string name="info_stereo">Стерео</string>
+    <string name="info_bit_rate">Бітрейт</string>
+    <string name="info_codec">Кодек</string>
+    <string name="info_location">Місце</string>
+    <string name="info_unknown">Невідомо</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Логотип</string>
+    <string name="a11y_search">Пошук файлів</string>
+    <string name="a11y_backup">Резервне копіювання</string>
+    <string name="a11y_close">Закрити</string>
+    <string name="a11y_cancel_selection">Скасувати вибір</string>
+    <string name="a11y_manage_categories">Керування категоріями</string>
+    <string name="a11y_record_speech">Запис мовлення</string>
+    <string name="a11y_record_stream">Запис потоку</string>
+    <string name="a11y_stop_recording">Зупинити запис</string>
+    <string name="a11y_import_file">Імпортувати аудіо</string>
+    <string name="a11y_play_selected">Грати вибране</string>
+    <string name="a11y_playlist">Створити плейлист із вибраного</string>
+    <string name="a11y_recording_active">Запис активний</string>
+    <string name="a11y_playlists">Відкрити плейлисти</string>
+    <string name="settings_playback_title">Налаштування відтворення</string>
+    <string name="settings_speed_label">Швидкість:</string>
+    <string name="settings_repeats">Повтори:</string>
+    <string name="settings_gap">Пауза між треками:</string>
+    <string name="settings_listen_repeat_desc">Пауза після відтворення для практики</string>
+    <string name="settings_pause_duration">Тривалість паузи:</string>
+    <string name="settings_pause_auto">Авто</string>
+    <string name="settings_sleep_timer_label">Таймер сну:</string>
+    <string name="settings_sleep_off">Вимк.</string>
+    <string name="settings_sleep_stops_in">Зупиниться через %s</string>
+    <string name="settings_theme_label">Тема додатка:</string>
+    <string name="settings_language_label">Мова додатка:</string>
+    <string name="dialog_delete_playlist_title">Видалити плейлист?</string>
+    <string name="dialog_delete_playlist_confirm">Видалити \"%s\"? Це неможливо скасувати.</string>
+    <string name="label_playlists_count">%d плейлистів</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d треків</string>
+    <string name="label_playlist_no_playlists">Плейлистів ще немає</string>
+    <string name="label_playlist_create_desc">Створіть навчальну сесію</string>
+    <string name="btn_new">Новий</string>
+    <string name="btn_create_playlist">Створити плейлист</string>
+    <string name="btn_add_files">Додати файли</string>
+    <string name="label_added">додано</string>
+    <string name="label_no_files_category">У цій категорії немає файлів</string>
+    <string name="label_select">Вибрати</string>
+    <string name="label_add_count">Додати %d</string>
+    <string name="title_trim_audio">Обрізати аудіо</string>
+    <string name="label_studio_editor">Студія-редактор</string>
+    <string name="label_keep">Залишити</string>
+    <string name="label_cut">Вирізати</string>
+    <string name="label_current">ПОТОЧНИЙ</string>
+    <string name="label_new_length">НОВА ДОВЖИНА</string>
+    <string name="label_start">ПОЧАТОК</string>
+    <string name="label_end">КІНЕЦЬ</string>
+    <string name="label_fade_in">Поступова поява</string>
+    <string name="label_fade_out">Поступове зникнення</string>
+    <string name="label_silence">Тиша</string>
+    <string name="label_normalize">Нормалізувати</string>
+    <string name="error_open_audio">Не вдалося відкрити аудіо</string>
+    <string name="error_corrupted_format">Файл пошкоджено або формат не підтримується.</string>
+    <string name="btn_save_copy">Зберегти копію</string>
+    <string name="btn_replace_original">Замінити оригінал</string>
+    <string name="label_status_completed">ЗАВЕРШЕНО</string>
+    <string name="label_status_paused">ПАУЗА</string>
+    <string name="label_status_now_playing">ЗАРАЗ ГРАЄ</string>
+    <string name="label_shuffle">Перемішати</string>
+    <string name="label_gap_pill">Пауза %ds</string>
+    <string name="label_duration_min_sec">%1$d хв %2$d с</string>
+    <string name="label_duration_hour_min">%1$d год %2$d хв</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d хв</string>
+    <string name="label_general">Загальне</string>
+    <string name="btn_resume">Продовжити</string>
+    <string name="btn_stop">Зупинити</string>
+    <string name="title_new_playlist">Новий плейлист</string>
+    <string name="title_edit_playlist">Редагувати плейлист</string>
+    <string name="label_untitled">Без назви</string>
+    <string name="label_playlist_name_header">НАЗВА ПЛЕЙЛИСТА</string>
+    <string name="hint_enter_name">Введіть назву…</string>
+    <string name="label_shuffle_playback">Гарти перемішано</string>
+    <string name="label_shuffle_desc">Грати треки у випадковому порядку</string>
+    <string name="label_tracks_header">ТРЕКИ</string>
+    <string name="label_no_tracks">Треків не додано</string>
+    <string name="a11y_remove">Вилучити</string>
+    <string name="a11y_drag_reorder">Перетягніть для зміни порядку</string>
+    <string name="label_playing_indicator">Грає • </string>
+    <string name="a11y_menu">Меню</string>
+    <string name="label_auto_trim_silence">Авто-обрізка тиші</string>
+    <string name="a11y_clear">Очистити</string>
+    <string name="label_note">Нотатка</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">Б</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Категорії</string>
+    <string name="label_drag_reorder_hint">Перетягніть для зміни порядку</string>
+    <string name="hint_category_name">Назва категорії…</string>
+    <string name="label_default">типово</string>
+    <string name="a11y_save">Зберегти</string>
+    <string name="msg_deleted">Видалено: %s</string>
+    <string name="msg_restored">Відновлено</string>
+    <string name="msg_found_imported">Імпортовано %d записів!</string>
+    <string name="btn_undo">Скасувати</string>
+    <string name="a11y_edit">Редагувати</string>
+    <string name="label_statistics">Статистика</string>
+    <string name="label_weekly_overview">ТИЖНЕВИЙ ОГЛЯД</string>
+    <string name="label_goal_reached">Ціль досягнута!</string>
+    <string name="label_min_remaining">Залишилось %d хв</string>
+    <string name="label_change_goal">Змінити ціль</string>
+    <string name="label_streak">Серія</string>
+    <string name="label_today">Сьогодні</string>
+    <string name="label_sessions">Сесії</string>
+    <string name="label_edits">Правки</string>
+    <string name="label_avg_daily">Середнє за день</string>
+    <string name="label_last_7_days">ОСТАННІ 7 ДНІВ</string>
+    <string name="label_recommendation">ПОРАДА</string>
+    <string name="title_weekly_goal">Тижнева ціль</string>
+    <string name="msg_goal_question">Скільки хвилин на тиждень?</string>
+    <string name="label_min_per_day">~%d хв/день</string>
+    <string name="btn_reset">Скинути</string>
+    <string name="btn_reset_zoom">Скинути зум</string>
+    <string name="label_earlier">Раніше</string>
+    <string name="label_later">Пізніше</string>
+</resources>

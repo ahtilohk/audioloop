@@ -1100,4 +1100,196 @@ object AppIcons {
             return _doneAll!!
         }
     private var _doneAll: ImageVector? = null
+
+    // Language icon (Globe)
+    val Language: ImageVector
+        get() {
+            if (_language != null) return _language!!
+            _language = materialIcon(name = "Language") {
+                materialPath {
+                    moveTo(11.99f, 2.0f)
+                    curveTo(6.47f, 2.0f, 2.0f, 6.48f, 2.0f, 12.0f)
+                    reflectiveCurveToRelative(4.47f, 10.0f, 9.99f, 10.0f)
+                    curveTo(17.52f, 22.0f, 22.0f, 17.52f, 22.0f, 12.0f)
+                    reflectiveCurveTo(17.52f, 2.0f, 11.99f, 2.0f)
+                    close()
+                    moveTo(18.91f, 8.0f)
+                    horizontalLineToRelative(-3.08f)
+                    curveToRelative(-0.33f, -1.62f, -0.79f, -3.06f, -1.39f, -4.19f)
+                    curveTo(16.36f, 4.65f, 18.06f, 6.08f, 18.91f, 8.0f)
+                    close()
+                    moveTo(12.0f, 4.04f)
+                    curveToRelative(0.73f, 1.24f, 1.25f, 2.59f, 1.51f, 3.96f)
+                    horizontalLineToRelative(-3.02f)
+                    curveToRelative(0.26f, -1.37f, 0.78f, -2.72f, 1.51f, -3.96f)
+                    close()
+                    moveTo(4.26f, 14.0f)
+                    curveToRelative(-0.16f, -0.64f, -0.26f, -1.31f, -0.26f, -2.0f)
+                    reflectiveCurveToRelative(0.1f, -1.36f, 0.26f, -2.0f)
+                    horizontalLineToRelative(3.38f)
+                    curveToRelative(-0.05f, 0.66f, -0.09f, 1.32f, -0.09f, 2.0f)
+                    reflectiveCurveToRelative(0.04f, 1.34f, 0.09f, 2.0f)
+                    lineTo(4.26f, 14.0f)
+                    close()
+                    moveTo(4.26f, 10.0f)
+                    horizontalLineToRelative(3.38f)
+                    curveToRelative(0.16f, -2.43f, 0.63f, -4.31f, 1.35f, -5.92f)
+                    curveTo(6.38f, 5.14f, 4.88f, 7.37f, 4.26f, 10.0f)
+                    close()
+                    moveTo(12.0f, 19.96f)
+                    curveToRelative(-0.73f, -1.24f, -1.25f, -2.59f, -1.51f, -3.96f)
+                    horizontalLineToRelative(3.02f)
+                    curveToRelative(-0.26f, 1.37f, -0.78f, 2.72f, -1.51f, 3.96f)
+                    close()
+                    moveTo(14.34f, 14.0f)
+                    horizontalLineTo(9.66f)
+                    curveToRelative(-0.05f, -0.66f, -0.09f, -1.32f, -0.09f, -2.0f)
+                    reflectiveCurveToRelative(0.04f, -1.34f, 0.09f, -2.0f)
+                    horizontalLineToRelative(4.68f)
+                    curveToRelative(0.05f, 0.66f, 0.09f, 1.32f, 0.09f, 2.0f)
+                    reflectiveCurveToRelative(-0.04f, 1.34f, -0.09f, 2.0f)
+                    close()
+                    moveTo(11.03f, 14.19f)
+                    curveToRelative(0.33f, 1.62f, 0.79f, 3.06f, 1.39f, 4.19f)
+                    curveToRelative(0.6f, -1.13f, 1.06f, -2.57f, 1.39f, -4.19f)
+                    horizontalLineToRelative(-2.78f)
+                    close()
+                    moveTo(2.0f, 12.0f)
+                    curveToRelative(0.0f, 5.52f, 4.48f, 10.0f, 10.0f, 10.0f)
+                    reflectiveCurveToRelative(10.0f, -4.48f, 10.0f, -10.0f)
+                    reflectiveCurveTo(17.52f, 2.0f, 12.0f, 2.0f)
+                    reflectiveCurveTo(2.0f, 6.48f, 2.0f, 12.0f)
+                    close()
+                }
+            }
+            return _language!!
+        }
+    private var _language: ImageVector? = null
+
+    val Palette: ImageVector
+        get() {
+            if (_palette != null) return _palette!!
+            _palette = materialIcon(name = "Palette") {
+                materialPath {
+                    moveTo(12.0f, 2.0f)
+                    curveTo(6.48f, 2.0f, 2.0f, 6.48f, 2.0f, 12.0f)
+                    reflectiveCurveToRelative(4.48f, 10.0f, 10.0f, 10.0f)
+                    curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
+                    curveToRelative(0.0f, -0.49f, -0.18f, -0.96f, -0.51f, -1.34f)
+                    curveToRelative(-0.32f, -0.37f, -0.49f, -0.86f, -0.49f, -1.36f)
+                    curveToRelative(0.0f, -1.1f, 0.9f, -2.0f, 2.0f, -2.0f)
+                    horizontalLineToRelative(2.0f)
+                    curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
+                    curveToRelative(0.0f, -5.52f, -4.48f, -10.0f, -10.0f, -10.0f)
+                    close()
+                    moveTo(6.5f, 12.0f)
+                    curveToRelative(-0.83f, 0.0f, -1.5f, -0.67f, -1.5f, -1.5f)
+                    reflectiveCurveTo(5.67f, 9.0f, 6.5f, 9.0f)
+                    reflectiveCurveTo(8.0f, 9.67f, 8.0f, 10.5f)
+                    reflectiveCurveTo(7.33f, 12.0f, 6.5f, 12.0f)
+                    close()
+                    moveTo(9.5f, 8.0f)
+                    curveTo(8.67f, 8.0f, 8.0f, 7.33f, 8.0f, 6.5f)
+                    reflectiveCurveTo(8.67f, 5.0f, 9.5f, 5.0f)
+                    reflectiveCurveTo(11.0f, 5.67f, 11.0f, 6.5f)
+                    reflectiveCurveTo(10.33f, 8.0f, 9.5f, 8.0f)
+                    close()
+                    moveTo(14.5f, 8.0f)
+                    curveToRelative(-0.83f, 0.0f, -1.5f, -0.67f, -1.5f, -1.5f)
+                    reflectiveCurveTo(13.67f, 5.0f, 14.5f, 5.0f)
+                    reflectiveCurveToRelative(1.5f, 0.67f, 1.5f, 1.5f)
+                    reflectiveCurveTo(15.33f, 8.0f, 14.5f, 8.0f)
+                    close()
+                    moveTo(17.5f, 12.0f)
+                    curveToRelative(-0.83f, 0.0f, -1.5f, -0.67f, -1.5f, -1.5f)
+                    reflectiveCurveTo(16.67f, 9.0f, 17.5f, 9.0f)
+                    reflectiveCurveToRelative(1.5f, 0.67f, 1.5f, 1.5f)
+                    reflectiveCurveTo(18.33f, 12.0f, 17.5f, 12.0f)
+                    close()
+                }
+            }
+            return _palette!!
+        }
+    private var _palette: ImageVector? = null
+
+    val Backup: ImageVector
+        get() {
+            if (_backup != null) return _backup!!
+            _backup = materialIcon(name = "Backup") {
+                materialPath {
+                    moveTo(19.35f, 10.04f)
+                    curveTo(18.67f, 6.59f, 15.64f, 4.0f, 12.0f, 4.0f)
+                    curveToRelative(-2.72f, 0.0f, -5.09f, 1.44f, -6.42f, 3.58f)
+                    curveTo(2.37f, 7.93f, 0.0f, 10.55f, 0.0f, 13.7f)
+                    curveToRelative(0.0f, 3.36f, 2.73f, 6.09f, 6.1f, 6.09f)
+                    horizontalLineToRelative(12.9f)
+                    curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
+                    curveToRelative(0.0f, -2.64f, -2.05f, -4.78f, -4.65f, -4.96f)
+                    close()
+                    moveTo(14.0f, 13.0f)
+                    verticalLineToRelative(4.0f)
+                    horizontalLineToRelative(-4.0f)
+                    verticalLineToRelative(-4.0f)
+                    horizontalLineTo(7.0f)
+                    lineToRelative(5.0f, -5.0f)
+                    lineToRelative(5.0f, 5.0f)
+                    horizontalLineToRelative(-3.0f)
+                    close()
+                }
+            }
+            return _backup!!
+        }
+    private var _backup: ImageVector? = null
+
+    val ChevronRight: ImageVector
+        get() {
+            if (_chevronRight != null) return _chevronRight!!
+            _chevronRight = materialIcon(name = "ChevronRight") {
+                materialPath {
+                    moveTo(10.0f, 6.0f)
+                    lineTo(8.59f, 7.41f)
+                    lineTo(13.17f, 12.0f)
+                    lineToRelative(-4.58f, 4.59f)
+                    lineTo(10.0f, 18.0f)
+                    lineToRelative(6.0f, -6.0f)
+                    close()
+                }
+            }
+            return _chevronRight!!
+        }
+    private var _chevronRight: ImageVector? = null
+
+    // Sort Icon (List sort)
+    val Sort: ImageVector
+        get() {
+            if (_sort != null) return _sort!!
+            _sort = materialIcon(name = "Sort") {
+                materialPath {
+                    moveTo(3.0f, 18.0f)
+                    horizontalLineToRelative(6.0f)
+                    verticalLineToRelative(-2.0f)
+                    horizontalLineTo(3.0f)
+                    verticalLineToRelative(2.0f)
+                    close()
+                    moveTo(3.0f, 6.0f)
+                    verticalLineToRelative(2.0f)
+                    horizontalLineToRelative(18.0f)
+                    verticalLineTo(6.0f)
+                    horizontalLineTo(3.0f)
+                    close()
+                    moveTo(3.0f, 13.0f)
+                    horizontalLineToRelative(12.0f)
+                    verticalLineToRelative(-2.0f)
+                    horizontalLineTo(3.0f)
+                    verticalLineToRelative(2.0f)
+                    close()
+                }
+            }
+            return _sort!!
+        }
+    private var _sort: ImageVector? = null
+
+    val Done: ImageVector
+        get() = Check
 }
+

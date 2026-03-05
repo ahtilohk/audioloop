@@ -11,21 +11,27 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.audioloop.ui.theme.AudioLoopTheme
+import com.example.audioloop.R
 import com.example.audioloop.ui.theme.Zinc300
 import com.example.audioloop.ui.theme.Zinc400
 import com.example.audioloop.ui.theme.Zinc700
@@ -46,7 +52,7 @@ import java.io.File
  * - Permission launchers (recording, screen capture, sign-in)
  * - Setting Compose content
  */
-class MainActivity : ComponentActivity() {
+class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private var pendingRecordingName = ""
     private var pendingCategory = ""
@@ -72,13 +78,13 @@ class MainActivity : ComponentActivity() {
             }
             startInternalAudioService(serviceIntent)
         } else {
-            vm?.showSnackbar("Permission required for recording", isError = true)
+            vm?.showSnackbar(getString(R.string.msg_permission_required), isError = true)
         }
     }
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) vm?.showSnackbar("Permission granted")
-        else vm?.showSnackbar("Permission denied", isError = true)
+        if (isGranted) vm?.showSnackbar(getString(R.string.msg_permission_granted))
+        else vm?.showSnackbar(getString(R.string.msg_permission_denied), isError = true)
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -91,14 +97,14 @@ class MainActivity : ComponentActivity() {
                 val e = task.exception
                 val msg = if (e is com.google.android.gms.common.api.ApiException) {
                     when (e.statusCode) {
-                        12501 -> "Sign-in cancelled"
-                        12500 -> "Sign-in failed. Check Google Play Services."
-                        10 -> "Developer error: check SHA-1 in Google Cloud Console"
-                        4 -> "Sign-in interrupted"
-                        else -> "Sign-in error (code ${e.statusCode})"
+                        12501 -> getString(R.string.signin_cancelled)
+                        12500 -> getString(R.string.signin_failed_play_services)
+                        10 -> getString(R.string.signin_dev_error)
+                        4 -> getString(R.string.signin_interrupted)
+                        else -> getString(R.string.signin_error, e.statusCode)
                     }
                 } else {
-                    "Sign-in failed: ${e?.localizedMessage ?: "unknown error"}"
+                    getString(R.string.signin_failed, e?.localizedMessage ?: "unknown error")
                 }
                 vm?.handleSignInError(msg)
             }
@@ -108,7 +114,7 @@ class MainActivity : ComponentActivity() {
                     vm?.handleSignInResult(account)
                 }
                 ?.addOnFailureListener { e ->
-                    vm?.handleSignInError("Sign-in failed: ${e.localizedMessage}")
+                    vm?.handleSignInError(getString(R.string.signin_failed, e.localizedMessage))
                 }
         }
         vm?.setBackupRunning(false)
@@ -132,8 +138,13 @@ class MainActivity : ComponentActivity() {
             }
 
             val uiState by viewModel.uiState.collectAsState()
+            val darkTheme = when (uiState.themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.AUTO -> isSystemInDarkTheme()
+            }
 
-            AudioLoopTheme(appTheme = uiState.currentTheme) {
+            AudioLoopTheme(darkTheme = darkTheme, appTheme = uiState.currentTheme) {
                 val snackbarHostState = remember { SnackbarHostState() }
                 val coroutineScope = rememberCoroutineScope()
                 val context = this@MainActivity
@@ -324,7 +335,7 @@ private fun WelcomeDialog(
         textContentColor = Zinc300,
         title = {
             Text(
-                "Welcome to Loop & Learn Audio!",
+                stringResource(R.string.welcome_title),
                 style = androidx.compose.ui.text.TextStyle(
                     brush = Brush.linearGradient(
                         listOf(themeColors.primary400, themeColors.primary200)
@@ -336,25 +347,25 @@ private fun WelcomeDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Loop & Learn Audio supports two recording modes:", color = Color.White, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.welcome_modes_intro), color = Color.White, fontWeight = FontWeight.Medium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("\uD83C\uDFA4", fontSize = 16.sp)
                     Column {
-                        Text("Speech", color = themeColors.primary300, fontWeight = FontWeight.Bold)
-                        Text("Records your voice using the microphone.", color = Zinc400, fontSize = 13.sp)
+                        Text(stringResource(R.string.mode_speech), color = themeColors.primary300, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.mode_speech_desc), color = Zinc400, fontSize = 13.sp)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("\uD83D\uDD0A", fontSize = 16.sp)
                     Column {
-                        Text("Stream", color = themeColors.primary300, fontWeight = FontWeight.Bold)
-                        Text("Records audio playing on your device (music, videos, etc).", color = Zinc400, fontSize = 13.sp)
+                        Text(stringResource(R.string.mode_stream), color = themeColors.primary300, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.mode_stream_desc), color = Zinc400, fontSize = 13.sp)
                     }
                 }
                 HorizontalDivider(color = Zinc700)
-                Text("Note about Stream recording:", color = Sunset400, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text(stringResource(R.string.welcome_stream_note), color = Sunset400, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Text(
-                    "Android requires permission confirmation each time you start Stream recording. This is a security feature and cannot be bypassed.",
+                    stringResource(R.string.welcome_stream_warning),
                     color = Zinc400, fontSize = 13.sp
                 )
             }
@@ -364,7 +375,7 @@ private fun WelcomeDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
             ) {
-                Text("Got it!", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_got_it), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     )

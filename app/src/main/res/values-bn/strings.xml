@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">সাধারণ</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">বাতিল করুন</string>
+    <string name="btn_save">সংরক্ষণ করুন</string>
+    <string name="btn_delete">মুছে ফেলুন</string>
+    <string name="btn_play_selected">নির্বাচিত %dটি চালান</string>
+    <string name="btn_add_file">ফাইল ইম্পোর্ট করুন</string>
+    <string name="btn_record_new">নতুন রেকর্ড করুন</string>
+    <string name="btn_go_back">ফিরে যান</string>
+    <string name="btn_got_it">বুঝেছি!</string>
+    <string name="btn_import_audio">অডিও ফাইল ইম্পোর্ট করুন</string>
+
+    <!-- Labels -->
+    <string name="label_recording">রেকর্ডিং হচ্ছে…</string>
+    <string name="label_empty_title">এখনও কোনো রেকর্ডিং নেই</string>
+    <string name="label_empty_subtitle">আপনার প্রথম রেকর্ডিং তৈরি করতে উপরের রেকর্ড বাটনে ট্যাপ করুন, অথবা একটি অডিও ফাইল ইম্পোর্ট করুন।</string>
+    <string name="label_no_matching_files">কোনো মিল থাকা ফাইল পাওয়া যায়নি</string>
+    <string name="label_try_different_search">অন্য কোনো শব্দ দিয়ে সার্চ করুন</string>
+    <string name="label_tap_to_select">সিলেক্ট করতে ফাইলগুলিতে ট্যাপ করুন</string>
+    <string name="label_playlists">প্লে-লিস্ট</string>
+    <string name="label_on">চালু</string>
+    <string name="label_off">বন্ধ</string>
+
+    <!-- Search -->
+    <string name="search_hint">ফাইল খুঁজুন…</string>
+    <string name="search_files">ফাইল খুঁজুন</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">নাম পরিবর্তন করুন</string>
+    <string name="menu_trim">ট্রিম / কাটছাঁট</string>
+    <string name="menu_move">ক্যাটাগরিতে সরান</string>
+    <string name="menu_share">শেয়ার করুন</string>
+    <string name="menu_download">ডাউনলোড করুন</string>
+    <string name="menu_split">নিস্তব্ধতা অনুযায়ী ভাগ করুন</string>
+    <string name="menu_normalize">নরমালাইজ করুন</string>
+    <string name="menu_auto_trim">নিস্তব্ধতা অটো-ট্রিম করুন</string>
+    <string name="menu_fade">ফেড</string>
+    <string name="menu_merge">নির্বাচিত ফাইলগুলি যুক্ত করুন</string>
+    <string name="menu_note">নোট এডিট করুন</string>
+    <string name="menu_info">তথ্য</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">ফাইলের নাম পরিবর্তন করুন</string>
+    <string name="dialog_create_category">নতুন ক্যাটাগরি</string>
+    <string name="dialog_delete_confirm">আপনি কি নিশ্চিত?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">কথা</string>
+    <string name="mode_stream">স্ট্রিম</string>
+    <string name="mode_speech_desc">মাইক্রোফোন ব্যবহার করে আপনার ভয়েস রেকর্ড করে।</string>
+    <string name="mode_stream_desc">আপনার ডিভাইসে চলা অডিও রেকর্ড করে (গান, ভিডিও ইত্যাদি)।</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">সংরক্ষিত হয়েছে</string>
+    <string name="toast_error">ত্রুটি</string>
+    <string name="msg_moved">সরানো হয়েছে</string>
+    <string name="msg_imported">ইম্পোর্ট করা হয়েছে: %s</string>
+    <string name="msg_error_moving">সরাতে ত্রুটি হয়েছে</string>
+    <string name="msg_error_importing">ইম্পোর্ট করতে ত্রুটি হয়েছে</string>
+    <string name="msg_error_sharing">শেয়ার করতে ত্রুটি হয়েছে: %s</string>
+    <string name="msg_permission_granted">অনুমতি দেওয়া হয়েছে</string>
+    <string name="msg_permission_denied">অনুমতি দেওয়া হয়নি</string>
+    <string name="msg_permission_required">রেকর্ডিংয়ের জন্য অনুমতি প্রয়োজন</string>
+    <string name="msg_splitting">নিস্তব্ধতা অনুযায়ী ভাগ করা হচ্ছে…</string>
+    <string name="msg_split_done">%dটি অংশে ভাগ করা হয়েছে</string>
+    <string name="msg_no_silence_gaps">ভাগ করার মতো কোনো নিস্তব্ধ অংশ পাওয়া যায়নি</string>
+    <string name="msg_normalizing">নরমালাইজ করা হচ্ছে…</string>
+    <string name="msg_detecting_silence">নিস্তব্ধতা খোঁজা হচ্ছে…</string>
+    <string name="msg_no_silence_to_trim">ট্রিম করার মতো কোনো নিস্তব্ধতা পাওয়া যায়নি</string>
+    <string name="msg_no_significant_silence">ট্রিম করার মতো উল্লেখযোগ্য নিস্তব্ধতা নেই</string>
+    <string name="msg_applying_fade">ফেড প্রয়োগ করা হচ্ছে…</string>
+    <string name="msg_merging">%dটি ফাইল যুক্ত করা হচ্ছে…</string>
+    <string name="msg_merged">%s এ যুক্ত করা হয়েছে</string>
+    <string name="msg_merge_failed">যুক্ত করা ব্যর্থ হয়েছে</string>
+    <string name="msg_done">সম্পন্ন!</string>
+    <string name="msg_processing_failed">প্রসেসিং ব্যর্থ হয়েছে</string>
+    <string name="msg_access_denied">অ্যাক্সেস প্রত্যাখ্যান করা হয়েছে: আসল ফাইলটি ব্যবহৃত হচ্ছে</string>
+    <string name="msg_error_finalizing">ফাইলটি চূড়ান্ত করতে ত্রুটি হয়েছে!</string>
+    <string name="msg_studio_replaced">স্টুডিও: আসল ফাইলটি পরিবর্তন করা হয়েছে</string>
+    <string name="msg_studio_saved_as">স্টুডিও: %s হিসেবে সেভ করা হয়েছে</string>
+    <string name="msg_normalization_failed">নরমালাইজেশন ব্যর্থ হয়েছে</string>
+    <string name="msg_fade_failed">ফেড ব্যর্থ হয়েছে</string>
+    <string name="msg_auto_trim_failed">অটো-ট্রিম ব্যর্থ হয়েছে</string>
+    <string name="msg_playback_error">প্লে-ব্যাক ত্রুটি: %d / %d</string>
+    <string name="msg_error_opening">ফাইল খুলতে ত্রুটি: %s</string>
+    <string name="msg_playlist_empty">প্লে-লিস্ট খালি অথবা ফাইলগুলি নেই</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">ব্যাকআপ ও রিস্টোর</string>
+    <string name="backup_saved">ব্যাকআপ সেভ করা হয়েছে: %s</string>
+    <string name="backup_failed">ব্যাকআপ ব্যর্থ হয়েছে: %s</string>
+    <string name="backup_loading">ব্যাকআপ লোড হচ্ছে…</string>
+    <string name="backup_no_backups">কোনো ব্যাকআপ পাওয়া যায়নি</string>
+    <string name="backup_restoring">সেটিংস রিস্টোর করা হচ্ছে…</string>
+    <string name="backup_restore_complete">রিস্টোর সম্পন্ন হয়েছে!</string>
+    <string name="backup_restore_failed">রিস্টোর ব্যর্থ হয়েছে: %s</string>
+    <string name="backup_deleted">ব্যাকআপ মুছে ফেলা হয়েছে</string>
+    <string name="signin_cancelled">সাইন-ইন বাতিল করা হয়েছে</string>
+    <string name="signin_failed_play_services">সাইন-ইন ব্যর্থ হয়েছে। গুগল প্লে সার্ভিস চেক করুন।</string>
+    <string name="signin_dev_error">ডেভেলপার ত্রুটি: গুগল ক্লাউড কনসোলে SHA-1 চেক করুন</string>
+    <string name="signin_interrupted">সাইন-ইন বাধাগ্রস্ত হয়েছে</string>
+    <string name="signin_error">সাইন-ইন ত্রুটি (কোড %d)</string>
+    <string name="signin_failed">সাইন-ইন ব্যর্থ হয়েছে: %s</string>
+    <string name="title_restore_backup">ব্যাকআপ রিস্টোর কি করবেন?</string>
+    <string name="msg_restore_warning">এটি আপনার বর্তমান ফাইল, ক্যাটাগরি এবং সেটিংস ব্যাকআপের বিষয়বস্তু দিয়ে বদলে দেবে।</string>
+    <string name="label_google_drive">গুগল ড্রাইভ</string>
+    <string name="msg_backup_intro">আপনার রেকর্ডিং এবং সেটিংস গুগল ড্রাইভে ব্যাকআপ রাখতে সাইন-ইন করুন</string>
+    <string name="btn_signing_in">সাইন-ইন করা হচ্ছে…</string>
+    <string name="btn_google_signin">গুগল দিয়ে সাইন-ইন করুন</string>
+    <string name="btn_sign_out">সাইন-আউট করুন</string>
+    <string name="btn_backup">ব্যাকআপ</string>
+    <string name="btn_restore">রিস্টোর</string>
+    <string name="label_available_backups">উপলব্ধ ব্যাকআপ</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">লুপ</string>
+    <string name="settings_speed">গতি</string>
+    <string name="settings_pitch">পিচ</string>
+    <string name="settings_sleep_timer">স্লিপ টাইমার</string>
+    <string name="settings_theme">থিম</string>
+    <string name="settings_listen_repeat">শুনুন এবং পুনরাবৃত্তি করুন</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">অডিওলুপ-এ আপনাকে স্বাগতম!</string>
+    <string name="welcome_modes_intro">অডিওলুপ দুটি রেকর্ডিং মোড সমর্থন করে:</string>
+    <string name="welcome_stream_note">স্ট্রিম রেকর্ডিং সম্পর্কে নোট:</string>
+    <string name="welcome_stream_warning">অ্যান্ড্রয়েডে প্রতিবার স্ট্রিম রেকর্ডিং শুরু করার সময় অনুমতির প্রয়োজন হয়। এটি একটি নিরাপত্তা বৈশিষ্ট্য যা এড়ানো সম্ভব নয়।</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">স্মার্ট কোচ</string>
+    <string name="coach_practice_stats">অনুশীলনের পরিসংখ্যান</string>
+
+    <!-- Widget -->
+    <string name="widget_description">হোম স্ক্রীন থেকে দ্রুত রেকর্ড এবং প্লে করুন</string>
+
+    <!-- Categories -->
+    <string name="category_manage">ক্যাটাগরি ম্যানেজ করুন</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">লাইব্রেরি</string>
+    <string name="nav_record">রেকর্ড</string>
+    <string name="nav_coach">কোচ</string>
+    <string name="nav_settings">সেটিংস</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">স্মার্ট প্র্যাকটিস কোচ</string>
+    <string name="coach_description">আপনার অগ্রগতি ট্র্যাক করুন, ব্যক্তিগত পরামর্শ পান এবং অনুশীলনের অভ্যাস গড়ে তুলুন।</string>
+    <string name="coach_open_stats">সম্পূর্ণ পরিসংখ্যান দেখুন</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">রেকর্ডিং শুরু করুন</string>
+    <string name="record_mode_format">%s মোড</string>
+    <string name="record_recording">রেকর্ডিং হচ্ছে…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">ফাইল (%s):</string>
+    <string name="library_add">+ যোগ করুন</string>
+    <string name="library_select">সিলেক্ট করুন</string>
+    <string name="library_play_count">চালান %d</string>
+    <string name="library_playlist">প্লে-লিস্ট</string>
+    <string name="library_merge_count">যুক্ত করুন %d</string>
+    <string name="library_now_playing">এখন পরিবেশিত হচ্ছে</string>
+    <string name="library_today_format">আজ %s</string>
+    <string name="library_tracks_count">%dটি ট্র্যাক</string>
+    <string name="library_shuffle">শাফল</string>
+    <string name="library_gap_format">%ds বিরতি</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">রেকর্ডিং খুঁজুন…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">নাম পরিবর্তন করুন</string>
+    <string name="dialog_new_name">নতুন নাম</string>
+    <string name="dialog_select_category">ক্যাটাগরি সিলেক্ট করুন</string>
+    <string name="dialog_add_note">নোট যোগ করুন</string>
+    <string name="dialog_edit_note">নোট এডিট করুন</string>
+    <string name="dialog_note_hint">গান, শ্লোক, অনুবাদ…</string>
+    <string name="dialog_remove">সরান</string>
+    <string name="dialog_close">বন্ধ করুন</string>
+    <string name="dialog_delete_file">ফাইলটি মুছে ফেলবেন?</string>
+    <string name="dialog_delete_confirm_format">আপনি কি নিশ্চিত যে আপনি \'%s\' মুছতে চান?</string>
+    <string name="dialog_file_info">ফাইলের তথ্য</string>
+
+    <!-- File Info -->
+    <string name="info_format">ফরম্যাট</string>
+    <string name="info_duration">মেয়াদ</string>
+    <string name="info_size">আকার</string>
+    <string name="info_sample_rate">স্যাম্পল রেট</string>
+    <string name="info_channels">চ্যানেলগুলি</string>
+    <string name="info_mono">মনো</string>
+    <string name="info_stereo">স্টিরিও</string>
+    <string name="info_bit_rate">বিট রেট</string>
+    <string name="info_codec">কোডেক</string>
+    <string name="info_location">অবস্থান</string>
+    <string name="info_unknown">অজানা</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">লোগো</string>
+    <string name="a11y_search">ফাইল খুঁজুন</string>
+    <string name="a11y_backup">ব্যাকআপ ও রিস্টোর</string>
+    <string name="a11y_close">বন্ধ করুন</string>
+    <string name="a11y_cancel_selection">সিলেকশন বাতিল করুন</string>
+    <string name="a11y_manage_categories">ক্যাটাগরি ম্যানেজ করুন</string>
+    <string name="a11y_record_speech">ভয়েস রেকর্ড করুন</string>
+    <string name="a11y_record_stream">স্ট্রিম রেকর্ড করুন</string>
+    <string name="a11y_stop_recording">রেকর্ডিং বন্ধ করুন</string>
+    <string name="a11y_import_file">অডিও ফাইল ইম্পোর্ট করুন</string>
+    <string name="a11y_play_selected">নির্বাচিত ফাইলগুলি চালান</string>
+    <string name="a11y_playlist">সিলেকশন থেকে প্লে-লিস্ট তৈরি করুন</string>
+    <string name="a11y_recording_active">রেকর্ডিং সচল আছে</string>
+    <string name="a11y_playlists">প্লে-লিস্ট খুলুন</string>
+    <string name="settings_playback_title">প্লে-ব্যাক সেটিংস</string>
+    <string name="settings_speed_label">গতি:</string>
+    <string name="settings_repeats">বারবার:</string>
+    <string name="settings_gap">ট্র্যাকের মধ্যে বিরতি:</string>
+    <string name="settings_listen_repeat_desc">অনুশীলনের জন্য প্লে-ব্যাকের পর বিরতি নিন</string>
+    <string name="settings_pause_duration">বিরতির সময়:</string>
+    <string name="settings_pause_auto">অটো</string>
+    <string name="settings_sleep_timer_label">স্লিপ টাইমার:</string>
+    <string name="settings_sleep_off">বন্ধ</string>
+    <string name="settings_sleep_stops_in">%s এ বন্ধ হবে</string>
+    <string name="settings_theme_label">অ্যাপ থিম:</string>
+    <string name="settings_language_label">অ্যাপ ভাষা:</string>
+    <string name="dialog_delete_playlist_title">প্লে-লিস্ট মুছবেন কি?</string>
+    <string name="dialog_delete_playlist_confirm">\"%s\" কি মুছবেন? এটি আর ফিরে পাওয়া যাবে না।</string>
+    <string name="label_playlists_count">%dটি প্লে-লিস্ট</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%dটি ট্র্যাক</string>
+    <string name="label_playlist_no_playlists">এখনও কোনো প্লে-লিস্ট নেই</string>
+    <string name="label_playlist_create_desc">শুরু করতে একটি স্টাডি সেশন তৈরি করুন</string>
+    <string name="btn_new">নতুন</string>
+    <string name="btn_create_playlist">প্লে-লিস্ট তৈরি করুন</string>
+    <string name="btn_add_files">ফাইল যোগ করুন</string>
+    <string name="label_added">যোগ করা হয়েছে</string>
+    <string name="label_no_files_category">এই ক্যাটাগরিতে কোনো ফাইল নেই</string>
+    <string name="label_select">সিলেক্ট করুন</string>
+    <string name="label_add_count">%dটি যোগ করুন</string>
+    <string name="title_trim_audio">অডিও ট্রিম করুন</string>
+    <string name="label_studio_editor">স্টুডিও এডিটর</string>
+    <string name="label_keep">রাখুন</string>
+    <string name="label_cut">কাটুন</string>
+    <string name="label_current">বর্তমান</string>
+    <string name="label_new_length">নতুন দৈর্ঘ্য</string>
+    <string name="label_start">শুরু</string>
+    <string name="label_end">শেষ</string>
+    <string name="label_fade_in">ফেড ইন</string>
+    <string name="label_fade_out">ফেড আউট</string>
+    <string name="label_silence">নিস্তব্ধতা</string>
+    <string name="label_normalize">নরমালাইজ করুন</string>
+    <string name="error_open_audio">অডিও ফাইলটি খোলা যাচ্ছে না</string>
+    <string name="error_corrupted_format">ফাইলটি নষ্ট হতে পারে অথবা ফরম্যাটটি সমর্থিত নয়।</string>
+    <string name="btn_save_copy">কপি সেভ করুন</string>
+    <string name="btn_replace_original">আসল ফাইলটি পরিবর্তন করুন</string>
+    <string name="label_status_completed">সম্পন্ন</string>
+    <string name="label_status_paused">স্থগিত</string>
+    <string name="label_status_now_playing">এখন পরিবেশিত হচ্ছে</string>
+    <string name="label_shuffle">শাফল</string>
+    <string name="label_gap_pill">%ds বিরতি</string>
+    <string name="label_duration_min_sec">%1$d মি %2$d সে</string>
+    <string name="label_duration_hour_min">%1$d ঘ %2$d মি</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d মিনিট</string>
+    <string name="label_general">সাধারণ</string>
+    <string name="btn_resume">পুনরায় শুরু করুন</string>
+    <string name="btn_stop">বন্ধ করুন</string>
+    <string name="title_new_playlist">নতুন প্লে-লিস্ট</string>
+    <string name="title_edit_playlist">প্লে-লিস্ট এডিট করুন</string>
+    <string name="label_untitled">শিরোনামহীন</string>
+    <string name="label_playlist_name_header">প্লে-লিস্টের নাম</string>
+    <string name="hint_enter_name">নাম লিখুন…</string>
+    <string name="label_shuffle_playback">শাফল প্লে-ব্যাক</string>
+    <string name="label_shuffle_desc">ট্র্যাকগুলি এলোমেলো ক্রমে চালান</string>
+    <string name="label_tracks_header">ট্র্যাকসমূহ</string>
+    <string name="label_no_tracks">কোনো ট্র্যাক যোগ করা হয়নি</string>
+    <string name="a11y_remove">সরান</string>
+    <string name="a11y_drag_reorder">ক্রম পরিবর্তন করতে ড্র্যাগ করুন</string>
+    <string name="label_playing_indicator">পরিবেশিত হচ্ছে • </string>
+    <string name="a11y_menu">মেনু</string>
+    <string name="label_auto_trim_silence">নিস্তব্ধতা অটো-ট্রিম করুন</string>
+    <string name="a11y_clear">পরিষ্কার করুন</string>
+    <string name="label_note">নোট</string>
+    <string name="prefix_speech">বক্তব্য</string>
+    <string name="prefix_stream">স্ট্রিম</string>
+    <string name="unit_bytes">বি</string>
+    <string name="unit_kb">কেবি</string>
+    <string name="unit_mb">এমবি</string>
+    <string name="unit_bit">বিট</string>
+    <string name="label_categories">ক্যাটাগরি</string>
+    <string name="label_drag_reorder_hint">ক্রম পরিবর্তনের জন্য হ্যান্ডেল ড্র্যাগ করুন</string>
+    <string name="hint_category_name">ক্যাটাগরির নাম…</string>
+    <string name="label_default">ডিফল্ট</string>
+    <string name="a11y_save">সংরক্ষণ করুন</string>
+    <string name="msg_deleted">%s মুছে ফেলা হয়েছে</string>
+    <string name="msg_restored">পুনরুদ্ধার করা হয়েছে</string>
+    <string name="msg_found_imported">পাবলিক স্টোরেজে %dটি রেকর্ডিং পাওয়া গেছে – ইম্পোর্ট করা হয়েছে!</string>
+    <string name="btn_undo">পূর্বাবস্থায় ফেরান</string>
+    <string name="a11y_edit">এডিট করুন</string>
+    <string name="label_statistics">পরিসংখ্যান</string>
+    <string name="label_weekly_overview">সাপ্তাহিক সংক্ষিপ্ত বিবরণ</string>
+    <string name="label_goal_reached">লক্ষ্য পূরণ হয়েছে!</string>
+    <string name="label_min_remaining">%d মিনিট বাকি</string>
+    <string name="label_change_goal">লক্ষ্য পরিবর্তন করুন</string>
+    <string name="label_streak">ধারাবাহিকতা</string>
+    <string name="label_today">আজ</string>
+    <string name="label_sessions">সেশন</string>
+    <string name="label_edits">এডিট</string>
+    <string name="label_avg_daily">দৈনিক গড়</string>
+    <string name="label_last_7_days">গত ৭ দিন</string>
+    <string name="label_recommendation">পরামর্শ</string>
+    <string name="title_weekly_goal">সাপ্তাহিক লক্ষ্য</string>
+    <string name="msg_goal_question">প্রতি সপ্তাহে কত মিনিট অনুশীলন করতে চান?</string>
+    <string name="label_min_per_day">~%d মিনিট/দিন</string>
+    <string name="btn_reset">রিসেট</string>
+    <string name="btn_reset_zoom">জুম রিসেট করুন</string>
+    <string name="label_earlier">আগের</string>
+    <string name="label_later">পরের</string>
+</resources>

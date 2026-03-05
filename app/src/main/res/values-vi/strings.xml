@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Chung</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Hủy</string>
+    <string name="btn_save">Lưu</string>
+    <string name="btn_delete">Xóa</string>
+    <string name="btn_play_selected">Phát %d mục đã chọn</string>
+    <string name="btn_add_file">Nhập tệp</string>
+    <string name="btn_record_new">GHI ÂM MỚI</string>
+    <string name="btn_go_back">Quay lại</string>
+    <string name="btn_got_it">Đã hiểu!</string>
+    <string name="btn_import_audio">Nhập tệp âm thanh</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Đang ghi âm…</string>
+    <string name="label_empty_title">Chưa có bản ghi âm nào</string>
+    <string name="label_empty_subtitle">Nhấn nút ghi âm ở trên hoặc nhập tệp âm thanh.</string>
+    <string name="label_no_matching_files">Không tìm thấy tệp phù hợp</string>
+    <string name="label_try_different_search">Thử từ khóa tìm kiếm khác</string>
+    <string name="label_tap_to_select">Nhấn vào tệp để chọn</string>
+    <string name="label_playlists">Danh sách phát</string>
+    <string name="label_on">Bật</string>
+    <string name="label_off">Tắt</string>
+
+    <!-- Search -->
+    <string name="search_hint">Tìm kiếm tệp…</string>
+    <string name="search_files">Tìm kiếm tệp</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Đổi tên</string>
+    <string name="menu_trim">Cắt / Chỉnh sửa</string>
+    <string name="menu_move">Di chuyển vào danh mục</string>
+    <string name="menu_share">Chia sẻ</string>
+    <string name="menu_download">Tải xuống</string>
+    <string name="menu_split">Chia theo khoảng lặng</string>
+    <string name="menu_normalize">Chuẩn hóa âm lượng</string>
+    <string name="menu_auto_trim">Tự động cắt khoảng lặng</string>
+    <string name="menu_fade">Hiệu ứng mờ dần</string>
+    <string name="menu_merge">Gộp các mục đã chọn</string>
+    <string name="menu_note">Chỉnh sửa ghi chú</string>
+    <string name="menu_info">Thông tin</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Đổi tên tệp</string>
+    <string name="dialog_create_category">Danh mục mới</string>
+    <string name="dialog_delete_confirm">Bạn có chắc không?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Giọng nói</string>
+    <string name="mode_stream">Luồng</string>
+    <string name="mode_speech_desc">Ghi âm giọng nói của bạn qua micrô.</string>
+    <string name="mode_stream_desc">Ghi lại âm thanh từ thiết bị (nhạc, video, v.v.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Đã lưu</string>
+    <string name="toast_error">Lỗi</string>
+    <string name="msg_moved">Đã di chuyển</string>
+    <string name="msg_imported">Đã nhập: %s</string>
+    <string name="msg_error_moving">Lỗi khi di chuyển</string>
+    <string name="msg_error_importing">Lỗi khi nhập</string>
+    <string name="msg_error_sharing">Lỗi chia sẻ: %s</string>
+    <string name="msg_permission_granted">Đã cấp quyền</string>
+    <string name="msg_permission_denied">Từ chối quyền</string>
+    <string name="msg_permission_required">Cần có quyền để ghi âm</string>
+    <string name="msg_splitting">Đang chia theo khoảng lặng…</string>
+    <string name="msg_split_done">Đã chia thành %d đoạn</string>
+    <string name="msg_no_silence_gaps">Không tìm thấy khoảng lặng để chia</string>
+    <string name="msg_normalizing">Đang chuẩn hóa…</string>
+    <string name="msg_detecting_silence">Đang phát hiện khoảng lặng…</string>
+    <string name="msg_no_silence_to_trim">Không phát hiện khoảng lặng để cắt</string>
+    <string name="msg_no_significant_silence">Không có khoảng lặng đáng kể để cắt</string>
+    <string name="msg_applying_fade">Đang áp dụng hiệu ứng mờ dần…</string>
+    <string name="msg_merging">Đang gộp %d tệp…</string>
+    <string name="msg_merged">Đã gộp vào %s</string>
+    <string name="msg_merge_failed">Gộp không thành công</string>
+    <string name="msg_done">Xong!</string>
+    <string name="msg_processing_failed">Xử lý thất bại</string>
+    <string name="msg_access_denied">Truy cập bị từ chối: tệp gốc đang được sử dụng</string>
+    <string name="msg_error_finalizing">Lỗi khi hoàn thiện tệp!</string>
+    <string name="msg_studio_replaced">Studio: Đã thay thế tệp gốc</string>
+    <string name="msg_studio_saved_as">Studio: Đã lưu thành %s</string>
+    <string name="msg_normalization_failed">Chuẩn hóa thất bại</string>
+    <string name="msg_fade_failed">Hiệu ứng mờ dần thất bại</string>
+    <string name="msg_auto_trim_failed">Tự động cắt thất bại</string>
+    <string name="msg_playback_error">Lỗi phát lại: %d / %d</string>
+    <string name="msg_error_opening">Lỗi khi mở: %s</string>
+    <string name="msg_playlist_empty">Danh sách phát trống hoặc thiếu tệp</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Sao lưu &amp; Khôi phục</string>
+    <string name="backup_saved">Đã lưu bản sao lưu: %s</string>
+    <string name="backup_failed">Sao lưu thất bại: %s</string>
+    <string name="backup_loading">Đang tải bản sao lưu…</string>
+    <string name="backup_no_backups">Không tìm thấy bản sao lưu nào</string>
+    <string name="backup_restoring">Đang khôi phục cài đặt…</string>
+    <string name="backup_restore_complete">Khôi phục hoàn tất!</string>
+    <string name="backup_restore_failed">Khôi phục thất bại: %s</string>
+    <string name="backup_deleted">Đã xóa bản sao lưu</string>
+    <string name="signin_cancelled">Hủy đăng nhập</string>
+    <string name="signin_failed_play_services">Đăng nhập thất bại (kiểm tra Dịch vụ Google Play).</string>
+    <string name="signin_dev_error">Lỗi nhà phát triển (kiểm tra SHA-1).</string>
+    <string name="signin_interrupted">Đăng nhập bị gián đoạn</string>
+    <string name="signin_error">Lỗi đăng nhập (mã %d)</string>
+    <string name="signin_failed">Đăng nhập thất bại: %s</string>
+    <string name="title_restore_backup">Khôi phục bản sao lưu?</string>
+    <string name="msg_restore_warning">Điều này sẽ thay thế các tệp, danh mục và cài đặt hiện tại của bạn.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Đăng nhập để lưu bản ghi của bạn vào Google Drive</string>
+    <string name="btn_signing_in">Đang đăng nhập…</string>
+    <string name="btn_google_signin">Đăng nhập bằng Google</string>
+    <string name="btn_sign_out">Đăng xuất</string>
+    <string name="btn_backup">Sao lưu</string>
+    <string name="btn_restore">Khôi phục</string>
+    <string name="label_available_backups">Bản sao lưu hiện có</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Lặp lại</string>
+    <string name="settings_speed">Tốc độ</string>
+    <string name="settings_pitch">Cao độ</string>
+    <string name="settings_sleep_timer">Hẹn giờ ngủ</string>
+    <string name="settings_theme">Giao diện</string>
+    <string name="settings_listen_repeat">Nghe và Lặp lại</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Chào mừng bạn đến với AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop hỗ trợ hai chế độ:</string>
+    <string name="welcome_stream_note">Lưu ý về ghi âm Luồng:</string>
+    <string name="welcome_stream_warning">Android yêu cầu xác nhận mỗi lần. Đây là tính năng bảo mật của hệ thống.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Huấn luyện viên thông minh</string>
+    <string name="coach_practice_stats">Thống kê luyện tập</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Ghi âm và phát nhanh từ màn hình chính</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Quản lý danh mục</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Thư viện</string>
+    <string name="nav_record">Ghi âm</string>
+    <string name="nav_coach">Huấn luyện viên</string>
+    <string name="nav_settings">Cài đặt</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Huấn luyện viên luyện tập thông minh</string>
+    <string name="coach_description">Theo dõi tiến trình của bạn và xây dựng thói quen luyện tập.</string>
+    <string name="coach_open_stats">Mở thống kê đầy đủ</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Bắt đầu ghi âm</string>
+    <string name="record_mode_format">Chế độ %s</string>
+    <string name="record_recording">Đang ghi âm…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Tệp (%s):</string>
+    <string name="library_add">+ Thêm</string>
+    <string name="library_select">Chọn</string>
+    <string name="library_play_count">PHÁT %d</string>
+    <string name="library_playlist">DANH SÁCH PHÁT</string>
+    <string name="library_merge_count">GỘP %d</string>
+    <string name="library_now_playing">ĐANG PHÁT</string>
+    <string name="library_today_format">Hôm nay %s</string>
+    <string name="library_tracks_count">%d bản nhạc</string>
+    <string name="library_shuffle">Xáo trộn</string>
+    <string name="library_gap_format">Khoảng nghỉ %ds</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Tìm kiếm bản ghi…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Đổi tên</string>
+    <string name="dialog_new_name">Tên mới</string>
+    <string name="dialog_select_category">Chọn danh mục</string>
+    <string name="dialog_add_note">Thêm ghi chú</string>
+    <string name="dialog_edit_note">Chỉnh sửa ghi chú</string>
+    <string name="dialog_note_hint">Lời bài hát, câu thơ, bản dịch…</string>
+    <string name="dialog_remove">Xóa bỏ</string>
+    <string name="dialog_close">Đóng</string>
+    <string name="dialog_delete_file">Xóa tệp?</string>
+    <string name="dialog_delete_confirm_format">Bạn có chắc chắn muốn xóa \'%s\' không?</string>
+    <string name="dialog_file_info">Thông tin tệp</string>
+
+    <!-- File Info -->
+    <string name="info_format">Định dạng</string>
+    <string name="info_duration">Thời lượng</string>
+    <string name="info_size">Kích thước</string>
+    <string name="info_sample_rate">Tần số lấy mẫu</string>
+    <string name="info_channels">Kênh</string>
+    <string name="info_mono">Đơn âm</string>
+    <string name="info_stereo">Đa âm</string>
+    <string name="info_bit_rate">Tốc độ bit</string>
+    <string name="info_codec">Bộ giải mã</string>
+    <string name="info_location">Vị trí</string>
+    <string name="info_unknown">Không xác định</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Biểu tượng</string>
+    <string name="a11y_search">Tìm kiếm tệp</string>
+    <string name="a11y_backup">Sao lưu và khôi phục</string>
+    <string name="a11y_close">Đóng</string>
+    <string name="a11y_cancel_selection">Hủy lựa chọn</string>
+    <string name="a11y_manage_categories">Quản lý danh mục</string>
+    <string name="a11y_record_speech">Ghi âm giọng nói</string>
+    <string name="a11y_record_stream">Ghi âm luồng</string>
+    <string name="a11y_stop_recording">Dừng ghi âm</string>
+    <string name="a11y_import_file">Nhập tệp âm thanh</string>
+    <string name="a11y_play_selected">Phát các tệp đã chọn</string>
+    <string name="a11y_playlist">Tạo danh sách phát từ lựa chọn</string>
+    <string name="a11y_recording_active">Đang ghi âm</string>
+    <string name="a11y_playlists">Mở danh sách phát</string>
+    <string name="settings_playback_title">Cài đặt phát lại</string>
+    <string name="settings_speed_label">Tốc độ:</string>
+    <string name="settings_repeats">Lặp lại:</string>
+    <string name="settings_gap">Khoảng chờ giữa các bài:</string>
+    <string name="settings_listen_repeat_desc">Tạm dừng sau khi phát để luyện tập</string>
+    <string name="settings_pause_duration">Thời gian tạm dừng:</string>
+    <string name="settings_pause_auto">Tự động</string>
+    <string name="settings_sleep_timer_label">Hẹn giờ ngủ:</string>
+    <string name="settings_sleep_off">Tắt</string>
+    <string name="settings_sleep_stops_in">Dừng sau %s</string>
+    <string name="settings_theme_label">Giao diện ứng dụng:</string>
+    <string name="settings_language_label">Ngôn ngữ ứng dụng:</string>
+    <string name="dialog_delete_playlist_title">Xóa danh sách phát?</string>
+    <string name="dialog_delete_playlist_confirm">Xóa \"%s\"? Hành động này không thể hoàn tác.</string>
+    <string name="label_playlists_count">%d danh sách phát</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d bài nhạc</string>
+    <string name="label_playlist_no_playlists">Chưa có danh sách phát nào</string>
+    <string name="label_playlist_create_desc">Tạo một phiên học để bắt đầu</string>
+    <string name="btn_new">Mới</string>
+    <string name="btn_create_playlist">Tạo danh sách phát</string>
+    <string name="btn_add_files">Thêm tệp</string>
+    <string name="label_added">đã thêm</string>
+    <string name="label_no_files_category">Không có tệp nào trong danh mục này</string>
+    <string name="label_select">Chọn</string>
+    <string name="label_add_count">Thêm %d</string>
+    <string name="title_trim_audio">Cắt âm thanh</string>
+    <string name="label_studio_editor">Trình chỉnh sửa Studio</string>
+    <string name="label_keep">Giữ lại</string>
+    <string name="label_cut">Cắt</string>
+    <string name="label_current">HIỆN TẠI</string>
+    <string name="label_new_length">THỜI LƯỢNG MỚI</string>
+    <string name="label_start">BẮT ĐẦU</string>
+    <string name="label_end">KẾT THÚC</string>
+    <string name="label_fade_in">Mờ dần vào</string>
+    <string name="label_fade_out">Mờ dần ra</string>
+    <string name="label_silence">Khoảng lặng</string>
+    <string name="label_normalize">Chuẩn hóa</string>
+    <string name="error_open_audio">Không thể mở âm thanh</string>
+    <string name="error_corrupted_format">Tệp bị hỏng hoặc định dạng không được hỗ trợ.</string>
+    <string name="btn_save_copy">Lưu bản sao</string>
+    <string name="btn_replace_original">Thay thế tệp gốc</string>
+    <string name="label_status_completed">HOÀN TẤT</string>
+    <string name="label_status_paused">TẠM DỪNG</string>
+    <string name="label_status_now_playing">ĐANG PHÁT</string>
+    <string name="label_shuffle">Xáo trộn</string>
+    <string name="label_gap_pill">Nghỉ %ds</string>
+    <string name="label_duration_min_sec">%1$d ph %2$d g</string>
+    <string name="label_duration_hour_min">%1$d g %2$d ph</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d phút</string>
+    <string name="label_general">Chung</string>
+    <string name="btn_resume">Tiếp tục</string>
+    <string name="btn_stop">Dừng</string>
+    <string name="title_new_playlist">Danh sách phát mới</string>
+    <string name="title_edit_playlist">Chỉnh sửa danh sách phát</string>
+    <string name="label_untitled">Không có tiêu đề</string>
+    <string name="label_playlist_name_header">TÊN DANH SÁCH PHÁT</string>
+    <string name="hint_enter_name">Nhập tên…</string>
+    <string name="label_shuffle_playback">Phát xáo trộn</string>
+    <string name="label_shuffle_desc">Phát các bản nhạc theo thứ tự ngẫu nhiên</string>
+    <string name="label_tracks_header">BẢN NHẠC</string>
+    <string name="label_no_tracks">Chưa có bản nhạc nào được thêm</string>
+    <string name="a11y_remove">Xóa bỏ</string>
+    <string name="a11y_drag_reorder">Kéo để sắp xếp lại</string>
+    <string name="label_playing_indicator">Đang phát • </string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Tự động cắt khoảng lặng</string>
+    <string name="a11y_clear">Xóa sạch</string>
+    <string name="label_note">Ghi chú</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Danh mục</string>
+    <string name="label_drag_reorder_hint">Kéo tay cầm để sắp xếp lại</string>
+    <string name="hint_category_name">Tên danh mục…</string>
+    <string name="label_default">mặc định</string>
+    <string name="a11y_save">Lưu</string>
+    <string name="msg_deleted">Đã xóa: %s</string>
+    <string name="msg_restored">Đã khôi phục</string>
+    <string name="msg_found_imported">Đã nhập %d bản ghi!</string>
+    <string name="btn_undo">Hoàn tác</string>
+    <string name="a11y_edit">Chỉnh sửa</string>
+    <string name="label_statistics">Thống kê</string>
+    <string name="label_weekly_overview">TỔNG QUAN HÀNG TUẦN</string>
+    <string name="label_goal_reached">Đã đạt mục tiêu!</string>
+    <string name="label_min_remaining">Còn lại %d phút</string>
+    <string name="label_change_goal">Thay đổi mục tiêu</string>
+    <string name="label_streak">Chuỗi ngày</string>
+    <string name="label_today">Hôm nay</string>
+    <string name="label_sessions">Phiên</string>
+    <string name="label_edits">Chỉnh sửa</string>
+    <string name="label_avg_daily">Trung bình hàng ngày</string>
+    <string name="label_last_7_days">7 NGÀY QUA</string>
+    <string name="label_recommendation">GỢI Ý</string>
+    <string name="title_weekly_goal">Mục tiêu hàng tuần</string>
+    <string name="msg_goal_question">Bạn muốn luyện tập bao nhiêu phút mỗi tuần?</string>
+    <string name="label_min_per_day">~%d phút/ngày</string>
+    <string name="btn_reset">Đặt lại</string>
+    <string name="btn_reset_zoom">Đặt lại Thu phóng</string>
+    <string name="label_earlier">Sớm hơn</string>
+    <string name="label_later">Muộn hơn</string>
+</resources>

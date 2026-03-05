@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Pangkalahatan</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">I-cancel</string>
+    <string name="btn_save">I-save</string>
+    <string name="btn_delete">I-delete</string>
+    <string name="btn_play_selected">I-play ang %d na napili</string>
+    <string name="btn_add_file">I-import ang File</string>
+    <string name="btn_record_new">MAG-RECORD NG BAGO</string>
+    <string name="btn_go_back">Bumalik</string>
+    <string name="btn_got_it">Nakuha ko!</string>
+    <string name="btn_import_audio">I-import ang Audio File</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Nagre-record…</string>
+    <string name="label_empty_title">Wala pang recordings</string>
+    <string name="label_empty_subtitle">I-tap ang button sa pag-record sa itaas o mag-import ng audio file.</string>
+    <string name="label_no_matching_files">Walang nahanap na file</string>
+    <string name="label_try_different_search">Subukan ang ibang search term</string>
+    <string name="label_tap_to_select">I-tap ang mga file para pumili</string>
+    <string name="label_playlists">Mga Playlist</string>
+    <string name="label_on">On</string>
+    <string name="label_off">Off</string>
+
+    <!-- Search -->
+    <string name="search_hint">Maghanap ng mga file…</string>
+    <string name="search_files">Maghanap ng mga file</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">I-rename</string>
+    <string name="menu_trim">I-trim / I-cut</string>
+    <string name="menu_move">Ilipat sa Kategorya</string>
+    <string name="menu_share">I-share</string>
+    <string name="menu_download">I-download</string>
+    <string name="menu_split">I-split ayon sa katahimikan</string>
+    <string name="menu_normalize">I-normalize</string>
+    <string name="menu_auto_trim">Auto-trim ng katahimikan</string>
+    <string name="menu_fade">Fade</string>
+    <string name="menu_merge">I-merge ang mga napili</string>
+    <string name="menu_note">I-edit ang note</string>
+    <string name="menu_info">Impormasyon</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">I-rename ang File</string>
+    <string name="dialog_create_category">Bagong Kategorya</string>
+    <string name="dialog_delete_confirm">Sigurado ka ba?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Pananalita</string>
+    <string name="mode_stream">Stream</string>
+    <string name="mode_speech_desc">Ni-record ang iyong boses gamit ang mikropono.</string>
+    <string name="mode_stream_desc">Ni-record ang audio na tumutugtog sa iyong device (musika, video, atbp).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Na-save na</string>
+    <string name="toast_error">Error</string>
+    <string name="msg_moved">Inilipat na</string>
+    <string name="msg_imported">Na-import na: %s</string>
+    <string name="msg_error_moving">Error sa paglilipat</string>
+    <string name="msg_error_importing">Error sa pag-import</string>
+    <string name="msg_error_sharing">Error sa pag-share: %s</string>
+    <string name="msg_permission_granted">Ibinigay ang pahintulot</string>
+    <string name="msg_permission_denied">Tinanggihan ang pahintulot</string>
+    <string name="msg_permission_required">Kailangan ng pahintulot para mag-record</string>
+    <string name="msg_splitting">Sini-split ayon sa katahimikan…</string>
+    <string name="msg_split_done">Na-split sa %d na segment</string>
+    <string name="msg_no_silence_gaps">Walang nahanap na mga puwang ng katahimikan para i-split</string>
+    <string name="msg_normalizing">Ni-nornalize…</string>
+    <string name="msg_detecting_silence">Inaalam ang katahimikan…</string>
+    <string name="msg_no_silence_to_trim">Walang nakitang katahimikan para i-trim</string>
+    <string name="msg_no_significant_silence">Walang sapat na katahimikan para i-trim</string>
+    <string name="msg_applying_fade">Inilalapat ang fade…</string>
+    <string name="msg_merging">Inii-merge ang %d na file…</string>
+    <string name="msg_merged">Inii-merge sa %s</string>
+    <string name="msg_merge_failed">Nag-fail ang pag-merge</string>
+    <string name="msg_done">Tapos na!</string>
+    <string name="msg_processing_failed">Nag-fail ang pagproseso</string>
+    <string name="msg_access_denied">Tinanggihan ang access: Kasalukuyang ginagamit ang orihinal na file</string>
+    <string name="msg_error_finalizing">Error sa pag-finalize ng file!</string>
+    <string name="msg_studio_replaced">Studio: Napalitan ang orihinal</string>
+    <string name="msg_studio_saved_as">Studio: Na-save bilang %s</string>
+    <string name="msg_normalization_failed">Nag-fail ang normalization</string>
+    <string name="msg_fade_failed">Nag-fail ang fade</string>
+    <string name="msg_auto_trim_failed">Nag-fail ang auto-trim</string>
+    <string name="msg_playback_error">Error sa pag-play: %d / %d</string>
+    <string name="msg_error_opening">Error sa pagbukas ng file: %s</string>
+    <string name="msg_playlist_empty">Walang laman ang playlist o may nawawalang mga file</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Backup at Restore</string>
+    <string name="backup_saved">Na-save ang backup: %s</string>
+    <string name="backup_failed">Nag-fail ang backup: %s</string>
+    <string name="backup_loading">Naglo-load ng mga backup…</string>
+    <string name="backup_no_backups">Walang nahanap na mga backup</string>
+    <string name="backup_restoring">Inilabalik ang mga setting…</string>
+    <string name="backup_restore_complete">Tapos na ang pag-restore!</string>
+    <string name="backup_restore_failed">Nag-fail ang pag-restore: %s</string>
+    <string name="backup_deleted">Na-delete ang backup</string>
+    <string name="signin_cancelled">Kinansela ang sign-in</string>
+    <string name="signin_failed_play_services">Nag-fail ang sign-in. Pakisuri ang Google Play Services.</string>
+    <string name="signin_dev_error">Developer error: suriin ang SHA-1 sa Google Cloud Console</string>
+    <string name="signin_interrupted">Na-interrupt ang sign-in</string>
+    <string name="signin_error">Error sa sign-in (code %d)</string>
+    <string name="signin_failed">Nag-fail ang sign-in: %s</string>
+    <string name="title_restore_backup">I-restore ang Backup?</string>
+    <string name="msg_restore_warning">Mapapalitan nito ang iyong kasalukuyang mga file, kategorya, at setting ng mga nilalaman ng backup.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Mag-sign in para i-back up ang iyong mga recording at setting sa Google Drive</string>
+    <string name="btn_signing_in">Nag-sign in…</string>
+    <string name="btn_google_signin">Mag-sign in gamit ang Google</string>
+    <string name="btn_sign_out">Mag-sign out</string>
+    <string name="btn_backup">Mag-backup</string>
+    <string name="btn_restore">I-restore</string>
+    <string name="label_available_backups">Mga available na backup</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Bilis</string>
+    <string name="settings_pitch">Pitch</string>
+    <string name="settings_sleep_timer">Sleep timer</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Makinig at Ulitin</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Welcome sa AudioLoop!</string>
+    <string name="welcome_modes_intro">Sinu-portahan ng AudioLoop ang dalawang mode ng pag-record:</string>
+    <string name="welcome_stream_note">Paalala tungkol sa Stream recording:</string>
+    <string name="welcome_stream_warning">Kailangan ng kumpirmasyon ng pahintulot ng Android sa tuwing magsisimula ka ng Stream recording. Ito ay isang security feature at hindi maaaring lampasan.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Smart Coach</string>
+    <string name="coach_practice_stats">Istatistika ng Pag-eensayo</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Mabilis na pag-record at pag-play mula sa iyong home screen</string>
+
+    <!-- Categories -->
+    <string name="category_manage">I-manage ang mga Kategorya</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Library</string>
+    <string name="nav_record">Mag-record</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Mga Setting</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Smart Practice Coach</string>
+    <string name="coach_description">I-track ang iyong progreso, kumuha ng mga personal na rekomendasyon, at gumawa ng gawi sa pag-eensayo.</string>
+    <string name="coach_open_stats">Buksan ang Buong Istatistika</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Simulan ang Pag-record</string>
+    <string name="record_mode_format">%s mode</string>
+    <string name="record_recording">Nagre-record…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Mga File (%s):</string>
+    <string name="library_add">+ Magdagdag</string>
+    <string name="library_select">Pumili</string>
+    <string name="library_play_count">I-PLAY ANG %d</string>
+    <string name="library_playlist">PLAYLIST</string>
+    <string name="library_merge_count">I-MERGE ANG %d</string>
+    <string name="library_now_playing">KASALUKUYANG TINUTUGTOG</string>
+    <string name="library_today_format">Ngayong araw %s</string>
+    <string name="library_tracks_count">%d na track</string>
+    <string name="library_shuffle">I-shuffle</string>
+    <string name="library_gap_format">%ds na pagitan</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Maghanap ng mga recording…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">I-rename</string>
+    <string name="dialog_new_name">Bagong pangalan</string>
+    <string name="dialog_select_category">Pumili ng Kategorya</string>
+    <string name="dialog_add_note">Magdagdag ng Note</string>
+    <string name="dialog_edit_note">I-edit ang Note</string>
+    <string name="dialog_note_hint">Liriko, berso, pagsasalin…</string>
+    <string name="dialog_remove">Alisin</string>
+    <string name="dialog_close">Isara</string>
+    <string name="dialog_delete_file">I-delete ang file?</string>
+    <string name="dialog_delete_confirm_format">Sigurado ka bang gusto mong i-delete ang \'%s\'?</string>
+    <string name="dialog_file_info">Impormasyon ng File</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Tagal</string>
+    <string name="info_size">Laki</string>
+    <string name="info_sample_rate">Sample Rate</string>
+    <string name="info_channels">Mga Channel</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bit Rate</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Lokasyon</string>
+    <string name="info_unknown">Hindi alam</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Maghanap ng mga file</string>
+    <string name="a11y_backup">Backup at Restore</string>
+    <string name="a11y_close">Isara</string>
+    <string name="a11y_cancel_selection">I-cancel ang pagpili</string>
+    <string name="a11y_manage_categories">I-manage ang mga kategorya</string>
+    <string name="a11y_record_speech">Mag-record ng pananalita</string>
+    <string name="a11y_record_stream">Mag-record ng stream</string>
+    <string name="a11y_stop_recording">Itigil ang pag-record</string>
+    <string name="a11y_import_file">I-import ang audio file</string>
+    <string name="a11y_play_selected">I-play ang mga napiling file</string>
+    <string name="a11y_playlist">Gumawa ng playlist mula sa napili</string>
+    <string name="a11y_recording_active">Aktibo ang pag-record</string>
+    <string name="a11y_playlists">Buksan ang mga playlist</string>
+    <string name="settings_playback_title">Mga Setting ng Pag-play</string>
+    <string name="settings_speed_label">Bilis:</string>
+    <string name="settings_repeats">Mga Pag-ulit:</string>
+    <string name="settings_gap">Pagitan ng mga track:</string>
+    <string name="settings_listen_repeat_desc">I-pause pagkatapos mag-play para mag-ensayo</string>
+    <string name="settings_pause_duration">Tagal ng pause:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Sleep Timer:</string>
+    <string name="settings_sleep_off">Off</string>
+    <string name="settings_sleep_stops_in">Titigil sa %s</string>
+    <string name="settings_theme_label">Tema ng App:</string>
+    <string name="settings_language_label">Wika ng App:</string>
+    <string name="dialog_delete_playlist_title">I-delete ang playlist?</string>
+    <string name="dialog_delete_playlist_confirm">I-delete ang \"%s\"? Hindi na ito mababawi.</string>
+    <string name="label_playlists_count">%d na playlist</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d na track</string>
+    <string name="label_playlist_no_playlists">Wala pang mga playlist</string>
+    <string name="label_playlist_create_desc">Gumawa ng study session para magsimula</string>
+    <string name="btn_new">Bago</string>
+    <string name="btn_create_playlist">Gumawa ng Playlist</string>
+    <string name="btn_add_files">Magdagdag ng mga File</string>
+    <string name="label_added">nadagdag na</string>
+    <string name="label_no_files_category">Walang file sa kategoryang ito</string>
+    <string name="label_select">Pumili</string>
+    <string name="label_add_count">Magdagdag ng %d</string>
+    <string name="title_trim_audio">I-trim ang Audio</string>
+    <string name="label_studio_editor">Studio Editor</string>
+    <string name="label_keep">Ipanatili</string>
+    <string name="label_cut">I-cut</string>
+    <string name="label_current">KASALUKUYAN</string>
+    <string name="label_new_length">BAGONG HABA</string>
+    <string name="label_start">SIMULA</string>
+    <string name="label_end">TAPOS</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Katahimikan</string>
+    <string name="label_normalize">I-normalize</string>
+    <string name="error_open_audio">Hindi mabuksan ang audio file</string>
+    <string name="error_corrupted_format">Maaaring sira ang file o nasa format na hindi sinu-suportahan.</string>
+    <string name="btn_save_copy">I-save ang Kopya</string>
+    <string name="btn_replace_original">Palitan ang Orihinal</string>
+    <string name="label_status_completed">TAPOS NA</string>
+    <string name="label_status_paused">NAKA-PAUSE</string>
+    <string name="label_status_now_playing">KASALUKUYANG TINUTUGTOG</string>
+    <string name="label_shuffle">I-shuffle</string>
+    <string name="label_gap_pill">%ds na pagitan</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Pangkalahatan</string>
+    <string name="btn_resume">Ipagpatuloy</string>
+    <string name="btn_stop">Ipatigil</string>
+    <string name="title_new_playlist">Bagong Playlist</string>
+    <string name="title_edit_playlist">I-edit ang Playlist</string>
+    <string name="label_untitled">Walang Pamagat</string>
+    <string name="label_playlist_name_header">PANGALAN NG PLAYLIST</string>
+    <string name="hint_enter_name">Ipasok ang pangalan…</string>
+    <string name="label_shuffle_playback">I-shuffle ang Pag-play</string>
+    <string name="label_shuffle_desc">I-play ang mga track sa random na pagkakasunod-sunod</string>
+    <string name="label_tracks_header">MGA TRACK</string>
+    <string name="label_no_tracks">Walang nadagdag na track</string>
+    <string name="a11y_remove">Alisin</string>
+    <string name="a11y_drag_reorder">I-drag para i-reorder</string>
+    <string name="label_playing_indicator">Tinutugtog • </string>
+    <string name="a11y_menu">Menu</string>
+    <string name="label_auto_trim_silence">Auto-trim ng Katahimikan</string>
+    <string name="a11y_clear">I-clear</string>
+    <string name="label_note">Note</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Mga Kategorya</string>
+    <string name="label_drag_reorder_hint">I-drag ang handle para i-reorder</string>
+    <string name="hint_category_name">Pangalan ng kategorya…</string>
+    <string name="label_default">default</string>
+    <string name="a11y_save">I-save</string>
+    <string name="msg_deleted">Ni-delete ang %s</string>
+    <string name="msg_restored">Na-restore na</string>
+    <string name="msg_found_imported">May nahanap na %d (na) recording sa public storage – na-import na!</string>
+    <string name="btn_undo">I-undo</string>
+    <string name="a11y_edit">I-edit</string>
+    <string name="label_statistics">Mga Istatistika</string>
+    <string name="label_weekly_overview">LINGGUHANG OVERVIEW</string>
+    <string name="label_goal_reached">Naabot ang goal!</string>
+    <string name="label_min_remaining">%d min ang natitira</string>
+    <string name="label_change_goal">Baguhin ang goal</string>
+    <string name="label_streak">Streak</string>
+    <string name="label_today">Ngayon</string>
+    <string name="label_sessions">Mga Session</string>
+    <string name="label_edits">Mga Edit</string>
+    <string name="label_avg_daily">Average araw-araw</string>
+    <string name="label_last_7_days">NAKALIPAS NA 7 ARAW</string>
+    <string name="label_recommendation">REKOMENDASYON</string>
+    <string name="title_weekly_goal">Lingguhang goal</string>
+    <string name="msg_goal_question">Ilang minuto bawat linggo ang gusto mong i-ensayo?</string>
+    <string name="label_min_per_day">~%d min/araw</string>
+    <string name="btn_reset">I-reset</string>
+    <string name="btn_reset_zoom">I-reset ang Zoom</string>
+    <string name="label_earlier">Mas Maaga</string>
+    <string name="label_later">Mas Late</string>
+</resources>

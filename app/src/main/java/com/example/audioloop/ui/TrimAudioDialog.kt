@@ -41,6 +41,8 @@ import kotlin.math.max
 import com.example.audioloop.ui.theme.*
 import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 
 // Define local colors if not resolved
 private val Red100 = Color(0xFFFFE5E5)
@@ -161,7 +163,7 @@ fun TrimAudioScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 12.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -170,21 +172,21 @@ fun TrimAudioScreen(
                         .size(40.dp)
                         .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 ) {
-                    Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.a11y_close), tint = Color.White)
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 Column {
                     Text(
-                        "Trim Audio",
+                        stringResource(R.string.title_trim_audio),
                         style = MaterialTheme.typography.titleLarge.copy(
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                     )
                     Text(
-                        "Studio Editor",
+                        stringResource(R.string.label_studio_editor),
                         style = MaterialTheme.typography.labelMedium.copy(
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -196,30 +198,30 @@ fun TrimAudioScreen(
                 // Compact Segmented Control for Mode
                 Surface(
                     color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Row(modifier = Modifier.padding(2.dp)) {
                         val keepSelected = trimMode == TrimMode.Keep
                         val itemModifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                         
                         Box(
                             modifier = Modifier
-                                .background(if (keepSelected) themeColors.primary700 else Color.Transparent, RoundedCornerShape(10.dp))
+                                .background(if (keepSelected) themeColors.primary700 else Color.Transparent, RoundedCornerShape(12.dp))
                                 .clickable { trimMode = TrimMode.Keep }
                                 .then(itemModifier)
                         ) {
-                            Text("Keep", color = if (keepSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.label_keep), color = if (keepSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         }
                         Box(
                             modifier = Modifier
-                                .background(if (!keepSelected) Red900 else Color.Transparent, RoundedCornerShape(10.dp))
+                                .background(if (!keepSelected) Red900 else Color.Transparent, RoundedCornerShape(12.dp))
                                 .clickable { trimMode = TrimMode.Remove }
                                 .then(itemModifier)
                         ) {
-                            Text("Cut", color = if (!keepSelected) Red100 else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.label_cut), color = if (!keepSelected) Red100 else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
@@ -229,7 +231,7 @@ fun TrimAudioScreen(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .padding(horizontal = 20.dp, vertical = 4.dp)
                 ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
                     var startMs by remember { mutableFloatStateOf(0f) }
@@ -627,7 +629,7 @@ fun TrimAudioScreen(
                             ) {
                                 Icon(
                                     imageVector = AppIcons.ZoomOutMap,
-                                    contentDescription = "Reset Zoom",
+                                    contentDescription = stringResource(R.string.btn_reset_zoom),
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -655,15 +657,15 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .clickable {
                                         previewPositionMs = 0L
                                         try { previewPlayer.seekTo(0) } catch (_: Exception) {}
                                     }
                                     .padding(10.dp)
                             ) {
-                                Text("CURRENT", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.label_current), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(previewPositionMs),
@@ -677,7 +679,7 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
                                     .padding(10.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
@@ -689,7 +691,7 @@ fun TrimAudioScreen(
                                     (durationMs - (end - start)).coerceAtLeast(0L)
                                 }
 
-                                Text("NEW LENGTH", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.label_new_length), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(projectedDuration),
@@ -710,7 +712,7 @@ fun TrimAudioScreen(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
                                     .padding(horizontal = 6.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -718,14 +720,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                                         .clickable {
                                             startMs = (startMs - nudgeMs).coerceAtLeast(0f)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowBack, contentDescription = "Start earlier", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.label_earlier), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 }
                                 // Time display
                                 Column(
@@ -734,7 +736,7 @@ fun TrimAudioScreen(
                                         .padding(horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("START", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_start), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.start.toLong()),
                                         color = themeColors.primary200,
@@ -746,14 +748,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                                         .clickable {
                                             startMs = (startMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowForward, contentDescription = "Start later", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowForward, contentDescription = stringResource(R.string.label_later), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 }
                             }
 
@@ -761,7 +763,7 @@ fun TrimAudioScreen(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
                                     .padding(horizontal = 6.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -769,14 +771,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                                         .clickable {
                                             endMs = (endMs - nudgeMs).coerceAtLeast(0f)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowBack, contentDescription = "End earlier", tint = Red200, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.label_earlier), tint = Red200, modifier = Modifier.size(16.dp))
                                 }
                                 // Time display
                                 Column(
@@ -785,7 +787,7 @@ fun TrimAudioScreen(
                                         .padding(horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("END", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_end), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.endInclusive.toLong()),
                                         color = Red200,
@@ -797,14 +799,14 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                                         .clickable {
                                             endMs = (endMs + nudgeMs).coerceAtMost(durationMs.toFloat())
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowForward, contentDescription = "End later", tint = Red200, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowForward, contentDescription = stringResource(R.string.label_later), tint = Red200, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
@@ -819,25 +821,25 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (fadeInEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (fadeInEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
+                                        .background(if (fadeInEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                        .border(1.dp, if (fadeInEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                                         .clickable { fadeInEnabled = !fadeInEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Fade In", color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_fade_in), color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                                 // Fade Out toggle
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (fadeOutEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (fadeOutEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
+                                        .background(if (fadeOutEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                        .border(1.dp, if (fadeOutEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                                         .clickable { fadeOutEnabled = !fadeOutEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Fade Out", color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_fade_out), color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                             Row(
@@ -848,25 +850,25 @@ fun TrimAudioScreen(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (autoTrimSilence) Amber700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (autoTrimSilence) Amber500 else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
+                                        .background(if (autoTrimSilence) Amber700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                        .border(1.dp, if (autoTrimSilence) Amber500 else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                                         .clickable { autoTrimSilence = !autoTrimSilence }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Silence", color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_silence), color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                                 // Normalize toggle
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .background(if (normalizeEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
-                                        .border(1.dp, if (normalizeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
+                                        .background(if (normalizeEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                        .border(1.dp, if (normalizeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                                         .clickable { normalizeEnabled = !normalizeEnabled }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Normalize", color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.label_normalize), color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -892,7 +894,7 @@ fun TrimAudioScreen(
                                 ) {
                                     Icon(
                                         imageVector = AppIcons.Replay,
-                                        contentDescription = "Reset",
+                                        contentDescription = stringResource(R.string.btn_reset),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -928,7 +930,7 @@ fun TrimAudioScreen(
                                 ) {
                                     Icon(
                                         imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
-                                        contentDescription = null,
+                                        contentDescription = if (isPreviewPlaying) stringResource(R.string.menu_pause) else stringResource(R.string.menu_play),
                                         tint = Color.White,
                                         modifier = Modifier.size(28.dp)
                                     )
@@ -952,24 +954,24 @@ fun TrimAudioScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        "Could not open audio file",
+                        stringResource(R.string.error_open_audio),
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "The file may be corrupted or in an unsupported format.",
+                        stringResource(R.string.error_corrupted_format),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                     ) {
-                        Text("Go Back")
+                        Text(stringResource(R.string.btn_go_back))
                     }
                 }
             } else {
@@ -992,11 +994,11 @@ fun TrimAudioScreen(
                         Button(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Text("Cancel", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold)
                         }
                         // Copy
                         Button(
@@ -1007,13 +1009,13 @@ fun TrimAudioScreen(
                                 onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                             },
                             modifier = Modifier.weight(1.2f).height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = Color.White),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Icon(AppIcons.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Save Copy", maxLines = 1)
+                            Text(stringResource(R.string.btn_save_copy), maxLines = 1)
                         }
                     }
 
@@ -1026,13 +1028,13 @@ fun TrimAudioScreen(
                             onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Icon(AppIcons.Check, null, Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Replace Original", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_replace_original), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

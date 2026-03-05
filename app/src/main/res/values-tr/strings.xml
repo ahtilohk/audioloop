@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Genel</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">İptal</string>
+    <string name="btn_save">Kaydet</string>
+    <string name="btn_delete">Sil</string>
+    <string name="btn_play_selected">Seçilen %d taneyi oynat</string>
+    <string name="btn_add_file">Dosya aktar</string>
+    <string name="btn_record_new">YENİ KAYIT</string>
+    <string name="btn_go_back">Geri git</string>
+    <string name="btn_got_it">Anladım!</string>
+    <string name="btn_import_audio">Ses dosyası aktar</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Kaydediliyor…</string>
+    <string name="label_empty_title">Henüz kayıt yok</string>
+    <string name="label_empty_subtitle">Yukarıdaki kayıt düğmesine dokunun veya bir ses dosyası aktarın.</string>
+    <string name="label_no_matching_files">Eşleşen dosya yok</string>
+    <string name="label_try_different_search">Farklı bir arama terimi deneyin</string>
+    <string name="label_tap_to_select">Seçmek için dosyalara dokunun</string>
+    <string name="label_playlists">Çalma Listeleri</string>
+    <string name="label_on">Açık</string>
+    <string name="label_off">Kapalı</string>
+
+    <!-- Search -->
+    <string name="search_hint">Dosyaları ara…</string>
+    <string name="search_files">Dosyaları ara</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Yeniden adlandır</string>
+    <string name="menu_trim">Kes / Düzenle</string>
+    <string name="menu_move">Kategoriye taşı</string>
+    <string name="menu_share">Paylaş</string>
+    <string name="menu_download">İndir</string>
+    <string name="menu_split">Sessizliğe göre böl</string>
+    <string name="menu_normalize">Normalize et</string>
+    <string name="menu_auto_trim">Otomatik sessizlik silme</string>
+    <string name="menu_fade">Yavaşça sönme</string>
+    <string name="menu_merge">Seçilenleri birleştir</string>
+    <string name="menu_note">Notu düzenle</string>
+    <string name="menu_info">Bilgi</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Dosyayı yeniden adlandır</string>
+    <string name="dialog_create_category">Yeni kategori</string>
+    <string name="dialog_delete_confirm">Emin misiniz?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Konuşma</string>
+    <string name="mode_stream">Akış</string>
+    <string name="mode_speech_desc">Mikrofonu kullanarak sesinizi kaydeder.</string>
+    <string name="mode_stream_desc">Cihazınızda çalan sesi (müzik, video vb.) kaydeder.</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Kaydedildi</string>
+    <string name="toast_error">Hata</string>
+    <string name="msg_moved">Taşındı</string>
+    <string name="msg_imported">Aktarıldı: %s</string>
+    <string name="msg_error_moving">Taşıma hatası</string>
+    <string name="msg_error_importing">Aktarma hatası</string>
+    <string name="msg_error_sharing">Paylaşım hatası: %s</string>
+    <string name="msg_permission_granted">İzin verildi</string>
+    <string name="msg_permission_denied">İzin reddedildi</string>
+    <string name="msg_permission_required">Kayıt için izin gerekiyor</string>
+    <string name="msg_splitting">Sessizliğe göre bölünüyor…</string>
+    <string name="msg_split_done">%d segmente bölündü</string>
+    <string name="msg_no_silence_gaps">Bölünecek sessizlik boşluğu bulunamadı</string>
+    <string name="msg_normalizing">Normalize ediliyor…</string>
+    <string name="msg_detecting_silence">Sessizlik algılanıyor…</string>
+    <string name="msg_no_silence_to_trim">Silinecek sessizlik algılanmadı</string>
+    <string name="msg_no_significant_silence">Silinecek önemli bir sessizlik bulunamadı</string>
+    <string name="msg_applying_fade">Efekt uygulanıyor…</string>
+    <string name="msg_merging">%d dosya birleştiriliyor…</string>
+    <string name="msg_merged">%s içine birleştirildi</string>
+    <string name="msg_merge_failed">Birleştirme başarısız</string>
+    <string name="msg_done">Tamamlandı!</string>
+    <string name="msg_processing_failed">İşlem başarısız</string>
+    <string name="msg_access_denied">Erişim reddedildi: Orijinal dosya kullanımda</string>
+    <string name="msg_error_finalizing">Dosya sonlandırılırken hata oluştu!</string>
+    <string name="msg_studio_replaced">Stüdyo: Orijinal dosya değiştirildi</string>
+    <string name="msg_studio_saved_as">Stüdyo: %s olarak kaydedildi</string>
+    <string name="msg_normalization_failed">Normalizasyon başarısız</string>
+    <string name="msg_fade_failed">Efekt başarısız</string>
+    <string name="msg_auto_trim_failed">Otomatik silme başarısız</string>
+    <string name="msg_playback_error">Oynatma hatası: %d / %d</string>
+    <string name="msg_error_opening">Açılırken hata: %s</string>
+    <string name="msg_playlist_empty">Çalma listesi boş veya dosyalar eksik</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Yedekle ve Geri Yükle</string>
+    <string name="backup_saved">Yedek kaydedildi: %s</string>
+    <string name="backup_failed">Yedekleme başarısız: %s</string>
+    <string name="backup_loading">Yedekler yükleniyor…</string>
+    <string name="backup_no_backups">Yedek bulunamadı</string>
+    <string name="backup_restoring">Ayarlar geri yükleniyor…</string>
+    <string name="backup_restore_complete">Geri yükleme tamamlandı!</string>
+    <string name="backup_restore_failed">Geri yükleme başarısız: %s</string>
+    <string name="backup_deleted">Yedek silindi</string>
+    <string name="signin_cancelled">Giriş iptal edildi</string>
+    <string name="signin_failed_play_services">Giriş başarısız (Google Play Hizmetlerini kontrol edin).</string>
+    <string name="signin_dev_error">Geliştirici hatası (SHA-1\'i kontrol edin).</string>
+    <string name="signin_interrupted">Giriş kesintiye uğradı</string>
+    <string name="signin_error">Giriş hatası (kod %d)</string>
+    <string name="signin_failed">Giriş başarısız: %s</string>
+    <string name="title_restore_backup">Yedek geri yüklensin mi?</string>
+    <string name="msg_restore_warning">Bu işlem mevcut dosyalarınızı, kategorilerinizi ve ayarlarınızı değiştirecektir.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Kayıtlarınızı Google Drive\'a yedeklemek için giriş yapın</string>
+    <string name="btn_signing_in">Giriş yapılıyor…</string>
+    <string name="btn_google_signin">Google ile giriş yap</string>
+    <string name="btn_sign_out">Çıkış yap</string>
+    <string name="btn_backup">Yedekle</string>
+    <string name="btn_restore">Geri Yükle</string>
+    <string name="label_available_backups">Mevcut yedekler</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Döngü</string>
+    <string name="settings_speed">Hız</string>
+    <string name="settings_pitch">Perde</string>
+    <string name="settings_sleep_timer">Uyku Zamanlayıcısı</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Dinle ve Tekrar Et</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">AudioLoop\'a hoş geldiniz!</string>
+    <string name="welcome_modes_intro">AudioLoop iki modu destekler:</string>
+    <string name="welcome_stream_note">Akış kaydı hakkında not:</string>
+    <string name="welcome_stream_warning">Android her seferinde onay gerektirir. Bu bir sistem güvenlik özelliğidir.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Akıllı Koç</string>
+    <string name="coach_practice_stats">Pratik İstatistikleri</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Ana ekrandan hızlı kayıt ve oynatma</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Kategorileri Yönet</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Kütüphane</string>
+    <string name="nav_record">Kaydet</string>
+    <string name="nav_coach">Koç</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Akıllı Pratik Koçu</string>
+    <string name="coach_description">İlerlemeni takip et ve bir pratik alışkanlığı oluştur.</string>
+    <string name="coach_open_stats">Tüm istatistikleri aç</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Kaydı Başlat</string>
+    <string name="record_mode_format">%s Modu</string>
+    <string name="record_recording">Kaydediliyor…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Dosyalar (%s):</string>
+    <string name="library_add">+ Ekle</string>
+    <string name="library_select">Seç</string>
+    <string name="library_play_count">%d OYNAT</string>
+    <string name="library_playlist">ÇALMA LİSTESİ</string>
+    <string name="library_merge_count">%d BİRLEŞTİR</string>
+    <string name="library_now_playing">ŞİMDİ OYNATILIYOR</string>
+    <string name="library_today_format">Bugün %s</string>
+    <string name="library_tracks_count">%d parça</string>
+    <string name="library_shuffle">Karıştır</string>
+    <string name="library_gap_format">%ds boşluk</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Kayıtları ara…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Yeniden adlandır</string>
+    <string name="dialog_new_name">Yeni ad</string>
+    <string name="dialog_select_category">Kategori seç</string>
+    <string name="dialog_add_note">Not ekle</string>
+    <string name="dialog_edit_note">Notu düzenle</string>
+    <string name="dialog_note_hint">Şarkı sözleri, dizeler, çeviri…</string>
+    <string name="dialog_remove">Kaldır</string>
+    <string name="dialog_close">Kapat</string>
+    <string name="dialog_delete_file">Dosya silinsin mi?</string>
+    <string name="dialog_delete_confirm_format">\'%s\' dosyasını gerçekten silmek istiyor musunuz?</string>
+    <string name="dialog_file_info">Dosya bilgisi</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Süre</string>
+    <string name="info_size">Boyut</string>
+    <string name="info_sample_rate">Örnekleme hızı</string>
+    <string name="info_channels">Kanallar</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bit hızı</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Konum</string>
+    <string name="info_unknown">Bilinmiyor</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logo</string>
+    <string name="a11y_search">Dosyaları ara</string>
+    <string name="a11y_backup">Yedekle ve Geri Yükle</string>
+    <string name="a11y_close">Kapat</string>
+    <string name="a11y_cancel_selection">Seçimi iptal et</string>
+    <string name="a11y_manage_categories">Kategorileri yönet</string>
+    <string name="a11y_record_speech">Konuşma kaydet</string>
+    <string name="a11y_record_stream">Akış kaydet</string>
+    <string name="a11y_stop_recording">Kaydı durdur</string>
+    <string name="a11y_import_file">Ses dosyası aktar</string>
+    <string name="a11y_play_selected">Seçilen dosyaları oynat</string>
+    <string name="a11y_playlist">Seçimden çalma listesi oluştur</string>
+    <string name="a11y_recording_active">Kayıt aktif</string>
+    <string name="a11y_playlists">Çalma listelerini aç</string>
+    <string name="settings_playback_title">Oynatma Ayarları</string>
+    <string name="settings_speed_label">Hız:</string>
+    <string name="settings_repeats">Tekrarlar:</string>
+    <string name="settings_gap">Parçalar arası boşluk:</string>
+    <string name="settings_listen_repeat_desc">Pratik yapmak için oynatmadan sonra duraklat</string>
+    <string name="settings_pause_duration">Duraklatma süresi:</string>
+    <string name="settings_pause_auto">Otomatik</string>
+    <string name="settings_sleep_timer_label">Uyku zamanlayıcısı:</string>
+    <string name="settings_sleep_off">Kapalı</string>
+    <string name="settings_sleep_stops_in">%s içinde duracak</string>
+    <string name="settings_theme_label">Uygulama teması:</string>
+    <string name="settings_language_label">Uygulama dili:</string>
+    <string name="dialog_delete_playlist_title">Çalma listesi silinsin mi?</string>
+    <string name="dialog_delete_playlist_confirm">\"%s\" silinsin mi? Bu işlem geri alınamaz.</string>
+    <string name="label_playlists_count">%d çalma listesi</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d parça</string>
+    <string name="label_playlist_no_playlists">Henüz çalma listesi yok</string>
+    <string name="label_playlist_create_desc">Başlamak için bir çalışma seansı oluştur</string>
+    <string name="btn_new">Yeni</string>
+    <string name="btn_create_playlist">Çalma listesi oluştur</string>
+    <string name="btn_add_files">Dosya ekle</string>
+    <string name="label_added">eklendi</string>
+    <string name="label_no_files_category">Bu kategoride dosya yok</string>
+    <string name="label_select">Seç</string>
+    <string name="label_add_count">%d ekle</string>
+    <string name="title_trim_audio">Sesi Kes</string>
+    <string name="label_studio_editor">Stüdyo Editörü</string>
+    <string name="label_keep">Tut</string>
+    <string name="label_cut">Kes</string>
+    <string name="label_current">MEVCUT</string>
+    <string name="label_new_length">YENİ SÜRE</string>
+    <string name="label_start">BAŞLANGIÇ</string>
+    <string name="label_end">BİTİŞ</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Sessizlik</string>
+    <string name="label_normalize">Normalize</string>
+    <string name="error_open_audio">Ses açılamadı</string>
+    <string name="error_corrupted_format">Dosya bozuk veya format desteklenmiyor.</string>
+    <string name="btn_save_copy">Kopya kaydet</string>
+    <string name="btn_replace_original">Orijinali değiştir</string>
+    <string name="label_status_completed">TAMAMLANDI</string>
+    <string name="label_status_paused">DURAKLATILDI</string>
+    <string name="label_status_now_playing">ŞİMDİ OYNATILIYOR</string>
+    <string name="label_shuffle">Karıştır</string>
+    <string name="label_gap_pill">%ds boşluk</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$ds %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d dk</string>
+    <string name="label_general">Genel</string>
+    <string name="btn_resume">Devam Et</string>
+    <string name="btn_stop">Durdur</string>
+    <string name="title_new_playlist">Yeni çalma listesi</string>
+    <string name="title_edit_playlist">Çalma listesini düzenle</string>
+    <string name="label_untitled">Adsız</string>
+    <string name="label_playlist_name_header">ÇALMA LİSTESİ ADI</string>
+    <string name="hint_enter_name">Ad girin…</string>
+    <string name="label_shuffle_playback">Karışık çalma</string>
+    <string name="label_shuffle_desc">Parçaları rastgele sırada çal</string>
+    <string name="label_tracks_header">PARÇALAR</string>
+    <string name="label_no_tracks">Henüz parça eklenmedi</string>
+    <string name="a11y_remove">Kaldır</string>
+    <string name="a11y_drag_reorder">Sırayı değiştirmek için sürükleyin</string>
+    <string name="label_playing_indicator">Oynatılıyor • </string>
+    <string name="a11y_menu">Menü</string>
+    <string name="label_auto_trim_silence">Otomatik sessizlik silme</string>
+    <string name="a11y_clear">Temizle</string>
+    <string name="label_note">Not</string>
+    <string name="prefix_speech">Speech</string>
+    <string name="prefix_stream">Stream</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Kategoriler</string>
+    <string name="label_drag_reorder_hint">Sırayı değiştirmek için sürükleyin</string>
+    <string name="hint_category_name">Kategori adı…</string>
+    <string name="label_default">varsayılan</string>
+    <string name="a11y_save">Kaydet</string>
+    <string name="msg_deleted">Silindi: %s</string>
+    <string name="msg_restored">Geri yüklendi</string>
+    <string name="msg_found_imported">%d kayıt aktarıldı!</string>
+    <string name="btn_undo">Geri al</string>
+    <string name="a11y_edit">Düzenle</string>
+    <string name="label_statistics">İstatistikler</string>
+    <string name="label_weekly_overview">HAFTALIK GENEL BAKIŞ</string>
+    <string name="label_goal_reached">Hedefe ulaşıldı!</string>
+    <string name="label_min_remaining">%d dk kaldı</string>
+    <string name="label_change_goal">Hedefi değiştir</string>
+    <string name="label_streak">Seri</string>
+    <string name="label_today">Bugün</string>
+    <string name="label_sessions">Seanslar</string>
+    <string name="label_edits">Düzenlemeler</string>
+    <string name="label_avg_daily">Günlük ortalama</string>
+    <string name="label_last_7_days">SON 7 GÜN</string>
+    <string name="label_recommendation">ÖNERİ</string>
+    <string name="title_weekly_goal">Haftalık Hedef</string>
+    <string name="msg_goal_question">Haftada kaç dakika pratik yapmak istersiniz?</string>
+    <string name="label_min_per_day">~%d dk/gün</string>
+    <string name="btn_reset">Sıfırla</string>
+    <string name="btn_reset_zoom">Yakınlaştırmayı Sıfırla</string>
+    <string name="label_earlier">Daha önce</string>
+    <string name="label_later">Daha sonra</string>
+</resources>

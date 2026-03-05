@@ -1,0 +1,326 @@
+<resources>
+    <string name="app_name">Loop &amp; Learn Audio</string>
+    <string name="app_title">Loop &amp; Learn</string>
+
+    <!-- General -->
+    <string name="title_general">Allmänt</string>
+
+    <!-- Buttons -->
+    <string name="btn_cancel">Avbryt</string>
+    <string name="btn_save">Spara</string>
+    <string name="btn_delete">Radera</string>
+    <string name="btn_play_selected">Spela %d valda</string>
+    <string name="btn_add_file">Importera fil</string>
+    <string name="btn_record_new">NY INSPELNING</string>
+    <string name="btn_go_back">Bakåt</string>
+    <string name="btn_got_it">Uppfattat!</string>
+    <string name="btn_import_audio">Importera ljudfil</string>
+
+    <!-- Labels -->
+    <string name="label_recording">Spelar in…</string>
+    <string name="label_empty_title">Inga inspelningar än</string>
+    <string name="label_empty_subtitle">Tryck på inspelningsknappen ovan eller importera en ljudfil.</string>
+    <string name="label_no_matching_files">Inga matchande filer</string>
+    <string name="label_try_different_search">Prova en annan sökterm</string>
+    <string name="label_tap_to_select">Tryck på filer för att välja</string>
+    <string name="label_playlists">Spellistor</string>
+    <string name="label_on">På</string>
+    <string name="label_off">Av</string>
+
+    <!-- Search -->
+    <string name="search_hint">Sök filer…</string>
+    <string name="search_files">Sök filer</string>
+
+    <!-- Menu / Actions -->
+    <string name="menu_rename">Byt namn</string>
+    <string name="menu_trim">Trimma / Justera</string>
+    <string name="menu_move">Flytta till kategori</string>
+    <string name="menu_share">Dela</string>
+    <string name="menu_download">Ladda ner</string>
+    <string name="menu_split">Dela vid tystnad</string>
+    <string name="menu_normalize">Normalisera</string>
+    <string name="menu_auto_trim">Auto-trimma tystnad</string>
+    <string name="menu_fade">Tona</string>
+    <string name="menu_merge">Slå ihop valda</string>
+    <string name="menu_note">Redigera anteckning</string>
+    <string name="menu_info">Info</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename_title">Byt namn på fil</string>
+    <string name="dialog_create_category">Ny kategori</string>
+    <string name="dialog_delete_confirm">Är du säker?</string>
+
+    <!-- Recording modes -->
+    <string name="mode_speech">Tal</string>
+    <string name="mode_stream">Ström</string>
+    <string name="mode_speech_desc">Spelar in din röst via mikrofonen.</string>
+    <string name="mode_stream_desc">Spelar in ljud från enheten (musik, videor etc.).</string>
+
+    <!-- Snackbar / Toast messages -->
+    <string name="toast_saved">Sparad</string>
+    <string name="toast_error">Fel</string>
+    <string name="msg_moved">Flyttad</string>
+    <string name="msg_imported">Importerad: %s</string>
+    <string name="msg_error_moving">Fel vid flytt</string>
+    <string name="msg_error_importing">Fel vid import</string>
+    <string name="msg_error_sharing">Dela-fel: %s</string>
+    <string name="msg_permission_granted">Tillstånd beviljat</string>
+    <string name="msg_permission_denied">Tillstånd nekat</string>
+    <string name="msg_permission_required">Tillstånd krävs för inspelning</string>
+    <string name="msg_splitting">Delar vid tystnad…</string>
+    <string name="msg_split_done">Delad i %d segment</string>
+    <string name="msg_no_silence_gaps">Ingen tystnad hittades för delning</string>
+    <string name="msg_normalizing">Normaliserar…</string>
+    <string name="msg_detecting_silence">Detekterar tystnad…</string>
+    <string name="msg_no_silence_to_trim">Ingen tystnad detekterad att trimma</string>
+    <string name="msg_no_significant_silence">Ingen betydande tystnad att trimma</string>
+    <string name="msg_applying_fade">Applicerar toningen…</string>
+    <string name="msg_merging">Slår ihop %d filer…</string>
+    <string name="msg_merged">Slon ihop till %s</string>
+    <string name="msg_merge_failed">Ihopslagning misslyckades</string>
+    <string name="msg_done">Färdig!</string>
+    <string name="msg_processing_failed">Bearbetning misslyckades</string>
+    <string name="msg_access_denied">Åtkomst nekad: originalfilen används</string>
+    <string name="msg_error_finalizing">Fel vid slutförande av fil!</string>
+    <string name="msg_studio_replaced">Studio: Originalet ersatt</string>
+    <string name="msg_studio_saved_as">Studio: Sparad som %s</string>
+    <string name="msg_normalization_failed">Normalisering misslyckades</string>
+    <string name="msg_fade_failed">Toningen misslyckades</string>
+    <string name="msg_auto_trim_failed">Auto-trimning misslyckades</string>
+    <string name="msg_playback_error">Uppspelningsfel: %d / %d</string>
+    <string name="msg_error_opening">Fel vid öppning: %s</string>
+    <string name="msg_playlist_empty">Spellistan är tom eller filer saknas</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Säkerhetskopiering och återställning</string>
+    <string name="backup_saved">Säkerhetskopia sparad: %s</string>
+    <string name="backup_failed">Säkerhetskopiering misslyckades: %s</string>
+    <string name="backup_loading">Laddar säkerhetskopior…</string>
+    <string name="backup_no_backups">Inga säkerhetskopior hittades</string>
+    <string name="backup_restoring">Återställer inställningar…</string>
+    <string name="backup_restore_complete">Återställning klar!</string>
+    <string name="backup_restore_failed">Återställning misslyckades: %s</string>
+    <string name="backup_deleted">Säkerhetskopia raderad</string>
+    <string name="signin_cancelled">Inloggning avbruten</string>
+    <string name="signin_failed_play_services">Inloggningsfel (kontrollera Google Play Services).</string>
+    <string name="signin_dev_error">Utvecklarfel (kontrollera SHA-1).</string>
+    <string name="signin_interrupted">Inloggning avbruten</string>
+    <string name="signin_error">Inloggningsfel (kod %d)</string>
+    <string name="signin_failed">Inloggning misslyckades: %s</string>
+    <string name="title_restore_backup">Återställa säkerhetskopia?</string>
+    <string name="msg_restore_warning">Detta kommer att ersätta dina nuvarande filer, kategorier och inställningar.</string>
+    <string name="label_google_drive">Google Drive</string>
+    <string name="msg_backup_intro">Logga in för att spara dina inspelningar på Google Drive</string>
+    <string name="btn_signing_in">Loggar in…</string>
+    <string name="btn_google_signin">Logga in med Google</string>
+    <string name="btn_sign_out">Logga ut</string>
+    <string name="btn_backup">Säkerhetskopiera</string>
+    <string name="btn_restore">Återställ</string>
+    <string name="label_available_backups">Tillgängliga säkerhetskopior</string>
+
+    <!-- Settings -->
+    <string name="settings_loop">Loop</string>
+    <string name="settings_speed">Hastighet</string>
+    <string name="settings_pitch">Tonhöjd</string>
+    <string name="settings_sleep_timer">Insomningstimer</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_listen_repeat">Lyssna och upprepa</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title">Välkommen till AudioLoop!</string>
+    <string name="welcome_modes_intro">AudioLoop stöder två lägen:</string>
+    <string name="welcome_stream_note">Info om ströminspelning:</string>
+    <string name="welcome_stream_warning">Android kräver bekräftelse varje gång. Det är en säkerhetsfunktion i systemet.</string>
+
+    <!-- Coach -->
+    <string name="coach_smart_coach">Smart coach</string>
+    <string name="coach_practice_stats">Övningsstatistik</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Snabb inspelning och uppspelning från startskärmen</string>
+
+    <!-- Categories -->
+    <string name="category_manage">Hantera kategorier</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Bibliotek</string>
+    <string name="nav_record">Spela in</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_settings">Inställningar</string>
+
+    <!-- Coach Tab -->
+    <string name="coach_title">Smart övningscoach</string>
+    <string name="coach_description">Följ dina framsteg och skapa en god vana.</string>
+    <string name="coach_open_stats">Öppna fullständig statistik</string>
+
+    <!-- Record Tab -->
+    <string name="record_start">Starta inspelning</string>
+    <string name="record_mode_format">%s-läge</string>
+    <string name="record_recording">Spelar in…</string>
+
+    <!-- Library Tab -->
+    <string name="library_files_header">Filer (%s):</string>
+    <string name="library_add">+ Lägg till</string>
+    <string name="library_select">Välj</string>
+    <string name="library_play_count">SPELA %d</string>
+    <string name="library_playlist">SPELLISTA</string>
+    <string name="library_merge_count">SLÅ IHOP %d</string>
+    <string name="library_now_playing">SPELAS NU</string>
+    <string name="library_today_format">Idag %s</string>
+    <string name="library_tracks_count">%d spår</string>
+    <string name="library_shuffle">Blanda</string>
+    <string name="library_gap_format">%ds paus</string>
+
+    <!-- Header -->
+    <string name="header_title">Loop &amp; Learn</string>
+
+    <!-- Search -->
+    <string name="search_recordings_hint">Sök inspelningar…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_rename">Byt namn</string>
+    <string name="dialog_new_name">Nytt namn</string>
+    <string name="dialog_select_category">Välj kategori</string>
+    <string name="dialog_add_note">Lägg till anteckning</string>
+    <string name="dialog_edit_note">Redigera anteckning</string>
+    <string name="dialog_note_hint">Text, vers, översättning…</string>
+    <string name="dialog_remove">Ta bort</string>
+    <string name="dialog_close">Stäng</string>
+    <string name="dialog_delete_file">Radera fil?</string>
+    <string name="dialog_delete_confirm_format">Vill du radera \'%s\'?</string>
+    <string name="dialog_file_info">Filinfo</string>
+
+    <!-- File Info -->
+    <string name="info_format">Format</string>
+    <string name="info_duration">Längd</string>
+    <string name="info_size">Storlek</string>
+    <string name="info_sample_rate">Samplingsfrekvens</string>
+    <string name="info_channels">Kanaler</string>
+    <string name="info_mono">Mono</string>
+    <string name="info_stereo">Stereo</string>
+    <string name="info_bit_rate">Bithastighet</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_location">Plats</string>
+    <string name="info_unknown">Okänd</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_logo">Logotyp</string>
+    <string name="a11y_search">Sök filer</string>
+    <string name="a11y_backup">Säkerhetskopiering och återställning</string>
+    <string name="a11y_close">Stäng</string>
+    <string name="a11y_cancel_selection">Avbryt val</string>
+    <string name="a11y_manage_categories">Hantera kategorier</string>
+    <string name="a11y_record_speech">Spela in tal</string>
+    <string name="a11y_record_stream">Spela in ström</string>
+    <string name="a11y_stop_recording">Stoppa inspelning</string>
+    <string name="a11y_import_file">Importera ljudfil</string>
+    <string name="a11y_play_selected">Spela valda filer</string>
+    <string name="a11y_playlist">Skapa spellista från val</string>
+    <string name="a11y_recording_active">Inspelning pågår</string>
+    <string name="a11y_playlists">Öppna spellistor</string>
+    <string name="settings_playback_title">Uppspelningsinställningar</string>
+    <string name="settings_speed_label">Hastighet:</string>
+    <string name="settings_repeats">Upprepningar:</string>
+    <string name="settings_gap">Paus mellan spår:</string>
+    <string name="settings_listen_repeat_desc">Paus efter uppspelning för övning</string>
+    <string name="settings_pause_duration">Pauslängd:</string>
+    <string name="settings_pause_auto">Auto</string>
+    <string name="settings_sleep_timer_label">Insomningstimer:</string>
+    <string name="settings_sleep_off">Av</string>
+    <string name="settings_sleep_stops_in">Stannar om %s</string>
+    <string name="settings_theme_label">Appens tema:</string>
+    <string name="settings_language_label">Appens språk:</string>
+    <string name="dialog_delete_playlist_title">Radera spellista?</string>
+    <string name="dialog_delete_playlist_confirm">Radera \"%s\"? Detta kan inte ångras.</string>
+    <string name="label_playlists_count">%d spellist%s</string>
+    <string name="label_play_count_compact">%dx</string>
+    <string name="label_playlist_tracks">%d spår</string>
+    <string name="label_playlist_no_playlists">Inga spellistor än</string>
+    <string name="label_playlist_create_desc">Skapa en session för att börja</string>
+    <string name="btn_new">Ny</string>
+    <string name="btn_create_playlist">Skapa spellista</string>
+    <string name="btn_add_files">Lägg till filer</string>
+    <string name="label_added">tillagd</string>
+    <string name="label_no_files_category">Inga filer i denna kategori</string>
+    <string name="label_select">Välj</string>
+    <string name="label_add_count">Lägg till %d</string>
+    <string name="title_trim_audio">Trimma ljud</string>
+    <string name="label_studio_editor">Studio Editor</string>
+    <string name="label_keep">Behåll</string>
+    <string name="label_cut">Klipp</string>
+    <string name="label_current">AKTUELL</string>
+    <string name="label_new_length">NY LÄNGD</string>
+    <string name="label_start">START</string>
+    <string name="label_end">SLUT</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_silence">Tystnad</string>
+    <string name="label_normalize">Normalisera</string>
+    <string name="error_open_audio">Kunde inte öppna ljud</string>
+    <string name="error_corrupted_format">Filen är skadad eller formatet stöds inte.</string>
+    <string name="btn_save_copy">Spara kopia</string>
+    <string name="btn_replace_original">Ersätt original</string>
+    <string name="label_status_completed">KLAR</string>
+    <string name="label_status_paused">PAUSAD</string>
+    <string name="label_status_now_playing">SPELAS NU</string>
+    <string name="label_shuffle">Blanda</string>
+    <string name="label_gap_pill">%ds paus</string>
+    <string name="label_duration_min_sec">%1$dm %2$ds</string>
+    <string name="label_duration_hour_min">%1$dh %2$dm</string>
+    <string name="label_duration_sec">%ds</string>
+    <string name="label_min">%d min</string>
+    <string name="label_general">Allmänt</string>
+    <string name="btn_resume">Återuppta</string>
+    <string name="btn_stop">Stopp</string>
+    <string name="title_new_playlist">Ny spellista</string>
+    <string name="title_edit_playlist">Redigera spellista</string>
+    <string name="label_untitled">Namnlös</string>
+    <string name="label_playlist_name_header">SPELLISTANS NAMN</string>
+    <string name="hint_enter_name">Ange namn…</string>
+    <string name="label_shuffle_playback">Slumpmässig uppspelning</string>
+    <string name="label_shuffle_desc">Spela spåren i slumpmässig ordning</string>
+    <string name="label_tracks_header">SPÅR</string>
+    <string name="label_no_tracks">Inga spår tillagda</string>
+    <string name="a11y_remove">Ta bort</string>
+    <string name="a11y_drag_reorder">Dra för att ändra ordning</string>
+    <string name="label_playing_indicator">Spelar • </string>
+    <string name="a11y_menu">Meny</string>
+    <string name="label_auto_trim_silence">Auto-trimma tystnad</string>
+    <string name="a11y_clear">Rensa</string>
+    <string name="label_note">Anteckning</string>
+    <string name="prefix_speech">Tal</string>
+    <string name="prefix_stream">Ström</string>
+    <string name="unit_bytes">B</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_bit">bit</string>
+    <string name="label_categories">Kategorier</string>
+    <string name="label_drag_reorder_hint">Dra i handtaget för att ändra ordning</string>
+    <string name="hint_category_name">Kategorinamn…</string>
+    <string name="label_default">standard</string>
+    <string name="a11y_save">Spara</string>
+    <string name="msg_deleted">Raderad: %s</string>
+    <string name="msg_restored">Återställd</string>
+    <string name="msg_found_imported">%d inspelningar importerade!</string>
+    <string name="btn_undo">Ångra</string>
+    <string name="a11y_edit">Redigera</string>
+    <string name="label_statistics">Statistik</string>
+    <string name="label_weekly_overview">VECKOÖVERSIKT</string>
+    <string name="label_goal_reached">Mål uppnått!</string>
+    <string name="label_min_remaining">%d min återstår</string>
+    <string name="label_change_goal">Ändra mål</string>
+    <string name="label_streak">Svit</string>
+    <string name="label_today">Idag</string>
+    <string name="label_sessions">Sessioner</string>
+    <string name="label_edits">Redigeringar</string>
+    <string name="label_avg_daily">Genomsnitt dagligen</string>
+    <string name="label_last_7_days">SENASTE 7 DAGARNA</string>
+    <string name="label_recommendation">REKOMMENDATION</string>
+    <string name="title_weekly_goal">Veckomål</string>
+    <string name="msg_goal_question">Hur många minuter per vecka?</string>
+    <string name="label_min_per_day">~%d min/dag</string>
+    <string name="btn_reset">Återställ</string>
+    <string name="btn_reset_zoom">Återställ Zoom</string>
+    <string name="label_earlier">Tidigare</string>
+    <string name="label_later">Senare</string>
+</resources>

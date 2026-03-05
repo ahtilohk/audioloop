@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import com.example.audioloop.AppIcons
 import com.example.audioloop.BackupInfo
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun BackupRestoreSheet(
@@ -61,7 +63,7 @@ fun BackupRestoreSheet(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
-                    Text("Restore Backup?")
+                    Text(stringResource(R.string.title_restore_backup))
                 }
             },
             text = {
@@ -79,13 +81,13 @@ fun BackupRestoreSheet(
                     if (backup.sizeBytes > 0) {
                         val mb = backup.sizeBytes / (1024.0 * 1024.0)
                         Text(
-                            String.format("%.1f MB", mb),
+                            String.format("%.1f ", mb) + stringResource(R.string.unit_mb),
                             style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         )
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "This will replace your current files, categories, and settings with the backup contents.",
+                        stringResource(R.string.msg_restore_warning),
                         style = TextStyle(color = Sunset400, fontSize = 12.sp)
                     )
                 }
@@ -105,12 +107,12 @@ fun BackupRestoreSheet(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text("Restore")
+                    Text(stringResource(R.string.btn_restore))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { restoreConfirmBackup = null }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -156,12 +158,12 @@ fun BackupRestoreSheet(
                                 .background(MaterialTheme.colorScheme.surface, CircleShape)
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                            Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.btn_go_back), tint = MaterialTheme.colorScheme.onSurface)
                         }
 
                         Column {
                             Text(
-                                "Backup & Restore",
+                                stringResource(R.string.backup_restore),
                                 style = TextStyle(
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
@@ -170,7 +172,7 @@ fun BackupRestoreSheet(
                             )
                             val statusText = when {
                                 isBackupSignedIn -> backupEmail
-                                else -> "Google Drive"
+                                else -> stringResource(R.string.label_google_drive)
                             }
                             Text(
                                 statusText,
@@ -230,7 +232,7 @@ fun BackupRestoreSheet(
                                 modifier = Modifier.size(48.dp)
                             )
                             Text(
-                                "Sign in to back up your recordings and settings to Google Drive",
+                                stringResource(R.string.msg_backup_intro),
                                 style = TextStyle(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp,
@@ -250,7 +252,7 @@ fun BackupRestoreSheet(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        if (isBackupRunning) "Signing in..." else "Sign in with Google",
+                                        if (isBackupRunning) stringResource(R.string.btn_signing_in) else stringResource(R.string.btn_google_signin),
                                         style = TextStyle(
                                             color = Color.White,
                                             fontSize = 15.sp,
@@ -295,7 +297,7 @@ fun BackupRestoreSheet(
                                 )
                             }
                             Text(
-                                "Sign out",
+                                stringResource(R.string.btn_sign_out),
                                 style = TextStyle(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp,
@@ -333,7 +335,7 @@ fun BackupRestoreSheet(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Backup",
+                                    stringResource(R.string.btn_backup),
                                     style = TextStyle(
                                         color = Color.White,
                                         fontSize = 15.sp,
@@ -362,7 +364,7 @@ fun BackupRestoreSheet(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Restore",
+                                    stringResource(R.string.btn_restore),
                                     style = TextStyle(
                                         color = MaterialTheme.colorScheme.primary,
                                         fontSize = 15.sp,
@@ -385,7 +387,7 @@ fun BackupRestoreSheet(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    "Available backups",
+                                    stringResource(R.string.label_available_backups),
                                     style = TextStyle(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 13.sp,
@@ -429,13 +431,13 @@ fun BackupRestoreSheet(
                                                 if (backup.sizeBytes > 0) {
                                                     val mb = backup.sizeBytes / (1024.0 * 1024.0)
                                                     Text(
-                                                        String.format("%.1f MB", mb),
+                                                        String.format("%.1f ", mb) + stringResource(R.string.unit_mb),
                                                         style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                                                     )
                                                 }
                                                 Icon(
                                                     imageVector = AppIcons.CloudDownload,
-                                                    contentDescription = "Restore",
+                                                    contentDescription = stringResource(R.string.btn_restore),
                                                     tint = MaterialTheme.colorScheme.primary,
                                                     modifier = Modifier.size(18.dp)
                                                 )

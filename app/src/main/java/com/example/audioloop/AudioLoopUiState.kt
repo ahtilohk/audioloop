@@ -1,6 +1,10 @@
 package com.example.audioloop
 
 import com.example.audioloop.ui.theme.AppTheme
+import java.io.File
+
+enum class SortMode { NAME_ASC, NAME_DESC, DATE_DESC, DATE_ASC, LENGTH_DESC, LENGTH_ASC }
+enum class ThemeMode { AUTO, LIGHT, DARK }
 
 /**
  * Single source of truth for all UI state in AudioLoop.
@@ -26,13 +30,17 @@ data class AudioLoopUiState(
     val categories: List<String> = listOf("General"),
     val savedItems: List<RecordingItem> = emptyList(),
     val searchQuery: String = "",
+    val sortMode: SortMode = SortMode.DATE_DESC,
+    val searchCategory: String? = null,
 
     // Sleep timer
     val sleepTimerRemainingMs: Long = 0L,
     val selectedSleepMinutes: Int = 0,
 
-    // Theme
+    // Theme & Language
     val currentTheme: AppTheme = AppTheme.SLATE,
+    val themeMode: ThemeMode = ThemeMode.DARK,
+    val appLanguage: String = "en",
 
     // Practice Coach
     val practiceWeeklyMinutes: Float = 0f,
@@ -70,6 +78,7 @@ data class AudioLoopUiState(
     val selectedFiles: Set<String> = emptySet(),
     val settingsOpen: Boolean = false,
     val showCategorySheet: Boolean = false,
+    val isLoading: Boolean = false,
 
     // --- Dialog Visibility ---
     val showRenameDialog: Boolean = false,

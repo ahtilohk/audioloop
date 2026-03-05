@@ -63,6 +63,8 @@ import android.media.MediaPlayer
 import com.example.audioloop.AppIcons
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.ui.theme.*
+import com.example.audioloop.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -70,6 +72,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import java.io.File
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
@@ -98,6 +102,7 @@ fun CategoryManagementSheet(
     var editName by remember { mutableStateOf("") }
     var categoryToDelete by remember { mutableStateOf<String?>(null) }
     val uiCategories = remember { mutableStateListOf<String>() }
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(categories) {
         uiCategories.clear()
@@ -106,9 +111,10 @@ fun CategoryManagementSheet(
 
     // Delete confirmation dialog
     categoryToDelete?.let { cat ->
+        val generalLabel = stringResource(R.string.label_general)
         DeleteConfirmDialog(
-            title = "Delete category?",
-            text = "Delete \"$cat\"? Files in this category will be moved to General.",
+            title = stringResource(R.string.title_delete_category),
+            text = stringResource(R.string.msg_delete_category).replace("General", generalLabel),
             onDismiss = { categoryToDelete = null },
             onConfirm = {
                 onDelete(cat)
@@ -134,11 +140,11 @@ fun CategoryManagementSheet(
         ) {
             Column {
                 Text(
-                    text = "Categories",
+                    text = stringResource(R.string.label_categories),
                     style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 )
                 Text(
-                    text = "Drag handle to reorder",
+                    text = stringResource(R.string.label_drag_reorder_hint),
                     style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 )
             }
@@ -148,7 +154,7 @@ fun CategoryManagementSheet(
                     .size(36.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
             ) {
-                Icon(AppIcons.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_close), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
 
@@ -169,12 +175,12 @@ fun CategoryManagementSheet(
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp),
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
+                    .padding(horizontal = 20.dp),
                 decorationBox = { innerTextField ->
                     Box(contentAlignment = Alignment.CenterStart) {
-                        if (newCategoryName.isEmpty()) Text("Category name...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                        if (newCategoryName.isEmpty()) Text(stringResource(R.string.hint_category_name), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         innerTextField()
                     }
                 }
@@ -188,14 +194,15 @@ fun CategoryManagementSheet(
                         }
                         onAdd(newCat)
                         newCategoryName = ""
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
                 },
                 modifier = Modifier.height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 enabled = newCategoryName.isNotBlank()
             ) {
-                Text("Add", color = Color.White)
+                Text(stringResource(R.string.btn_add), color = Color.White)
             }
         }
 
@@ -245,6 +252,7 @@ fun CategoryManagementSheet(
                     val itemToMove = uiCategories.removeAt(draggingCategoryIndex)
                     uiCategories.add(targetIndex, itemToMove)
                     draggingCategoryIndex = targetIndex
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
             }
         }
@@ -278,6 +286,7 @@ fun CategoryManagementSheet(
                         if (hitItem != null && x <= gripWidth) {
                             val index = hitItem.index
                             if (index in uiCategories.indices && uiCategories[index] != "General") {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 down.consume()
                                 draggingCategoryIndex = index
                                 draggingCategory = uiCategories[index]
@@ -338,6 +347,7 @@ fun CategoryManagementSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = !isEditing && !isDragging) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 onSelect(cat)
                                 onClose()
                             }
@@ -361,7 +371,7 @@ fun CategoryManagementSheet(
                         ) {
                             Icon(
                                 AppIcons.GripVertical,
-                                contentDescription = "Drag to reorder",
+                                contentDescription = stringResource(R.string.a11y_drag_reorder),
                                 tint = if (cat == "General") MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -387,7 +397,7 @@ fun CategoryManagementSheet(
                             )
                         } else {
                             Text(
-                                text = cat,
+                                text = if (cat == "General") stringResource(R.string.label_general) else cat,
                                 style = TextStyle(
                                     color = if (currentCategory == cat) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     fontSize = 14.sp,
@@ -408,7 +418,7 @@ fun CategoryManagementSheet(
                                         .size(32.dp)
                                         .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                                 ) {
-                                    Icon(AppIcons.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                                    Icon(AppIcons.Edit, contentDescription = stringResource(R.string.a11y_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                                 }
                                 IconButton(
                                     onClick = { categoryToDelete = cat },
@@ -416,7 +426,7 @@ fun CategoryManagementSheet(
                                         .size(32.dp)
                                         .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                                 ) {
-                                    Icon(AppIcons.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                                    Icon(AppIcons.Delete, contentDescription = stringResource(R.string.a11y_delete), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                                 }
                             }
                         } else if (cat == "General") {
@@ -425,13 +435,14 @@ fun CategoryManagementSheet(
                                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
-                                Text("default", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                                Text(stringResource(R.string.label_default), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                             }
                         } else if (isEditing) {
                             IconButton(
                                 onClick = {
                                     if (editName.isNotBlank() && editName != cat) {
                                         onRename(cat, editName.trim())
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     }
                                     editingId = null
                                 },
@@ -439,7 +450,7 @@ fun CategoryManagementSheet(
                                     .size(32.dp)
                                     .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
                             ) {
-                                Icon(AppIcons.Check, contentDescription = "Save", tint = Color.White, modifier = Modifier.size(14.dp))
+                                Icon(AppIcons.Check, contentDescription = stringResource(R.string.a11y_save), tint = Color.White, modifier = Modifier.size(14.dp))
                             }
                         }
                     }
@@ -474,7 +485,7 @@ fun CategoryManagementSheet(
                         )
                     }
                     Text(
-                        text = cat,
+                        text = if (cat == "General") stringResource(R.string.label_general) else cat,
                         style = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
                         modifier = Modifier.weight(1f)
                     )

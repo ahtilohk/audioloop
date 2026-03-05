@@ -8,18 +8,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audioloop.AudioLoopUiState
 import com.example.audioloop.AppIcons
+import com.example.audioloop.R
 
 @Composable
 fun HomeHeader(
     uiState: AudioLoopUiState,
     onSearchClick: () -> Unit,
-    onBackupClick: () -> Unit,
     onPlaylistClick: () -> Unit
 ) {
     val themeColors = uiState.currentTheme.palette
@@ -38,12 +39,12 @@ fun HomeHeader(
         ) {
             Icon(
                 imageVector = AppIcons.GraphicEq,
-                contentDescription = "Logo",
+                contentDescription = stringResource(R.string.a11y_logo),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
             Text(
-                text = "Loop & Learn",
+                text = stringResource(R.string.header_title),
                 style = MaterialTheme.typography.titleLarge.copy(
                     brush = Brush.horizontalGradient(
                         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
@@ -67,27 +68,15 @@ fun HomeHeader(
             ) {
                 Icon(
                     imageVector = AppIcons.Search,
-                    contentDescription = "Search files",
+                    contentDescription = stringResource(R.string.a11y_search),
                     tint = if (uiState.searchQuery.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            IconButton(
-                onClick = onBackupClick,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = AppIcons.CloudSync,
-                    contentDescription = "Backup & Restore",
-                    tint = if (uiState.isBackupSignedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
             }
 
             Surface(
                 onClick = onPlaylistClick,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(16.dp),
                 color = themeColors.primaryContainer.copy(alpha = 0.25f),
                 border = BorderStroke(1.2.dp, themeColors.primary.copy(alpha = 0.6f))
             ) {
@@ -98,12 +87,12 @@ fun HomeHeader(
                 ) {
                     Icon(
                         imageVector = AppIcons.QueueMusic,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.a11y_playlists),
                         tint = themeColors.primary,
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Playlists",
+                        text = stringResource(R.string.label_playlists),
                         style = MaterialTheme.typography.labelLarge.copy(
                             color = themeColors.primary,
                             fontWeight = FontWeight.ExtraBold
@@ -115,3 +104,4 @@ fun HomeHeader(
         }
     }
 }
+
