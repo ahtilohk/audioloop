@@ -205,7 +205,7 @@ object WaveformGenerator {
         return result
     }
     suspend fun generateFromPcm(pcmFile: File): List<Int> = withContext(Dispatchers.IO) {
-        if (!pcmFile.exists() || pcmFile.length() == 0L) return emptyList()
+        if (!pcmFile.exists() || pcmFile.length() == 0L) return@withContext emptyList()
         
         val waveform = ArrayList<Int>()
         val totalBytes = pcmFile.length()
