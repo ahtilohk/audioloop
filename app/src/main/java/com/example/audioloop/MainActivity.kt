@@ -175,7 +175,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     val receiver = object : BroadcastReceiver() {
                         override fun onReceive(ctx: Context?, intent: Intent?) {
                             if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
-                                coroutineScope.launch(Dispatchers.IO) {
+                                coroutineScope.launch {
                                     try {
                                         viewModel.refreshFileList()
                                         delay(500)

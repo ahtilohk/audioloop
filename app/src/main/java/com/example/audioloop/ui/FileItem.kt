@@ -80,6 +80,8 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import android.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.DrawScope
 
 import androidx.compose.runtime.mutableFloatStateOf
 
@@ -498,7 +500,6 @@ fun FileItem(
                                 .height(48.dp)
                                 .clip(RoundedCornerShape(6.dp))
                                 .pointerInput(Unit) {
-                                    val slop = viewConfiguration.touchSlop
                                     awaitEachGesture {
                                         val down = awaitFirstDown(requireUnconsumed = false)
                                         val pos = (down.position.x / size.width.toFloat()).coerceIn(0f, 1f)
@@ -516,7 +517,7 @@ fun FileItem(
                             val barWidth = w / barCount
                             val strokeWidth = (barWidth * 0.7f).coerceAtLeast(1.5f)
 
-                            // A-B loop region highlight
+                            // 1. Draw A-B loop region highlight
                             if (abActive) {
                                 drawRect(
                                     color = primaryColor.copy(alpha = 0.15f),
@@ -525,40 +526,42 @@ fun FileItem(
                                 )
                             }
 
-                            // Waveform bars
-                            bars.forEachIndexed { i, amp ->
-                                val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
-                                // Use 80% height to match TrimDialog and look more premium
-                                val barH = barFraction * h * 0.8f
-                                val x = i * barWidth + barWidth / 2f
-                                val barProgress = (i + 0.5f) / bars.size
-
-                                val color = when {
-                                    barProgress <= currentProgress -> primaryColor
-                                    else -> outlineVariantColor.copy(alpha = 0.5f)
+                            fun drawWaveform(color: Color) {
+                                for (i in 0 until barCount) {
+                                    val amp = bars[i]
+                                    val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
+                                    val barH = barFraction * h * 0.8f
+                                    val x = i * barWidth + barWidth / 2f
+                                    
+                                    drawLine(
+                                        color = color,
+                                        start = Offset(x, (h - barH) / 2),
+                                        end = Offset(x, (h + barH) / 2),
+                                        strokeWidth = strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
                                 }
-                                
-                                drawLine(
-                                    color = color,
-                                    start = Offset(x, (h - barH) / 2),
-                                    end = Offset(x, (h + barH) / 2),
-                                    strokeWidth = strokeWidth,
-                                    cap = StrokeCap.Round
-                                )
                             }
 
-                            // A marker line
+                            // 2. Draw Background Waveform
+                            drawWaveform(outlineVariantColor.copy(alpha = 0.5f))
+
+                            // 3. Draw Active Waveform (Clipped)
+                            clipRect(right = currentProgress * w) {
+                                drawWaveform(primaryColor)
+                            }
+
+                            // 4. Draw markers
                             if (abLoopA >= 0f) {
                                 val ax = abLoopA * w
                                 drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = 2.dp.toPx())
                             }
-                            // B marker line
                             if (abLoopB >= 0f) {
                                 val bx = abLoopB * w
                                 drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = 2.dp.toPx())
                             }
 
-                            // Playhead
+                            // 5. Playhead
                             val px = currentProgress * w
                             drawLine(Color.White, Offset(px, 0f), Offset(px, h), strokeWidth = 2.dp.toPx())
                         }

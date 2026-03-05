@@ -11,17 +11,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.json.JSONArray
-import java.io.BufferedOutputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.*
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -39,9 +34,11 @@ class DriveBackupManager(private val context: Context) {
         private const val DRIVE_FILES_URL = "https://www.googleapis.com/drive/v3/files"
         private const val DRIVE_UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files"
         private const val SCOPE = "https://www.googleapis.com/auth/drive.appdata"
+        private val JSON_MEDIA_TYPE = "application/json; charset=UTF-8".toMediaType()
     }
 
     private var account: GoogleSignInAccount? = null
+    private val client = NetworkHelper.newClient()
 
     // --- Sign-In ---
 
@@ -78,13 +75,8 @@ class DriveBackupManager(private val context: Context) {
     // --- Token helper ---
 
     private suspend fun getAccessToken(): String = withContext(Dispatchers.IO) {
-        val acct = account ?: throw Exception("Not signed in")
-        // Use GoogleAuthUtil to get a fresh token
-        com.google.android.gms.auth.GoogleAuthUtil.getToken(
-            context,
-            acct.account!!,
-            "oauth2:$SCOPE"
-        )
+        val acct = account ?: GoogleSignIn.getLastSignedInAccount(context) ?: throw Exception("Not signed in")
+        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, "oauth2:$SCOPE")
     }
 
     // --- Backup ---
@@ -98,11 +90,16 @@ class DriveBackupManager(private val context: Context) {
             onProgress("Creating backup...")
             val zipFile = createBackupZip(onProgress)
 
-            onProgress("Uploading to Google Drive...")
             val dateStr = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(Date())
             val fileName = "audioloop_backup_$dateStr.zip"
 
-            uploadToDrive(token, zipFile, fileName)
+            onProgress("Uploading to Google Drive...")
+            NetworkHelper.executeWithRetry {
+                uploadToDrive(token, zipFile, fileName) { current, total ->
+                    val percent = if (total > 0) (current * 100 / total).toInt() else 0
+                    onProgress("Uploading: $percent%")
+                }
+            }
             zipFile.delete()
 
             onProgress("Backup complete!")
@@ -120,7 +117,7 @@ class DriveBackupManager(private val context: Context) {
 
             // 1. Audio files (root = General category)
             val audioFiles = filesDir.listFiles()?.filter {
-                it.isFile && !it.name.startsWith(".") && it.name != "category_order.json"
+                it.isFile && !it.name.startsWith(".") && it.name != "category_order.json" && !it.name.endsWith(".json")
             } ?: emptyList()
             var fileCount = 0
             audioFiles.forEach { file ->
@@ -131,13 +128,18 @@ class DriveBackupManager(private val context: Context) {
 
             // 2. Audio files in category subdirectories
             val categoryDirs = filesDir.listFiles()?.filter {
-                it.isDirectory && !it.name.startsWith(".")
+                it.isDirectory && !it.name.startsWith(".") && it.name != ".trash" && it.name != ".notes" && it.name != ".waveforms"
             } ?: emptyList()
             categoryDirs.forEach { dir ->
-                dir.listFiles()?.filter { it.isFile }?.forEach { file ->
+                dir.listFiles()?.filter { it.isFile && !it.name.endsWith(".json") }?.forEach { file ->
                     onProgress("Packing: ${dir.name}/${file.name}")
                     addFileToZip(zos, file, "audio/${dir.name}/${file.name}")
                     fileCount++
+                }
+                // Also pack ordering.json for each category
+                val orderFile = File(dir, "ordering.json")
+                if (orderFile.exists()) {
+                    addFileToZip(zos, orderFile, "audio/${dir.name}/ordering.json")
                 }
             }
 
@@ -181,45 +183,32 @@ class DriveBackupManager(private val context: Context) {
         zos.closeEntry()
     }
 
-    private fun uploadToDrive(token: String, file: File, fileName: String) {
+    private fun uploadToDrive(token: String, file: File, fileName: String, onProgress: (Long, Long) -> Unit) {
         val boundary = "===backup_boundary_${System.currentTimeMillis()}==="
-        val url = URL("$DRIVE_UPLOAD_URL?uploadType=multipart")
-        val conn = url.openConnection() as HttpURLConnection
-        conn.requestMethod = "POST"
-        conn.setRequestProperty("Authorization", "Bearer $token")
-        conn.setRequestProperty("Content-Type", "multipart/related; boundary=$boundary")
-        conn.doOutput = true
-
-        conn.outputStream.use { os ->
-            val writer = OutputStreamWriter(os, Charsets.UTF_8)
-
-            // Metadata part
-            writer.write("--$boundary\r\n")
-            writer.write("Content-Type: application/json; charset=UTF-8\r\n\r\n")
-            val metadata = JSONObject().apply {
-                put("name", fileName)
-                put("parents", JSONArray().put("appDataFolder"))
-            }
-            writer.write(metadata.toString())
-            writer.write("\r\n")
-
-            // File content part
-            writer.write("--$boundary\r\n")
-            writer.write("Content-Type: application/zip\r\n\r\n")
-            writer.flush()
-
-            FileInputStream(file).use { fis ->
-                fis.copyTo(os, bufferSize = 8192)
-            }
-
-            writer.write("\r\n--$boundary--\r\n")
-            writer.flush()
+        
+        val metadata = JSONObject().apply {
+            put("name", fileName)
+            put("parents", JSONArray().put("appDataFolder"))
         }
 
-        val responseCode = conn.responseCode
-        if (responseCode !in 200..299) {
-            val errorBody = try { conn.errorStream?.bufferedReader()?.readText() } catch (_: Exception) { "" }
-            throw Exception("Upload failed ($responseCode): $errorBody")
+        // related multipart is slightly non-standard in okhttp but we can set the type manually
+        val requestBody = MultipartBody.Builder(boundary)
+            .setType("multipart/related".toMediaType())
+            .addPart(metadata.toString().toRequestBody(JSON_MEDIA_TYPE))
+            .addPart(NetworkHelper.createProgressRequestBody(file, "application/zip", onProgress))
+            .build()
+
+        val request = Request.Builder()
+            .url("$DRIVE_UPLOAD_URL?uploadType=multipart")
+            .header("Authorization", "Bearer $token")
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                val errorBody = response.body?.string() ?: ""
+                throw IOException("Upload failed (${response.code}): $errorBody")
+            }
         }
     }
 
@@ -228,39 +217,40 @@ class DriveBackupManager(private val context: Context) {
     suspend fun listBackups(): Result<List<BackupInfo>> = withContext(Dispatchers.IO) {
         try {
             val token = getAccessToken()
-            val url = URL("$DRIVE_FILES_URL?spaces=appDataFolder&fields=files(id,name,createdTime,size)&orderBy=createdTime%20desc&pageSize=20")
-            val conn = url.openConnection() as HttpURLConnection
-            conn.setRequestProperty("Authorization", "Bearer $token")
+            val request = Request.Builder()
+                .url("$DRIVE_FILES_URL?spaces=appDataFolder&fields=files(id,name,createdTime,size)&orderBy=createdTime%20desc&pageSize=20")
+                .header("Authorization", "Bearer $token")
+                .get()
+                .build()
 
-            val responseCode = conn.responseCode
-            if (responseCode !in 200..299) {
-                val errorBody = try { conn.errorStream?.bufferedReader()?.readText() } catch (_: Exception) { "" }
-                return@withContext Result.failure(Exception("List failed ($responseCode): $errorBody"))
+            NetworkHelper.executeWithRetry {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("List failed (${response.code})")
+                    
+                    val body = response.body?.string() ?: throw IOException("Empty response")
+                    val json = JSONObject(body)
+                    val files = json.optJSONArray("files") ?: JSONArray()
+
+                    val backups = mutableListOf<BackupInfo>()
+                    for (i in 0 until files.length()) {
+                        val file = files.getJSONObject(i)
+                        val name = file.getString("name")
+                        val dateStr = try {
+                            val datePart = name.removePrefix("audioloop_backup_").removeSuffix(".zip")
+                            val parsed = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).parse(datePart)
+                            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.US).format(parsed ?: Date())
+                        } catch (_: Exception) { file.optString("createdTime", "Unknown") }
+
+                        backups.add(BackupInfo(
+                            id = file.getString("id"),
+                            name = name,
+                            date = dateStr,
+                            sizeBytes = file.optLong("size", 0L)
+                        ))
+                    }
+                    Result.success(backups)
+                }
             }
-
-            val body = conn.inputStream.bufferedReader().readText()
-            val json = JSONObject(body)
-            val files = json.optJSONArray("files") ?: JSONArray()
-
-            val backups = mutableListOf<BackupInfo>()
-            for (i in 0 until files.length()) {
-                val file = files.getJSONObject(i)
-                val name = file.getString("name")
-                val dateStr = try {
-                    val datePart = name.removePrefix("audioloop_backup_").removeSuffix(".zip")
-                    val parsed = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).parse(datePart)
-                    SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.US).format(parsed ?: Date())
-                } catch (_: Exception) { file.optString("createdTime", "Unknown") }
-
-                backups.add(BackupInfo(
-                    id = file.getString("id"),
-                    name = name,
-                    date = dateStr,
-                    sizeBytes = file.optLong("size", 0L)
-                ))
-            }
-
-            Result.success(backups)
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)
@@ -279,18 +269,34 @@ class DriveBackupManager(private val context: Context) {
             onProgress("Downloading backup...")
             val tempZip = File(context.cacheDir, "restore_temp.zip")
 
-            val url = URL("$DRIVE_FILES_URL/$backupId?alt=media")
-            val conn = url.openConnection() as HttpURLConnection
-            conn.setRequestProperty("Authorization", "Bearer $token")
+            val request = Request.Builder()
+                .url("$DRIVE_FILES_URL/$backupId?alt=media")
+                .header("Authorization", "Bearer $token")
+                .get()
+                .build()
 
-            val responseCode = conn.responseCode
-            if (responseCode !in 200..299) {
-                val errorBody = try { conn.errorStream?.bufferedReader()?.readText() } catch (_: Exception) { "" }
-                return@withContext Result.failure(Exception("Download failed ($responseCode): $errorBody"))
-            }
-
-            FileOutputStream(tempZip).use { fos ->
-                conn.inputStream.copyTo(fos, bufferSize = 8192)
+            NetworkHelper.executeWithRetry {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Download failed (${response.code})")
+                    
+                    val totalSize = response.body?.contentLength() ?: -1L
+                    var bytesRead = 0L
+                    
+                    response.body?.byteStream()?.use { input ->
+                        FileOutputStream(tempZip).use { output ->
+                            val buffer = ByteArray(8192)
+                            var read: Int
+                            while (input.read(buffer).also { read = it } != -1) {
+                                output.write(buffer, 0, read)
+                                bytesRead += read
+                                if (totalSize > 0) {
+                                    val percent = (bytesRead * 100 / totalSize).toInt()
+                                    onProgress("Downloading: $percent%")
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             onProgress("Restoring files...")
@@ -321,7 +327,9 @@ class DriveBackupManager(private val context: Context) {
                         targetFile.parentFile?.mkdirs()
                         onProgress("Restoring: $relativePath")
                         FileOutputStream(targetFile).use { fos -> zis.copyTo(fos) }
-                        fileCount++
+                        if (name.endsWith(".m4a") || name.endsWith(".mp3") || name.endsWith(".wav")) {
+                           fileCount++
+                        }
                     }
                     name.startsWith("notes/") -> {
                         val noteName = name.removePrefix("notes/")
@@ -357,12 +365,18 @@ class DriveBackupManager(private val context: Context) {
     suspend fun deleteBackup(backupId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val token = getAccessToken()
-            val url = URL("$DRIVE_FILES_URL/$backupId")
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "DELETE"
-            conn.setRequestProperty("Authorization", "Bearer $token")
-            conn.responseCode // trigger request
-            Result.success(Unit)
+            val request = Request.Builder()
+                .url("$DRIVE_FILES_URL/$backupId")
+                .header("Authorization", "Bearer $token")
+                .delete()
+                .build()
+
+            NetworkHelper.executeWithRetry {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Delete failed (${response.code})")
+                    Result.success(Unit)
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)

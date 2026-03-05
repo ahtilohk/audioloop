@@ -71,7 +71,6 @@ data class AudioLoopUiState(
     val snackbarMessage: SnackbarMessage? = null,
 
     // --- Navigation & App UI States ---
-    val currentNavTab: String = "library",
     val isSearchVisible: Boolean = false,
     val isRecording: Boolean = false,
     val isSelectionMode: Boolean = false,

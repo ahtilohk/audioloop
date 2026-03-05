@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -86,6 +86,8 @@ dependencies {
     // WorkManager for background long-running tasks
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Google Drive Backup & Restore (lightweight — auth only + REST calls)
+    // Google Drive Backup & Restore
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation(libs.okhttp)
+    implementation(libs.navigation.compose)
 }

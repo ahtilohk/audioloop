@@ -182,14 +182,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         syncDatabaseAndObserve()
 
         // Scan public Music/AudioLoop folder on first launch after reinstall
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             when (val result = repository.importFromPublicStorage()) {
                 is AudioResult.Success -> {
                     if (result.data > 0) {
-                        withContext(Dispatchers.Main) {
-                            showSnackbar(ctx.getString(R.string.msg_found_imported, result.data))
-                            refreshFileList()
-                        }
+                        showSnackbar(ctx.getString(R.string.msg_found_imported, result.data))
+                        refreshFileList()
                     }
                 }
                 else -> {}
@@ -227,11 +225,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
         // 3. Periodic or initial discovery
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = repository.discoverRecordings(_uiState.value.categories)
-            if (result is AudioResult.Error) {
-                // Log or handle error
-            }
+        viewModelScope.launch {
+            repository.discoverRecordings(_uiState.value.categories)
         }
     }
 
@@ -303,7 +298,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     // ── File Operations ──
 
     fun refreshFileList() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             repository.discoverRecordings(_uiState.value.categories)
             _uiState.update { it.copy(isLoading = false) }
@@ -454,7 +449,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun importFile(uri: Uri) {
         val category = _uiState.value.currentCategory
         _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 var fileName = "import_${System.currentTimeMillis()}"
                 ctx.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -471,8 +466,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 val folder = if (category == "General") filesDir else File(filesDir, category).apply { mkdirs() }
                 val targetFile = File(folder, finalFileName)
                 
-                ctx.contentResolver.openInputStream(uri)?.use { input ->
-                    FileOutputStream(targetFile).use { output -> input.copyTo(output) }
+                withContext(Dispatchers.IO) {
+                    ctx.contentResolver.openInputStream(uri)?.use { input ->
+                        FileOutputStream(targetFile).use { output -> input.copyTo(output) }
+                    }
                 }
                 
                 val (durStr, durMs) = AudioMetadataHelper.getDuration(targetFile)
@@ -480,22 +477,16 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 
                 when (val result = repository.insertRecording(newItem, category)) {
                     is AudioResult.Success -> {
-                        withContext(Dispatchers.Main) {
-                            showSnackbar(ctx.getString(R.string.msg_imported, safeName))
-                            precomputeWaveformAsync(targetFile)
-                        }
+                        showSnackbar(ctx.getString(R.string.msg_imported, safeName))
+                        precomputeWaveformAsync(targetFile)
                     }
                     is AudioResult.Error -> {
-                        withContext(Dispatchers.Main) {
-                            showSnackbar(result.message, isError = true)
-                        }
+                        showSnackbar(result.message, isError = true)
                     }
                     else -> {}
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    showSnackbar(ctx.getString(R.string.msg_error_importing), isError = true)
-                }
+                showSnackbar(ctx.getString(R.string.msg_error_importing), isError = true)
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
@@ -590,32 +581,34 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun playPlaylistFromPlaylist(playlist: Playlist) {
-        val allRecordings = getAllRecordings()
-        val resolvedItems = playlistManager.resolveFiles(playlist, allRecordings)
-        if (resolvedItems.isNotEmpty()) {
-            _uiState.update {
-                it.copy(currentlyPlayingPlaylistId = playlist.id, currentPlaylistIteration = 1)
-            }
-            playPlaylist(
-                allFiles = resolvedItems,
-                currentIndex = 0,
-                loopCountProvider = { playlist.loopCount },
-                speedProvider = { playlist.speed },
-                pitchProvider = { playlist.pitch },
-                shadowingProvider = { _uiState.value.isShadowingMode },
-                onNext = { name -> _uiState.update { it.copy(playingFileName = name) } },
-                onIterationChange = { iter -> _uiState.update { it.copy(currentPlaylistIteration = iter) } },
-                gapSeconds = playlist.gapSeconds,
-                onComplete = {
-                    _uiState.update { it.copy(currentlyPlayingPlaylistId = null, currentPlaylistIteration = 1, playingFileName = "") }
-                    playlistManager.incrementPlayCount(playlist.id)
-                    _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
+        viewModelScope.launch {
+            val allRecordings = repository.getAllRecordingsSync()
+            val resolvedItems = playlistManager.resolveFiles(playlist, allRecordings)
+            if (resolvedItems.isNotEmpty()) {
+                _uiState.update {
+                    it.copy(currentlyPlayingPlaylistId = playlist.id, currentPlaylistIteration = 1)
                 }
-            )
-            if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
-        } else {
-            _uiState.update { it.copy(currentlyPlayingPlaylistId = null) }
-            showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)
+                playPlaylist(
+                    allFiles = resolvedItems,
+                    currentIndex = 0,
+                    loopCountProvider = { playlist.loopCount },
+                    speedProvider = { playlist.speed },
+                    pitchProvider = { playlist.pitch },
+                    shadowingProvider = { _uiState.value.isShadowingMode },
+                    onNext = { name -> _uiState.update { it.copy(playingFileName = name) } },
+                    onIterationChange = { iter -> _uiState.update { it.copy(currentPlaylistIteration = iter) } },
+                    gapSeconds = playlist.gapSeconds,
+                    onComplete = {
+                        _uiState.update { it.copy(currentlyPlayingPlaylistId = null, currentPlaylistIteration = 1, playingFileName = "") }
+                        playlistManager.incrementPlayCount(playlist.id)
+                        _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
+                    }
+                )
+                if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
+            } else {
+                _uiState.update { it.copy(currentlyPlayingPlaylistId = null) }
+                showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)
+            }
         }
     }
 
@@ -1093,21 +1086,27 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             showSnackbar(toastMsg)
             val ext = file.extension.ifEmpty { "m4a" }
             val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
-            val success = withContext(Dispatchers.IO) { processor(file, tempFile) }
+            val success = processor(file, tempFile)
 
             if (success && tempFile.exists()) {
                 val finalFile = File(file.parent, "${file.nameWithoutExtension}.$ext")
                 waveformCache.remove(file.absolutePath)
                 getWaveformFile(file).delete()
-                if (file.exists()) {
-                    if (!file.delete()) {
-                        tempFile.delete()
-                        showSnackbar("Access denied: Original file in use", isError = true)
-                        _uiState.update { it.copy(isLoading = false) }
-                        return@launch
-                    }
+                
+                val deleted = withContext(Dispatchers.IO) {
+                    if (file.exists()) {
+                        file.delete()
+                    } else true
                 }
-                if (tempFile.renameTo(finalFile)) {
+
+                if (!deleted) {
+                    tempFile.delete()
+                    showSnackbar("Access denied: Original file in use", isError = true)
+                    _uiState.update { it.copy(isLoading = false) }
+                    return@launch
+                }
+
+                if (withContext(Dispatchers.IO) { tempFile.renameTo(finalFile) }) {
                     precomputeWaveformAsync(finalFile)
                     showSnackbar("Done!")
                     refreshFileList()
@@ -1248,9 +1247,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
     }
 
-    fun getAllRecordings(): List<RecordingItem> {
-        return runBlocking { repository.getAllRecordingsSync() }
-    }
 
     // ── Practice Coach ──
 
@@ -1387,16 +1383,16 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             try { getWaveformFile(file).delete() } catch (_: Exception) {}
         }
         if (waveformCache.containsKey(key)) return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 val cached = loadWaveformFromDisk(file)
                 if (cached != null && cached.isNotEmpty()) {
-                    withContext(Dispatchers.Main) { waveformCache[key] = cached }
+                    waveformCache[key] = cached
                     return@launch
                 }
                 val waveform = WaveformGenerator.extractWaveform(file, fullBars)
                 saveWaveformToDisk(file, waveform)
-                withContext(Dispatchers.Main) { waveformCache[key] = waveform }
+                waveformCache[key] = waveform
             } catch (_: Exception) {}
         }
     }
@@ -1528,9 +1524,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     // --- UI Actions ---
 
-    fun setNavTab(tab: String) {
-        _uiState.update { it.copy(currentNavTab = tab) }
-    }
 
     fun setSearchVisible(visible: Boolean) {
         _uiState.update { it.copy(isSearchVisible = visible) }
@@ -1660,7 +1653,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun syncDatabase() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             repository.discoverRecordings(_uiState.value.categories)
             _uiState.update { it.copy(isLoading = false) }
@@ -1668,7 +1661,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun triggerPublicStorageImport() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             repository.importFromPublicStorage()
             refreshFileList()

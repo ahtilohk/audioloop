@@ -73,47 +73,32 @@ Kaal on skaalal **0–100** (100 = kriitiline süsteemne risk).
 - Lisatud tugi paremalt-vasakule (RTL) keeltele (Araabia).
 
 
-## 10) Drive backup võrgu-kihi robustsuse võlg
-**Kaal: 64/100**
+## 10) Drive backup võrgu-kihi robustsuse võlg – TEHTUD / RESOLVED
+**Kaal: 2/100**
 
-- Käsitsi HTTP/multipart teostus tõstab vea- ja hooldusriskide pinda.
-- Puudulikud timeout/retry/backoff mustrid võivad põhjustada ebastabiilseid varundusi.
+- Juurutatud OkHttp koos NetworkHelperiga, mis pakub eksponentsiaalset backoff retry't ja timeout'e.
+- DriveBackupManager on refaktoreeritud kasutama OkHttp MultipartBody't ja ühtset veahaldust.
+- Lisatud baidi-tasemel progressi jälgimine nii üles- kui allalaadimiseks.
 
-**Süsteemne suund:**
-- Standardiseerida HTTP klient (nt OkHttp/Retrofit);
-- lisada timeout, retry/backoff, ühtne veakäsitlus;
-- telemetry backup flow edukuse/ebaedu kohta.
+## 11) Waveform renderduse jõudlusrisk – TEHTUD / RESOLVED
+**Kaal: 1/100**
 
-## 11) Waveform renderduse jõudlusrisk
-**Kaal: 58/100**
+- Waveformi joonistamine on optimeeritud kahe-etapiliseks (background bars + clipped progress bars).
+- Värvide arvutamine per tulp igal kaadril on asendatud efektiivsema `clipRect` lähenemisega, mis vähendab tunduvalt Canvas operatsioone.
 
-- Canvas-põhine renderdus võib suurte failide korral tekitada janki.
-- Teise mudeli lisand: renderduse matemaatika ja cache strateegiad vajavad eraldi optimeerimist.
+## 12) Asünkroonsuse vastutuse hajusus — TEHTUD / RESOLVED
+**Kaal: 5/100** (Varem 52/100)
 
-**Süsteemne suund:**
-- Eelagregatsioon + caching + throttle;
-- mõõdikud (frame time, dropped frames);
-- vajadusel osaline off-main preprocessing.
+- Kehtestatud “main-safe API” reegel: Repository, WaveformGenerator ja AudioMetadataHelper vastutavad ise oma dispatcher’i eest (Dispatchers.IO).
+- ViewModeli launch-id on nüüd main-safe ja ei nõua käsitsi dispatcher'i määramist UI kihis.
+- Eemaldatud `runBlocking` Main-threadil ja asendatud asünkroonsete lahendustega.
 
-## 12) Asünkroonsuse vastutuse hajusus
-**Kaal: 52/100**
+## 13) Navigeerimismudeli võlg (if-flag põhine ekraanivahetus) — TEHTUD / RESOLVED
+**Kaal: 4/100** (Varem 47/100)
 
-- Osa funktsioone deklareerib `suspend`, kuid threading-policy on ebaühtlane (UI vs klassisisene IO).
-- Tulemuseks raskesti ennustatav käitumine ja keerulisemad refaktorid.
-
-**Süsteemne suund:**
-- Kehtestada “main-safe API” reegel: iga use-case vastutab oma dispatcher’i eest;
-- Activity/Composable ei otsusta madala taseme threadingut.
-
-## 13) Navigeerimismudeli võlg (if-flag põhine ekraanivahetus)
-**Kaal: 47/100**
-
-- Vaadete juhtimine “showX” lippudega ei skaleeru.
-- Deep link/back stack ja taastumine on raskemini hallatavad.
-
-**Süsteemne suund:**
-- Viia üle Compose Navigation/Jetpack Navigation peale;
-- formaliseerida route’id + argumentide mudel.
+- Rakendus kasutab nüüd **Jetpack Compose Navigationit** karkassina.
+- Route'id (Library, Record, Coach, Settings, PlaylistView) on formaliseeritud ja juhitud NavControllingi kaudu.
+- See võimaldab edaspidi lihtsat deeplinkide tuge ja paremat back-stack haldust.
 
 ## 14) Repo hügieen — TEHTUD / RESOLVED
 **Kaal: 0/100** (Varem 43/100)

@@ -4,12 +4,14 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 object AudioMetadataHelper {
 
-    fun getDuration(file: File): Pair<String, Long> {
+    suspend fun getDuration(file: File): Pair<String, Long> = withContext(Dispatchers.IO) {
         var millis = 0L
 
         if (file.extension.equals("wav", ignoreCase = true)) {
@@ -43,7 +45,7 @@ object AudioMetadataHelper {
                         }
                     }
                 }
-                if (millis > 0) return Pair(formatTime(millis), millis)
+                if (millis > 0) return@withContext Pair(formatTime(millis), millis)
             } catch (_: Exception) {}
         }
 
@@ -82,8 +84,8 @@ object AudioMetadataHelper {
             finally { try { extractor?.release() } catch (_: Exception) {} }
         }
 
-        if (millis == 0L) return Pair("00:00", 0L)
-        return Pair(formatTime(millis), millis)
+        if (millis == 0L) Pair("00:00", 0L)
+        else Pair(formatTime(millis), millis)
     }
 
     fun formatTime(millis: Long): String {

@@ -16,6 +16,8 @@ work = "2.10.0"
 mockk = "1.13.13"
 coroutines = "1.9.0"
 json = "20240303"
+okhttp = "4.12.0"
+navigation = "2.8.8"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -42,6 +44,8 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 json = { group = "org.json", name = "json", version.ref = "json" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

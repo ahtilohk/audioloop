@@ -4,6 +4,8 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.abs
@@ -13,13 +15,7 @@ object WaveformGenerator {
 
     private const val TAG = "WaveformGenerator"
 
-    /**
-     * Extracts amplitude data from an audio file by decoding it.
-     * @param file The audio file (AAC/M4A, WAV).
-     * @param numBars The number of data points to return.
-     * @return A list of amplitudes (scaled 0-100) or an empty list on failure.
-     */
-    fun extractWaveform(file: File, numBars: Int = 60): List<Int> {
+    suspend fun extractWaveform(file: File, numBars: Int = 60): List<Int> = withContext(Dispatchers.IO) {
         // 1. Check for pre-calculated .wave file
         val waveFile = File(file.parent, "${file.name}.wave")
         if (waveFile.exists()) {
@@ -208,7 +204,7 @@ object WaveformGenerator {
         }
         return result
     }
-    fun generateFromPcm(pcmFile: File): List<Int> {
+    suspend fun generateFromPcm(pcmFile: File): List<Int> = withContext(Dispatchers.IO) {
         if (!pcmFile.exists() || pcmFile.length() == 0L) return emptyList()
         
         val waveform = ArrayList<Int>()
@@ -261,6 +257,6 @@ object WaveformGenerator {
             stream.close()
         }
         
-        return waveform
+        return@withContext waveform
     }
 }

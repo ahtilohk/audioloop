@@ -1,7 +1,6 @@
 ﻿package com.example.audioloop.ui
 
 import android.content.Context
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -13,6 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.audioloop.AudioLoopUiState
 import com.example.audioloop.AudioLoopViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.audioloop.ui.navigation.Screen
 import com.example.audioloop.ui.components.*
 import com.example.audioloop.ui.theme.*
 
@@ -26,6 +31,7 @@ fun AudioLoopMainScreen(
     onStopRecord: () -> Unit,
     onBackupSignIn: () -> Unit
 ) {
+    val navController = rememberNavController()
     val themeColors = uiState.currentTheme.palette
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -33,10 +39,17 @@ fun AudioLoopMainScreen(
         uris.forEach { uri -> viewModel.importFile(uri) }
     }
 
-    // Back handler: return from playlist view to playlist list
-    BackHandler(enabled = uiState.showPlaylistView) {
-        viewModel.closePlaylistView()
-        viewModel.setShowPlaylistSheet(true)
+    // Back handler: return to playlist view to playlist list if we are using the flag (while transitioning)
+    // Actually, popBackStack should handle most of this now.
+    
+    // Dynamic tab based on current route
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.Library.route
+    val currentTab = when {
+        currentRoute == Screen.Library.route -> "library"
+        currentRoute == Screen.Record.route -> "record"
+        currentRoute == Screen.Coach.route -> "coach"
+        currentRoute == Screen.Settings.route -> "settings"
+        else -> "library"
     }
 
     Scaffold(
@@ -45,7 +58,13 @@ fun AudioLoopMainScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (!uiState.isSelectionMode && !uiState.showCategorySheet && !uiState.showPlaylistSheet && !uiState.showBackupSheet && !uiState.showTrimDialog && uiState.editingPlaylist == null && !uiState.showPlaylistView) {
-                AppNavigationBar(uiState.currentNavTab, onTabSelected = { viewModel.setNavTab(it) })
+                AppNavigationBar(currentTab, onTabSelected = { tab ->
+                    navController.navigate(tab) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                })
             }
         }
     ) { innerPadding ->
@@ -65,7 +84,7 @@ fun AudioLoopMainScreen(
 
 
             // Category Navigation (Library Tab only)
-            if (uiState.currentNavTab == "library") {
+            if (currentTab == "library") {
                 CategoryTabs(
                     categories = uiState.categories,
                     currentCategory = uiState.currentCategory,
@@ -80,15 +99,22 @@ fun AudioLoopMainScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
 
 
-            // Main Content Area
+            // Main Content Area (NavHost)
             Box(modifier = Modifier.weight(1f)) {
-                when (uiState.currentNavTab) {
-                    "library" -> LibraryTab(uiState, viewModel, onImportClick = { filePickerLauncher.launch("audio/*") })
-                    "record" -> RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
-                    "coach" -> CoachTab(uiState, viewModel)
-                    "settings" -> SettingsTab(uiState, viewModel)
+                NavHost(navController = navController, startDestination = Screen.Library.route) {
+                    composable(Screen.Library.route) {
+                        LibraryTab(uiState, viewModel, onImportClick = { filePickerLauncher.launch("audio/*") })
+                    }
+                    composable(Screen.Record.route) {
+                        RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
+                    }
+                    composable(Screen.Coach.route) {
+                        CoachTab(uiState, viewModel)
+                    }
+                    composable(Screen.Settings.route) {
+                        SettingsTab(uiState, viewModel)
+                    }
                 }
-
 
                 // Category Management Overlay
                 if (uiState.showCategorySheet) {
@@ -112,5 +138,15 @@ fun AudioLoopMainScreen(
 
         // Overlay Sheets & Dialogs
         MainOverlays(uiState, viewModel, themeColors, onBackupSignIn)
+        
+        // Playlist View as a specific overlay (for now, or use navigation)
+        if (uiState.showPlaylistView && uiState.viewingPlaylistId != null) {
+            PlaylistViewScreen(
+                playlistId = uiState.viewingPlaylistId,
+                uiState = uiState,
+                viewModel = viewModel,
+                onClose = { viewModel.closePlaylistView() }
+            )
+        }
     }
 }
