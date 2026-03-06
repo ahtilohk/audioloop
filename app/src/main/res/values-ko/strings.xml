@@ -9,23 +9,24 @@
     <string name="btn_cancel">취소</string>
     <string name="btn_save">저장</string>
     <string name="btn_delete">삭제</string>
-    <string name="btn_play_selected">선택된 %d개 재생</string>
+    <string name="btn_play_selected">%d개 재생</string>
     <string name="btn_add_file">파일 가져오기</string>
     <string name="btn_record_new">새 녹음</string>
     <string name="btn_go_back">뒤로</string>
     <string name="btn_got_it">확인!</string>
-    <string name="btn_import_audio">오디오 파일 가져오기</string>
+    <string name="btn_import_audio">오디오 가져오기</string>
+    <string name="btn_add">추가</string>
 
     <!-- Labels -->
     <string name="label_recording">녹음 중…</string>
-    <string name="label_empty_title">녹음 파일이 없습니다</string>
+    <string name="label_empty_title">녹음된 파일이 없습니다</string>
     <string name="label_empty_subtitle">위의 녹음 버튼을 누르거나 오디오 파일을 가져오세요.</string>
-    <string name="label_no_matching_files">일치하는 파일이 없습니다</string>
+    <string name="label_no_matching_files">검색 결과 없음</string>
     <string name="label_try_different_search">다른 검색어를 입력해 보세요</string>
     <string name="label_tap_to_select">파일을 탭하여 선택</string>
-    <string name="label_playlists">재생목록</string>
-    <string name="label_on">켜짐</string>
-    <string name="label_off">꺼짐</string>
+    <string name="label_playlists">재생 목록</string>
+    <string name="label_on">켬</string>
+    <string name="label_off">끔</string>
 
     <!-- Search -->
     <string name="search_hint">파일 검색…</string>
@@ -33,63 +34,68 @@
 
     <!-- Menu / Actions -->
     <string name="menu_rename">이름 변경</string>
-    <string name="menu_trim">트리밍 / 조정</string>
-    <string name="menu_move">카테고리로 이동</string>
+    <string name="menu_trim">자르기 / 편집</string>
+    <string name="menu_move">카테고리 이동</string>
     <string name="menu_share">공유</string>
     <string name="menu_download">다운로드</string>
-    <string name="menu_split">무음으로 분할</string>
-    <string name="menu_normalize">음량 정규화</string>
-    <string name="menu_auto_trim">무음 자동 삭제</string>
-    <string name="menu_fade">페이드</string>
-    <string name="menu_merge">선택된 항목 병합</string>
-    <string name="menu_note">메모 편집</string>
+    <string name="menu_split">자동 분할</string>
+    <string name="menu_normalize">음량 평준화</string>
+    <string name="menu_auto_trim">무음 제거</string>
+    <string name="menu_fade">페이드 인/아웃</string>
+    <string name="menu_merge">선택 항목 병합</string>
+    <string name="menu_note">노트 편집</string>
+    <string name="menu_note_edit">노트 편집</string>
+    <string name="menu_note_add">노트 추가</string>
     <string name="menu_info">정보</string>
+    <string name="menu_play">재생</string>
+    <string name="menu_pause">일시 정지</string>
 
     <!-- Dialogs -->
     <string name="dialog_rename_title">파일 이름 변경</string>
     <string name="dialog_create_category">새 카테고리</string>
-    <string name="dialog_delete_confirm">확실합니까?</string>
+    <string name="dialog_delete_confirm">정말 삭제하시겠습니까?</string>
 
     <!-- Recording modes -->
-    <string name="mode_speech">음성</string>
-    <string name="mode_stream">스트림</string>
-    <string name="mode_speech_desc">마이크를 통해 목소리를 녹음합니다.</string>
-    <string name="mode_stream_desc">기기 오디오(음악, 동영상 등)를 녹음합니다.</string>
+    <string name="mode_speech">마이크</string>
+    <string name="mode_stream">내부 오디오</string>
+    <string name="mode_speech_desc">목소리나 외부 소리를 녹음합니다.</string>
+    <string name="mode_stream_desc">휴대폰에서 나오는 음악이나 소리를 녹음합니다.</string>
 
     <!-- Snackbar / Toast messages -->
     <string name="toast_saved">저장됨</string>
-    <string name="toast_error">오류가 발생했습니다</string>
+    <string name="toast_error">오류</string>
     <string name="msg_moved">이동됨</string>
-    <string name="msg_imported">가져오기 완료: %s</string>
+    <string name="msg_imported">가져옴: %s</string>
     <string name="msg_error_moving">이동 중 오류 발생</string>
+    <string name="msg_error_deleting">삭제 중 오류 발생</string>
     <string name="msg_error_importing">가져오기 중 오류 발생</string>
     <string name="msg_error_sharing">공유 중 오류 발생: %s</string>
-    <string name="msg_permission_granted">권한 승인됨</string>
+    <string name="msg_permission_granted">권한 허용됨</string>
     <string name="msg_permission_denied">권한 거부됨</string>
     <string name="msg_permission_required">녹음을 위해 권한이 필요합니다</string>
-    <string name="msg_splitting">무음으로 분할 중…</string>
-    <string name="msg_split_done">%d개의 구간으로 분할됨</string>
-    <string name="msg_no_silence_gaps">분할할 무음 구간을 찾을 수 없습니다</string>
-    <string name="msg_normalizing">정규화 중…</string>
+    <string name="msg_splitting">무음 구간 분할 중…</string>
+    <string name="msg_split_done">%d개로 분할됨</string>
+    <string name="msg_no_silence_gaps">분할할 수 있는 무음 구간이 없습니다</string>
+    <string name="msg_normalizing">음량 평준화 중…</string>
     <string name="msg_detecting_silence">무음 감지 중…</string>
-    <string name="msg_no_silence_to_trim">삭제할 무음 구간이 없습니다</string>
-    <string name="msg_no_significant_silence">유의미한 무음 구간이 없습니다</string>
+    <string name="msg_no_silence_to_trim">잘라낼 무음이 없습니다</string>
+    <string name="msg_no_significant_silence">잘라낼 만한 무음이 없습니다</string>
     <string name="msg_applying_fade">페이드 적용 중…</string>
-    <string name="msg_merging">%d개의 파일 병합 중…</string>
-    <string name="msg_merged">%s로 병합됨</string>
+    <string name="msg_merging">%d개 파일 병합 중…</string>
+    <string name="msg_merged">%s(으)로 병합됨</string>
     <string name="msg_merge_failed">병합 실패</string>
     <string name="msg_done">완료!</string>
     <string name="msg_processing_failed">처리 실패</string>
-    <string name="msg_access_denied">접근 거부: 원본 파일이 사용 중입니다</string>
-    <string name="msg_error_finalizing">파일 완성 중 오류 발생!</string>
-    <string name="msg_studio_replaced">스튜디오: 원본이 교체되었습니다</string>
-    <string name="msg_studio_saved_as">스튜디오: %s로 저장되었습니다</string>
-    <string name="msg_normalization_failed">정규화 실패</string>
+    <string name="msg_access_denied">접근 거부: 파일이 사용 중입니다</string>
+    <string name="msg_error_finalizing">파일 저장 오류!</string>
+    <string name="msg_studio_replaced">스튜디오: 원본 교체됨</string>
+    <string name="msg_studio_saved_as">스튜디오: %s(으)로 저장됨</string>
+    <string name="msg_normalization_failed">평준화 실패</string>
     <string name="msg_fade_failed">페이드 실패</string>
-    <string name="msg_auto_trim_failed">자동 삭제 실패</string>
+    <string name="msg_auto_trim_failed">자동 자르기 실패</string>
     <string name="msg_playback_error">재생 오류: %d / %d</string>
-    <string name="msg_error_opening">열기 오류: %s</string>
-    <string name="msg_playlist_empty">재생목록이 비었거나 파일이 없습니다</string>
+    <string name="msg_error_opening">파일 열기 오류: %s</string>
+    <string name="msg_playlist_empty">재생 목록이 비어 있거나 파일이 없습니다</string>
 
     <!-- Backup -->
     <string name="backup_restore">백업 및 복구</string>
@@ -102,45 +108,52 @@
     <string name="backup_restore_failed">복구 실패: %s</string>
     <string name="backup_deleted">백업 삭제됨</string>
     <string name="signin_cancelled">로그인 취소됨</string>
-    <string name="signin_failed_play_services">로그인 실패 (Play 서비스 확인).</string>
-    <string name="signin_dev_error">개발자 오류 (SHA-1 확인).</string>
+    <string name="signin_failed_play_services">로그인 실패. Google Play 서비스를 확인하세요.</string>
+    <string name="signin_dev_error">개발자 오류: SHA-1 확인 필요</string>
     <string name="signin_interrupted">로그인 중단됨</string>
     <string name="signin_error">로그인 오류 (코드 %d)</string>
     <string name="signin_failed">로그인 실패: %s</string>
-    <string name="title_restore_backup">백업을 복구할까요?</string>
-    <string name="msg_restore_warning">현재 파일, 카테고리 및 설정이 대체됩니다.</string>
+    <string name="title_restore_backup">백업을 복구하시겠습니까?</string>
+    <string name="msg_restore_warning">현재 파일과 설정이 백업 내용으로 대체됩니다.</string>
     <string name="label_google_drive">Google 드라이브</string>
-    <string name="msg_backup_intro">Google 드라이브에 녹음을 저장하려면 로그인하세요</string>
+    <string name="msg_backup_intro">Google 드라이브에 녹음 파일을 백업하려면 로그인하세요</string>
     <string name="btn_signing_in">로그인 중…</string>
     <string name="btn_google_signin">Google로 로그인</string>
     <string name="btn_sign_out">로그아웃</string>
-    <string name="btn_backup">백업</string>
-    <string name="btn_restore">복구</string>
+    <string name="btn_backup">백업 시작</string>
+    <string name="btn_restore">복구 시작</string>
     <string name="label_available_backups">사용 가능한 백업</string>
+    <string name="msg_backup_creating">백업 생성 중…</string>
+    <string name="msg_backup_uploading">Google 드라이브로 업로드 중…</string>
+    <string name="msg_backup_uploading_perc">업로드 중: %d%%</string>
+    <string name="msg_backup_complete">백업 완료!</string>
 
     <!-- Settings -->
-    <string name="settings_loop">루프</string>
-    <string name="settings_speed">재생 속도</string>
-    <string name="settings_pitch">피치</string>
-    <string name="settings_sleep_timer">취침 예약</string>
+    <string name="settings_loop">반복</string>
+    <string name="settings_speed">배속</string>
+    <string name="settings_pitch">음정</string>
+    <string name="settings_sleep_timer">취침 타이머</string>
     <string name="settings_theme">테마</string>
     <string name="settings_listen_repeat">듣고 따라하기</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">AudioLoop에 오신 것을 환영합니다!</string>
-    <string name="welcome_modes_intro">AudioLoop는 두 가지 모드를 지원합니다:</string>
-    <string name="welcome_stream_note">스트림 녹음 관련 알림:</string>
-    <string name="welcome_stream_warning">Android는 매번 승인을 요구합니다. 이는 시스템 보안 기능입니다.</string>
+    <string name="welcome_title">오디오루프에 오신 것을 환영합니다!</string>
+    <string name="welcome_modes_intro">오디오루프는 두 가지 녹음 모드를 지원합니다:</string>
+    <string name="welcome_stream_note">내부 오디오 녹음 주의사항:</string>
+    <string name="welcome_stream_warning">Android 보안 정책에 따라 내부 녹음을 시작할 때마다 승인이 필요합니다.</string>
 
     <!-- Coach -->
     <string name="coach_smart_coach">스마트 코치</string>
-    <string name="coach_practice_stats">연습 통계</string>
+    <string name="coach_practice_stats">학습 통계</string>
 
-    <!-- Widget -->
-    <string name="widget_description">홈 화면에서 빠른 녹음 및 재생</string>
-
-    <!-- Categories -->
-    <string name="category_manage">카테고리 관리</string>
+    <!-- Sorting -->
+    <string name="menu_sort">정렬 기준</string>
+    <string name="sort_name_asc">이름 (A-Z)</string>
+    <string name="sort_name_desc">이름 (Z-A)</string>
+    <string name="sort_date_desc">최신순</string>
+    <string name="sort_date_asc">오래된순</string>
+    <string name="sort_length_desc">긴 파일순</string>
+    <string name="sort_length_asc">짧은 파일순</string>
 
     <!-- Navigation -->
     <string name="nav_library">라이브러리</string>
@@ -149,9 +162,9 @@
     <string name="nav_settings">설정</string>
 
     <!-- Coach Tab -->
-    <string name="coach_title">스마트 연습 코치</string>
-    <string name="coach_description">진도를 추적하고 연습 습관을 만드세요.</string>
-    <string name="coach_open_stats">전체 통계 보기</string>
+    <string name="coach_title">나의 학습 코치</string>
+    <string name="coach_description">진행 상황을 확인하고 학습 습관을 길러보세요.</string>
+    <string name="coach_open_stats">상세 통계 보기</string>
 
     <!-- Record Tab -->
     <string name="record_start">녹음 시작</string>
@@ -163,13 +176,13 @@
     <string name="library_add">+ 추가</string>
     <string name="library_select">선택</string>
     <string name="library_play_count">%d개 재생</string>
-    <string name="library_playlist">재생목록</string>
+    <string name="library_playlist">재생 목록</string>
     <string name="library_merge_count">%d개 병합</string>
     <string name="library_now_playing">현재 재생 중</string>
     <string name="library_today_format">오늘 %s</string>
-    <string name="library_tracks_count">%d곡</string>
+    <string name="library_tracks_count">%d트랙</string>
     <string name="library_shuffle">셔플</string>
-    <string name="library_gap_format">%d초 간격</string>
+    <string name="library_gap_format">%d초 일시 정지</string>
 
     <!-- Header -->
     <string name="header_title">Loop &amp; Learn</string>
@@ -181,17 +194,17 @@
     <string name="dialog_rename">이름 변경</string>
     <string name="dialog_new_name">새 이름</string>
     <string name="dialog_select_category">카테고리 선택</string>
-    <string name="dialog_add_note">메모 추가</string>
-    <string name="dialog_edit_note">메모 편집</string>
-    <string name="dialog_note_hint">가사, 문장, 번역 등…</string>
+    <string name="dialog_add_note">노트 추가</string>
+    <string name="dialog_edit_note">노트 편집</string>
+    <string name="dialog_note_hint">가사, 예문, 번역 등…</string>
     <string name="dialog_remove">제거</string>
     <string name="dialog_close">닫기</string>
-    <string name="dialog_delete_file">파일을 삭제할까요?</string>
-    <string name="dialog_delete_confirm_format">\'%s\'을(를) 삭제하시겠습니까?</string>
+    <string name="dialog_delete_file">파일을 삭제하시겠습니까?</string>
+    <string name="dialog_delete_confirm_format">\'%s\'을(를) 정말 삭제하시겠습니까?</string>
     <string name="dialog_file_info">파일 정보</string>
 
     <!-- File Info -->
-    <string name="info_format">포맷</string>
+    <string name="info_format">형식</string>
     <string name="info_duration">길이</string>
     <string name="info_size">크기</string>
     <string name="info_sample_rate">샘플링 레이트</string>
@@ -210,61 +223,68 @@
     <string name="a11y_close">닫기</string>
     <string name="a11y_cancel_selection">선택 취소</string>
     <string name="a11y_manage_categories">카테고리 관리</string>
-    <string name="a11y_record_speech">음성 녹음</string>
-    <string name="a11y_record_stream">스트림 녹음</string>
-    <string name="a11y_stop_recording">녹음 중지</string>
+    <string name="a11y_record_speech">마이크 녹음</string>
+    <string name="a11y_record_stream">내부 오디오 녹음</string>
+    <string name="a11y_stop_recording">녹음 중단</string>
     <string name="a11y_import_file">오디오 파일 가져오기</string>
-    <string name="a11y_play_selected">선택된 파일 재생</string>
-    <string name="a11y_playlist">선택 항목으로 재생목록 만들기</string>
-    <string name="a11y_recording_active">녹음 진행 중</string>
-    <string name="a11y_playlists">재생목록 열기</string>
+    <string name="a11y_play_selected">선택 항목 재생</string>
+    <string name="a11y_playlist">선택 항목으로 목록 만들기</string>
+    <string name="a11y_recording_active">녹음 중</string>
+    <string name="a11y_playlists">목록 보기</string>
+    <string name="a11y_delete">삭제</string>
+    <string name="settings_theme_label">테마 색상</string>
+    <string name="settings_theme_mode_label">테마 모드</string>
+    <string name="theme_mode_auto">자동</string>
+    <string name="theme_mode_light">라이트</string>
+    <string name="theme_mode_dark">다크</string>
     <string name="settings_playback_title">재생 설정</string>
-    <string name="settings_speed_label">재생 속도:</string>
     <string name="settings_repeats">반복 횟수:</string>
-    <string name="settings_gap">곡 사이 간격:</string>
-    <string name="settings_listen_repeat_desc">연습을 위해 재생 후 무음 삽입</string>
-    <string name="settings_pause_duration">간격 길이:</string>
+    <string name="settings_gap">트랙 간 일시 정지:</string>
+    <string name="settings_listen_repeat_desc">반복 후 따라하기를 위한 무음 구간</string>
+    <string name="settings_pause_duration">일시 정지 시간:</string>
     <string name="settings_pause_auto">자동</string>
-    <string name="settings_sleep_timer_label">취침 예약:</string>
-    <string name="settings_sleep_off">꺼짐</string>
-    <string name="settings_sleep_stops_in">%s 후 정지</string>
-    <string name="settings_theme_label">앱 테마:</string>
+    <string name="settings_sleep_off">끔</string>
+    <string name="settings_sleep_stops_in">%s 후 중단</string>
+    <string name="settings_speed_label">배속:</string>
+    <string name="settings_listen_repeat_label">듣고 따라하기:</string>
+    <string name="settings_sleep_timer_label">취침 타이머:</string>
     <string name="settings_language_label">앱 언어:</string>
-    <string name="dialog_delete_playlist_title">재생목록을 삭제할까요?</string>
-    <string name="dialog_delete_playlist_confirm">\"%s\"을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.</string>
-    <string name="label_playlists_count">%d개의 재생목록</string>
+
+    <string name="dialog_delete_playlist_title">목록을 삭제하시겠습니까?</string>
+    <string name="dialog_delete_playlist_confirm">\"%s\"을(를) 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다.</string>
+    <string name="label_playlists_count">재생 목록 %d개</string>
     <string name="label_play_count_compact">%dx</string>
-    <string name="label_playlist_tracks">%d곡</string>
-    <string name="label_playlist_no_playlists">재생목록이 없습니다</string>
-    <string name="label_playlist_create_desc">시작하려면 세션을 만드세요</string>
+    <string name="label_playlist_tracks">%d트랙</string>
+    <string name="label_playlist_no_playlists">재생 목록이 없습니다</string>
+    <string name="label_playlist_create_desc">지금 바로 학습 목록을 만들어보세요</string>
     <string name="btn_new">새로 만들기</string>
-    <string name="btn_create_playlist">재생목록 생성</string>
+    <string name="btn_create_playlist">목록 생성</string>
     <string name="btn_add_files">파일 추가</string>
     <string name="label_added">추가됨</string>
     <string name="label_no_files_category">이 카테고리에 파일이 없습니다</string>
     <string name="label_select">선택</string>
     <string name="label_add_count">%d개 추가</string>
-    <string name="title_trim_audio">오디오 트리밍</string>
+    <string name="title_trim_audio">오디오 자르기</string>
     <string name="label_studio_editor">스튜디오 에디터</string>
     <string name="label_keep">유지</string>
-    <string name="label_cut">삭제</string>
+    <string name="label_cut">잘라내기</string>
     <string name="label_current">현재</string>
-    <string name="label_new_length">새 길이</string>
+    <string name="label_new_length">변경 후 길이</string>
     <string name="label_start">시작</string>
     <string name="label_end">종료</string>
     <string name="label_fade_in">페이드 인</string>
     <string name="label_fade_out">페이드 아웃</string>
-    <string name="label_silence">무음</string>
-    <string name="label_normalize">정규화</string>
-    <string name="error_open_audio">오디오를 열 수 없습니다</string>
+    <string name="label_silence">무음 제거</string>
+    <string name="label_normalize">음량 평준화</string>
+    <string name="error_open_audio">파일을 열 수 없습니다</string>
     <string name="error_corrupted_format">파일이 손상되었거나 지원되지 않는 형식입니다.</string>
     <string name="btn_save_copy">사본 저장</string>
-    <string name="btn_replace_original">원본 교체</string>
-    <string name="label_status_completed">완료</string>
-    <string name="label_status_paused">일시 정지</string>
+    <string name="btn_replace_original">원본 덮어쓰기</string>
     <string name="label_status_now_playing">현재 재생 중</string>
+    <string name="label_status_paused">일시 정지됨</string>
+    <string name="label_status_completed">완료됨</string>
     <string name="label_shuffle">셔플</string>
-    <string name="label_gap_pill">%d초 간격</string>
+    <string name="label_gap_pill">%d초 일시 정지</string>
     <string name="label_duration_min_sec">%1$d분 %2$d초</string>
     <string name="label_duration_hour_min">%1$d시간 %2$d분</string>
     <string name="label_duration_sec">%d초</string>
@@ -272,55 +292,157 @@
     <string name="label_general">일반</string>
     <string name="btn_resume">재개</string>
     <string name="btn_stop">정지</string>
-    <string name="title_new_playlist">새 재생목록</string>
-    <string name="title_edit_playlist">재생목록 편집</string>
+    <string name="title_new_playlist">새 재생 목록</string>
+    <string name="title_edit_playlist">목록 편집</string>
     <string name="label_untitled">제목 없음</string>
-    <string name="label_playlist_name_header">재생목록 이름</string>
+    <string name="label_playlist_name_header">재생 목록 이름</string>
     <string name="hint_enter_name">이름 입력…</string>
     <string name="label_shuffle_playback">셔플 재생</string>
-    <string name="label_shuffle_desc">곡을 무작위 순서로 재생</string>
+    <string name="label_shuffle_desc">무작위 순서로 트랙 재생</string>
     <string name="label_tracks_header">트랙</string>
-    <string name="label_no_tracks">곡이 추가되지 않았습니다</string>
+    <string name="label_no_tracks">추가된 트랙이 없습니다</string>
     <string name="a11y_remove">제거</string>
+    <string name="a11y_start_recording">녹음 시작</string>
     <string name="a11y_drag_reorder">드래그하여 순서 변경</string>
+    <string name="a11y_playing">재생 중</string>
+    <string name="a11y_paused">일시 정지됨</string>
+    <string name="a11y_close_search">검색 닫기</string>
+    <string name="label_filter_by_category">카테고리로 필터링</string>
+    <string name="category_all">전체</string>
+    <string name="search_header_all">검색 결과 (%d)</string>
+    <string name="search_header_category">%1$s 내 검색 결과 (%2$d)</string>
+    <string name="a11y_select_theme">%s 테마 선택</string>
     <string name="label_playing_indicator">재생 중 • </string>
     <string name="a11y_menu">메뉴</string>
-    <string name="label_auto_trim_silence">무음 자동 삭제</string>
-    <string name="a11y_clear">지우기</string>
-    <string name="label_note">메모</string>
-    <string name="prefix_speech">음성</string>
-    <string name="prefix_stream">스트림</string>
+    <string name="label_auto_trim_silence">무음 제거</string>
+    <string name="a11y_clear">비우기</string>
+    <string name="label_note">노트</string>
+    <string name="prefix_speech">마이크</string>
+    <string name="prefix_stream">내부</string>
     <string name="unit_bytes">B</string>
     <string name="unit_kb">KB</string>
     <string name="unit_mb">MB</string>
     <string name="unit_bit">bit</string>
     <string name="label_categories">카테고리</string>
-    <string name="label_drag_reorder_hint">핸들을 드래그하여 순서 변경</string>
+    <string name="label_drag_reorder_hint">핸들을 드래그하여 순서를 변경하세요</string>
     <string name="hint_category_name">카테고리 이름…</string>
+    <string name="title_delete_category">카테고리를 삭제하시겠습니까?</string>
+    <string name="msg_delete_category">\'%s\' 카테고리를 정말 삭제하시겠습니까? 녹음 파일은 일반으로 이동됩니다.</string>
+
     <string name="label_default">기본</string>
     <string name="a11y_save">저장</string>
-    <string name="msg_deleted">삭제됨: %s</string>
+    <string name="msg_deleted">%s 삭제됨</string>
     <string name="msg_restored">복구됨</string>
-    <string name="msg_found_imported">%d개의 녹음 파일을 가져왔습니다!</string>
+    <string name="msg_found_imported">공용 저장소에서 %d개의 파일을 찾아 가져왔습니다!</string>
     <string name="btn_undo">실행 취소</string>
     <string name="a11y_edit">편집</string>
     <string name="label_statistics">통계</string>
     <string name="label_weekly_overview">주간 요약</string>
     <string name="label_goal_reached">목표 달성!</string>
-    <string name="label_min_remaining">%d분 남음</string>
+    <string name="label_min_remaining">%d분 더 학습하세요</string>
     <string name="label_change_goal">목표 변경</string>
-    <string name="label_streak">스트릭</string>
+    <string name="label_streak">연속 달성</string>
     <string name="label_today">오늘</string>
     <string name="label_sessions">세션</string>
-    <string name="label_edits">편집</string>
-    <string name="label_avg_daily">일평균</string>
+    <string name="label_edits">편집 횟수</string>
+    <string name="label_avg_daily">일일 평균</string>
     <string name="label_last_7_days">최근 7일</string>
-    <string name="label_recommendation">추천</string>
+    <string name="label_recommendation">학습 추천</string>
     <string name="title_weekly_goal">주간 목표</string>
-    <string name="msg_goal_question">주당 몇 분간 연습하시겠습니까?</string>
-    <string name="label_min_per_day">~하루 %d분</string>
+    <string name="msg_goal_question">한 주에 몇 분 학습하고 싶으신가요?</string>
+    <string name="label_min_per_day">~일일 %d분</string>
     <string name="btn_reset">초기화</string>
     <string name="btn_reset_zoom">줌 초기화</string>
     <string name="label_earlier">이전</string>
     <string name="label_later">이후</string>
+
+    <!-- Storage Settings -->
+    <string name="title_storage">저장소</string>
+    <string name="desc_public_storage">녹음 파일을 공용 음악 폴더에 저장</string>
+    <string name="btn_scan_now">지금 스캔</string>
+
+    <!-- Help Hints -->
+    <string name="hint_balance_volume">녹음 파일의 작은 소리와 큰 소리를 고르게 맞춥니다.</string>
+    <string name="hint_remove_silence">시작과 끝 부분의 긴 무음 구간을 자동으로 잘라냅니다.</string>
+    <string name="hint_smooth_fade">시작/끝 부분의 잡음을 방지하기 위해 부드러운 전환 효과를 추가합니다.</string>
+    <string name="hint_auto_split">무음 구간을 기준으로 녹음 파일을 여러 트랙으로 나눕니다.</string>
+    <string name="nudge_try_playlist">팁: 재생 목록을 만들어 효과적으로 학습해 보세요!</string>
+
+    <string name="settings_privacy_title">개인정보 및 데이터</string>
+    <string name="settings_privacy_policy">개인정보 처리방침</string>
+    <string name="settings_data_location">데이터 위치</string>
+    <string name="settings_data_location_desc">모든 오디오와 노트는 기기에 로컬로 저장되거나 본인의 Google 드라이브에 저장됩니다.</string>
+    <string name="settings_clear_data">모든 데이터 삭제</string>
+    <string name="settings_clear_data_confirm">모든 녹음과 노트가 영구적으로 삭제됩니다. 계속하시겠습니까?</string>
+
+    <string name="onboarding_welcome_title">모든 오디오를 내 것으로</string>
+    <string name="onboarding_welcome_desc">어려운 구간을 반복해서 완벽하게 익히세요. 언어, 음악 등 모든 학습에 최적화되어 있습니다.</string>
+    <string name="onboarding_usecase_title">어떤 용도로 사용하실 건가요?</string>
+    <string name="onboarding_usecase_music">음악 및 악기 연습</string>
+    <string name="onboarding_usecase_student">외국어 및 학습</string>
+    <string name="onboarding_usecase_podcaster">팟캐스트 및 콘텐츠</string>
+    <string name="onboarding_usecase_general">일반 용도</string>
+    <string name="onboarding_aha_title">디테일의 완성</string>
+    <string name="onboarding_aha_desc">구간을 선택하고, 반복하고, 속도를 늦춰보세요. 작은 디테일이 실력의 차이를 만듭니다.</string>
+    <string name="onboarding_ready_title">준비 완료!</string>
+    <string name="onboarding_ready_desc">모든 설정이 끝났습니다. 지금 바로 학습을 시작해 보세요.</string>
+
+    <!-- Coach Engine -->
+    <string name="coach_goal_reached">목표 달성!</string>
+    <string name="coach_goal_reached_desc">이번 주에 %s 학습하셨습니다. 정말 잘하셨어요!</string>
+    <string name="coach_bonus_session">보너스 세션</string>
+    <string name="coach_start_today">오늘의 학습 시작</string>
+    <string name="coach_continue_practicing">학습 계속하기</string>
+    <string name="coach_today_done">오늘 %s 학습했습니다. 목표까지 %s 남았습니다.</string>
+    <string name="coach_per_day">목표 달성까지 일일 약 %d분 학습 권장</string>
+    <string name="coach_streak_format">%d일 연속 학습 중!</string>
+    <string name="coach_action_listen">%d분 듣기</string>
+    <string name="coach_action_add">%d분 추가</string>
+    <string name="coach_start_listening">재생 시작</string>
+
+    <!-- Aha Moment Nudges -->
+    <string name="aha_loop_title">반복의 힘을 경험해 보세요</string>
+    <string name="aha_loop_desc">구간 반복은 어려운 부분을 완벽하게 익힐 수 있도록 도와줍니다.</string>
+    <string name="aha_speed_title">천천히 멀리 가기</string>
+    <string name="aha_speed_desc">너무 빠른가요? 음정 변화 없이 속도를 늦춰서 모든 소리를 들어보세요.</string>
+    <string name="btn_aha_try">지금 시도하기</string>
+    <string name="aha_loop_success">첫 구간 반복! 프로의 학습법입니다. 🔁</string>
+    <string name="aha_speed_success">속도 조절 완료! 디테일이 실력이 됩니다. ⏱️</string>
+
+    <!-- UI Action States -->
+    <string name="state_playing">재생 중…</string>
+
+    <!-- Upgrade / Pro -->
+    <string name="upgrade_pro_title">오디오루프 프로</string>
+    <string name="upgrade_pro_desc">제한 없이 모든 기능을 이용하세요.</string>
+    <string name="upgrade_feature_unlimited">무제한 카테고리 및 재생 목록</string>
+    <string name="upgrade_feature_cloud">Google 드라이브 전체 백업 및 복구</string>
+    <string name="upgrade_feature_processing">전문 오디오 편집 도구 제공</string>
+    <string name="upgrade_feature_coach">스마트 코치 상세 데이터 통계</string>
+    <string name="btn_restore_purchase">구매 복원</string>
+    <string name="label_free">무료</string>
+    <string name="label_pro">프로</string>
+    <string name="upgrade_success">오디오루프 프로가 되신 것을 환영합니다!</string>
+    <string name="label_subscription_active">멤버십 활성화됨</string>
+    <string name="label_upgrade">업그레이드</string>
+    <string name="label_pro_benefit_summary">모든 기능 제한 없음. 전문 편집 도구.</string>
+    <string name="msg_loading_offers">Play Store 제안 불러오는 중…</string>
+    <string name="msg_studio_saved">스튜디오: 저장됨</string>
+    <string name="label_per_month"> / 월</string>
+    <string name="label_per_year"> / 년</string>
+    <string name="label_search_query_format">%1$s: %2$s</string>
+    <string name="label_this_week">이번 주</string>
+    <string name="label_smart_coach">스마트 코치</string>
+    <string name="btn_view_details">상세 정보</string>
+    <string name="unit_min">분</string>
+    <string name="label_hour_short">시간</string>
+    <string name="label_minute_short">분</string>
+    <string name="unit_m">m</string>
+    <string name="day_m">월</string>
+    <string name="day_t">화</string>
+    <string name="day_w">수</string>
+    <string name="day_th">목</string>
+    <string name="day_f">금</string>
+    <string name="day_s">토</string>
+    <string name="day_su">일</string>
 </resources>

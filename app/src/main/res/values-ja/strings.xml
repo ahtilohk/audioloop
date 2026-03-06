@@ -9,18 +9,19 @@
     <string name="btn_cancel">キャンセル</string>
     <string name="btn_save">保存</string>
     <string name="btn_delete">削除</string>
-    <string name="btn_play_selected">選択した %d 件を再生</string>
-    <string name="btn_add_file">ファイルをインポート</string>
+    <string name="btn_play_selected">%d件を再生</string>
+    <string name="btn_add_file">ファイルを取り込む</string>
     <string name="btn_record_new">新規録音</string>
     <string name="btn_go_back">戻る</string>
     <string name="btn_got_it">了解！</string>
-    <string name="btn_import_audio">音声ファイルをインポート</string>
+    <string name="btn_import_audio">オーディオを取り込む</string>
+    <string name="btn_add">追加</string>
 
     <!-- Labels -->
     <string name="label_recording">録音中…</string>
-    <string name="label_empty_title">録音はありません</string>
-    <string name="label_empty_subtitle">上の録音ボタンをタップするか、音声ファイルをインポートしてください。</string>
-    <string name="label_no_matching_files">該当するファイルがありません</string>
+    <string name="label_empty_title">録音ファイルがありません</string>
+    <string name="label_empty_subtitle">録音ボタンを押すか、オーディオファイルを取り込んでください。</string>
+    <string name="label_no_matching_files">一致するファイルがありません</string>
     <string name="label_try_different_search">別のキーワードで検索してください</string>
     <string name="label_tap_to_select">タップしてファイルを選択</string>
     <string name="label_playlists">プレイリスト</string>
@@ -33,114 +34,126 @@
 
     <!-- Menu / Actions -->
     <string name="menu_rename">名前を変更</string>
-    <string name="menu_trim">トリミング / 調整</string>
-    <string name="menu_move">カテゴリーへ移動</string>
+    <string name="menu_trim">切り出し / 編集</string>
+    <string name="menu_move">カテゴリに移動</string>
     <string name="menu_share">共有</string>
     <string name="menu_download">ダウンロード</string>
-    <string name="menu_split">無音で分割</string>
-    <string name="menu_normalize">音量を正規化</string>
-    <string name="menu_auto_trim">無音を自動カット</string>
-    <string name="menu_fade">フェード</string>
-    <string name="menu_merge">選択したファイルを結合</string>
+    <string name="menu_split">自動分割</string>
+    <string name="menu_normalize">音量を均一化</string>
+    <string name="menu_auto_trim">無音をカット</string>
+    <string name="menu_fade">フェードイン / アウト</string>
+    <string name="menu_merge">選択項目を結合</string>
     <string name="menu_note">メモを編集</string>
+    <string name="menu_note_edit">メモを編集</string>
+    <string name="menu_note_add">メモを追加</string>
     <string name="menu_info">情報</string>
+    <string name="menu_play">再生</string>
+    <string name="menu_pause">一時停止</string>
 
     <!-- Dialogs -->
     <string name="dialog_rename_title">ファイル名の変更</string>
-    <string name="dialog_create_category">新しいカテゴリー</string>
+    <string name="dialog_create_category">新規カテゴリ</string>
     <string name="dialog_delete_confirm">よろしいですか？</string>
 
     <!-- Recording modes -->
-    <string name="mode_speech">スピーチ</string>
-    <string name="mode_stream">ストリーム</string>
-    <string name="mode_speech_desc">マイクからあなたの声を録音します。</string>
-    <string name="mode_stream_desc">デバイスの音声（音楽、動画など）を録音します。</string>
+    <string name="mode_speech">マイク</string>
+    <string name="mode_stream">内部オーディオ</string>
+    <string name="mode_speech_desc">あなたの声や外部の音を録音します。</string>
+    <string name="mode_stream_desc">スマートフォンの音楽や音を録音します。</string>
 
     <!-- Snackbar / Toast messages -->
     <string name="toast_saved">保存しました</string>
-    <string name="toast_error">エラーが発生しました</string>
+    <string name="toast_error">エラー</string>
     <string name="msg_moved">移動しました</string>
-    <string name="msg_imported">インポート完了: %s</string>
+    <string name="msg_imported">取り込み完了: %s</string>
     <string name="msg_error_moving">移動中にエラーが発生しました</string>
-    <string name="msg_error_importing">インポート中にエラーが発生しました</string>
+    <string name="msg_error_deleting">削除中にエラーが発生しました</string>
+    <string name="msg_error_importing">取り込み中にエラーが発生しました</string>
     <string name="msg_error_sharing">共有中にエラーが発生しました: %s</string>
     <string name="msg_permission_granted">権限が許可されました</string>
     <string name="msg_permission_denied">権限が拒否されました</string>
     <string name="msg_permission_required">録音には権限が必要です</string>
-    <string name="msg_splitting">無音で分割中…</string>
-    <string name="msg_split_done">%d 個のセグメントに分割しました</string>
-    <string name="msg_no_silence_gaps">分割できる無音区間が見つかりませんでした</string>
-    <string name="msg_normalizing">正規化中…</string>
+    <string name="msg_splitting">無音区間で分割中…</string>
+    <string name="msg_split_done">%d個に分割しました</string>
+    <string name="msg_no_silence_gaps">分割できる無音区間が見つかりません</string>
+    <string name="msg_normalizing">音量を均一化中…</string>
     <string name="msg_detecting_silence">無音を検出中…</string>
-    <string name="msg_no_silence_to_trim">カットできる無音区間が見つかりませんでした</string>
-    <string name="msg_no_significant_silence">Significant な無音区間が見つかりませんでした</string>
+    <string name="msg_no_silence_to_trim">カットする無音区間がありません</string>
+    <string name="msg_no_significant_silence">カットするほど十分な無音区間がありません</string>
     <string name="msg_applying_fade">フェードを適用中…</string>
-    <string name="msg_merging">%d 個のファイルを結合中…</string>
-    <string name="msg_merged">%s に結合しました</string>
+    <string name="msg_merging">%d個のファイルを結合中…</string>
+    <string name="msg_merged">%s として結合しました</string>
     <string name="msg_merge_failed">結合に失敗しました</string>
     <string name="msg_done">完了！</string>
     <string name="msg_processing_failed">処理に失敗しました</string>
-    <string name="msg_access_denied">アクセス拒否: オリジナルファイルが使用中です</string>
-    <string name="msg_error_finalizing">ファイルの確定中にエラーが発生しました！</string>
-    <string name="msg_studio_replaced">スタジオ: オリジナルを置換しました</string>
+    <string name="msg_access_denied">アクセス拒否: ファイルが使用中です</string>
+    <string name="msg_error_finalizing">ファイルの保存に失敗しました！</string>
+    <string name="msg_studio_replaced">スタジオ: オリジナルを更新しました</string>
     <string name="msg_studio_saved_as">スタジオ: %s として保存しました</string>
-    <string name="msg_normalization_failed">正規化に失敗しました</string>
+    <string name="msg_normalization_failed">均一化に失敗しました</string>
     <string name="msg_fade_failed">フェードに失敗しました</string>
     <string name="msg_auto_trim_failed">自動カットに失敗しました</string>
     <string name="msg_playback_error">再生エラー: %d / %d</string>
-    <string name="msg_error_opening">開く際にエラーが発生しました: %s</string>
+    <string name="msg_error_opening">ファイルを開けませんでした: %s</string>
     <string name="msg_playlist_empty">プレイリストが空か、ファイルが見つかりません</string>
 
     <!-- Backup -->
     <string name="backup_restore">バックアップと復元</string>
-    <string name="backup_saved">バックアップ作成完了: %s</string>
-    <string name="backup_failed">バックアップ作成失敗: %s</string>
+    <string name="backup_saved">バックアップ完了: %s</string>
+    <string name="backup_failed">バックアップ失敗: %s</string>
     <string name="backup_loading">バックアップを読み込み中…</string>
-    <string name="backup_no_backups">バックアップが見つかりませんでした</string>
+    <string name="backup_no_backups">バックアップが見つかりません</string>
     <string name="backup_restoring">設定を復元中…</string>
-    <string name="backup_restore_complete">復元が完了しました！</string>
-    <string name="backup_restore_failed">復元に失敗しました: %s</string>
+    <string name="backup_restore_complete">復元完了！</string>
+    <string name="backup_restore_failed">復元失敗: %s</string>
     <string name="backup_deleted">バックアップを削除しました</string>
-    <string name="signin_cancelled">サインインがキャンセルされました</string>
-    <string name="signin_failed_play_services">サインイン失敗 (Google Play 開発者サービスを確認してください)。</string>
-    <string name="signin_dev_error">開発者エラー (SHA-1 を確認してください)。</string>
-    <string name="signin_interrupted">サインインが中断されました</string>
-    <string name="signin_error">サインインエラー (コード %d)</string>
-    <string name="signin_failed">サインインに失敗しました: %s</string>
-    <string name="title_restore_backup">バックアップを復元しますか？</string>
-    <string name="msg_restore_warning">現在のファイル、カテゴリー、設定が上書きされます。</string>
+    <string name="signin_cancelled">ログインがキャンセルされました</string>
+    <string name="signin_failed_play_services">ログイン失敗。Google Play サービスを確認してください。</string>
+    <string name="signin_dev_error">開発者エラー: SHA-1を確認してください</string>
+    <string name="signin_interrupted">ログインが中断されました</string>
+    <string name="signin_error">ログインエラー (コード %d)</string>
+    <string name="signin_failed">ログイン失敗: %s</string>
+    <string name="title_restore_backup">バックアップから復元しますか？</string>
+    <string name="msg_restore_warning">現在のファイルと設定がバックアップ内容に上書きされます。</string>
     <string name="label_google_drive">Google ドライブ</string>
-    <string name="msg_backup_intro">Google ドライブに録音を保存するにはサインインしてください</string>
-    <string name="btn_signing_in">サインイン中…</string>
-    <string name="btn_google_signin">Google でサインイン</string>
-    <string name="btn_sign_out">サインアウト</string>
+    <string name="msg_backup_intro">Google ドライブに録音ファイルを保存するにはログインしてください</string>
+    <string name="btn_signing_in">ログイン中…</string>
+    <string name="btn_google_signin">Google でログイン</string>
+    <string name="btn_sign_out">ログアウト</string>
     <string name="btn_backup">バックアップ</string>
     <string name="btn_restore">復元</string>
     <string name="label_available_backups">利用可能なバックアップ</string>
+    <string name="msg_backup_creating">バックアップを作成中…</string>
+    <string name="msg_backup_uploading">Google ドライブにアップロード中…</string>
+    <string name="msg_backup_uploading_perc">アップロード中: %d%%</string>
+    <string name="msg_backup_complete">バックアップ完了！</string>
 
     <!-- Settings -->
     <string name="settings_loop">ループ</string>
     <string name="settings_speed">再生速度</string>
-    <string name="settings_pitch">ピッチ</string>
-    <string name="settings_sleep_timer">スリープタイマー</string>
+    <string name="settings_pitch">音程</string>
+    <string name="settings_sleep_timer">オフタイマー</string>
     <string name="settings_theme">テーマ</string>
-    <string name="settings_listen_repeat">聴いて繰り返す</string>
+    <string name="settings_listen_repeat">リッスン &amp; リピート</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">AudioLoop へようこそ！</string>
-    <string name="welcome_modes_intro">AudioLoop には 2 つのモードがあります:</string>
-    <string name="welcome_stream_note">ストリーム録音に関する注意:</string>
-    <string name="welcome_stream_warning">Android では毎回確認が必要です。これはシステムのセキュリティ機能です。</string>
+    <string name="welcome_title">Loop &amp; Learn へようこそ！</string>
+    <string name="welcome_modes_intro">このアプリは2つの録音モードをサポートしています：</string>
+    <string name="welcome_stream_note">内部オーディオ録音について：</string>
+    <string name="welcome_stream_warning">Androidのセキュリティ基準により、内部録音を開始するたびに承認が必要です。</string>
 
     <!-- Coach -->
-    <string name="coach_smart_coach">スマートコーチ</string>
-    <string name="coach_practice_stats">練習の統計</string>
+    <string name="coach_smart_coach">スマート・コーチ</string>
+    <string name="coach_practice_stats">練習統計</string>
 
-    <!-- Widget -->
-    <string name="widget_description">ホーム画面から素早く録音・再生</string>
-
-    <!-- Categories -->
-    <string name="category_manage">カテゴリーの管理</string>
+    <!-- Sorting -->
+    <string name="menu_sort">並べ替え</string>
+    <string name="sort_name_asc">名前 (A-Z)</string>
+    <string name="sort_name_desc">名前 (Z-A)</string>
+    <string name="sort_date_desc">新しい順</string>
+    <string name="sort_date_asc">古い順</string>
+    <string name="sort_length_desc">長い順</string>
+    <string name="sort_length_asc">短い順</string>
 
     <!-- Navigation -->
     <string name="nav_library">ライブラリ</string>
@@ -149,49 +162,49 @@
     <string name="nav_settings">設定</string>
 
     <!-- Coach Tab -->
-    <string name="coach_title">スマート練習コーチ</string>
-    <string name="coach_description">進捗を確認し、練習を習慣化しましょう。</string>
-    <string name="coach_open_stats">詳細な統計を開く</string>
+    <string name="coach_title">練習コーチ</string>
+    <string name="coach_description">進捗を確認し、練習の習慣を身につけましょう。</string>
+    <string name="coach_open_stats">詳細な統計を表示</string>
 
     <!-- Record Tab -->
     <string name="record_start">録音開始</string>
-    <string name="record_mode_format">%s モード</string>
+    <string name="record_mode_format">%sモード</string>
     <string name="record_recording">録音中…</string>
 
     <!-- Library Tab -->
     <string name="library_files_header">ファイル (%s):</string>
-    <string name="library_add">+ 追加</string>
+    <string name="library_add">+ 新規</string>
     <string name="library_select">選択</string>
-    <string name="library_play_count">%d 件再生</string>
-    <string name="library_playlist">プレイリスト</string>
-    <string name="library_merge_count">%d 件結合</string>
+    <string name="library_play_count">%d件再生</string>
+    <string name="library_playlist">リスト</string>
+    <string name="library_merge_count">%d件結合</string>
     <string name="library_now_playing">再生中</string>
     <string name="library_today_format">今日 %s</string>
-    <string name="library_tracks_count">%d トラック</string>
+    <string name="library_tracks_count">%dトラック</string>
     <string name="library_shuffle">シャッフル</string>
-    <string name="library_gap_format">%d秒の間隔</string>
+    <string name="library_gap_format">一時停止 %d秒</string>
 
     <!-- Header -->
     <string name="header_title">Loop &amp; Learn</string>
 
     <!-- Search -->
-    <string name="search_recordings_hint">録音を検索…</string>
+    <string name="search_recordings_hint">ファイルを検索…</string>
 
     <!-- Dialogs -->
     <string name="dialog_rename">名前を変更</string>
     <string name="dialog_new_name">新しい名前</string>
-    <string name="dialog_select_category">カテゴリーを選択</string>
+    <string name="dialog_select_category">カテゴリを選択</string>
     <string name="dialog_add_note">メモを追加</string>
     <string name="dialog_edit_note">メモを編集</string>
     <string name="dialog_note_hint">歌詞、文章、翻訳など…</string>
-    <string name="dialog_remove">削除</string>
+    <string name="dialog_remove">除去</string>
     <string name="dialog_close">閉じる</string>
     <string name="dialog_delete_file">ファイルを削除しますか？</string>
     <string name="dialog_delete_confirm_format">\'%s\' を削除してもよろしいですか？</string>
     <string name="dialog_file_info">ファイル情報</string>
 
     <!-- File Info -->
-    <string name="info_format">フォーマット</string>
+    <string name="info_format">形式</string>
     <string name="info_duration">長さ</string>
     <string name="info_size">サイズ</string>
     <string name="info_sample_rate">サンプルレート</string>
@@ -208,63 +221,70 @@
     <string name="a11y_search">ファイルを検索</string>
     <string name="a11y_backup">バックアップと復元</string>
     <string name="a11y_close">閉じる</string>
-    <string name="a11y_cancel_selection">選択を解除</string>
-    <string name="a11y_manage_categories">カテゴリーを管理</string>
-    <string name="a11y_record_speech">スピーチを録音</string>
-    <string name="a11y_record_stream">ストリームを録音</string>
-    <string name="a11y_stop_recording">録音を停止</string>
-    <string name="a11y_import_file">音声ファイルをインポート</string>
-    <string name="a11y_play_selected">選択したファイルを再生</string>
-    <string name="a11y_playlist">選択からプレイリストを作成</string>
+    <string name="a11y_cancel_selection">選択解除</string>
+    <string name="a11y_manage_categories">カテゴリ管理</string>
+    <string name="a11y_record_speech">マ이크から録音</string>
+    <string name="a11y_record_stream">内部音声を録音</string>
+    <string name="a11y_stop_recording">録音停止</string>
+    <string name="a11y_import_file">オーディオを取り込む</string>
+    <string name="a11y_play_selected">選択項目を再生</string>
+    <string name="a11y_playlist">選択項目でリスト作成</string>
     <string name="a11y_recording_active">録音中</string>
-    <string name="a11y_playlists">プレイリストを開く</string>
+    <string name="a11y_playlists">プレイリストを表示</string>
+    <string name="a11y_delete">削除</string>
+    <string name="settings_theme_label">テーマカラー</string>
+    <string name="settings_theme_mode_label">テーマモード</string>
+    <string name="theme_mode_auto">自動</string>
+    <string name="theme_mode_light">ライト</string>
+    <string name="theme_mode_dark">ダーク</string>
     <string name="settings_playback_title">再生設定</string>
-    <string name="settings_speed_label">再生速度:</string>
     <string name="settings_repeats">リピート回数:</string>
-    <string name="settings_gap">曲間の間隔:</string>
-    <string name="settings_listen_repeat_desc">練習のために再生後に無音を挿入</string>
-    <string name="settings_pause_duration">間隔の長さ:</string>
+    <string name="settings_gap">トラック間のポーズ:</string>
+    <string name="settings_listen_repeat_desc">再生後のシャドーイング用ポーズ</string>
+    <string name="settings_pause_duration">ポーズの長さ:</string>
     <string name="settings_pause_auto">自動</string>
-    <string name="settings_sleep_timer_label">スリープタイマー:</string>
     <string name="settings_sleep_off">オフ</string>
     <string name="settings_sleep_stops_in">%s 後に停止</string>
-    <string name="settings_theme_label">アプリのテーマ:</string>
-    <string name="settings_language_label">アプリの言語:</string>
-    <string name="dialog_delete_playlist_title">プレイリストを削除しますか？</string>
-    <string name="dialog_delete_playlist_confirm">\"%s\" を削除してもよろしいですか？この操作は取り消せません。</string>
-    <string name="label_playlists_count">%d 件のプレイリスト</string>
+    <string name="settings_speed_label">速度:</string>
+    <string name="settings_listen_repeat_label">リッスン &amp; リピート:</string>
+    <string name="settings_sleep_timer_label">オフタイマー:</string>
+    <string name="settings_language_label">アプリ言語:</string>
+
+    <string name="dialog_delete_playlist_title">リストを削除しますか？</string>
+    <string name="dialog_delete_playlist_confirm">\"%s\" を削除しますか？この操作は戻せません。</string>
+    <string name="label_playlists_count">%d個のプレイリスト</string>
     <string name="label_play_count_compact">%dx</string>
-    <string name="label_playlist_tracks">%d トラック</string>
-    <string name="label_playlist_no_playlists">プレイリストはありません</string>
-    <string name="label_playlist_create_desc">セッションを作成して開始しましょう</string>
+    <string name="label_playlist_tracks">%dトラック</string>
+    <string name="label_playlist_no_playlists">リストがありません</string>
+    <string name="label_playlist_create_desc">練習セッションを作成しましょう</string>
     <string name="btn_new">新規</string>
-    <string name="btn_create_playlist">プレイリストを作成</string>
+    <string name="btn_create_playlist">リストを作成</string>
     <string name="btn_add_files">ファイルを追加</string>
     <string name="label_added">追加済み</string>
-    <string name="label_no_files_category">このカテゴリーにはファイルがありません</string>
+    <string name="label_no_files_category">このカテゴリにファイルはありません</string>
     <string name="label_select">選択</string>
-    <string name="label_add_count">%d 件を追加</string>
-    <string name="title_trim_audio">音声のトリミング</string>
-    <string name="label_studio_editor">スタジオエディター</string>
+    <string name="label_add_count">%d件追加</string>
+    <string name="title_trim_audio">オーディオ編集</string>
+    <string name="label_studio_editor">スタジオ・エディタ</string>
     <string name="label_keep">残す</string>
-    <string name="label_cut">カット</string>
+    <string name="label_cut">削除</string>
     <string name="label_current">現在</string>
-    <string name="label_new_length">新しい長さ</string>
+    <string name="label_new_length">編集後の長さ</string>
     <string name="label_start">開始</string>
     <string name="label_end">終了</string>
     <string name="label_fade_in">フェードイン</string>
     <string name="label_fade_out">フェードアウト</string>
-    <string name="label_silence">無音</string>
-    <string name="label_normalize">正規化</string>
-    <string name="error_open_audio">音声を開けませんでした</string>
-    <string name="error_corrupted_format">ファイルが破損しているか、未対応の形式です。</string>
+    <string name="label_silence">無音をカット</string>
+    <string name="label_normalize">音量を均一化</string>
+    <string name="error_open_audio">ファイルを開けませんでした</string>
+    <string name="error_corrupted_format">ファイルが壊れているか、非対応の形式です。</string>
     <string name="btn_save_copy">コピーを保存</string>
     <string name="btn_replace_original">オリジナルを上書き</string>
-    <string name="label_status_completed">完了</string>
-    <string name="label_status_paused">一時停止</string>
     <string name="label_status_now_playing">再生中</string>
+    <string name="label_status_paused">一時停止</string>
+    <string name="label_status_completed">完了</string>
     <string name="label_shuffle">シャッフル</string>
-    <string name="label_gap_pill">%d秒の間隔</string>
+    <string name="label_gap_pill">ポーズ %d秒</string>
     <string name="label_duration_min_sec">%1$d分 %2$d秒</string>
     <string name="label_duration_hour_min">%1$d時間 %2$d分</string>
     <string name="label_duration_sec">%d秒</string>
@@ -273,54 +293,156 @@
     <string name="btn_resume">再開</string>
     <string name="btn_stop">停止</string>
     <string name="title_new_playlist">新規プレイリスト</string>
-    <string name="title_edit_playlist">プレイリストを編集</string>
-    <string name="label_untitled">無題</string>
-    <string name="label_playlist_name_header">プレイリスト名</string>
-    <string name="hint_enter_name">名前を入力…</string>
+    <string name="title_edit_playlist">リストを編集</string>
+    <string name="label_untitled">タイトルなし</string>
+    <string name="label_playlist_name_header">リスト名</string>
+    <string name="hint_enter_name">名前を入力してください…</string>
     <string name="label_shuffle_playback">シャッフル再生</string>
-    <string name="label_shuffle_desc">曲を順不同で再生</string>
+    <string name="label_shuffle_desc">ランダムな順序で再生</string>
     <string name="label_tracks_header">トラック</string>
-    <string name="label_no_tracks">曲が追加されていません</string>
+    <string name="label_no_tracks">追加されたトラックはありません</string>
     <string name="a11y_remove">削除</string>
-    <string name="a11y_drag_reorder">ドラッグして並べ替え</string>
+    <string name="a11y_start_recording">録音開始</string>
+    <string name="a11y_drag_reorder">ドラッグして順番を変更</string>
+    <string name="a11y_playing">再生中</string>
+    <string name="a11y_paused">一時停止</string>
+    <string name="a11y_close_search">検索を閉じる</string>
+    <string name="label_filter_by_category">フィルタリング</string>
+    <string name="category_all">すべて</string>
+    <string name="search_header_all">検索結果 (%d)</string>
+    <string name="search_header_category">%1$s 内の結果 (%2$d)</string>
+    <string name="a11y_select_theme">%s テーマを選択</string>
     <string name="label_playing_indicator">再生中 • </string>
     <string name="a11y_menu">メニュー</string>
-    <string name="label_auto_trim_silence">無音を自動カット</string>
+    <string name="label_auto_trim_silence">無音をカット</string>
     <string name="a11y_clear">クリア</string>
     <string name="label_note">メモ</string>
-    <string name="prefix_speech">スピーチ</string>
-    <string name="prefix_stream">ストリーム</string>
+    <string name="prefix_speech">マイク</string>
+    <string name="prefix_stream">内部</string>
     <string name="unit_bytes">B</string>
     <string name="unit_kb">KB</string>
     <string name="unit_mb">MB</string>
     <string name="unit_bit">bit</string>
-    <string name="label_categories">カテゴリー</string>
-    <string name="label_drag_reorder_hint">ハンドルをドラッグして並べ替え</string>
-    <string name="hint_category_name">カテゴリー名…</string>
-    <string name="label_default">デフォルト</string>
+    <string name="label_categories">カテゴリ</string>
+    <string name="label_drag_reorder_hint">ハンドルをドラッグして順番を変更します</string>
+    <string name="hint_category_name">カテゴリ名…</string>
+    <string name="title_delete_category">カテゴリを削除しますか？</string>
+    <string name="msg_delete_category">カテゴリ \'%s\' を削除しますか？録音ファイルは一般へ移動されます。</string>
+
+    <string name="label_default">標準</string>
     <string name="a11y_save">保存</string>
-    <string name="msg_deleted">削除しました: %s</string>
+    <string name="msg_deleted">%s を削除しました</string>
     <string name="msg_restored">復元しました</string>
-    <string name="msg_found_imported">%d 件の録音をインポートしました！</string>
+    <string name="msg_found_imported">音楽フォルダから %d個の録音が見つかりました</string>
     <string name="btn_undo">元に戻す</string>
     <string name="a11y_edit">編集</string>
     <string name="label_statistics">統計</string>
-    <string name="label_weekly_overview">週間概要</string>
+    <string name="label_weekly_overview">週間サマリー</string>
     <string name="label_goal_reached">目標達成！</string>
-    <string name="label_min_remaining">残り %d 分</string>
+    <string name="label_min_remaining">残り %d分練習しましょう</string>
     <string name="label_change_goal">目標を変更</string>
-    <string name="label_streak">ストリーク</string>
+    <string name="label_streak">連続記録</string>
     <string name="label_today">今日</string>
-    <string name="label_sessions">セッション</string>
-    <string name="label_edits">編集数</string>
-    <string name="label_avg_daily">1日平均</string>
+    <string name="label_sessions">セッション数</string>
+    <string name="label_edits">編集回数</string>
+    <string name="label_avg_daily">日次平均</string>
     <string name="label_last_7_days">過去7日間</string>
-    <string name="label_recommendation">おすすめ</string>
+    <string name="label_recommendation">練習のおすすめ</string>
     <string name="title_weekly_goal">週間目標</string>
     <string name="msg_goal_question">週に何分練習したいですか？</string>
-    <string name="label_min_per_day">~1日 %d 分</string>
+    <string name="label_min_per_day">~1日 %d分</string>
     <string name="btn_reset">リセット</string>
-    <string name="btn_reset_zoom">ズームをリセット</string>
+    <string name="btn_reset_zoom">ズームリセット</string>
     <string name="label_earlier">以前</string>
-    <string name="label_later">以後</string>
+    <string name="label_later">追加</string>
+
+    <!-- Storage Settings -->
+    <string name="title_storage">ストレージ</string>
+    <string name="desc_public_storage">録音をMusicフォルダに保存する</string>
+    <string name="btn_scan_now">今すぐスキャン</string>
+
+    <!-- Help Hints -->
+    <string name="hint_balance_volume">小さな音と大きな音のバランスを整えます。</string>
+    <string name="hint_remove_silence">開始・終了の無音を自動でカットします。</string>
+    <string name="hint_smooth_fade">ノイズを防ぐためにフェード効果を追加します。</string>
+    <string name="hint_auto_split">無音箇所でトラックを自動分割します。</string>
+    <string name="nudge_try_playlist">ヒント：リストを作って効率的に練習しましょう！</string>
+
+    <string name="settings_privacy_title">プライバシーとデータ</string>
+    <string name="settings_privacy_policy">プライバシーポリシー</string>
+    <string name="settings_data_location">データの保存先</string>
+    <string name="settings_data_location_desc">すべてのオーディオとメモは端末内またはGoogleドライブに保存されます。</string>
+    <string name="settings_clear_data">全データを削除</string>
+    <string name="settings_clear_data_confirm">すべての録音とメモが完全に削除されます。よろしいですか？</string>
+
+    <string name="onboarding_welcome_title">すべてのオーディオをモノにする</string>
+    <string name="onboarding_welcome_desc">難しい箇所をリピート練習。語学や楽器演奏に最適です。</string>
+    <string name="onboarding_usecase_title">どのように使いますか？</string>
+    <string name="onboarding_usecase_music">音楽・楽器練習</string>
+    <string name="onboarding_usecase_student">語学・学習</string>
+    <string name="onboarding_usecase_podcaster">ポッドキャスト制作</string>
+    <string name="onboarding_usecase_general">一般利用</string>
+    <string name="onboarding_aha_title">細部を極める</string>
+    <string name="onboarding_aha_desc">区間を選んでリピートし、速度を落としてみましょう。細部を極めることが上達への近道です。</string>
+    <string name="onboarding_ready_title">準備完了！</string>
+    <string name="onboarding_ready_desc">すべての設定が終わりました。練習を始めましょう。</string>
+
+    <!-- Coach Engine -->
+    <string name="coach_goal_reached">目標達成！</string>
+    <string name="coach_goal_reached_desc">今週は %s 練習しました。素晴らしい！</string>
+    <string name="coach_bonus_session">ボーナス・セッション</string>
+    <string name="coach_start_today">今日の練習を開始</string>
+    <string name="coach_continue_practicing">練習を続ける</string>
+    <string name="coach_today_done">今日は %s 完了しました。目標まであと %s です。</string>
+    <string name="coach_per_day">目標達成まであと1日約 %d分必要です</string>
+    <string name="coach_streak_format">%d日間連続達成中！</string>
+    <string name="coach_action_listen">%d分リスニング</string>
+    <string name="coach_action_add">%d分追加</string>
+    <string name="coach_start_listening">再生開始</string>
+
+    <!-- Aha Moment Nudges -->
+    <string name="aha_loop_title">ループの力を体験</string>
+    <string name="aha_loop_desc">難しい箇所はループ再生で。完璧に耳に馴染ませましょう。</string>
+    <string name="aha_speed_title">落ち着いて着実に</string>
+    <string name="aha_speed_desc">速すぎますか？音程を変えずに速度を落として細部を確認しましょう。</string>
+    <string name="btn_aha_try">試してみる</string>
+    <string name="aha_loop_success">初ループ！プロの練習効率です。 🔁</string>
+    <string name="aha_speed_success">速度調整完了！細部まで聞こえます。 ⏱️</string>
+
+    <!-- UI Action States -->
+    <string name="state_playing">再生中…</string>
+
+    <!-- Upgrade / Pro -->
+    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_desc">制限を解除してすべての機能を利用しましょう。</string>
+    <string name="upgrade_feature_unlimited">カテゴリ・プレイリスト無制限</string>
+    <string name="upgrade_feature_cloud">Google ドライブ完全自動バックアップ</string>
+    <string name="upgrade_feature_processing">高度なオーディオ編集ツール</string>
+    <string name="upgrade_feature_coach">コーチ機能の高度な統計表示</string>
+    <string name="btn_restore_purchase">購入情報を復元</string>
+    <string name="label_free">無料版</string>
+    <string name="label_pro">Pro版</string>
+    <string name="upgrade_success">AudioLoop Pro へようこそ！</string>
+    <string name="label_subscription_active">メンバーシップ有効</string>
+    <string name="label_upgrade">アップグレード</string>
+    <string name="label_pro_benefit_summary">無制限。高度なプロ用ツール。</string>
+    <string name="msg_loading_offers">Play ストアから情報を取得中…</string>
+    <string name="msg_studio_saved">スタジオ: 保存しました</string>
+    <string name="label_per_month"> / 月</string>
+    <string name="label_per_year"> / 年</string>
+    <string name="label_search_query_format">%1$s: %2$s</string>
+    <string name="label_this_week">今週</string>
+    <string name="label_smart_coach">スマート・コーチ</string>
+    <string name="btn_view_details">詳細を表示</string>
+    <string name="unit_min">分</string>
+    <string name="label_hour_short">時間</string>
+    <string name="label_minute_short">分</string>
+    <string name="unit_m">m</string>
+    <string name="day_m">月</string>
+    <string name="day_t">火</string>
+    <string name="day_w">水</string>
+    <string name="day_th">木</string>
+    <string name="day_f">金</string>
+    <string name="day_s">土</string>
+    <string name="day_su">日</string>
 </resources>
