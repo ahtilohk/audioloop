@@ -50,7 +50,7 @@ fun BackupRestoreSheet(
         AlertDialog(
             onDismissRequest = { restoreConfirmBackup = null },
             containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = Color.White,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
             textContentColor = MaterialTheme.colorScheme.onSurface,
             title = {
                 Row(
@@ -70,7 +70,7 @@ fun BackupRestoreSheet(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         backup.date,
-                        style = TextStyle(color = Color.White, fontWeight = FontWeight.Medium)
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                     )
                     Text(
                         backup.name,
@@ -165,7 +165,7 @@ fun BackupRestoreSheet(
                             Text(
                                 stringResource(R.string.backup_restore),
                                 style = TextStyle(
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp
                                 )
