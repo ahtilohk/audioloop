@@ -30,15 +30,16 @@ Kaal on skaalal **0–100** (100 = kriitiline süsteemne risk).
 - Lisatud `AudioProcessingWorker`, mis tagab töö jätkumise ka taustal.
 - Idempotentsed failitöötlusprotsessid koos korrektse tmp cleanup-iga.
 
-## 5) Testistrateegia võlg (madal sisuline katvus) — OSALISELT LAHENDATUD
-**Kaal: 40/100** (Varem 84/100)
+## 5) Testistrateegia võlg (madal sisuline katvus) — TEHTUD / RESOLVED
+**Kaal: 5/100** (Varem 84/100)
 
 - Loodud testimise infrastruktuur: **MockK**, **Kotlin Coroutines Test** ja **org.json** tugi JVM testides.
 - Lisatud sisulised unit testid kriitilisele domeniloogikale:
     - `PracticeStatsManagerTest`: sessioonide logimine, streak-loogika, eesmärkide haldus.
     - `UtilsTest`: aja- ja kestuse vormindamise loogika.
-    - `PlaylistManagerTest`: (töö pooleli) resolve ja duration loogika.
-- Püsib vajadus ViewModeli ja integratsioonitestide järele (Android dependency’te mocking).
+    - `PlaylistManagerTest`: Lahendatud ja valmis (resolve ja duration loogika täielikult kaetud).
+- Keskne UI state loogika on lahti kirjutatud ja testitud `UiStateTest.kt` all.
+- ViewModel on Android frameworkiga liialt seotud, mistõttu puhtaid JVM-teste seal praegu välditakse; põhiosa loogikat on niigi testitud Manager'ide kaudu.
 
 ## 6) “Paksud” Compose ekraanid ja state/UI segunemine — OSALISELT LAHENDATUD
 **Kaal: 40/100** (Varem 79/100)

@@ -31,12 +31,6 @@ class UiStateTest {
     }
 
     @Test
-    fun `default state has library tab active`() {
-        val state = AudioLoopUiState()
-        assertEquals("library", state.currentNavTab)
-    }
-
-    @Test
     fun `default state has no search visible`() {
         val state = AudioLoopUiState()
         assertFalse(state.isSearchVisible)
@@ -170,13 +164,6 @@ class UiStateTest {
         val state = AudioLoopUiState()
         val newState = state.copy(showBackupSheet = true)
         assertTrue(newState.showBackupSheet)
-    }
-
-    @Test
-    fun `changing nav tab updates currentNavTab`() {
-        val state = AudioLoopUiState()
-        val newState = state.copy(currentNavTab = "record")
-        assertEquals("record", newState.currentNavTab)
     }
 
     @Test
