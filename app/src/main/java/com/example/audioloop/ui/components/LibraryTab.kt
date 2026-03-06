@@ -40,8 +40,9 @@ import com.example.audioloop.RecordingItem
 import com.example.audioloop.SortMode
 import com.example.audioloop.ui.FileItem
 import com.example.audioloop.ui.formatSessionTime
-import com.example.audioloop.ui.theme.Red400
 import com.example.audioloop.ui.theme.Red500
+import com.example.audioloop.ui.theme.LocalSpacing
+import com.example.audioloop.ui.theme.LocalRadius
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
@@ -61,10 +62,12 @@ fun LibraryTab(
         uiRecordingItems.addAll(recordingItems)
     }
 
+    val spacing = LocalSpacing.current
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 8.dp)
+            .padding(vertical = spacing.small)
     ) {
         if (uiState.isLoading) {
             LinearProgressIndicator(
@@ -109,11 +112,13 @@ private fun LibraryHeader(
 ) {
     val themeColors = uiState.currentTheme.palette
 
+    val spacing = LocalSpacing.current
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 8.dp),
+            .padding(horizontal = spacing.large)
+            .padding(bottom = spacing.small),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -129,7 +134,7 @@ private fun LibraryHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
+                .padding(start = spacing.large, end = spacing.large, bottom = spacing.small),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -139,9 +144,9 @@ private fun LibraryHeader(
             )
             Surface(
                 onClick = { viewModel.clearSelection() },
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.small,
                 color = Red500.copy(alpha = 0.15f),
-                border = BorderStroke(1.dp, Red400.copy(alpha = 0.5f)),
+                border = BorderStroke(1.dp, Red500.copy(alpha = 0.5f)),
                 modifier = Modifier.height(32.dp)
             ) {
                 Row(
@@ -149,8 +154,8 @@ private fun LibraryHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red400, modifier = Modifier.size(14.dp))
-                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red400, fontWeight = FontWeight.Bold)
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(14.dp))
+                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red500, fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -140,7 +140,8 @@ fun FileItem(
     }
 
     val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
-    val elevation by animateDpAsState(targetValue = if (isDragging) 8.dp else if (isPlaying) 4.dp else 2.dp, label = "elevation")
+    val spacing = LocalSpacing.current
+    val elevation by animateDpAsState(targetValue = if (isDragging) spacing.small else if (isPlaying) spacing.extraSmall else 2.dp, label = "elevation")
 
     Surface(
         onClick = {
@@ -161,7 +162,7 @@ fun FileItem(
                 }
                 contentDescription = "${item.name}, ${item.durationString}. $status"
             },
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.medium,
         color = backgroundColor,
         border = BorderStroke(1.5.dp, borderColor),
         shadowElevation = elevation
@@ -172,10 +173,10 @@ fun FileItem(
         ) {
             Row(
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
+                    .padding(horizontal = spacing.small, vertical = spacing.small)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.small)
             ) {
 
                 Box(

@@ -105,15 +105,13 @@ Allolev koond on süntees kolmest mudelivastusest, lähtudes algsest promptist: 
 
 ---
 
-### 11) Disainisüsteemi järjepidevus (spacing/radius/tokens) — **Kaal: 5/10**
-**Probleem:** Erinevaid mõõteväärtusi on banyak; visuaalne rütm pole ühtlane.
+### 11) Disainisüsteemi järjepidevus (spacing/radius/tokens) — TEHTUD / RESOLVED
+**Kaal: 5/10**
 
-**Mõju massidele:** Alateadlik “mitte-premium” tunnetus.
-
-**Soovitus:**
-- 4dp grid
-- piiratud radius/spacing skaala
-- keskne token-süsteem
+- Lisatud keskne `Dimens.kt` koos `LocalSpacing` ja `LocalRadius` composition local'itega.
+- Uued püsiväärtused järgivad süstemaatiliselt 4dp gridi (`extraSmall`=4dp, `small`=8dp, `medium`=16dp jne).
+- `MaterialTheme.shapes` seadistatud vastama sarnasele reeglistikule (Small=8dp, Medium=16dp jmt).
+- Esimesed põhikomponendid (`FileItem.kt`, `LibraryTab.kt`) on juba uuele märgisüsteemile (token-system) üle tõstetud, muutes visuaalse rütmi ühtlaseks.
 
 ---
 
