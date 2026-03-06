@@ -463,7 +463,7 @@ fun FileItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .padding(horizontal = 4.dp, vertical = 6.dp)
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
@@ -545,7 +545,7 @@ fun FileItem(
                             }
 
                             // 2. Draw Background Waveform
-                            drawWaveform(outlineVariantColor.copy(alpha = 0.5f))
+                            drawWaveform(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f))
 
                             // 3. Draw Active Waveform (Clipped)
                             clipRect(right = currentProgress * w) {
@@ -564,7 +564,7 @@ fun FileItem(
 
                             // 5. Playhead
                             val px = currentProgress * w
-                            drawLine(Color.White, Offset(px, 0f), Offset(px, h), strokeWidth = 2.dp.toPx())
+                            drawLine(MaterialTheme.colorScheme.onSurface, Offset(px, 0f), Offset(px, h), strokeWidth = 2.dp.toPx())
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))

@@ -196,7 +196,7 @@ fun TrimAudioScreen(
                         .size(40.dp)
                         .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 ) {
-                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.a11y_close), tint = Color.White)
+                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.a11y_close), tint = MaterialTheme.colorScheme.onSurface)
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -205,7 +205,7 @@ fun TrimAudioScreen(
                     Text(
                         stringResource(R.string.title_trim_audio),
                         style = MaterialTheme.typography.titleLarge.copy(
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -681,7 +681,7 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable {
                                         previewPositionMs = 0L
@@ -693,7 +693,7 @@ fun TrimAudioScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(previewPositionMs),
-                                    color = Color.White,
+                                    color = themeColors.primary,
                                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
                                     maxLines = 1
                                 )
@@ -703,7 +703,7 @@ fun TrimAudioScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
                                     .padding(10.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
@@ -719,7 +719,7 @@ fun TrimAudioScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(projectedDuration),
-                                    color = themeColors.primary200,
+                                    color = themeColors.primary,
                                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
                                     maxLines = 1
                                 )
@@ -736,7 +736,7 @@ fun TrimAudioScreen(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
                                     .padding(horizontal = 6.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -763,7 +763,7 @@ fun TrimAudioScreen(
                                     Text(stringResource(R.string.label_start), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.start.toLong()),
-                                        color = themeColors.primary200,
+                                        color = themeColors.primary,
                                         style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                                         maxLines = 1
                                     )
@@ -802,7 +802,7 @@ fun TrimAudioScreen(
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.label_earlier), tint = Red200, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.label_earlier), tint = Red500, modifier = Modifier.size(16.dp))
                                 }
                                 // Time display
                                 Column(
@@ -814,7 +814,7 @@ fun TrimAudioScreen(
                                     Text(stringResource(R.string.label_end), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     Text(
                                         formatDuration(range.endInclusive.toLong()),
-                                        color = Red200,
+                                        color = Red500,
                                         style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                                         maxLines = 1
                                     )
@@ -830,7 +830,7 @@ fun TrimAudioScreen(
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(AppIcons.ArrowForward, contentDescription = stringResource(R.string.label_later), tint = Red200, modifier = Modifier.size(16.dp))
+                                    Icon(AppIcons.ArrowForward, contentDescription = stringResource(R.string.label_later), tint = Red500, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
@@ -955,7 +955,7 @@ fun TrimAudioScreen(
                                     Icon(
                                         imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
                                         contentDescription = if (isPreviewPlaying) stringResource(R.string.menu_pause) else stringResource(R.string.menu_play),
-                                        tint = Color.White,
+                                        tint = if (isPreviewPlaying) Color.White else MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
@@ -1019,8 +1019,11 @@ fun TrimAudioScreen(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f).height(50.dp),
                             shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold)
                         }
