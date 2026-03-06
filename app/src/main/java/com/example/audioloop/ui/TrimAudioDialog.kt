@@ -118,20 +118,44 @@ fun TrimAudioScreen(
         playerReady = false
         playerInitError = false
 
-        val delays = listOf(0L, 200L, 400L, 600L, 800L, 1000L, 1500L, 2000L, 2500L, 3000L)
+        val delays = listOf(0L, 200L, 400L, 600L, 800L, 1000L, 1500L, 2000L)
         for ((attempt, delayMs) in delays.withIndex()) {
             if (delayMs > 0) delay(delayMs)
             try {
                 val success = withContext(Dispatchers.IO) {
-                    val pfd = context.contentResolver.openFileDescriptor(uri, "r")
-                    if (pfd != null) {
-                        previewPlayer.reset()
-                        previewPlayer.setDataSource(pfd.fileDescriptor)
-                        previewPlayer.prepare()
-                        pfd.close()
-                        true
-                    } else {
-                        false
+                    try {
+                        if (uri != Uri.EMPTY) {
+                            val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+                            if (pfd != null) {
+                                previewPlayer.reset()
+                                previewPlayer.setDataSource(pfd.fileDescriptor)
+                                previewPlayer.prepare()
+                                pfd.close()
+                                true
+                            } else false
+                        } else {
+                            // Fallback to File
+                            if (file.exists()) {
+                                previewPlayer.reset()
+                                java.io.FileInputStream(file).use { fis ->
+                                    previewPlayer.setDataSource(fis.fd)
+                                }
+                                previewPlayer.prepare()
+                                true
+                            } else false
+                        }
+                    } catch (e: Exception) {
+                        // If URI failed but we have a file, try file as last resort in this attempt
+                        if (uri != Uri.EMPTY && file.exists()) {
+                            try {
+                                previewPlayer.reset()
+                                java.io.FileInputStream(file).use { fis ->
+                                    previewPlayer.setDataSource(fis.fd)
+                                }
+                                previewPlayer.prepare()
+                                true
+                            } catch (_: Exception) { false }
+                        } else false
                     }
                 }
                 if (success) {

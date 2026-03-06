@@ -192,7 +192,14 @@ private fun SelectionActionBar(
         ) {
             Icon(AppIcons.PlayArrow, contentDescription = stringResource(R.string.a11y_play_selected), modifier = Modifier.size(16.dp), tint = Color.White)
             Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.library_play_count, uiState.selectedFiles.size), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(
+                stringResource(R.string.library_play_count, uiState.selectedFiles.size),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                maxLines = 1,
+                softWrap = false
+            )
         }
 
         // Save as Playlist
@@ -225,7 +232,14 @@ private fun SelectionActionBar(
         ) {
             Icon(AppIcons.QueueMusic, contentDescription = stringResource(R.string.a11y_playlist), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.library_playlist), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(
+                stringResource(R.string.library_playlist),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                maxLines = 1,
+                softWrap = false
+            )
         }
 
         if (uiState.selectedFiles.size >= 2) {
@@ -244,7 +258,14 @@ private fun SelectionActionBar(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text(stringResource(R.string.library_merge_count, uiState.selectedFiles.size), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                Text(
+                    stringResource(R.string.library_merge_count, uiState.selectedFiles.size),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
         }
     }

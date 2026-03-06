@@ -278,7 +278,13 @@ fun ColorThemeSelector(
 
         Spacer(Modifier.height(12.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             AppTheme.values().forEach { theme ->
                 val isSelected = currentTheme == theme
                 Box(
