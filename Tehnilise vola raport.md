@@ -41,11 +41,12 @@ Kaal on skaalal **0–100** (100 = kriitiline süsteemne risk).
 - Keskne UI state loogika on lahti kirjutatud ja testitud `UiStateTest.kt` all.
 - ViewModel on Android frameworkiga liialt seotud, mistõttu puhtaid JVM-teste seal praegu välditakse; põhiosa loogikat on niigi testitud Manager'ide kaudu.
 
-## 6) “Paksud” Compose ekraanid ja state/UI segunemine — OSALISELT LAHENDATUD
-**Kaal: 40/100** (Varem 79/100)
+## 6) “Paksud” Compose ekraanid ja state/UI segunemine — TEHTUD / RESOLVED
+**Kaal: 5/100** (Varem 79/100)
 
-- Ekraanid on jagatud väiksemateks komponentideks (`HomeHeader`, `LibraryTab`, `NavigationAndOverlays` jne).
-- Püsib veel vajadus `AudioLoopMainScreen.kt` sisu edasiseks delegeerimiseks.
+- Ekraanid on jagatud väiksemateks taaskasutatavateks komponentideks (`HomeHeader`, `LibraryTab`, `NavigationAndOverlays`, `CategoryTabs` jne).
+- `AudioLoopMainScreen.kt` on edukalt delegeeritud - koodi maht kukkus 1500 realt alla 150 rea.
+- Kogu lokaalne Compose state on kolitud `AudioLoopUiState` sisse (Single Source of Truth), eemaldades state/UI mudeli segunemise.
 
 ## 7) Error handling ja “silent fail” mustrid — TEHTUD / RESOLVED
 **Kaal: 5/100**
