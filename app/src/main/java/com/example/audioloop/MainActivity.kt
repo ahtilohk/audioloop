@@ -142,7 +142,15 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             }
 
             val uiState by viewModel.uiState.collectAsState()
-            val windowSizeClass = calculateWindowSizeClass(this)
+            
+            val windowSizeClass = try {
+                calculateWindowSizeClass(this)
+            } catch (e: Exception) {
+                // Fallback for devices where window metrics calculation might fail early
+                androidx.compose.material3.windowsizeclass.WindowSizeClass.calculateFromSize(
+                    androidx.compose.ui.unit.DpSize(400.dp, 800.dp)
+                )
+            }
             
             val darkTheme = when (uiState.themeMode) {
                 ThemeMode.LIGHT -> false

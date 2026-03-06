@@ -39,3 +39,9 @@
 
 # Compose – suppress warnings from internal compiler stubs
 -dontwarn androidx.compose.**
+
+# Splash Screen API
+-keep class androidx.core.splashscreen.** { *; }
+
+# Window Size Class
+-keep class androidx.compose.material3.windowsizeclass.** { *; }
