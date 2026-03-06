@@ -144,7 +144,7 @@ private fun LibraryHeader(
                 style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
             )
             Surface(
-                onClick = { viewModel.clearSelection() },
+                onClick = { viewModel.setSelectionMode(false) },
                 shape = MaterialTheme.shapes.small,
                 color = Red500.copy(alpha = 0.15f),
                 border = BorderStroke(1.dp, Red500.copy(alpha = 0.5f)),
@@ -173,7 +173,8 @@ private fun SelectionActionBar(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         // Play selected
         Button(
@@ -187,23 +188,23 @@ private fun SelectionActionBar(
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            modifier = Modifier.height(36.dp).weight(1.1f)
         ) {
-            Icon(AppIcons.PlayArrow, contentDescription = stringResource(R.string.a11y_play_selected), modifier = Modifier.size(16.dp), tint = Color.White)
+            Icon(AppIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
             Text(
-                stringResource(R.string.library_play_count, uiState.selectedFiles.size),
-                color = Color.White,
+                stringResource(R.string.library_play_count, uiState.selectedFiles.size).uppercase(),
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
                 maxLines = 1,
-                softWrap = false
+                overflow = TextOverflow.Ellipsis
             )
         }
 
         // Save as Playlist
-        Button(
+        FilledTonalButton(
             onClick = {
                 val orderedSelection = uiState.selectedFiles.toList()
                 val relativePaths = orderedSelection.map { name ->
@@ -225,25 +226,23 @@ private fun SelectionActionBar(
                 ))
                 viewModel.clearSelection()
             },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            modifier = Modifier.height(36.dp).weight(1f)
         ) {
-            Icon(AppIcons.QueueMusic, contentDescription = stringResource(R.string.a11y_playlist), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(AppIcons.QueueMusic, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
             Text(
-                stringResource(R.string.library_playlist),
-                color = MaterialTheme.colorScheme.primary,
+                stringResource(R.string.library_playlist).uppercase(),
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
                 maxLines = 1,
-                softWrap = false
+                overflow = TextOverflow.Ellipsis
             )
         }
 
         if (uiState.selectedFiles.size >= 2) {
-            Button(
+            FilledTonalButton(
                 onClick = {
                     val orderedSelection = uiState.selectedFiles.toList()
                     val filesToMerge = orderedSelection.mapNotNull { name ->
@@ -254,17 +253,20 @@ private fun SelectionActionBar(
                         viewModel.clearSelection()
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = themeColors.secondary),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.weight(1f)
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = themeColors.secondary.copy(alpha = 0.15f),
+                    contentColor = themeColors.secondary
+                ),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                modifier = Modifier.height(36.dp).weight(1f)
             ) {
                 Text(
-                    stringResource(R.string.library_merge_count, uiState.selectedFiles.size),
-                    color = Color.White,
+                    stringResource(R.string.library_merge_count, uiState.selectedFiles.size).uppercase(),
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                     maxLines = 1,
-                    softWrap = false
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

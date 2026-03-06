@@ -126,17 +126,17 @@ fun FileItem(
 
     // Modern MD3 card states
     val backgroundColor = when {
-        isDragging -> themeColors.primaryContainer.copy(alpha = 0.6f)
-        isPlaying -> themeColors.primaryContainer.copy(alpha = 0.4f)
-        isSelected -> themeColors.secondaryContainer.copy(alpha = 0.3f)
-        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        isDragging -> themeColors.primary.copy(alpha = 0.12f)
+        isPlaying -> themeColors.primary.copy(alpha = 0.08f)
+        isSelected -> themeColors.secondary.copy(alpha = 0.08f)
+        else -> MaterialTheme.colorScheme.surface
     }
 
     val borderColor = when {
         isDragging -> themeColors.primary
-        isPlaying -> themeColors.primary
-        isSelected -> themeColors.secondary.copy(alpha = 0.8f)
-        else -> MaterialTheme.colorScheme.outline
+        isPlaying -> themeColors.primary.copy(alpha = 0.5f)
+        isSelected -> themeColors.secondary.copy(alpha = 0.5f)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     }
 
     val scale by animateFloatAsState(targetValue = if (isDragging) 1.03f else 1f, label = "scale")
@@ -162,10 +162,10 @@ fun FileItem(
                 }
                 contentDescription = "${item.name}, ${item.durationString}. $status"
             },
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(12.dp),
         color = backgroundColor,
-        border = BorderStroke(1.5.dp, borderColor),
-        shadowElevation = elevation
+        border = BorderStroke(1.dp, borderColor),
+        shadowElevation = if (isDragging) 8.dp else 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -462,8 +462,6 @@ fun FileItem(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .padding(horizontal = 4.dp, vertical = 6.dp)
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
@@ -573,50 +571,50 @@ fun FileItem(
 
                         // Controls row: time + A-B buttons
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = "$currentTimeString / ${item.durationString}",
-                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             )
-
-                            // A-B Loop controls
+                            
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Set A
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (abLoopA >= 0f) themeColors.primary700 else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                        .clickable { abLoopA = if (abLoopA >= 0f) -1f else currentProgress }
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text("A", style = TextStyle(color = if (abLoopA >= 0f) themeColors.primary200 else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold))
-                                }
-                                // Set B
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (abLoopB >= 0f) themeColors.primary700 else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                        .clickable { abLoopB = if (abLoopB >= 0f) -1f else currentProgress }
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text("B", style = TextStyle(color = if (abLoopB >= 0f) themeColors.primary200 else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold))
-                                }
-                                // Clear A-B
-                                if (abActive) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                            .clickable { abLoopA = -1f; abLoopB = -1f }
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                // A/B Buttons
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Surface(
+                                        onClick = { abLoopA = if (abLoopA >= 0f && abLoopB < 0f) -1f else currentProgress },
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = if (abLoopA >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.height(28.dp)
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
+                                        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                                            Text("A", color = if (abLoopA >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Surface(
+                                        onClick = { abLoopB = if (abLoopB >= 0f) -1f else currentProgress },
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = if (abLoopB >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                                            Text("B", color = if (abLoopB >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+
+                                // Reset A-B
+                                if (abActive) {
+                                    IconButton(
+                                        onClick = { abLoopA = -1f; abLoopB = -1f },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear), tint = Red500, modifier = Modifier.size(16.dp))
                                     }
                                 }
                             }
@@ -632,8 +630,7 @@ fun FileItem(
                         .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
-                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f))
                         .padding(12.dp)
                 ) {
                     Column {

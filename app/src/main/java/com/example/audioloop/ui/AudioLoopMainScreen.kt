@@ -89,7 +89,6 @@ fun AudioLoopMainScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
             ) {
             // Header
             HomeHeader(
@@ -112,7 +111,7 @@ fun AudioLoopMainScreen(
                 )
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(horizontal = 20.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = 0.5.dp)
 
 
             // Main Content Area (NavHost)
