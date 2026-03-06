@@ -51,6 +51,7 @@ import kotlin.math.roundToInt
 fun LibraryTab(
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
+    isWide: Boolean = false,
     onImportClick: () -> Unit
 ) {
     val recordingItems = viewModel.getFilteredItems()

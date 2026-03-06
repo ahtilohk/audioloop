@@ -93,15 +93,13 @@ Allolev koond on süntees kolmest mudelivastusest, lähtudes algsest promptist: 
 
 ---
 
-### 10) Tablet/landscape/adaptive tugi on piiratud — **Kaal: 6/10**
-**Probleem:** Suuremad ekraanid ja horisontaalne kasutus ei ole esmaklassiliselt läbi mõeldud.
+### 10) Tablet/landscape/adaptive tugi — TEHTUD / RESOLVED
+**Kaal: 1/10** (Varem 6/10)
 
-**Mõju massidele:** Kasutuskogemus on ebaühtlane eri seadmetel.
-
-**Soovitus:**
-- Window size class põhine paigutus
-- Landscape-optimeeritud player/trimmer
-- Foldable/Chromebook põhipolüügonid
+- Juurutatud `WindowSizeClass` tugi läbi `androidx.compose.material3:material3-windowsizeclass` teegi.
+- Lisatud `AppNavigationRail`, mis asendab alumise navigatsiooniriba laiadel ekraanidel (Medium/Expanded), pakkudes ergonoomilisemat navigeerimist tahvlitel ja landscape-režiimis.
+- Kohandatud `CoachTab` paigutus: laiadel ekraanidel kuvatakse edusammud ja info-sektsioon kõrvuti (Row), parandades ruumikasutust.
+- Tab-ide arhitektuur on nüüd `isWide` lipu abil valmis edasisteks adaptiivseteks täiendusteks.
 
 ---
 

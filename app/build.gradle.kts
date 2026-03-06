@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     // implementation("androidx.compose.material:material-icons-extended") - Removed to save memory
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.windowsize)
     implementation(libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     testImplementation(libs.junit)

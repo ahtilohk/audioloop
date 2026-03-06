@@ -51,6 +51,38 @@ fun AppNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
+fun AppNavigationRail(currentTab: String, onTabSelected: (String) -> Unit) {
+    NavigationRail(
+        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.98f),
+        header = {
+            Spacer(Modifier.height(12.dp))
+        },
+    ) {
+        val tabs = listOf(
+            Triple("library", stringResource(R.string.nav_library), AppIcons.QueueMusic),
+            Triple("record", stringResource(R.string.nav_record), AppIcons.Mic),
+            Triple("coach", stringResource(R.string.nav_coach), AppIcons.School),
+            Triple("settings", stringResource(R.string.nav_settings), AppIcons.Settings)
+        )
+        tabs.forEach { (route, label, icon) ->
+            NavigationRailItem(
+                icon = { Icon(icon, contentDescription = label) },
+                label = { Text(label, fontWeight = FontWeight.SemiBold, fontSize = 10.sp) },
+                selected = currentTab == route,
+                onClick = { onTabSelected(route) },
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun MainOverlays(
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,

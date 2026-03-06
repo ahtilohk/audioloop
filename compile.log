@@ -17,22 +17,68 @@
 > Task :app:processDebugManifestForPackage UP-TO-DATE
 > Task :app:processDebugResources UP-TO-DATE
 > Task :app:kspDebugKotlin UP-TO-DATE
-
-> Task :app:compileDebugKotlin FAILED
 ./gradlew : e: file:///C:/Users/kasutaja/Documents/Ahti/Android
 Projects/audioloop/app/src/main/java/com/example/audioloop/ui/c
-omponents/LibraryTab.kt:157:118 Unresolved reference 'Red400'.
+omponents/NavigationAndOverlays.kt:58:13 @Composable invocation
+s can only happen from the context of a @Composable function
 At line:1 char:1
 + ./gradlew compileDebugKotlin 2>&1 | Out-File -Encoding ascii 
 compile. ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (e: file:///C:/U.. 
-   .rence 'Red400'.:String) [], RemoteException
+   .osable function:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
-ioloop/app/src/main/java/com/example/audioloop/ui/components/Li
-braryTab.kt:158:89 Unresolved reference 'Red400'.
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:60:9 No parameter with name 'tonalElevat
+ion' found.
+
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:63:31 @Composable invocations can only h
+appen from the context of a @Composable function
+> Task :app:compileDebugKotlin FAILED
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:64:30 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:65:29 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:66:32 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:69:13 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:74:53 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:75:55 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:76:55 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:77:52 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:78:57 @Composable invocations can only h
+appen from the context of a @Composable function
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/aud
+ioloop/app/src/main/java/com/example/audioloop/ui/components/Na
+vigationAndOverlays.kt:79:57 @Composable invocations can only h
+appen from the context of a @Composable function
 
 FAILURE: Build failed with an exception.
 
@@ -49,5 +95,5 @@ orkAction
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 2s
+BUILD FAILED in 4s
 17 actionable tasks: 1 executed, 16 up-to-date

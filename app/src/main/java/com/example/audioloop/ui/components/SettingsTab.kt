@@ -27,7 +27,8 @@ import com.example.audioloop.ThemeMode
 @Composable
 fun SettingsTab(
     uiState: AudioLoopUiState,
-    viewModel: AudioLoopViewModel
+    viewModel: AudioLoopViewModel,
+    isWide: Boolean = false
 ) {
     val themeColors = uiState.currentTheme.palette
     val scrollState = rememberScrollState()

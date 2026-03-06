@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.audioloop.*
 import androidx.navigation.NavHostController
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.navigation.compose.*
 import com.example.audioloop.ui.navigation.Screen
 import com.example.audioloop.ui.components.*
@@ -23,6 +25,7 @@ fun AudioLoopMainScreen(
     context: Context,
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
+    windowSizeClass: WindowSizeClass,
     onStartRecord: (String, Boolean) -> Boolean,
     onStopRecord: () -> Unit,
     onBackupSignIn: () -> Unit
@@ -48,12 +51,15 @@ fun AudioLoopMainScreen(
         else -> "library"
     }
 
+    val isCompact = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+    val showNav = !uiState.isSelectionMode && !uiState.showCategorySheet && !uiState.showPlaylistSheet && !uiState.showBackupSheet && !uiState.showTrimDialog && uiState.editingPlaylist == null && !uiState.showPlaylistView
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (!uiState.isSelectionMode && !uiState.showCategorySheet && !uiState.showPlaylistSheet && !uiState.showBackupSheet && !uiState.showTrimDialog && uiState.editingPlaylist == null && !uiState.showPlaylistView) {
+            if (isCompact && showNav) {
                 AppNavigationBar(currentTab, onTabSelected = { tab ->
                     navController.navigate(tab) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
@@ -64,13 +70,27 @@ fun AudioLoopMainScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                 .padding(innerPadding)
         ) {
+            if (!isCompact && showNav) {
+                AppNavigationRail(currentTab, onTabSelected = { tab ->
+                    navController.navigate(tab) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                })
+            }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+            ) {
             // Header
             HomeHeader(
                 uiState = uiState,
@@ -99,16 +119,16 @@ fun AudioLoopMainScreen(
             Box(modifier = Modifier.weight(1f)) {
                 NavHost(navController = navController, startDestination = Screen.Library.route) {
                     composable(Screen.Library.route) {
-                        LibraryTab(uiState, viewModel, onImportClick = { filePickerLauncher.launch("audio/*") })
+                        LibraryTab(uiState, viewModel, isWide = !isCompact, onImportClick = { filePickerLauncher.launch("audio/*") })
                     }
                     composable(Screen.Record.route) {
-                        RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
+                        RecordTab(uiState, isWide = !isCompact, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)
                     }
                     composable(Screen.Coach.route) {
-                        CoachTab(uiState, viewModel)
+                        CoachTab(uiState, viewModel, isWide = !isCompact)
                     }
                     composable(Screen.Settings.route) {
-                        SettingsTab(uiState, viewModel)
+                        SettingsTab(uiState, viewModel, isWide = !isCompact)
                     }
                 }
 
@@ -131,6 +151,7 @@ fun AudioLoopMainScreen(
                 }
             }
         }
+    }
 
         // Overlay Sheets & Dialogs
         MainOverlays(uiState, viewModel, themeColors, onBackupSignIn)

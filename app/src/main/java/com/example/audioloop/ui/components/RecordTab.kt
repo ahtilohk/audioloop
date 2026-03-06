@@ -36,6 +36,7 @@ import kotlinx.coroutines.isActive
 @Composable
 fun RecordTab(
     uiState: AudioLoopUiState,
+    isWide: Boolean = false,
     onStartRecord: (String, Boolean) -> Unit,
     onStopRecord: () -> Unit
 ) {

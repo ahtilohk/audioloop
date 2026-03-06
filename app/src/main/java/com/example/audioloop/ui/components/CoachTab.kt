@@ -22,7 +22,8 @@ import com.example.audioloop.ui.PracticeProgressCard
 @Composable
 fun CoachTab(
     uiState: AudioLoopUiState,
-    viewModel: AudioLoopViewModel
+    viewModel: AudioLoopViewModel,
+    isWide: Boolean = false
 ) {
     val themeColors = uiState.currentTheme.palette
     val scrollState = rememberScrollState()
@@ -44,65 +45,94 @@ fun CoachTab(
             modifier = Modifier.align(Alignment.Start)
         )
 
-        if (uiState.practiceRecommendation.title.isNotEmpty()) {
-            PracticeProgressCard(
-                weeklyMinutes = uiState.practiceWeeklyMinutes,
-                weeklyGoal = uiState.practiceWeeklyGoal,
-                streak = uiState.practiceStreak,
-                todayMinutes = uiState.practiceTodayMinutes,
-                weeklySessions = uiState.practiceWeeklySessions,
-                weeklyEdits = uiState.practiceWeeklyEdits,
-                recommendation = uiState.practiceRecommendation,
-                goalProgress = uiState.practiceGoalProgress,
-                themeColors = themeColors,
-                onStartRecommended = { viewModel.startRecommendedSession(it) },
-                onViewDetails = { viewModel.setShowPracticeStats(true) },
-                isExpanded = true, // Keep it expanded in its own tab
-                onToggleExpanded = { viewModel.toggleSmartCoach() },
-                isPlaying = uiState.playingFileName.isNotEmpty(),
-                currentSessionElapsedMs = uiState.currentSessionElapsedMs,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // About Smart Coach Section
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        if (isWide) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Icon(
-                    imageVector = AppIcons.School,
-                    contentDescription = null,
-                    tint = themeColors.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-                Text(
-                    text = stringResource(R.string.coach_title),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = stringResource(R.string.coach_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-                
-                Spacer(Modifier.height(8.dp))
-                
-                Button(
-                    onClick = { viewModel.setShowPracticeStats(true) },
-                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(stringResource(R.string.coach_open_stats), color = Color.White, fontWeight = FontWeight.Bold)
+                Box(modifier = Modifier.weight(1f)) {
+                    CoachContent(uiState, viewModel, themeColors)
                 }
+                Box(modifier = Modifier.weight(1f)) {
+                    CoachAboutSection(themeColors, viewModel)
+                }
+            }
+        } else {
+            CoachContent(uiState, viewModel, themeColors)
+            CoachAboutSection(themeColors, viewModel)
+        }
+    }
+}
+
+@Composable
+private fun CoachContent(
+    uiState: AudioLoopUiState,
+    viewModel: AudioLoopViewModel,
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette
+) {
+    if (uiState.practiceRecommendation.title.isNotEmpty()) {
+        PracticeProgressCard(
+            weeklyMinutes = uiState.practiceWeeklyMinutes,
+            weeklyGoal = uiState.practiceWeeklyGoal,
+            streak = uiState.practiceStreak,
+            todayMinutes = uiState.practiceTodayMinutes,
+            weeklySessions = uiState.practiceWeeklySessions,
+            weeklyEdits = uiState.practiceWeeklyEdits,
+            recommendation = uiState.practiceRecommendation,
+            goalProgress = uiState.practiceGoalProgress,
+            themeColors = themeColors,
+            onStartRecommended = { viewModel.startRecommendedSession(it) },
+            onViewDetails = { viewModel.setShowPracticeStats(true) },
+            isExpanded = true,
+            onToggleExpanded = { viewModel.toggleSmartCoach() },
+            isPlaying = uiState.playingFileName.isNotEmpty(),
+            currentSessionElapsedMs = uiState.currentSessionElapsedMs,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun CoachAboutSection(
+    themeColors: com.example.audioloop.ui.theme.AppColorPalette,
+    viewModel: AudioLoopViewModel
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = AppIcons.School,
+                contentDescription = null,
+                tint = themeColors.primary,
+                modifier = Modifier.size(48.dp)
+            )
+            Text(
+                text = stringResource(R.string.coach_title),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = stringResource(R.string.coach_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(Modifier.height(8.dp))
+            
+            Button(
+                onClick = { viewModel.setShowPracticeStats(true) },
+                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(stringResource(R.string.coach_open_stats), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }

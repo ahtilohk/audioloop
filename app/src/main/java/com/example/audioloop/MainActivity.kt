@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.audioloop.ui.theme.AudioLoopTheme
 import com.example.audioloop.R
@@ -120,6 +122,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         vm?.setBackupRunning(false)
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -139,6 +142,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             }
 
             val uiState by viewModel.uiState.collectAsState()
+            val windowSizeClass = calculateWindowSizeClass(this)
+            
             val darkTheme = when (uiState.themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
@@ -229,10 +234,11 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 ) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
                         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                                                        com.example.audioloop.ui.AudioLoopMainScreen(
+                                com.example.audioloop.ui.AudioLoopMainScreen(
                                 context = context,
                                 uiState = uiState,
                                 viewModel = viewModel,
+                                windowSizeClass = windowSizeClass,
                                 onStartRecord = { name, useRaw ->
                                     if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                                         if (useRaw && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
