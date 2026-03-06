@@ -206,7 +206,7 @@ private fun SmartCoachDialog(
                     )
                     Text(
                         "${(goalProgress * 100).toInt()}%",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -217,7 +217,7 @@ private fun SmartCoachDialog(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -267,7 +267,7 @@ private fun SmartCoachDialog(
             ) {
                 Text(
                     recommendation.title,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )

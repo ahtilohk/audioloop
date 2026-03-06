@@ -305,7 +305,7 @@ private fun NormalHeader(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.height(32.dp)
         ) {
-            Text(stringResource(R.string.library_add), fontSize = 12.sp, color = Color.White)
+            Text(stringResource(R.string.library_add), fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimary)
         }
         Surface(
             onClick = {
@@ -446,7 +446,7 @@ private fun PlaylistPlayingBanner(
                 )
                 Text(
                     activePlaylist.name,
-                    style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                    style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -455,7 +455,7 @@ private fun PlaylistPlayingBanner(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         formatSessionTime(uiState.currentSessionElapsedMs),
-                        style = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     )
                     val totalTodayMs = (uiState.practiceTodayMinutes * 60_000L).toLong() + uiState.currentSessionElapsedMs
                     Text(

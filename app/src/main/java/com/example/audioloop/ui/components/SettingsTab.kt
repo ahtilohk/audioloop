@@ -95,6 +95,28 @@ fun SettingsTab(
                 onThemeChange = { viewModel.changeTheme(it) },
                 themeColors = themeColors
             )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Smart Coach Toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(AppIcons.School, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.nav_coach), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                }
+                Switch(
+                    checked = uiState.isSmartCoachEnabled,
+                    onCheckedChange = { viewModel.toggleSmartCoachEnabled() },
+                    colors = SwitchDefaults.colors(checkedThumbColor = themeColors.primary)
+                )
+            }
         }
 
         // 3. Storage & Backup
@@ -311,7 +333,7 @@ fun ColorThemeSelector(
                 }
             }
             // Add spacer at end to prevent the last item from being flush against the edge
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(32.dp))
         }
     }
 }

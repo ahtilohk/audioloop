@@ -53,6 +53,7 @@ data class AudioLoopUiState(
     val practiceRecommendation: CoachEngine.Recommendation = CoachEngine.Recommendation("", "", "", 0),
     val showPracticeStats: Boolean = false,
     val isSmartCoachExpanded: Boolean = false,
+    val isSmartCoachEnabled: Boolean = true,
     val currentSessionElapsedMs: Long = 0L,
 
     // Playlists

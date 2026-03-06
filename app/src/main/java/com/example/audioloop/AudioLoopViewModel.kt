@@ -159,6 +159,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         val mode = getThemeModePref(ctx)
         val lang = getLanguagePref(ctx)
         val isCoachExpanded = getSmartCoachExpandedPref(ctx)
+        val isCoachEnabled = getSmartCoachEnabledPref(ctx)
 
         // Init backup
         var signedIn = false
@@ -174,6 +175,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 themeMode = mode,
                 appLanguage = lang,
                 isSmartCoachExpanded = isCoachExpanded,
+                isSmartCoachEnabled = isCoachEnabled,
                 playlists = playlistManager.loadAll(),
                 isBackupSignedIn = signedIn,
                 backupEmail = email
@@ -574,7 +576,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             pitchProvider = { _uiState.value.playbackPitch },
             shadowingProvider = { _uiState.value.isShadowingMode },
             onNext = { name -> _uiState.update { it.copy(playingFileName = name, isPaused = false) } },
-            onComplete = { _uiState.update { it.copy(playingFileName = "", isPaused = false) } }
+            onComplete = { /* stopPlaying() already handles state reset */ }
         )
     }
 
@@ -591,9 +593,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             shadowingProvider = { _uiState.value.isShadowingMode },
             onNext = { name -> _uiState.update { it.copy(playingFileName = name, isPaused = false) } },
             onComplete = {
-                _uiState.update { it.copy(playingFileName = "", isPaused = false) }
-                onComplete()
-            }
+            onComplete()
+        }
         )
     }
 
@@ -782,10 +783,9 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                     playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, next, gapSeconds, onComplete)
                 }
                 else -> {
-                    stopPlaying()
-                    _uiState.update { it.copy(playingFileName = "") }
-                    onComplete()
-                }
+                stopPlaying()
+                onComplete()
+            }
             }
             return
         }
@@ -1276,6 +1276,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         saveSmartCoachExpandedPref(ctx, expanded)
     }
 
+    fun toggleSmartCoachEnabled() {
+        val enabled = !_uiState.value.isSmartCoachEnabled
+        _uiState.update { it.copy(isSmartCoachEnabled = enabled) }
+        saveSmartCoachEnabledPref(ctx, enabled)
+    }
+
     fun setShowPracticeStats(show: Boolean) {
         _uiState.update { it.copy(showPracticeStats = show) }
     }
@@ -1447,6 +1453,21 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     private fun saveSmartCoachExpandedPref(context: Context, expanded: Boolean) {
         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("smart_coach_expanded", expanded).apply()
+    }
+
+    private fun getSmartCoachExpandedPref(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("smart_coach_expanded", false)
+    }
+
+    private fun saveSmartCoachEnabledPref(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("smart_coach_enabled", enabled).apply()
+    }
+
+    private fun getSmartCoachEnabledPref(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("smart_coach_enabled", true)
     }
 
     private fun getSmartCoachExpandedPref(context: Context): Boolean {

@@ -70,7 +70,7 @@ private fun CoachContent(
     viewModel: AudioLoopViewModel,
     themeColors: com.example.audioloop.ui.theme.AppColorPalette
 ) {
-    if (uiState.practiceRecommendation.title.isNotEmpty()) {
+    if (uiState.isSmartCoachEnabled && uiState.practiceRecommendation.title.isNotEmpty()) {
         PracticeProgressCard(
             weeklyMinutes = uiState.practiceWeeklyMinutes,
             weeklyGoal = uiState.practiceWeeklyGoal,
@@ -83,7 +83,7 @@ private fun CoachContent(
             themeColors = themeColors,
             onStartRecommended = { viewModel.startRecommendedSession(it) },
             onViewDetails = { viewModel.setShowPracticeStats(true) },
-            isExpanded = true,
+            isExpanded = uiState.isSmartCoachExpanded,
             onToggleExpanded = { viewModel.toggleSmartCoach() },
             isPlaying = uiState.playingFileName.isNotEmpty(),
             currentSessionElapsedMs = uiState.currentSessionElapsedMs,

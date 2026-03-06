@@ -50,7 +50,7 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.dialog_rename), style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                Text(stringResource(R.string.dialog_rename), style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 OutlinedTextField(
@@ -60,7 +60,7 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                     singleLine = true,
                     modifier = Modifier.focusRequester(focusRequester),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -94,7 +94,7 @@ fun MoveFileDialog(categories: List<String>, onDismiss: () -> Unit, onSelect: (S
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp).heightIn(max = 400.dp)) {
-                Text(stringResource(R.string.dialog_select_category), style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 12.dp))
+                Text(stringResource(R.string.dialog_select_category), style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 12.dp))
                 LazyColumn {
                     items(categories) { cat ->
                         Text(
@@ -140,7 +140,7 @@ fun NoteEditDialog(
             ) {
                 Text(
                     if (hasNote) stringResource(R.string.dialog_edit_note) else stringResource(R.string.dialog_add_note),
-                    style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -158,7 +158,7 @@ fun NoteEditDialog(
                     maxLines = 12,
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -201,7 +201,7 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        titleContentColor = Color.White,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
         title = { Text(title) },
         text = { Text(text) },
@@ -246,7 +246,7 @@ fun FileInfoDialog(
             ) {
                 Text(
                     stringResource(R.string.dialog_file_info),
-                    style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
