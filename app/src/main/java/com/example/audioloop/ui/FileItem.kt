@@ -1,4 +1,4 @@
-﻿package com.example.audioloop.ui
+package com.example.audioloop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import kotlinx.coroutines.*
@@ -493,7 +493,9 @@ fun FileItem(
                         val barCount = bars.size
                         
                         val primaryColor = MaterialTheme.colorScheme.primary
-                        val outlineVariantColor = MaterialTheme.colorScheme.outlineVariant
+                        val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+                        val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        val markerWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
 
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
@@ -545,7 +547,7 @@ fun FileItem(
                             }
 
                             // 2. Draw Background Waveform
-                            drawWaveform(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f))
+                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.25f))
 
                             // 3. Draw Active Waveform (Clipped)
                             clipRect(right = currentProgress * w) {
@@ -555,16 +557,16 @@ fun FileItem(
                             // 4. Draw markers
                             if (abLoopA >= 0f) {
                                 val ax = abLoopA * w
-                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = 2.dp.toPx())
+                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = markerWidthPx)
                             }
                             if (abLoopB >= 0f) {
                                 val bx = abLoopB * w
-                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = 2.dp.toPx())
+                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = markerWidthPx)
                             }
 
                             // 5. Playhead
                             val px = currentProgress * w
-                            drawLine(MaterialTheme.colorScheme.onSurface, Offset(px, 0f), Offset(px, h), strokeWidth = 2.dp.toPx())
+                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
