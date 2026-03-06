@@ -1470,11 +1470,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         return prefs.getBoolean("smart_coach_enabled", true)
     }
 
-    private fun getSmartCoachExpandedPref(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("smart_coach_expanded", false)
-    }
-
     fun isFirstLaunch(): Boolean {
         val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("is_first_launch", true)
