@@ -93,8 +93,17 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     private val mediaPlayer: MediaPlayer? get() = audioService?.getMediaPlayer()
     private val recordingReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
-                syncDatabase()
+            when (intent?.action) {
+                AudioService.ACTION_RECORDING_SAVED -> {
+                    setRecording(false)
+                    syncDatabase()
+                }
+                AudioService.ACTION_START_RECORDING_EVENT -> {
+                    setRecording(true)
+                }
+                AudioService.ACTION_AMPLITUDE_UPDATE -> {
+                    // Amplitude update received
+                }
             }
         }
     }
@@ -194,8 +203,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
 
-        // Register receiver for recording completion
-        val filter = android.content.IntentFilter(AudioService.ACTION_RECORDING_SAVED)
+        // Register receiver for recording completion and state sync
+        val filter = android.content.IntentFilter().apply {
+            addAction(AudioService.ACTION_RECORDING_SAVED)
+            addAction(AudioService.ACTION_START_RECORDING_EVENT)
+            addAction(AudioService.ACTION_AMPLITUDE_UPDATE)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ctx.registerReceiver(recordingReceiver, filter, Context.RECEIVER_EXPORTED)
         } else {

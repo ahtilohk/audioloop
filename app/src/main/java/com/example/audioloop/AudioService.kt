@@ -38,6 +38,7 @@ class AudioService : Service() {
         const val ACTION_STOP_RECORDING = "ACTION_STOP_RECORDING"
         
         const val ACTION_RECORDING_SAVED = "com.example.audioloop.RECORDING_SAVED"
+        const val ACTION_START_RECORDING_EVENT = "com.example.audioloop.START_RECORDING"
         const val ACTION_AMPLITUDE_UPDATE = "com.example.audioloop.AMPLITUDE_UPDATE"
 
         const val EXTRA_FILENAME = "EXTRA_FILENAME"
@@ -216,6 +217,7 @@ class AudioService : Service() {
                 start()
             }
             isRecording = true
+            sendBroadcast(Intent(ACTION_START_RECORDING_EVENT).apply { setPackage(packageName) })
             isInternalRecording = false
             recordingStartTime = System.currentTimeMillis()
             startAmplitudeTicker()
@@ -290,6 +292,7 @@ class AudioService : Service() {
             encoder.start()
             isEncoderStarted = true
             isRecording = true
+            sendBroadcast(Intent(ACTION_START_RECORDING_EVENT).apply { setPackage(packageName) })
             isInternalRecording = true
             recordingStartTime = System.currentTimeMillis()
             startEncodingLoop(record, encoder, bufferSize)
