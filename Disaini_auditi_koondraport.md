@@ -106,7 +106,7 @@ Allolev koond on süntees kolmest mudelivastusest, lähtudes algsest promptist: 
 ---
 
 ### 11) Disainisüsteemi järjepidevus (spacing/radius/tokens) — TEHTUD / RESOLVED
-**Kaal: 5/10**
+**Kaal: 1/10** (Varem 5/10)
 
 - Lisatud keskne `Dimens.kt` koos `LocalSpacing` ja `LocalRadius` composition local'itega.
 - Uued püsiväärtused järgivad süstemaatiliselt 4dp gridi (`extraSmall`=4dp, `small`=8dp, `medium`=16dp jne).
