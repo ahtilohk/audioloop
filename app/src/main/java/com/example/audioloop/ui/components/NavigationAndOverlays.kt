@@ -251,7 +251,7 @@ fun MainOverlays(
         )
     }
 
-    if (uiState.showTrimDialog && uiState.itemToModify != null) {
+    if (uiState.showTrimDialog && uiState.recordingToTrim != null) {
         TrimAudioScreen(
             file = uiState.recordingToTrim!!.file,
             uri = uiState.recordingToTrim!!.uri,
