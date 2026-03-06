@@ -90,4 +90,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation(libs.okhttp)
     implementation(libs.navigation.compose)
+    implementation(libs.androidx.core.splashscreen)
 }

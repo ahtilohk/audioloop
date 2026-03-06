@@ -2,4 +2,13 @@
 <resources>
 
     <style name="Theme.AudioLoop" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background -->
+        <item name="windowSplashScreenBackground">#09090b</item>
+        <!-- Use an animated icon or a simple drawable -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+        <!-- Post splash screen theme -->
+        <item name="postSplashScreenTheme">@style/Theme.AudioLoop</item>
+    </style>
 </resources>

@@ -115,14 +115,11 @@ Allolev koond on süntees kolmest mudelivastusest, lähtudes algsest promptist: 
 
 ---
 
-### 12) Splash ja esmamulje viimistlus — **Kaal: 4/10**
-**Probleem:** Käivitusmoment ei toeta piisavalt brändi ega sujuvat üleminekut.
+### 12) Splash ja esmamulje viimistlus — TEHTUD / RESOLVED
+**Kaal: 1/10** (Varem 4/10)
 
-**Mõju massidele:** Väiksem, kuid tuntav mõju kvaliteeditajule.
-
-**Soovitus:**
-- Native splash (Android 12+)
-- Kooskõlaline brändivisuaal
+- Integreeritud `androidx.core:core-splashscreen` teek, mis tagab korrektse ja sujuva natively toetatud (Android 12+) Splash Screeni käivitusmomendi.
+- Rakendatud `Theme.App.Starting`, mis seob kokku rakenduse logo, musta tausta ning seejärel sujuva ülemineku põhiteemale `Theme.AudioLoop`.
 
 ## Ühtne TOP-5 tegevuskava (kõrgeim ROI)
 1. **Lihtsusta IA + Bottom Navigation** (lahendab “kokpiti” probleemi)
