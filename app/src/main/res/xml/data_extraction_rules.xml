@@ -5,15 +5,20 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Include settings, database, and category ordering -->
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="."/>
+        <include domain="file" path="category_order.json"/>
+        
+        <!-- Exclude large audio/binary files from cloud (limited to 25MB) -->
+        <exclude domain="file" path="."/>
+        <exclude domain="root" path="."/>
     </cloud-backup>
-    <!--
+    
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- During direct phone-to-phone transfer, we can include everything including audio -->
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="."/>
+        <include domain="file" path="."/>
     </device-transfer>
-    -->
 </data-extraction-rules>

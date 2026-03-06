@@ -87,22 +87,22 @@ class DriveBackupManager(private val context: Context) {
         try {
             val token = getAccessToken()
 
-            onProgress("Creating backup...")
+            onProgress(context.getString(R.string.msg_backup_creating))
             val zipFile = createBackupZip(onProgress)
 
             val dateStr = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(Date())
             val fileName = "audioloop_backup_$dateStr.zip"
 
-            onProgress("Uploading to Google Drive...")
+            onProgress(context.getString(R.string.msg_backup_uploading))
             NetworkHelper.executeWithRetry {
                 uploadToDrive(token, zipFile, fileName) { current, total ->
                     val percent = if (total > 0) (current * 100 / total).toInt() else 0
-                    onProgress("Uploading: $percent%")
+                    onProgress(context.getString(R.string.msg_backup_uploading_perc, percent))
                 }
             }
             zipFile.delete()
 
-            onProgress("Backup complete!")
+            onProgress(context.getString(R.string.msg_backup_complete))
             Result.success(fileName)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -307,41 +307,87 @@ class DriveBackupManager(private val context: Context) {
             Result.success(Unit)
         } catch (e: Exception) {
             e.printStackTrace()
+            // Cleanup on failure
+            try { File(context.cacheDir, "restore_temp.zip").delete() } catch(_: Exception) {}
             Result.failure(e)
         }
+    }
+
+    private fun copyWithLimit(input: InputStream, output: OutputStream, limit: Long): Long {
+        var total = 0L
+        val buffer = ByteArray(8192)
+        var read: Int
+        while (input.read(buffer).also { read = it } != -1) {
+            total += read
+            if (total > limit) throw IOException("Restore size limit exceeded (Zip Bomb protection)")
+            output.write(buffer, 0, read)
+        }
+        return total
     }
 
     private fun restoreFromZip(zipFile: File, onProgress: (String) -> Unit) {
         val filesDir = context.filesDir
         var fileCount = 0
+        var totalBytesRead = 0L
+        val MAX_TOTAL_SIZE = 1000 * 1024 * 1024L // 1GB total safety limit
+        val MAX_ENTRIES = 2000 // 2000 items safety limit
 
         ZipInputStream(FileInputStream(zipFile)).use { zis ->
             var entry: ZipEntry? = zis.nextEntry
+            var entryCount = 0
             while (entry != null) {
+                entryCount++
+                if (entryCount > MAX_ENTRIES) throw IOException("Backup has too many entries")
+
                 val name = entry.name
+                
+                // 1. Security Check: Zip Slip protection
+                // We ensure the target file path is within our app's internal files directory
+                val targetFile = when {
+                    name.startsWith("audio/") -> File(filesDir, name.removePrefix("audio/"))
+                    name.startsWith("notes/") -> File(File(filesDir, ".notes"), name.removePrefix("notes/"))
+                    name == "category_order.json" -> File(filesDir, "category_order.json")
+                    name == "settings.json" -> null // Handled separately
+                    else -> null
+                }
+
+                if (targetFile != null) {
+                    if (!targetFile.canonicalPath.startsWith(filesDir.canonicalPath)) {
+                        throw IOException("Security error: Illegal entry path in backup ($name)")
+                    }
+                }
 
                 when {
                     name.startsWith("audio/") -> {
-                        val relativePath = name.removePrefix("audio/")
-                        val targetFile = File(filesDir, relativePath)
-                        targetFile.parentFile?.mkdirs()
-                        onProgress("Restoring: $relativePath")
-                        FileOutputStream(targetFile).use { fos -> zis.copyTo(fos) }
+                        val outFile = targetFile!!
+                        outFile.parentFile?.mkdirs()
+                        onProgress("Restoring: ${outFile.name}")
+                        FileOutputStream(outFile).use { fos -> 
+                            totalBytesRead += copyWithLimit(zis, fos, MAX_TOTAL_SIZE - totalBytesRead)
+                        }
                         if (name.endsWith(".m4a") || name.endsWith(".mp3") || name.endsWith(".wav")) {
                            fileCount++
                         }
                     }
                     name.startsWith("notes/") -> {
-                        val noteName = name.removePrefix("notes/")
-                        val notesDir = File(filesDir, ".notes")
-                        notesDir.mkdirs()
-                        FileOutputStream(File(notesDir, noteName)).use { fos -> zis.copyTo(fos) }
+                        val outFile = targetFile!!
+                        outFile.parentFile?.mkdirs()
+                        FileOutputStream(outFile).use { fos -> 
+                            totalBytesRead += copyWithLimit(zis, fos, MAX_TOTAL_SIZE - totalBytesRead)
+                        }
                     }
                     name == "category_order.json" -> {
-                        FileOutputStream(File(filesDir, "category_order.json")).use { fos -> zis.copyTo(fos) }
+                        FileOutputStream(targetFile!!).use { fos -> 
+                            totalBytesRead += copyWithLimit(zis, fos, MAX_TOTAL_SIZE - totalBytesRead)
+                        }
                     }
                     name == "settings.json" -> {
-                        val content = zis.bufferedReader().readText()
+                        // Limit reading of settings JSON for safety
+                        val MAX_SETTINGS_SIZE = 1 * 1024 * 1024 // 1MB for settings
+                        val baout = ByteArrayOutputStream()
+                        totalBytesRead += copyWithLimit(zis, baout, Math.min(MAX_SETTINGS_SIZE.toLong(), MAX_TOTAL_SIZE - totalBytesRead))
+                        
+                        val content = baout.toString()
                         val json = JSONObject(content)
                         val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
                         prefs.edit().apply {

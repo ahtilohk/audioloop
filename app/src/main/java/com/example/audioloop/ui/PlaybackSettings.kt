@@ -105,7 +105,7 @@ fun PlaybackSettingsCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = AppIcons.Speed,
-                                    contentDescription = "Speed",
+                                    contentDescription = stringResource(R.string.settings_speed),
                                     tint = themeColors.primary,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -123,7 +123,7 @@ fun PlaybackSettingsCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = AppIcons.Loop,
-                                    contentDescription = "Loop Count",
+                                    contentDescription = stringResource(R.string.settings_repeats),
                                     tint = themeColors.primary,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -141,7 +141,7 @@ fun PlaybackSettingsCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = AppIcons.Shadow,
-                                    contentDescription = "Shadowing",
+                                    contentDescription = stringResource(R.string.settings_listen_repeat),
                                     tint = themeColors.primary,
                                     modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
                                 )
@@ -159,7 +159,7 @@ fun PlaybackSettingsCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = AppIcons.Sleep,
-                                    contentDescription = "Sleep Timer",
+                                    contentDescription = stringResource(R.string.settings_sleep_timer),
                                     tint = themeColors.primary,
                                     modifier = Modifier.size(16.dp)
                                 )

@@ -1,5 +1,6 @@
 package com.example.audioloop
 
+import com.android.billingclient.api.ProductDetails
 import com.example.audioloop.ui.theme.AppTheme
 import java.io.File
 
@@ -98,7 +99,16 @@ data class AudioLoopUiState(
     val recordingToNote: RecordingItem? = null,
     val recordingToInfo: RecordingItem? = null,
     val editingPlaylist: Playlist? = null,
-    val viewingPlaylistId: String? = null
+    val viewingPlaylistId: String? = null,
+    
+    // --- Billing / Pro ---
+    val isProUser: Boolean = false,
+    val billingProducts: List<ProductDetails> = emptyList(),
+    val showUpgradeSheet: Boolean = false,
+    
+    // --- Onboarding ---
+    val showOnboarding: Boolean = false,
+    val onboardingStep: Int = 1
 )
 
 /**

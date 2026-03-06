@@ -80,6 +80,30 @@ fun LibraryTab(
         // Selection/Header Row
         LibraryHeader(uiState, viewModel, recordingItems, onImportClick)
 
+        // Smart Coach (Progress & Recommendations)
+        if (uiState.isSmartCoachEnabled && uiState.practiceRecommendation.title.isNotEmpty()) {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                PracticeProgressCard(
+                    weeklyMinutes = uiState.practiceWeeklyMinutes,
+                    weeklyGoal = uiState.practiceWeeklyGoal,
+                    streak = uiState.practiceStreak,
+                    todayMinutes = uiState.practiceTodayMinutes,
+                    weeklySessions = uiState.practiceWeeklySessions,
+                    weeklyEdits = uiState.practiceWeeklyEdits,
+                    recommendation = uiState.practiceRecommendation,
+                    goalProgress = uiState.practiceGoalProgress,
+                    themeColors = themeColors,
+                    onStartRecommended = { viewModel.startRecommendedSession(it) },
+                    onViewDetails = { viewModel.setShowPracticeStats(true) },
+                    isExpanded = uiState.isSmartCoachExpanded,
+                    onToggleExpanded = { viewModel.toggleSmartCoach() },
+                    isPlaying = uiState.playingFileName.isNotEmpty(),
+                    currentSessionElapsedMs = uiState.currentSessionElapsedMs,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
         if (uiState.searchQuery.isNotEmpty()) {
             SearchFilterBadge(uiState, onClearQuery = { viewModel.updateSearchQuery("") }, onClearCategory = { viewModel.setSearchCategory(null) })
         }
@@ -127,6 +151,38 @@ private fun LibraryHeader(
             SelectionActionBar(uiState, viewModel, recordingItems)
         } else {
             NormalHeader(uiState, viewModel, onImportClick, onSelectClick = { viewModel.setSelectionMode(true) })
+        }
+    }
+
+    // Nudge for creating playlist when 2+ files selected
+    AnimatedVisibility(
+        visible = uiState.isSelectionMode && uiState.selectedFiles.size >= 2,
+        enter = expandIn() + fadeIn(),
+        exit = shrinkOut() + fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = spacing.large)
+                .padding(bottom = spacing.small)
+                .background(themeColors.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                .border(1.dp, themeColors.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    AppIcons.QueueMusic, 
+                    contentDescription = null, 
+                    tint = themeColors.primary, 
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    stringResource(R.string.nudge_try_playlist),
+                    style = MaterialTheme.typography.labelMedium.copy(color = themeColors.primary),
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 
@@ -537,15 +593,35 @@ private fun EmptyLibraryState(isSearching: Boolean, onImportClick: () -> Unit) {
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         if (!isSearching) {
-            Spacer(modifier = Modifier.height(24.dp))
-            OutlinedButton(
-                onClick = onImportClick,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(12.dp)
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(AppIcons.Add, contentDescription = stringResource(R.string.a11y_import_file), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.btn_import_audio), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                // Primary Action: Record
+                Button(
+                    onClick = { viewModel.setSelectedTab(1) }, // Switch to Record tab
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
+                ) {
+                    Icon(AppIcons.Mic, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(stringResource(R.string.record_start), fontWeight = FontWeight.Bold)
+                }
+
+                // Secondary Action: Import
+                OutlinedButton(
+                    onClick = onImportClick,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
+                ) {
+                    Icon(AppIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(stringResource(R.string.btn_import_audio), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                }
             }
         }
     }
@@ -750,7 +826,7 @@ private fun SearchFilterBadge(
             InputChip(
                 selected = true,
                 onClick = onClearQuery,
-                label = { Text("${stringResource(R.string.a11y_search)}: ${uiState.searchQuery}") },
+                label = { Text(stringResource(R.string.label_search_query_format, stringResource(R.string.a11y_search), uiState.searchQuery)) },
                 trailingIcon = { Icon(AppIcons.Close, null, modifier = Modifier.size(16.dp)) }
             )
         }

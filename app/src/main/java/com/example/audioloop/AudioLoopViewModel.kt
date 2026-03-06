@@ -71,6 +71,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         private set
     lateinit var coachEngine: CoachEngine
         private set
+    lateinit var billingManager: BillingManager
+        private set
+    lateinit var playlistManager: PlaylistManager
+        private set
+    lateinit var driveBackupManager: DriveBackupManager
+        private set
 
     // Backup for Undo
     private var lastDeletedFile: File? = null
@@ -124,9 +130,23 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun initialize() {
         // Init managers
         practiceStats = PracticeStatsManager(ctx)
-        coachEngine = CoachEngine(practiceStats)
+        coachEngine = CoachEngine(ctx, practiceStats)
         playlistManager = PlaylistManager(ctx)
         driveBackupManager = DriveBackupManager(ctx)
+        billingManager = BillingManager(ctx, viewModelScope)
+        billingManager.startConnection()
+
+        // Sync Pro status and products
+        viewModelScope.launch {
+            billingManager.isProUser.collect { isPro ->
+                _uiState.update { it.copy(isProUser = isPro) }
+            }
+        }
+        viewModelScope.launch {
+            billingManager.products.collect { prods ->
+                _uiState.update { it.copy(billingProducts = prods) }
+            }
+        }
 
         // Init MediaSession
         mediaSessionManager = MediaSessionManager(
@@ -176,9 +196,9 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 appLanguage = lang,
                 isSmartCoachExpanded = isCoachExpanded,
                 isSmartCoachEnabled = isCoachEnabled,
-                playlists = playlistManager.loadAll(),
                 isBackupSignedIn = signedIn,
-                backupEmail = email
+                backupEmail = email,
+                showOnboarding = isFirstLaunch()
             )
         }
 
@@ -934,18 +954,19 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
                                 withContext(Dispatchers.Main) {
                                     if (replace) {
+                                    if (replace) {
                                         waveformCache.remove(file.absolutePath)
                                         getWaveformFile(file).delete()
-                                        showSnackbar("Studio: Original replaced")
+                                        showSnackbar(ctx.getString(R.string.msg_studio_replaced))
                                     } else {
-                                        showSnackbar("Studio: Saved")
+                                        showSnackbar(ctx.getString(R.string.msg_studio_saved))
                                     }
                                     onSuccess()
                                     refreshFileList()
                                 }
                             } else {
                                 withContext(Dispatchers.Main) {
-                                    showSnackbar("Processing failed", isError = true)
+                                    showSnackbar(ctx.getString(R.string.msg_processing_failed), isError = true)
                                 }
                             }
                         }
@@ -978,10 +999,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                         if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
                             val paths = workInfo.outputData.getStringArray("created_files") ?: emptyArray()
                             paths.forEach { precomputeWaveformAsync(File(it)) }
-                            showSnackbar("Split into ${paths.size} segments")
+                            showSnackbar(ctx.getString(R.string.msg_split_done, paths.size))
                             refreshFileList()
                         } else {
-                            showSnackbar("Split failed", isError = true)
+                            showSnackbar(ctx.getString(R.string.msg_processing_failed), isError = true)
                         }
                     }
                 }
@@ -1009,10 +1030,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             waveformCache.remove(item.file.absolutePath)
                             getWaveformFile(item.file).delete()
                             precomputeWaveformAsync(item.file)
-                            showSnackbar("Normalized!")
+                            showSnackbar(ctx.getString(R.string.msg_done))
                             refreshFileList()
                         } else {
-                            showSnackbar("Normalization failed", isError = true)
+                            showSnackbar(ctx.getString(R.string.msg_normalization_failed), isError = true)
                         }
                     }
                 }
@@ -1040,10 +1061,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             waveformCache.remove(item.file.absolutePath)
                             getWaveformFile(item.file).delete()
                             precomputeWaveformAsync(item.file)
-                            showSnackbar("Auto-trimmed!")
+                            showSnackbar(ctx.getString(R.string.msg_done))
                             refreshFileList()
                         } else {
-                            showSnackbar("Auto-trim failed", isError = true)
+                            showSnackbar(ctx.getString(R.string.msg_auto_trim_failed), isError = true)
                         }
                     }
                 }
@@ -1053,7 +1074,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun fadeFile(item: RecordingItem, fadeInMs: Long, fadeOutMs: Long) {
         logEditEvent("fade")
-        processFileInPlace(item.file, "Applying fade...") { input, output ->
+        processFileInPlace(item.file, R.string.msg_applying_fade) { input, output ->
             AudioProcessor.applyFade(input, output, fadeInMs = fadeInMs, fadeOutMs = fadeOutMs)
         }
     }
@@ -1089,10 +1110,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                         if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
                             val path = workInfo.outputData.getString("output_path") ?: ""
                             if (path.isNotEmpty()) precomputeWaveformAsync(File(path))
-                            showSnackbar("Merged!")
+                            showSnackbar(ctx.getString(R.string.msg_done))
                             refreshFileList()
                         } else {
-                            showSnackbar("Merge failed", isError = true)
+                            showSnackbar(ctx.getString(R.string.msg_merge_failed), isError = true)
                         }
                     }
                 }
@@ -1100,10 +1121,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun processFileInPlace(file: File, toastMsg: String, processor: suspend (File, File) -> Boolean) {
+    private fun processFileInPlace(file: File, toastMsgRes: Int, processor: suspend (File, File) -> Boolean) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            showSnackbar(toastMsg)
+            showSnackbar(ctx.getString(toastMsgRes))
             val ext = file.extension.ifEmpty { "m4a" }
             val tempFile = File(file.parent, "temp_proc_${System.currentTimeMillis()}.$ext")
             val success = processor(file, tempFile)
@@ -1120,23 +1141,23 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 }
 
                 if (!deleted) {
-                    tempFile.delete()
-                    showSnackbar("Access denied: Original file in use", isError = true)
+                    file.delete()
+                    showSnackbar(ctx.getString(R.string.msg_access_denied), isError = true)
                     _uiState.update { it.copy(isLoading = false) }
                     return@launch
                 }
 
                 if (withContext(Dispatchers.IO) { tempFile.renameTo(finalFile) }) {
                     precomputeWaveformAsync(finalFile)
-                    showSnackbar("Done!")
+                    showSnackbar(ctx.getString(R.string.msg_done))
                     refreshFileList()
                 } else {
                     tempFile.delete()
-                    showSnackbar("Error finalizing file!", isError = true)
+                    showSnackbar(ctx.getString(R.string.msg_error_finalizing), isError = true)
                 }
             } else {
                 tempFile.delete()
-                showSnackbar("Processing failed", isError = true)
+                showSnackbar(ctx.getString(R.string.msg_processing_failed), isError = true)
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -1585,11 +1606,25 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun setPlaybackSpeed(speed: Float) {
+        val wasPlayedBefore = practiceStats.hasEventOccurred("aha_speed_used")
         _uiState.update { it.copy(playbackSpeed = speed) }
+        if (speed != 1.0f) {
+            practiceStats.logEvent("aha_speed_used", "speed=$speed")
+            if (!wasPlayedBefore) {
+                showSnackbar(getApplication<Application>().getString(R.string.aha_speed_success))
+            }
+        }
     }
 
     fun setLoopMode(mode: Int) {
+        val wasPlayedBefore = practiceStats.hasEventOccurred("aha_loop_used")
         _uiState.update { it.copy(loopMode = mode) }
+        if (mode != 0) {
+            practiceStats.logEvent("aha_loop_used", "mode=$mode")
+            if (!wasPlayedBefore) {
+                showSnackbar(getApplication<Application>().getString(R.string.aha_loop_success))
+            }
+        }
     }
 
     fun setShadowingMode(enabled: Boolean) {
@@ -1680,6 +1715,42 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(editingPlaylist = null) }
     }
 
+    // --- Onboarding Actions ---
+
+    fun nextOnboardingStep() {
+        _uiState.update { it.copy(onboardingStep = it.onboardingStep + 1) }
+    }
+
+    fun selectOnboardingUseCase(useCase: String) {
+        // 1. Define category based on use case
+        val categoryKey = when(useCase) {
+            "musician" -> "Music"
+            "student" -> "Studies/Languages"
+            "podcaster" -> "Content"
+            else -> "General"
+        }
+        
+        // 2. Update categories if "General" is the only one (clean start)
+        if (_uiState.value.categories == listOf("General")) {
+            val initial = listOf(categoryKey, "General").distinct()
+            viewModelScope.launch {
+                saveCategoryOrder(initial)
+                _uiState.update { it.copy(categories = initial, currentCategory = categoryKey) }
+                syncDatabase()
+            }
+        } else {
+            _uiState.update { it.copy(currentCategory = categoryKey) }
+        }
+
+        // 3. Move to next step
+        nextOnboardingStep()
+    }
+
+    fun finishOnboarding() {
+        setFirstLaunchComplete()
+        _uiState.update { it.copy(showOnboarding = false) }
+    }
+
     override fun onCleared() {
         stopPlaying()
         try { ctx.unregisterReceiver(recordingReceiver) } catch (_: Exception) {}
@@ -1704,5 +1775,44 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.update { it.copy(isLoading = false) }
         }
     }
+
+    fun clearAllData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            
+            // 1. Delete all local files
+            val list = filesDir.listFiles()
+            list?.forEach { it.deleteRecursively() }
+            
+            // 2. The repository discovery will cleanup DB automatically 
+            // but let's be more explicit if possible. 
+            // In this architecture, discovery + cleanupStale handles it.
+            repository.discoverRecordings(emptyList()) 
+            
+            // 3. Reset categories
+            saveCategoryOrder(listOf("General"))
+            
+            withContext(Dispatchers.Main) {
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        categories = listOf("General"),
+                        currentCategory = "General"
+                    )
+                }
+                refreshFileList()
+            }
+        }
+    }
+
+    fun setUpgradeSheetVisible(visible: Boolean) {
+        _uiState.update { it.copy(showUpgradeSheet = visible) }
+    }
+
+    fun purchasePro(activity: android.app.Activity, product: com.android.billingclient.api.ProductDetails) {
+        billingManager.launchPurchaseFlow(activity, product)
+    }
+
+    fun isPro(): Boolean = _uiState.value.isProUser
 }
 

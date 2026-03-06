@@ -84,9 +84,19 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         }
     }
 
-    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) vm?.showSnackbar(getString(R.string.msg_permission_granted))
-        else vm?.showSnackbar(getString(R.string.msg_permission_denied), isError = true)
+    private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+        val recordGranted = results[Manifest.permission.RECORD_AUDIO] ?: false
+        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            results[Manifest.permission.READ_MEDIA_AUDIO] ?: false
+        } else {
+            results[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
+        }
+        
+        if (recordGranted) {
+            vm?.showSnackbar(getString(R.string.msg_permission_granted))
+        } else if (results.isNotEmpty()) {
+            vm?.showSnackbar(getString(R.string.msg_permission_denied), isError = true)
+        }
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -123,6 +133,26 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+    private fun checkAndRequestNecessaryPermissions() {
+        val permissions = mutableListOf<String>()
+        permissions.add(Manifest.permission.RECORD_AUDIO)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+        } else {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        val toRequest = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (toRequest.isNotEmpty()) {
+            requestPermissionsLauncher.launch(toRequest.toTypedArray())
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -139,6 +169,9 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 viewModel.initialize()
                 viewModel.refreshFileList()
                 viewModel.startProgressTracking()
+                
+                // Check and request necessary permissions on startup
+                checkAndRequestNecessaryPermissions()
             }
 
             val uiState by viewModel.uiState.collectAsState()
@@ -170,7 +203,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                             }
                         )
                         if (result == SnackbarResult.ActionPerformed) {
-                            if (msg.actionLabel == "Undo") {
+                            if (msg.actionLabel == context.getString(R.string.btn_undo)) {
                                 viewModel.undoDelete()
                             }
                         }
@@ -207,29 +240,26 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     onDispose { context.unregisterReceiver(receiver) }
                 }
 
-                // Request permissions
-                LaunchedEffect(Unit) {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                        requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    }
-                }
+                // Permissions are checked in the ViewModel LaunchedEffect above
 
-                // Welcome Dialog
-                var showWelcomeDialog by remember { mutableStateOf(viewModel.isFirstLaunch()) }
-                if (showWelcomeDialog) {
-                    WelcomeDialog(
-                        themeColors = uiState.currentTheme.palette,
-                        onDismiss = {
-                            viewModel.setFirstLaunchComplete()
-                            showWelcomeDialog = false
-                        }
+                // Onboarding Overlay
+                if (uiState.showOnboarding) {
+                    com.example.audioloop.ui.components.OnboardingScreen(
+                        onboardingStep = uiState.onboardingStep,
+                        viewModel = viewModel,
+                        themeColors = uiState.currentTheme.palette
                     )
                 }
+
+                // Billing / Pro Overlay
+                com.example.audioloop.ui.components.UpgradeSheet(
+                    isVisible = uiState.showUpgradeSheet,
+                    onDismiss = { viewModel.setUpgradeSheetVisible(false) },
+                    products = uiState.billingProducts,
+                    onPurchase = { activity, product -> viewModel.purchasePro(activity, product) },
+                    themeColors = uiState.currentTheme.palette,
+                    isPro = uiState.isProUser
+                )
 
                 Scaffold(
                     snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -254,7 +284,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                                             true
                                         }
                                     } else {
-                                        requestPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                                        checkAndRequestNecessaryPermissions()
                                         false
                                     }
                                 },
@@ -330,63 +360,4 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     }
 }
 
-// â”€â”€ Welcome Dialog (extracted) â”€â”€
-
-@Composable
-private fun WelcomeDialog(
-    themeColors: com.example.audioloop.ui.theme.AppColorPalette,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = { },
-        containerColor = Zinc900,
-        titleContentColor = Color.White,
-        textContentColor = Zinc300,
-        title = {
-            Text(
-                stringResource(R.string.welcome_title),
-                style = androidx.compose.ui.text.TextStyle(
-                    brush = Brush.linearGradient(
-                        listOf(themeColors.primary400, themeColors.primary200)
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.welcome_modes_intro), color = Color.White, fontWeight = FontWeight.Medium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("\uD83C\uDFA4", fontSize = 16.sp)
-                    Column {
-                        Text(stringResource(R.string.mode_speech), color = themeColors.primary300, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.mode_speech_desc), color = Zinc400, fontSize = 13.sp)
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("\uD83D\uDD0A", fontSize = 16.sp)
-                    Column {
-                        Text(stringResource(R.string.mode_stream), color = themeColors.primary300, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.mode_stream_desc), color = Zinc400, fontSize = 13.sp)
-                    }
-                }
-                HorizontalDivider(color = Zinc700)
-                Text(stringResource(R.string.welcome_stream_note), color = Sunset400, fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                Text(
-                    stringResource(R.string.welcome_stream_warning),
-                    color = Zinc400, fontSize = 13.sp
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary600)
-            ) {
-                Text(stringResource(R.string.btn_got_it), color = Color.White, fontWeight = FontWeight.Bold)
-            }
-        }
-    )
-}
 

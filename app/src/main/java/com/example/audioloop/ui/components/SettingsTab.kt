@@ -40,6 +40,13 @@ fun SettingsTab(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+        // 0. Pro Status / Promotion
+        if (uiState.isProUser) {
+            ProStatusCard(themeColors) { viewModel.setUpgradeSheetVisible(true) }
+        } else {
+            GoProPromotionCard(themeColors) { viewModel.setUpgradeSheetVisible(true) }
+        }
+
         Text(
             text = stringResource(R.string.nav_settings),
             style = MaterialTheme.typography.headlineMedium.copy(
@@ -136,6 +143,68 @@ fun SettingsTab(
                 email = uiState.backupEmail,
                 onClick = { viewModel.setShowBackupSheet(true) },
                 themeColors = themeColors
+            )
+        }
+        
+        // 4. Privacy & Data
+        var showClearConfirm by remember { mutableStateOf(false) }
+        SettingsGroup(title = stringResource(R.string.settings_privacy_title), themeColors = themeColors) {
+            // Data Location info
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(AppIcons.Info, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.settings_data_location), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.settings_data_location_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Clear Data button
+            OutlinedButton(
+                onClick = { showClearConfirm = true },
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, Red500.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Red500),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(AppIcons.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.settings_clear_data), fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        if (showClearConfirm) {
+            AlertDialog(
+                onDismissRequest = { showClearConfirm = false },
+                title = { Text(stringResource(R.string.settings_clear_data)) },
+                text = { Text(stringResource(R.string.settings_clear_data_confirm)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = { 
+                            viewModel.clearAllData()
+                            showClearConfirm = false 
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Red500)
+                    ) {
+                        Text(stringResource(R.string.btn_delete).uppercase(), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearConfirm = false }) {
+                        Text(stringResource(R.string.btn_cancel).uppercase())
+                    }
+                }
             )
         }
 
@@ -430,6 +499,73 @@ fun BackupQuickAction(
                 )
             }
             Icon(AppIcons.ChevronRight, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun ProStatusCard(themeColors: AppColorPalette, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = themeColors.primary.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, themeColors.primary)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(40.dp).background(themeColors.primary, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(stringResource(R.string.label_pro), fontWeight = FontWeight.ExtraBold, color = themeColors.primary, fontSize = 20.sp)
+                Text(stringResource(R.string.label_subscription_active), color = themeColors.primary.copy(alpha = 0.7f), fontSize = 12.sp)
+            }
+            Spacer(Modifier.weight(1f))
+            Icon(AppIcons.ChevronRight, contentDescription = null, tint = themeColors.primary)
+        }
+    }
+}
+
+@Composable
+fun GoProPromotionCard(themeColors: AppColorPalette, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = Zinc900
+    ) {
+        Row(
+            modifier = Modifier
+                .background(Brush.linearGradient(listOf(Zinc900, Zinc800)))
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.upgrade_pro_title),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                )
+                Text(
+                    text = stringResource(R.string.label_pro_benefit_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Zinc400
+                )
+            }
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(stringResource(R.string.label_upgrade), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
         }
     }
 }

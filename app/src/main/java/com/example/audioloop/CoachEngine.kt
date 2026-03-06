@@ -4,7 +4,7 @@ package com.example.audioloop
  * Rule-based practice coach that generates simple recommendations
  * based on current stats. V1: pure if/then logic, no ML needed.
  */
-class CoachEngine(private val stats: PracticeStatsManager) {
+class CoachEngine(private val context: android.content.Context, private val stats: PracticeStatsManager) {
 
     data class Recommendation(
         val title: String,
@@ -22,12 +22,33 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         val todayMin = stats.todayMinutes()
         val daysLeftInWeek = daysRemainingThisWeek()
 
+        // ── Priority 1: Aha-moment Discovery (If haven't hit goal yet) ──
+        if (remaining > 0f) {
+            if (!stats.hasEventOccurred("aha_loop_used")) {
+                return Recommendation(
+                    title = context.getString(R.string.aha_loop_title),
+                    subtitle = context.getString(R.string.aha_loop_desc),
+                    actionLabel = context.getString(R.string.btn_aha_try),
+                    suggestedMinutes = 5
+                )
+            }
+            if (!stats.hasEventOccurred("aha_speed_used")) {
+                return Recommendation(
+                    title = context.getString(R.string.aha_speed_title),
+                    subtitle = context.getString(R.string.aha_speed_desc),
+                    actionLabel = context.getString(R.string.btn_aha_try),
+                    suggestedMinutes = 5
+                )
+            }
+        }
+
+        // ── Priority 2: Goal Progress ──
         // Already hit the goal this week
         if (remaining <= 0f) {
             return Recommendation(
-                title = "Goal reached!",
-                subtitle = "You've already practiced ${formatMin(weekMin)} this week. Great job!",
-                actionLabel = "Bonus session",
+                title = context.getString(R.string.coach_goal_reached),
+                subtitle = context.getString(R.string.coach_goal_reached_desc, formatMin(weekMin)),
+                actionLabel = context.getString(R.string.coach_bonus_session),
                 suggestedMinutes = 10
             )
         }
@@ -36,9 +57,9 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         if (todayMin < 1f) {
             val perDay = if (daysLeftInWeek > 0) (remaining / daysLeftInWeek).toInt().coerceIn(5, 45) else 15
             return Recommendation(
-                title = "Start today's session",
+                title = context.getString(R.string.coach_start_today),
                 subtitle = buildRemainingText(remaining, daysLeftInWeek, streak),
-                actionLabel = "Listen ${perDay} min",
+                actionLabel = context.getString(R.string.coach_action_listen, perDay),
                 suggestedMinutes = perDay
             )
         }
@@ -46,9 +67,9 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         // Already practiced today but still behind goal
         val perDay = if (daysLeftInWeek > 0) (remaining / daysLeftInWeek).toInt().coerceIn(5, 30) else 10
         return Recommendation(
-            title = "Continue practicing",
-            subtitle = "${formatMin(todayMin)} done today. ${formatMin(remaining)} left to reach your goal.",
-            actionLabel = "Add ${perDay} min",
+            title = context.getString(R.string.coach_continue_practicing),
+            subtitle = context.getString(R.string.coach_today_done, formatMin(todayMin), formatMin(remaining)),
+            actionLabel = context.getString(R.string.coach_action_add, perDay),
             suggestedMinutes = perDay
         )
     }
@@ -57,17 +78,18 @@ class CoachEngine(private val stats: PracticeStatsManager) {
         val parts = mutableListOf<String>()
         if (daysLeft > 0) {
             val perDay = (remaining / daysLeft).toInt().coerceAtLeast(1)
-            parts.add("~${perDay} min/day to reach your goal")
+            parts.add(context.getString(R.string.coach_per_day, perDay))
         }
         if (streak > 1) {
-            parts.add("$streak day streak!")
+            parts.add(context.getString(R.string.coach_streak_format, streak))
         }
-        return if (parts.isEmpty()) "Start listening" else parts.joinToString(" · ")
+        return if (parts.isEmpty()) context.getString(R.string.coach_start_listening) else parts.joinToString(" · ")
     }
 
     private fun formatMin(minutes: Float): String {
         val m = minutes.toInt()
-        return if (m < 60) "${m} min" else "${m / 60}h ${m % 60}m"
+        return if (m < 60) context.getString(R.string.label_min, m)
+        else "${m / 60}${context.getString(R.string.label_hour_short)} ${m % 60}${context.getString(R.string.label_minute_short)}"
     }
 
     private fun daysRemainingThisWeek(): Int {

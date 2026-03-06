@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -67,7 +69,7 @@ fun PracticeProgressCard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "SMART COACH",
+                stringResource(R.string.label_smart_coach),
                 style = TextStyle(
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 10.sp,
@@ -98,8 +100,9 @@ fun PracticeProgressCard(
                 )
             )
         } else {
+            val context = LocalContext.current
             Text(
-                "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
+                "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
                 style = TextStyle(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 11.sp,
@@ -163,7 +166,7 @@ private fun SmartCoachDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "SMART COACH",
+                    stringResource(R.string.label_smart_coach),
                     style = TextStyle(
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 10.sp,
@@ -172,7 +175,7 @@ private fun SmartCoachDialog(
                     )
                 )
                 Text(
-                    "View details",
+                    stringResource(R.string.btn_view_details),
                     style = TextStyle(
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp,
@@ -222,7 +225,7 @@ private fun SmartCoachDialog(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "this week",
+                        stringResource(R.string.label_this_week),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
@@ -249,10 +252,10 @@ private fun SmartCoachDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatPill("Streak", "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
-                StatPill("Today", formatMinutes(todayMinutes), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-                StatPill("Sessions", "$weeklySessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
-                StatPill("Edits", "$weeklyEdits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+                StatPill(stringResource(R.string.label_streak), "${streak}d", if (streak >= 3) Sunset400 else MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+                StatPill(stringResource(R.string.label_today), formatMinutes(todayMinutes, LocalContext.current), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                StatPill(stringResource(R.string.label_sessions), "$weeklySessions", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
+                StatPill(stringResource(R.string.label_edits), "$weeklyEdits", MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f))
             }
 
             Spacer(Modifier.height(14.dp))
@@ -298,7 +301,7 @@ private fun SmartCoachDialog(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        if (isPlaying) "Playing..." else recommendation.actionLabel,
+                        if (isPlaying) stringResource(R.string.state_playing) else recommendation.actionLabel,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
@@ -347,8 +350,9 @@ private fun formatHhMmSs(ms: Long): String {
     return "%02d:%02d:%02d".format(h, m, s)
 }
 
-private fun formatMinutes(minutes: Float): String {
+private fun formatMinutes(minutes: Float, context: android.content.Context): String {
     val m = minutes.toInt()
-    return if (m < 60) "${m} min" else "${m / 60}h ${m % 60}m"
+    return if (m < 60) context.getString(R.string.label_min, m)
+    else "${m / 60}${context.getString(R.string.label_hour_short)} ${m % 60}${context.getString(R.string.label_minute_short)}"
 }
 

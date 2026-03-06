@@ -39,10 +39,10 @@
     <string name="menu_move">Move to Category</string>
     <string name="menu_share">Share</string>
     <string name="menu_download">Download</string>
-    <string name="menu_split">Split by silence</string>
-    <string name="menu_normalize">Normalize</string>
-    <string name="menu_auto_trim">Auto-trim silence</string>
-    <string name="menu_fade">Fade</string>
+    <string name="menu_split">Auto-split tracks</string>
+    <string name="menu_normalize">Balance volume</string>
+    <string name="menu_auto_trim">Remove silence</string>
+    <string name="menu_fade">Smooth start/end</string>
     <string name="menu_merge">Merge selected</string>
     <string name="menu_note">Edit note</string>
     <string name="menu_note_edit">Edit Note</string>
@@ -58,10 +58,10 @@
     <string name="dialog_delete_confirm">Are you sure?</string>
 
     <!-- Recording modes -->
-    <string name="mode_speech">Speech</string>
-    <string name="mode_stream">Stream</string>
-    <string name="mode_speech_desc">Records your voice using the microphone.</string>
-    <string name="mode_stream_desc">Records audio playing on your device (music, videos, etc).</string>
+    <string name="mode_speech">Microphone</string>
+    <string name="mode_stream">Internal Audio</string>
+    <string name="mode_speech_desc">Record your voice or any outside sound.</string>
+    <string name="mode_stream_desc">Record music or sound playing on your phone.</string>
 
     <!-- Snackbar / Toast messages -->
     <string name="toast_saved">Saved</string>
@@ -79,7 +79,7 @@
     <string name="msg_splitting">Splitting by silence…</string>
     <string name="msg_split_done">Split into %d segments</string>
     <string name="msg_no_silence_gaps">No silence gaps found to split on</string>
-    <string name="msg_normalizing">Normalizing…</string>
+    <string name="msg_normalizing">Balancing volume…</string>
     <string name="msg_detecting_silence">Detecting silence…</string>
     <string name="msg_no_silence_to_trim">No silence detected to trim</string>
     <string name="msg_no_significant_silence">No significant silence to trim</string>
@@ -126,6 +126,10 @@
     <string name="btn_backup">Backup</string>
     <string name="btn_restore">Restore</string>
     <string name="label_available_backups">Available backups</string>
+    <string name="msg_backup_creating">Creating backup…</string>
+    <string name="msg_backup_uploading">Uploading to Google Drive…</string>
+    <string name="msg_backup_uploading_perc">Uploading: %d%%</string>
+    <string name="msg_backup_complete">Backup complete!</string>
 
     <!-- Settings -->
     <string name="settings_loop">Loop</string>
@@ -280,10 +284,10 @@
     <string name="label_new_length">NEW LENGTH</string>
     <string name="label_start">START</string>
     <string name="label_end">END</string>
-    <string name="label_fade_in">Fade In</string>
-    <string name="label_fade_out">Fade Out</string>
-    <string name="label_silence">Silence</string>
-    <string name="label_normalize">Normalize</string>
+    <string name="label_fade_in">Smooth start</string>
+    <string name="label_fade_out">Smooth end</string>
+    <string name="label_silence">Remove silence</string>
+    <string name="label_normalize">Balance volume</string>
     <string name="error_open_audio">Could not open audio file</string>
     <string name="error_corrupted_format">The file may be corrupted or in an unsupported format.</string>
     <string name="btn_save_copy">Save Copy</string>
@@ -322,7 +326,7 @@
     <string name="a11y_select_theme">Select %s theme</string>
     <string name="label_playing_indicator">Playing • </string>
     <string name="a11y_menu">Menu</string>
-    <string name="label_auto_trim_silence">Auto-trim Silence</string>
+    <string name="label_auto_trim_silence">Remove silence</string>
     <string name="a11y_clear">Clear</string>
     <string name="label_note">Note</string>
     <string name="prefix_speech">Speech</string>
@@ -368,5 +372,90 @@
     <string name="title_storage">Storage</string>
     <string name="desc_public_storage">Save recordings to public Music folder</string>
     <string name="btn_scan_now">Scan Now</string>
-</resources>
 
+    <!-- Help Hints -->
+    <string name="hint_balance_volume">Makes quiet and loud parts more consistent across the recording.</string>
+    <string name="hint_remove_silence">Automatically cuts out long silent parts from the beginning and end.</string>
+    <string name="hint_smooth_fade">Adds a subtle volume transition to avoid sudden pops at the start or end.</string>
+    <string name="hint_auto_split">Automatically slices the recording into separate tracks based on silence gaps.</string>
+    <string name="nudge_try_playlist">Tip: Try creating a playlist to study these together!</string>
+
+    <string name="settings_privacy_title">Privacy &amp; Data</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_data_location">Data Location</string>
+    <string name="settings_data_location_desc">All audio and notes are stored locally on your device or in your personal Google Drive (if enabled).</string>
+    <string name="settings_clear_data">Clear All Data</string>
+    <string name="settings_clear_data_confirm">This will permanently delete ALL recordings, notes, and playlists. This cannot be undone. Are you sure?</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Master any audio segment</string>
+    <string name="onboarding_welcome_desc">Practice difficult parts by looping them until perfection. Perfect for music, languages, and more.</string>
+    <string name="onboarding_usecase_title">How will you use the app?</string>
+    <string name="onboarding_usecase_music">Music &amp; Instruments</string>
+    <string name="onboarding_usecase_student">Languages &amp; Studies</string>
+    <string name="onboarding_usecase_podcaster">Podcasts &amp; Content</string>
+    <string name="onboarding_usecase_general">General Use</string>
+    <string name="onboarding_aha_title">Master every detail</string>
+    <string name="onboarding_aha_desc">Select a part of the sound, loop it, and slow it down. Master the details to win the whole piece.</string>
+    <string name="onboarding_ready_title">You\'re ready!</string>
+    <string name="onboarding_ready_desc">You\'re all set to master your audio. Your recording adventure begins now.</string>
+
+    <!-- Coach Engine -->
+    <string name="coach_goal_reached">Goal reached!</string>
+    <string name="coach_goal_reached_desc">You\'ve already practiced %s this week. Great job!</string>
+    <string name="coach_bonus_session">Bonus session</string>
+    <string name="coach_start_today">Start today\'s session</string>
+    <string name="coach_continue_practicing">Continue practicing</string>
+    <string name="coach_today_done">%s done today. %s left to reach your goal.</string>
+    <string name="coach_per_day">~%d min/day to reach your goal</string>
+    <string name="coach_streak_format">%d day streak!</string>
+    <string name="coach_action_listen">Listen %d min</string>
+    <string name="coach_action_add">Add %d min</string>
+    <string name="coach_start_listening">Start listening</string>
+
+    <!-- Aha Moment Nudges -->
+    <string name="aha_loop_title">Try the Power of Looping</string>
+    <string name="aha_loop_desc">Looping helps you master difficult segments by repeating them perfectly until you get it.</string>
+    <string name="aha_speed_title">Slow Down to Win</string>
+    <string name="aha_speed_desc">Dealing with a fast part? Slow down the tempo without changing the pitch to hear every single detail.</string>
+    <string name="btn_aha_try">I\'ll try it!</string>
+    <string name="aha_loop_success">First loop! You\'re practicing like a pro. 🔁</string>
+    <string name="aha_speed_success">Speed adjusted! Every detail counts. ⏱️</string>
+
+    <!-- UI Action States -->
+    <string name="state_playing">Playing…</string>
+
+    <!-- Upgrade / Pro -->
+    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_desc">Unlock everything and master your audio with no limits.</string>
+    <string name="upgrade_feature_unlimited">Unlimited categories &amp; playlists</string>
+    <string name="upgrade_feature_cloud">Full Google Drive backup &amp; restore</string>
+    <string name="upgrade_feature_processing">Advanced audio processing tools</string>
+    <string name="upgrade_feature_coach">Smart Coach insights &amp; progress</string>
+    <string name="btn_restore_purchase">Restore Purchases</string>
+    <string name="label_free">FREE</string>
+    <string name="label_pro">PRO</string>
+    <string name="upgrade_success">Welcome to AudioLoop Pro!</string>
+    <string name="label_subscription_active">Subscription active</string>
+    <string name="label_upgrade">Upgrade</string>
+    <string name="label_pro_benefit_summary">No limits. Advanced tools.</string>
+    <string name="msg_loading_offers">Loading Play Store offers…</string>
+    <string name="msg_studio_saved">Studio: Saved</string>
+    <string name="label_per_month"> / mo</string>
+    <string name="label_per_year"> / yr</string>
+    <string name="label_search_query_format">%1$s: %2$s</string>
+    <string name="label_this_week">this week</string>
+    <string name="label_smart_coach">SMART COACH</string>
+    <string name="btn_view_details">View details</string>
+    <string name="unit_min">min</string>
+    <string name="label_hour_short">h</string>
+    <string name="label_minute_short">m</string>
+    <string name="unit_m">m</string>
+    <string name="day_m">M</string>
+    <string name="day_t">T</string>
+    <string name="day_w">W</string>
+    <string name="day_th">T</string>
+    <string name="day_f">F</string>
+    <string name="day_s">S</string>
+    <string name="day_su">S</string>
+</resources>

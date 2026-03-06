@@ -55,6 +55,22 @@ fun HomeHeader(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            if (uiState.isProUser) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.padding(start = 6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_pro),
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
         }
 
         Row(

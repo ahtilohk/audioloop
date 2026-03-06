@@ -3,6 +3,8 @@
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
@@ -29,6 +31,14 @@ android {
             )
         }
     }
+    
+    lint {
+        isAbortOnError = true
+        isCheckReleaseBuilds = true
+        isWarningsAsErrors = true
+        baseline = file("lint-baseline.xml") // Allow current warnings to stay in baseline
+    }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -92,4 +102,12 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
+    
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    
+    // Billing
+    implementation(libs.billing.ktx)
 }

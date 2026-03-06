@@ -287,7 +287,15 @@ private fun WeeklyBarChart(
     modifier: Modifier = Modifier
 ) {
     val maxVal = (data.maxOfOrNull { it.second } ?: 1f).coerceAtLeast(1f)
-    val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
+    val dayLabels = listOf(
+        stringResource(R.string.day_m),
+        stringResource(R.string.day_t),
+        stringResource(R.string.day_w),
+        stringResource(R.string.day_th),
+        stringResource(R.string.day_f),
+        stringResource(R.string.day_s),
+        stringResource(R.string.day_su)
+    )
 
     Row(
         modifier = modifier,

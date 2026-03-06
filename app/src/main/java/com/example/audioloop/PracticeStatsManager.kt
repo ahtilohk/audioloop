@@ -145,6 +145,11 @@ class PracticeStatsManager(context: Context) {
         return result
     }
 
+    /** Check if a specific event has occurred at least once. */
+    fun hasEventOccurred(name: String): Boolean {
+        return loadEventLog().any { it.name == name }
+    }
+
     /** Average daily minutes over last 7 days. */
     fun averageDailyMinutes(): Float {
         val history = dailyMinutesHistory(7)

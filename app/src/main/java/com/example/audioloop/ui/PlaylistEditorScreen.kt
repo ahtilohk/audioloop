@@ -125,7 +125,7 @@ fun PlaylistEditorScreen(
                     ) {
                         Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.menu_rename).replace("Rename", "Save"), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -250,7 +250,7 @@ fun PlaylistEditorScreen(
                         ) {
                             Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.btn_add_files).replace("Files", "Tracks"), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.btn_add_files), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

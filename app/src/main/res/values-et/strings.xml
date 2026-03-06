@@ -39,10 +39,10 @@
     <string name="menu_move">Liiguta kategooriasse</string>
     <string name="menu_share">Jaga</string>
     <string name="menu_download">Laadi alla</string>
-    <string name="menu_split">Tükelda vaikuse järgi</string>
-    <string name="menu_normalize">Normaliseeri</string>
-    <string name="menu_auto_trim">Automaatne kärpimine</string>
-    <string name="menu_fade">Hajutus</string>
+    <string name="menu_split">Tükelda automaatselt</string>
+    <string name="menu_normalize">Ühtlusta heli</string>
+    <string name="menu_auto_trim">Eemalda vaikus</string>
+    <string name="menu_fade">Sujuv algus/lõpp</string>
     <string name="menu_merge">Ühenda valitud</string>
     <string name="menu_note">Muuda märget</string>
     <string name="menu_note_edit">Muuda märget</string>
@@ -58,10 +58,10 @@
     <string name="dialog_delete_confirm">Oled sa kindel?</string>
 
     <!-- Recording modes -->
-    <string name="mode_speech">Kõne</string>
-    <string name="mode_stream">Voog</string>
-    <string name="mode_speech_desc">Salvestab sinu häält mikrofoni kaudu.</string>
-    <string name="mode_stream_desc">Salvestab seadmes mängivat heli (muusika, videod jne).</string>
+    <string name="mode_speech">Mikrofon</string>
+    <string name="mode_stream">Sisemine heli</string>
+    <string name="mode_speech_desc">Salvesta oma häält või väliseid helisid.</string>
+    <string name="mode_stream_desc">Salvesta telefonis mängivat muusikat või heli.</string>
 
     <!-- Snackbar / Toast messages -->
     <string name="toast_saved">Salvestatud</string>
@@ -79,7 +79,7 @@
     <string name="msg_splitting">Tükeldamine vaikuse järgi…</string>
     <string name="msg_split_done">Tükeldatud %d segmendiks</string>
     <string name="msg_no_silence_gaps">Tükeldamiseks ei leitud vaikusepause</string>
-    <string name="msg_normalizing">Normaliseerimine…</string>
+    <string name="msg_normalizing">Heli ühtlustamine…</string>
     <string name="msg_detecting_silence">Vaikuse tuvastamine…</string>
     <string name="msg_no_silence_to_trim">Kärpimiseks ei tuvastatud vaikust</string>
     <string name="msg_no_significant_silence">Olulist vaikust kärpimiseks ei leitud</string>
@@ -126,6 +126,10 @@
     <string name="btn_backup">Varunda</string>
     <string name="btn_restore">Taasta</string>
     <string name="label_available_backups">Saadaolevad varundused</string>
+    <string name="msg_backup_creating">Varukoopia loomine…</string>
+    <string name="msg_backup_uploading">Üleslaadimine Google Drive’i…</string>
+    <string name="msg_backup_uploading_perc">Üleslaadimine: %d%%</string>
+    <string name="msg_backup_complete">Varundamine lõpetatud!</string>
 
     <!-- Settings -->
     <string name="settings_loop">Kordus</string>
@@ -276,10 +280,10 @@
     <string name="label_new_length">UUS PIKKUS</string>
     <string name="label_start">ALGUS</string>
     <string name="label_end">LÕPP</string>
-    <string name="label_fade_in">Sissehajutus</string>
-    <string name="label_fade_out">Väljahajutus</string>
-    <string name="label_silence">Vaikus</string>
-    <string name="label_normalize">Normaliseeri</string>
+    <string name="label_fade_in">Sujuv algus</string>
+    <string name="label_fade_out">Sujuv lõpp</string>
+    <string name="label_silence">Eemalda vaikus</string>
+    <string name="label_normalize">Ühtlusta heli</string>
     <string name="error_open_audio">Helifaili ei saanud avada</string>
     <string name="error_corrupted_format">Fail võib olla rikutud või mittetoetatud vormingus.</string>
     <string name="btn_save_copy">Salvesta koopia</string>
@@ -318,7 +322,7 @@
     <string name="a11y_select_theme">Vali %s teema</string>
     <string name="label_playing_indicator">Mängib • </string>
     <string name="a11y_menu">Menüü</string>
-    <string name="label_auto_trim_silence">Automaatne vaikuse kärpimine</string>
+    <string name="label_auto_trim_silence">Eemalda vaikus</string>
     <string name="a11y_clear">Tühjenda</string>
     <string name="label_note">Märge</string>
     <string name="prefix_speech">Kõne</string>
@@ -364,4 +368,87 @@
     <string name="title_storage">Salvestusruum</string>
     <string name="desc_public_storage">Salvesta failid avalikku Muusika kausta</string>
     <string name="btn_scan_now">Skanni kohe</string>
+
+    <!-- Help Hints -->
+    <string name="hint_balance_volume">Muudab vaiksed ja valjud osad salvestuses ühtlasemaks.</string>
+    <string name="hint_remove_silence">Lõikab automaatselt välja pikad vaiksed osad algusest ja lõpust.</string>
+    <string name="hint_smooth_fade">Lisab pehme helitugevuse ülemineku, et vältida järske paugatusi alguses või lõpus.</string>
+    <string name="hint_auto_split">Tükeldab salvestuse automaatselt eraldi lugudeks vaikusepauside järgi.</string>
+    <string name="nudge_try_playlist">Vihje: Proovi luua esitusloend, et neid koos harjutada!</string>
+
+    <string name="settings_privacy_title">Privaatsus ja andmed</string>
+    <string name="settings_privacy_policy">Privaatsuspoliitika</string>
+    <string name="settings_data_location">Andmete asukoht</string>
+    <string name="settings_data_location_desc">Kõik salvestused ja märkmed asuvad sinu seadmes või Google Drive'is (kui see on lubatud).</string>
+    <string name="settings_clear_data">Kustuta kõik andmed</string>
+    <string name="settings_clear_data_confirm">See kustutab JÄÄDAVALT kõik salvestused, märkmed ja esitusloendid. Seda ei saa tagasi võtta. Oled kindel?</string>
+
+    <string name="onboarding_welcome_title">Saavuta heliline täiuslikkus</string>
+    <string name="onboarding_welcome_desc">Harjuta keerulisi kohti korduvalt, kuni tulemus on perfektne. Sobib muusikutele, õpilastele ja teistele.</string>
+    <string name="onboarding_usecase_title">Milleks soovid rakendust kasutada?</string>
+    <string name="onboarding_usecase_music">Muusika ja instrumendid</string>
+    <string name="onboarding_usecase_student">Keeleõpe ja õpingud</string>
+    <string name="onboarding_usecase_podcaster">Podcastid ja sisu loome</string>
+    <string name="onboarding_usecase_general">Tavakasutus</string>
+    <string name="onboarding_aha_title">Hallake iga detaili</string>
+    <string name="onboarding_aha_desc">Vali osa helilainest, korda seda lõputult ja aeglusta tempot ilma kõrgust muutmata. Meisterlikkus sünnib detailides.</string>
+    <string name="onboarding_ready_title">Oled valmis!</string>
+    <string name="onboarding_ready_desc">Kõik on seadistatud. Sinu harjutamise seiklus algab nüüd!</string>
+
+    <string name="coach_goal_reached">Eesmärk täidetud!</string>
+    <string name="coach_goal_reached_desc">Oled sel nädalal harjutanud juba %s. Head tööd!</string>
+    <string name="coach_bonus_session">Lisa-sessioon</string>
+    <string name="coach_start_today">Alusta tänast sessiooni</string>
+    <string name="coach_continue_practicing">Jätka harjutamist</string>
+    <string name="coach_today_done">Täna tehtud %s. Veel %s eesmärgini.</string>
+    <string name="coach_per_day">~%d min/päevas eesmärgini jõudmiseks</string>
+    <string name="coach_streak_format">%d päeva seeria!</string>
+    <string name="coach_action_listen">Kuula %d min</string>
+    <string name="coach_action_add">Lisa %d min</string>
+    <string name="coach_start_listening">Alusta kuulamist</string>
+    
+    <!-- Aha Moment Nudges -->
+    <string name="aha_loop_title">Proovi kordust</string>
+    <string name="aha_loop_desc">Kordamine aitab meisterlikkust lihvida, mängides rasket segmenti lõputult seni, kuni see on täiuslik.</string>
+    <string name="aha_speed_title">Võta hoog maha</string>
+    <string name="aha_speed_desc">Kas kiirus käib üle jõu? Aeglusta tempot ilma helikõrgust muutmata, et kuulda iga detaili.</string>
+    <string name="btn_aha_try">Ma proovin!</string>
+    <string name="aha_loop_success">Esimene kordus! Nüüd harjutad nagu proff. 🔁</string>
+    <string name="aha_speed_success">Tempo muudetud! Iga detail loeb. ⏱️</string>
+
+    <string name="state_playing">Mängib…</string>
+
+    <!-- Upgrade / Pro -->
+    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_desc">Ava kõik võimalused ja meisterda oma helifaile ilma piiranguteta.</string>
+    <string name="upgrade_feature_unlimited">Piiramatu arv kategooriaid ja pleiliste</string>
+    <string name="upgrade_feature_cloud">Täielik Google Drive varundus ja taastamine</string>
+    <string name="upgrade_feature_processing">Täpsemad helitöötluse tööriistad</string>
+    <string name="upgrade_feature_coach">Smart Coach süvaanalüüs ja märkmed</string>
+    <string name="btn_restore_purchase">Taasta ostud</string>
+    <string name="label_free">TASUTA</string>
+    <string name="label_pro">PRO</string>
+    <string name="upgrade_success">Tere tulemast AudioLoop Pro kasutajaks!</string>
+    <string name="label_subscription_active">Tellimus aktiivne</string>
+    <string name="label_upgrade">Uuenda</string>
+    <string name="label_pro_benefit_summary">Piirangudeta. Professionaalsed tööriistad.</string>
+    <string name="msg_loading_offers">Google Play pakkumiste laadimine…</string>
+    <string name="msg_studio_saved">Stuudio: Salvestatud</string>
+    <string name="label_per_month"> / kuu</string>
+    <string name="label_per_year"> / aasta</string>
+    <string name="label_search_query_format">%1$s: %2$s</string>
+    <string name="label_this_week">sel nädalal</string>
+    <string name="label_smart_coach">NUTIKAS TREENER</string>
+    <string name="btn_view_details">Vaata detaile</string>
+    <string name="unit_min">min</string>
+    <string name="label_hour_short">t</string>
+    <string name="label_minute_short">m</string>
+    <string name="unit_m">m</string>
+    <string name="day_m">E</string>
+    <string name="day_t">T</string>
+    <string name="day_w">K</string>
+    <string name="day_th">N</string>
+    <string name="day_f">R</string>
+    <string name="day_s">L</string>
+    <string name="day_su">P</string>
 </resources>

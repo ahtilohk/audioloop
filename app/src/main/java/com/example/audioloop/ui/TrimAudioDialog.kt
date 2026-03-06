@@ -85,6 +85,8 @@ fun TrimAudioScreen(
     var fadeOutEnabled by remember { mutableStateOf(false) }
     var autoTrimSilence by remember { mutableStateOf(false) }
     var normalizeEnabled by remember { mutableStateOf(false) }
+    var helpHintText by remember { mutableStateOf<String?>(null) }
+    var helpHintTitle by remember { mutableStateOf<String?>(null) }
 
     fun resolvePreviewPosition(rawMs: Float): Long {
         val total = durationMs.toFloat()
@@ -852,6 +854,20 @@ fun TrimAudioScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(stringResource(R.string.label_fade_in), color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+                                        Icon(
+                                            imageVector = AppIcons.Info,
+                                            contentDescription = null,
+                                            tint = (if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clickable { 
+                                                    helpHintTitle = context.getString(R.string.label_fade_in)
+                                                    helpHintText = context.getString(R.string.hint_smooth_fade) 
+                                                }
+                                                .padding(6.dp)
+                                        )
+                                    }
                                 }
                                 // Fade Out toggle
                                 Box(
@@ -864,6 +880,20 @@ fun TrimAudioScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(stringResource(R.string.label_fade_out), color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+                                        Icon(
+                                            imageVector = AppIcons.Info,
+                                            contentDescription = null,
+                                            tint = (if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clickable { 
+                                                    helpHintTitle = context.getString(R.string.label_fade_out)
+                                                    helpHintText = context.getString(R.string.hint_smooth_fade) 
+                                                }
+                                                .padding(6.dp)
+                                        )
+                                    }
                                 }
                             }
                             Row(
@@ -881,6 +911,20 @@ fun TrimAudioScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(stringResource(R.string.label_silence), color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+                                        Icon(
+                                            imageVector = AppIcons.Info,
+                                            contentDescription = null,
+                                            tint = (if (autoTrimSilence) Color.White else Amber500).copy(alpha = 0.5f),
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clickable { 
+                                                    helpHintTitle = context.getString(R.string.label_silence)
+                                                    helpHintText = context.getString(R.string.hint_remove_silence) 
+                                                }
+                                                .padding(6.dp)
+                                        )
+                                    }
                                 }
                                 // Normalize toggle
                                 Box(
@@ -893,8 +937,43 @@ fun TrimAudioScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(stringResource(R.string.label_normalize), color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    
+                                    // Info icon for help
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+                                        Icon(
+                                            imageVector = AppIcons.Info,
+                                            contentDescription = null,
+                                            tint = (if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clickable { 
+                                                    helpHintTitle = context.getString(R.string.label_normalize)
+                                                    helpHintText = context.getString(R.string.hint_balance_volume) 
+                                                }
+                                                .padding(6.dp)
+                                        )
+                                    }
                                 }
                             }
+                        }
+
+                        // Help Hint Dialog
+                        if (helpHintText != null) {
+                            AlertDialog(
+                                onDismissRequest = { helpHintText = null; helpHintTitle = null },
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                title = {
+                                    Text(helpHintTitle ?: "", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                },
+                                text = {
+                                    Text(helpHintText ?: "", style = MaterialTheme.typography.bodyMedium)
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { helpHintText = null; helpHintTitle = null }) {
+                                        Text(stringResource(R.string.btn_got_it), color = themeColors.primary, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            )
                         }
 
                         // Row 4: Play & Reset Controls
