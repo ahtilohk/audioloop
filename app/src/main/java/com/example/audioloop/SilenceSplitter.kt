@@ -163,7 +163,7 @@ object SilenceSplitter {
      */
     suspend fun detectContentBounds(
         inputFile: File,
-        silenceThreshold: Int = 1500
+        silenceThreshold: Int = 2000
     ): Pair<Long, Long>? = withContext(Dispatchers.IO) {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
@@ -255,9 +255,9 @@ object SilenceSplitter {
             extractor.release()
 
             if (firstContentMs < 0 || lastContentMs < 0) return@withContext null
-            // Add small margin (50ms) to avoid cutting content edges
-            val safeStart = (firstContentMs - 50).coerceAtLeast(0)
-            val safeEnd = lastContentMs + 50
+            // Add small margin (20ms) to avoid cutting content edges
+            val safeStart = (firstContentMs - 20).coerceAtLeast(0)
+            val safeEnd = lastContentMs + 20
             Pair(safeStart, safeEnd)
         } catch (e: Exception) {
             e.printStackTrace()

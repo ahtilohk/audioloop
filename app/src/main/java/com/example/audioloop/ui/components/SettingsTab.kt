@@ -283,13 +283,13 @@ fun ColorThemeSelector(
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
                 .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             AppTheme.values().forEach { theme ->
                 val isSelected = currentTheme == theme
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp) // Larger touch targets
                         .clip(CircleShape)
                         .background(theme.palette.primary600)
                         .border(
@@ -306,10 +306,12 @@ fun ColorThemeSelector(
                     contentAlignment = Alignment.Center
                 ) {
                     if (isSelected) {
-                        Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
                     }
                 }
             }
+            // Add spacer at end to prevent the last item from being flush against the edge
+            Spacer(modifier = Modifier.width(16.dp))
         }
     }
 }

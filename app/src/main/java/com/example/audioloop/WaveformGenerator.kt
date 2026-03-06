@@ -133,21 +133,21 @@ object WaveformGenerator {
 
     private fun processOutputBuffer(buffer: ByteBuffer, info: MediaCodec.BufferInfo, list: ArrayList<Int>) {
         // PCM 16-bit: 2 bytes per sample (Little Endian)
-        val shortBuffer = buffer.asShortBuffer()
         val limit = info.size / 2
-
-        // Process in fixed-size windows (~50ms at 44.1kHz = 2205 samples)
-        // This ensures consistent resolution regardless of buffer size (WAV vs AAC)
+        var i = 0
         val windowSize = 2000
         val step = 4 // Sample every 4th sample within the window for speed
-
-        var i = 0
+        
         while (i < limit) {
             var peak = 0
             val windowEnd = minOf(i + windowSize, limit)
             for (j in i until windowEnd step step) {
-                val amp = kotlin.math.abs(shortBuffer.get(j).toInt())
-                if (amp > peak) peak = amp
+                // Respect buffer offset
+                val sampleIndex = info.offset + j * 2
+                if (sampleIndex + 1 < buffer.capacity()) {
+                    val amp = Math.abs(buffer.getShort(sampleIndex).toInt())
+                    if (amp > peak) peak = amp
+                }
             }
             list.add(peak)
             i = windowEnd

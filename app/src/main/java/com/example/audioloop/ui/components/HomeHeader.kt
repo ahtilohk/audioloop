@@ -76,6 +76,7 @@ fun HomeHeader(
 
             Surface(
                 onClick = onPlaylistClick,
+                modifier = Modifier.widthIn(min = 125.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = themeColors.primaryContainer.copy(alpha = 0.25f),
                 border = BorderStroke(1.2.dp, themeColors.primary.copy(alpha = 0.6f))
@@ -104,4 +105,3 @@ fun HomeHeader(
         }
     }
 }
-

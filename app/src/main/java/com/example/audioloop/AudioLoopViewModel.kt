@@ -697,16 +697,19 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun stopPlayingAndReset() {
-        stopPlaying()
-        _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
+        stopPlaying(true)
     }
 
     fun stopPlaying(endSession: Boolean = true) {
         audioService?.stopPlayback()
-        _uiState.update { it.copy(isPaused = false) }
+        _uiState.update { it.copy(
+            playingFileName = "",
+            isPaused = false,
+            currentlyPlayingPlaylistId = null,
+            shadowCountdownText = ""
+        ) }
         shadowingJob?.cancel()
         shadowingJob = null
-        _uiState.update { it.copy(shadowCountdownText = "") }
         if (endSession) onSessionEnd()
         if (::mediaSessionManager.isInitialized) {
             mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
