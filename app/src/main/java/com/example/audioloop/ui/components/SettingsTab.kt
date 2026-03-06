@@ -195,7 +195,10 @@ fun LanguageSelector(
                 "en" to "English", "et" to "Eesti", "es" to "Español", "fr" to "Français",
                 "de" to "Deutsch", "it" to "Italiano", "pt" to "Português", "ru" to "Русский",
                 "fi" to "Suomi", "sv" to "Svenska", "no" to "Norsk", "tr" to "Türkçe",
-                "uk" to "Українська", "ja" to "日本語", "ko" to "한국어"
+                "uk" to "Українська", "ja" to "日本語", "ko" to "한국어", "ar" to "العربية",
+                "bn" to "বাংলা", "da" to "Dansk", "fil" to "Filipino", "hi" to "हिन्दी",
+                "id" to "Bahasa Indonesia", "lt" to "Lietuvių", "lv" to "Latviešu", "nl" to "Nederlands",
+                "pl" to "Polski", "vi" to "Tiếng Việt", "zh" to "中文"
             )
 
             languages.forEach { (code, label) ->
