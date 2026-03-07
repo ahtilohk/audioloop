@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Chuẩn hóa thất bại</string>
     <string name="msg_fade_failed">Hiệu ứng mờ dần thất bại</string>
     <string name="msg_auto_trim_failed">Tự động cắt thất bại</string>
-    <string name="msg_playback_error">Lỗi phát lại: %d / %d</string>
+    <string name="msg_playback_error">Lỗi phát lại: %1$d / %2$d</string>
     <string name="msg_error_opening">Lỗi khi mở: %s</string>
     <string name="msg_playlist_empty">Danh sách phát trống hoặc thiếu tệp</string>
 

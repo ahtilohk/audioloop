@@ -94,7 +94,7 @@
     <string name="msg_normalization_failed">평준화 실패</string>
     <string name="msg_fade_failed">페이드 실패</string>
     <string name="msg_auto_trim_failed">자동 자르기 실패</string>
-    <string name="msg_playback_error">재생 오류: %d / %d</string>
+    <string name="msg_playback_error">재생 오류: %1$d / %2$d</string>
     <string name="msg_error_opening">파일 열기 오류: %s</string>
     <string name="msg_playlist_empty">재생 목록이 비어 있거나 파일이 없습니다</string>
 
@@ -394,7 +394,7 @@
     <string name="coach_bonus_session">보너스 세션</string>
     <string name="coach_start_today">오늘의 학습 시작</string>
     <string name="coach_continue_practicing">학습 계속하기</string>
-    <string name="coach_today_done">오늘 %s 학습했습니다. 목표까지 %s 남았습니다.</string>
+    <string name="coach_today_done">오늘 %1$s 학습했습니다. 목표까지 %2$s 남았습니다.</string>
     <string name="coach_per_day">목표 달성까지 일일 약 %d분 학습 권장</string>
     <string name="coach_streak_format">%d일 연속 학습 중!</string>
     <string name="coach_action_listen">%d분 듣기</string>

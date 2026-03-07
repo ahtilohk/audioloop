@@ -21,7 +21,7 @@
     <!-- Labels -->
     <string name="label_recording">Enregistrement en cours…</string>
     <string name="label_empty_title">Aucun enregistrement pour le moment</string>
-    <string name="label_empty_subtitle">Appuyez sur le bouton d'enregistrement ou importez un fichier audio.</string>
+    <string name="label_empty_subtitle">Appuyez sur le bouton d\'enregistrement ou importez un fichier audio.</string>
     <string name="label_no_matching_files">Aucun résultat trouvé</string>
     <string name="label_try_different_search">Essayez un autre terme de recherche</string>
     <string name="label_tap_to_select">Appuyez pour sélectionner</string>
@@ -42,7 +42,7 @@
     <string name="menu_split">Diviser automatiquement</string>
     <string name="menu_normalize">Équilibrer le volume</string>
     <string name="menu_auto_trim">Supprimer le silence</string>
-    <string name="menu_fade">Fondu d'entrée/sortie</string>
+    <string name="menu_fade">Fondu d\'entrée/sortie</string>
     <string name="menu_merge">Fusionner la sélection</string>
     <string name="menu_note">Modifier la note</string>
     <string name="menu_note_edit">Modifier la note</string>
@@ -69,11 +69,11 @@
     <string name="msg_imported">Importé : %s</string>
     <string name="msg_error_moving">Erreur lors du déplacement</string>
     <string name="msg_error_deleting">Erreur lors de la suppression</string>
-    <string name="msg_error_importing">Erreur lors de l'importation</string>
+    <string name="msg_error_importing">Erreur lors de l\'importation</string>
     <string name="msg_error_sharing">Erreur lors du partage : %s</string>
     <string name="msg_permission_granted">Permission accordée</string>
     <string name="msg_permission_denied">Permission refusée</string>
-    <string name="msg_permission_required">Permission requise pour l'enregistrement</string>
+    <string name="msg_permission_required">Permission requise pour l\'enregistrement</string>
     <string name="msg_splitting">Division par silence en cours…</string>
     <string name="msg_split_done">Divisé en %d segments</string>
     <string name="msg_no_silence_gaps">Aucun silence trouvé pour la division</string>
@@ -87,15 +87,15 @@
     <string name="msg_merge_failed">La fusion a échoué</string>
     <string name="msg_done">Terminé !</string>
     <string name="msg_processing_failed">Le traitement a échoué</string>
-    <string name="msg_access_denied">Accès refusé : fichier en cours d'utilisation</string>
+    <string name="msg_access_denied">Accès refusé : fichier en cours d\'utilisation</string>
     <string name="msg_error_finalizing">Erreur lors de la finalisation du fichier !</string>
     <string name="msg_studio_replaced">Studio : Original remplacé</string>
     <string name="msg_studio_saved_as">Studio : Enregistré sous %s</string>
     <string name="msg_normalization_failed">La normalisation a échoué</string>
     <string name="msg_fade_failed">Le fondu a échoué</string>
     <string name="msg_auto_trim_failed">Le découpage automatique a échoué</string>
-    <string name="msg_playback_error">Erreur de lecture : %d / %d</string>
-    <string name="msg_error_opening">Erreur lors de l'ouverture : %s</string>
+    <string name="msg_playback_error">Erreur de lecture : %1$d / %2$d</string>
+    <string name="msg_error_opening">Erreur lors de l\'ouverture : %s</string>
     <string name="msg_playlist_empty">La liste est vide ou fichiers manquants</string>
 
     <!-- Backup -->
@@ -139,9 +139,9 @@
 
     <!-- Welcome -->
     <string name="welcome_title">Bienvenue sur AudioLoop !</string>
-    <string name="welcome_modes_intro">AudioLoop prend en charge deux modes d'enregistrement :</string>
-    <string name="welcome_stream_note">Note sur l'enregistrement interne :</string>
-    <string name="welcome_stream_warning">Android nécessite une confirmation à chaque début d'enregistrement interne pour des raisons de sécurité.</string>
+    <string name="welcome_modes_intro">AudioLoop prend en charge deux modes d\'enregistrement :</string>
+    <string name="welcome_stream_note">Note sur l\'enregistrement interne :</string>
+    <string name="welcome_stream_warning">Android nécessite une confirmation à chaque début d\'enregistrement interne pour des raisons de sécurité.</string>
 
     <!-- Coach -->
     <string name="coach_smart_coach">Smart Coach</string>
@@ -163,12 +163,12 @@
     <string name="nav_settings">Paramètres</string>
 
     <!-- Coach Tab -->
-    <string name="coach_title">Votre Coach d'Entraînement</string>
+    <string name="coach_title">Votre Coach d\'Entraînement</string>
     <string name="coach_description">Suivez vos progrès, recevez des conseils et cultivez une routine de pratique.</string>
     <string name="coach_open_stats">Ouvrir les statistiques complètes</string>
 
     <!-- Record Tab -->
-    <string name="record_start">Démarrer l'enregistrement</string>
+    <string name="record_start">Démarrer l\'enregistrement</string>
     <string name="record_mode_format">Mode %s</string>
     <string name="record_recording">Enregistrement en cours…</string>
 
@@ -180,7 +180,7 @@
     <string name="library_playlist">PLAYLIST</string>
     <string name="library_merge_count">FUSIONNER %d</string>
     <string name="library_now_playing">EN LECTURE</string>
-    <string name="library_today_format">Aujourd'hui %s</string>
+    <string name="library_today_format">Aujourd\'hui %s</string>
     <string name="library_tracks_count">%d pistes</string>
     <string name="library_shuffle">Aléatoire</string>
     <string name="library_gap_format">pause %ds</string>
@@ -226,7 +226,7 @@
     <string name="a11y_manage_categories">Gérer les catégories</string>
     <string name="a11y_record_speech">Enregistrer voix</string>
     <string name="a11y_record_stream">Enregistrer audio interne</string>
-    <string name="a11y_stop_recording">Arrêter l'enregistrement</string>
+    <string name="a11y_stop_recording">Arrêter l\'enregistrement</string>
     <string name="a11y_import_file">Importer fichier audio</string>
     <string name="a11y_play_selected">Lire les fichiers sélectionnés</string>
     <string name="a11y_playlist">Créer playlist à partir de la sélection</string>
@@ -245,11 +245,11 @@
     <string name="settings_pause_duration">Durée de pause :</string>
     <string name="settings_pause_auto">Auto</string>
     <string name="settings_sleep_off">Désactivé</string>
-    <string name="settings_sleep_stops_in">S'arrête dans %s</string>
+    <string name="settings_sleep_stops_in">S\'arrête dans %s</string>
     <string name="settings_speed_label">Vitesse :</string>
     <string name="settings_listen_repeat_label">Écouter et Répéter :</string>
     <string name="settings_sleep_timer_label">Minuteur de sommeil :</string>
-    <string name="settings_language_label">Langue de l'app :</string>
+    <string name="settings_language_label">Langue de l\'app :</string>
 
     <string name="dialog_delete_playlist_title">Supprimer la liste ?</string>
     <string name="dialog_delete_playlist_confirm">Supprimer \"%s\" ? Cette opération est irréversible.</string>
@@ -265,7 +265,7 @@
     <string name="label_no_files_category">Aucun fichier dans cette catégorie</string>
     <string name="label_select">Choisir</string>
     <string name="label_add_count">Add %d</string>
-    <string name="title_trim_audio">Couper l'Audio</string>
+    <string name="title_trim_audio">Couper l\'Audio</string>
     <string name="label_studio_editor">Éditeur Studio</string>
     <string name="label_keep">Garder</string>
     <string name="label_cut">Couper</string>
@@ -273,11 +273,11 @@
     <string name="label_new_length">NOUVELLE DURÉE</string>
     <string name="label_start">DÉBUT</string>
     <string name="label_end">FIN</string>
-    <string name="label_fade_in">Fondu d'entrée</string>
+    <string name="label_fade_in">Fondu d\'entrée</string>
     <string name="label_fade_out">Fondu de sortie</string>
     <string name="label_silence">Retirer silences</string>
     <string name="label_normalize">Équilibrer le volume</string>
-    <string name="error_open_audio">Impossible d'ouvrir le fichier</string>
+    <string name="error_open_audio">Impossible d\'ouvrir le fichier</string>
     <string name="error_corrupted_format">Le fichier peut être corrompu ou dans un format non supporté.</string>
     <string name="btn_save_copy">Sauvegarder copie</string>
     <string name="btn_replace_original">Remplacer original</string>
@@ -303,7 +303,7 @@
     <string name="label_tracks_header">PISTES</string>
     <string name="label_no_tracks">Aucune piste ajoutée</string>
     <string name="a11y_remove">Retirer</string>
-    <string name="a11y_start_recording">Commencer l'enregistrement</string>
+    <string name="a11y_start_recording">Commencer l\'enregistrement</string>
     <string name="a11y_drag_reorder">Glisser pour réorganiser</string>
     <string name="a11y_playing">Lecture en cours</string>
     <string name="a11y_paused">En pause</string>
@@ -363,10 +363,10 @@
     <string name="btn_scan_now">Scanner maintenant</string>
 
     <!-- Help Hints -->
-    <string name="hint_balance_volume">Égalise les parties faibles et fortes de l'enregistrement.</string>
+    <string name="hint_balance_volume">Égalise les parties faibles et fortes de l\'enregistrement.</string>
     <string name="hint_remove_silence">Supprime les longs silences du début et de la fin.</string>
     <string name="hint_smooth_fade">Ajoute une transition douce pour éviter les bruits secs.</string>
-    <string name="hint_auto_split">Découpe l'enregistrement en pistes via les silences.</string>
+    <string name="hint_auto_split">Découpe l\'enregistrement en pistes via les silences.</string>
     <string name="nudge_try_playlist">Conseil : Créez une liste pour étudier ceci ensemble !</string>
 
     <string name="settings_privacy_title">Confidentialité &amp; Données</string>
@@ -377,8 +377,8 @@
     <string name="settings_clear_data_confirm">Effacera DÉFINITIVEMENT vos fichiers. Pas de retour en arrière possible. Sûr ?</string>
 
     <string name="onboarding_welcome_title">Maîtrisez chaque segment</string>
-    <string name="onboarding_welcome_desc">Pratiquez des segments difficiles en boucle jusqu'au succès. Pour musique, langues, et plus.</string>
-    <string name="onboarding_usecase_title">Utilisation prévue de l'app ?</string>
+    <string name="onboarding_welcome_desc">Pratiquez des segments difficiles en boucle jusqu\'au succès. Pour musique, langues, et plus.</string>
+    <string name="onboarding_usecase_title">Utilisation prévue de l\'app ?</string>
     <string name="onboarding_usecase_music">Musique &amp; Instruments</string>
     <string name="onboarding_usecase_student">Langues &amp; Études</string>
     <string name="onboarding_usecase_podcaster">Podcasts &amp; Contenu</string>
@@ -394,7 +394,7 @@
     <string name="coach_bonus_session">Session bonus</string>
     <string name="coach_start_today">Commencer session du jour</string>
     <string name="coach_continue_practicing">Poursuivre pratique</string>
-    <string name="coach_today_done">%s fait aujourd'hui. Faltan %s pour votre objectif.</string>
+    <string name="coach_today_done">%1$s fait aujourd\'hui. Faltan %2$s pour votre objectif.</string>
     <string name="coach_per_day">~%d min/jour pour votre objectif</string>
     <string name="coach_streak_format">Série de %d jours !</string>
     <string name="coach_action_listen">Écouter %d min</string>
@@ -406,7 +406,7 @@
     <string name="aha_loop_desc">Boucler vous aide à dominer les passages durs par répétition.</string>
     <string name="aha_speed_title">Doucement vers le succès</string>
     <string name="aha_speed_desc">Trop vite ? Baissez la vitesse sans changer la tonalité pour tout entendre.</string>
-    <string name="btn_aha_try">J'essaie !</string>
+    <string name="btn_aha_try">J\'essaie !</string>
     <string name="aha_loop_success">Première boucle ! Pratique de pro. 🔁</string>
     <string name="aha_speed_success">Vitesse ajustée ! Chaque détail compte. ⏱️</string>
 
@@ -418,7 +418,7 @@
     <string name="upgrade_pro_desc">Débloquez tout sans limites.</string>
     <string name="upgrade_feature_unlimited">Catégories et listes illimitées</string>
     <string name="upgrade_feature_cloud">Sauvegarde et restau totale Google Drive</string>
-    <string name="upgrade_feature_processing">Outils techniques d'édition</string>
+    <string name="upgrade_feature_processing">Outils techniques d\'édition</string>
     <string name="upgrade_feature_coach">Données avancées Coach</string>
     <string name="btn_restore_purchase">Restaurer les achats</string>
     <string name="label_free">GRATUIT</string>

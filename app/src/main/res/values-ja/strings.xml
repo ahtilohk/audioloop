@@ -94,7 +94,7 @@
     <string name="msg_normalization_failed">均一化に失敗しました</string>
     <string name="msg_fade_failed">フェードに失敗しました</string>
     <string name="msg_auto_trim_failed">自動カットに失敗しました</string>
-    <string name="msg_playback_error">再生エラー: %d / %d</string>
+    <string name="msg_playback_error">再生エラー: %1$d / %2$d</string>
     <string name="msg_error_opening">ファイルを開けませんでした: %s</string>
     <string name="msg_playlist_empty">プレイリストが空か、ファイルが見つかりません</string>
 
@@ -394,7 +394,7 @@
     <string name="coach_bonus_session">ボーナス・セッション</string>
     <string name="coach_start_today">今日の練習を開始</string>
     <string name="coach_continue_practicing">練習を続ける</string>
-    <string name="coach_today_done">今日は %s 完了しました。目標まであと %s です。</string>
+    <string name="coach_today_done">今日は %1$s 完了しました。目標まであと %2$s です。</string>
     <string name="coach_per_day">目標達成まであと1日約 %d分必要です</string>
     <string name="coach_streak_format">%d日間連続達成中！</string>
     <string name="coach_action_listen">%d分リスニング</string>

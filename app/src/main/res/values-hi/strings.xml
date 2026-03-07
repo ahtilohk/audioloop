@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">नॉर्मलाइज़ेशन विफल</string>
     <string name="msg_fade_failed">फ़ेड विफल</string>
     <string name="msg_auto_trim_failed">ऑटो-ट्रिम विफल</string>
-    <string name="msg_playback_error">प्लेबैक त्रुटि: %d / %d</string>
+    <string name="msg_playback_error">प्लेबैक त्रुटि: %1$d / %2$d</string>
     <string name="msg_error_opening">फ़ाइल खोलने में त्रुटि: %s</string>
     <string name="msg_playlist_empty">प्लेलिस्ट खाली है या फ़ाइलें गायब हैं</string>
 

@@ -98,7 +98,7 @@
     <string name="msg_normalization_failed">Normaliseerimine ebaõnnestus</string>
     <string name="msg_fade_failed">Hajutus ebaõnnestus</string>
     <string name="msg_auto_trim_failed">Automaatne kärpimine ebaõnnestus</string>
-    <string name="msg_playback_error">Esitusviga: %d / %d</string>
+    <string name="msg_playback_error">Esitusviga: %1$d / %2$d</string>
     <string name="msg_error_opening">Viga faili avamisel: %s</string>
     <string name="msg_playlist_empty">Esitusloend on tühi või failid puuduvad</string>
 
@@ -381,7 +381,7 @@
     <string name="settings_privacy_title">Privaatsus ja andmed</string>
     <string name="settings_privacy_policy">Privaatsuspoliitika</string>
     <string name="settings_data_location">Andmete asukoht</string>
-    <string name="settings_data_location_desc">Kõik salvestused ja märkmed asuvad sinu seadmes või Google Drive'is (kui see on lubatud).</string>
+    <string name="settings_data_location_desc">Kõik salvestused ja märkmed asuvad sinu seadmes või Google Drive\'is (kui see on lubatud).</string>
     <string name="settings_clear_data">Kustuta kõik andmed</string>
     <string name="settings_clear_data_confirm">See kustutab JÄÄDAVALT kõik salvestused, märkmed ja esitusloendid. Seda ei saa tagasi võtta. Oled kindel?</string>
 
@@ -402,7 +402,7 @@
     <string name="coach_bonus_session">Lisa-sessioon</string>
     <string name="coach_start_today">Alusta tänast sessiooni</string>
     <string name="coach_continue_practicing">Jätka harjutamist</string>
-    <string name="coach_today_done">Täna tehtud %s. Veel %s eesmärgini.</string>
+    <string name="coach_today_done">Täna tehtud %1$s. Veel %2$s eesmärgini.</string>
     <string name="coach_per_day">~%d min/päevas eesmärgini jõudmiseks</string>
     <string name="coach_streak_format">%d päeva seeria!</string>
     <string name="coach_action_listen">Kuula %d min</string>

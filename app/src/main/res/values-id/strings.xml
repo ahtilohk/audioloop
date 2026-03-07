@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Normalisasi gagal</string>
     <string name="msg_fade_failed">Pudaran gagal</string>
     <string name="msg_auto_trim_failed">Trim otomatis gagal</string>
-    <string name="msg_playback_error">Error pemutaran: %d / %d</string>
+    <string name="msg_playback_error">Error pemutaran: %1$d / %2$d</string>
     <string name="msg_error_opening">Error saat membuka: %s</string>
     <string name="msg_playlist_empty">Daftar putar kosong atau file hilang</string>
 

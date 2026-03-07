@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Normalizasyon başarısız</string>
     <string name="msg_fade_failed">Efekt başarısız</string>
     <string name="msg_auto_trim_failed">Otomatik silme başarısız</string>
-    <string name="msg_playback_error">Oynatma hatası: %d / %d</string>
+    <string name="msg_playback_error">Oynatma hatası: %1$d / %2$d</string>
     <string name="msg_error_opening">Açılırken hata: %s</string>
     <string name="msg_playlist_empty">Çalma listesi boş veya dosyalar eksik</string>
 

@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Normalisatie mislukt</string>
     <string name="msg_fade_failed">Fade mislukt</string>
     <string name="msg_auto_trim_failed">Automatisch trimmen mislukt</string>
-    <string name="msg_playback_error">Afspeelfout: %d / %d</string>
+    <string name="msg_playback_error">Afspeelfout: %1$d / %2$d</string>
     <string name="msg_error_opening">Fout bij openen bestand: %s</string>
     <string name="msg_playlist_empty">Afspeellijst is leeg of bestanden ontbreken</string>
 

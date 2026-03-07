@@ -94,7 +94,7 @@
     <string name="msg_normalization_failed">Fallo en normalización</string>
     <string name="msg_fade_failed">Fallo en atenuación</string>
     <string name="msg_auto_trim_failed">Fallo en recorte automático</string>
-    <string name="msg_playback_error">Error de reproducción: %d / %d</string>
+    <string name="msg_playback_error">Error de reproducción: %1$d / %2$d</string>
     <string name="msg_error_opening">Error al abrir: %s</string>
     <string name="msg_playlist_empty">Lista vacía o faltan archivos</string>
 
@@ -394,7 +394,7 @@
     <string name="coach_bonus_session">Sesión extra</string>
     <string name="coach_start_today">Empezar sesión de hoy</string>
     <string name="coach_continue_practicing">Seguir practicando</string>
-    <string name="coach_today_done">%s hecho hoy. Faltan %s para tu meta.</string>
+    <string name="coach_today_done">%1$s hecho hoy. Faltan %2$s para tu meta.</string>
     <string name="coach_per_day">~%d min/día para lograr tu meta</string>
     <string name="coach_streak_format">¡Racha de %d días!</string>
     <string name="coach_action_listen">Escucha %d min</string>

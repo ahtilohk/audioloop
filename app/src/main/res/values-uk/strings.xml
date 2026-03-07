@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Помилка нормалізації</string>
     <string name="msg_fade_failed">Помилка згасання</string>
     <string name="msg_auto_trim_failed">Помилка авто-обрізки</string>
-    <string name="msg_playback_error">Помилка відтворення: %d / %d</string>
+    <string name="msg_playback_error">Помилка відтворення: %1$d / %2$d</string>
     <string name="msg_error_opening">Помилка відкриття: %s</string>
     <string name="msg_playlist_empty">Плейлист порожній або файли відсутні</string>
 

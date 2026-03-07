@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Normalizuoti nepavyko</string>
     <string name="msg_fade_failed">Išblukimas nepavyko</string>
     <string name="msg_auto_trim_failed">Auto-apkarpymas nepavyko</string>
-    <string name="msg_playback_error">Atkūrimo klaida: %d / %d</string>
+    <string name="msg_playback_error">Atkūrimo klaida: %1$d / %2$d</string>
     <string name="msg_error_opening">Klaida atidarant: %s</string>
     <string name="msg_playlist_empty">Grojaraštis tuščias arba trūksta failų</string>
 

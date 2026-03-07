@@ -98,7 +98,7 @@
     <string name="msg_normalization_failed">Normalization failed</string>
     <string name="msg_fade_failed">Fade failed</string>
     <string name="msg_auto_trim_failed">Auto-trim failed</string>
-    <string name="msg_playback_error">Playback error: %d / %d</string>
+    <string name="msg_playback_error">Playback error: %1$d / %2$d</string>
     <string name="msg_error_opening">Error opening file: %s</string>
     <string name="msg_playlist_empty">Playlist is empty or files missing</string>
 
@@ -412,7 +412,7 @@
     <string name="coach_bonus_session">Bonus session</string>
     <string name="coach_start_today">Start today\'s session</string>
     <string name="coach_continue_practicing">Continue practicing</string>
-    <string name="coach_today_done">%s done today. %s left to reach your goal.</string>
+    <string name="coach_today_done">%1$s done today. %2$s left to reach your goal.</string>
     <string name="coach_per_day">~%d min/day to reach your goal</string>
     <string name="coach_streak_format">%d day streak!</string>
     <string name="coach_action_listen">Listen %d min</string>

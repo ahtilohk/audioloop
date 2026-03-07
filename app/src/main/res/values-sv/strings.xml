@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Normalisering misslyckades</string>
     <string name="msg_fade_failed">Toningen misslyckades</string>
     <string name="msg_auto_trim_failed">Auto-trimning misslyckades</string>
-    <string name="msg_playback_error">Uppspelningsfel: %d / %d</string>
+    <string name="msg_playback_error">Uppspelningsfel: %1$d / %2$d</string>
     <string name="msg_error_opening">Fel vid öppning: %s</string>
     <string name="msg_playlist_empty">Spellistan är tom eller filer saknas</string>
 

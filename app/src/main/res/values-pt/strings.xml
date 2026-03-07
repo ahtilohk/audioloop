@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Falha na normalização</string>
     <string name="msg_fade_failed">Falha na transição</string>
     <string name="msg_auto_trim_failed">Falha no trim automático</string>
-    <string name="msg_playback_error">Erro de reprodução: %d / %d</string>
+    <string name="msg_playback_error">Erro de reprodução: %1$d / %2$d</string>
     <string name="msg_error_opening">Erro ao abrir: %s</string>
     <string name="msg_playlist_empty">Lista vazia ou arquivos ausentes</string>
 

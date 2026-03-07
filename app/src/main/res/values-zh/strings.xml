@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">标准化失败</string>
     <string name="msg_fade_failed">淡入淡出失败</string>
     <string name="msg_auto_trim_failed">自动裁剪失败</string>
-    <string name="msg_playback_error">播放错误：%d / %d</string>
+    <string name="msg_playback_error">播放错误：%1$d / %2$d</string>
     <string name="msg_error_opening">打开文件出错：%s</string>
     <string name="msg_playlist_empty">播放列表为空或文件丢失</string>
 

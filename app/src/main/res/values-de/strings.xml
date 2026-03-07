@@ -93,7 +93,7 @@
     <string name="msg_normalization_failed">Normalisierung fehlgeschlagen</string>
     <string name="msg_fade_failed">Blende fehlgeschlagen</string>
     <string name="msg_auto_trim_failed">Automatisches Kürzen fehlgeschlagen</string>
-    <string name="msg_playback_error">Wiedergabefehler: %d / %d</string>
+    <string name="msg_playback_error">Wiedergabefehler: %1$d / %2$d</string>
     <string name="msg_error_opening">Fehler beim Öffnen: %s</string>
     <string name="msg_playlist_empty">Playlist leer oder Dateien fehlen</string>
 
@@ -393,7 +393,7 @@
     <string name="coach_bonus_session">Zusatz-Sitzung</string>
     <string name="coach_start_today">Heutige Sitzung starten</string>
     <string name="coach_continue_practicing">Weiter üben</string>
-    <string name="coach_today_done">%s heute geschafft. Noch %s bis zum Ziel.</string>
+    <string name="coach_today_done">%1$s heute geschafft. Noch %2$s bis zum Ziel.</string>
     <string name="coach_per_day">~%d Min./Tag bis zum Wochenziel</string>
     <string name="coach_streak_format">%d-Tage-Serie!</string>
     <string name="coach_action_listen">%d Min. hören</string>

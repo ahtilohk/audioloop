@@ -87,7 +87,7 @@
     <string name="msg_normalization_failed">Nag-fail ang normalization</string>
     <string name="msg_fade_failed">Nag-fail ang fade</string>
     <string name="msg_auto_trim_failed">Nag-fail ang auto-trim</string>
-    <string name="msg_playback_error">Error sa pag-play: %d / %d</string>
+    <string name="msg_playback_error">Error sa pag-play: %1$d / %2$d</string>
     <string name="msg_error_opening">Error sa pagbukas ng file: %s</string>
     <string name="msg_playlist_empty">Walang laman ang playlist o may nawawalang mga file</string>
 
