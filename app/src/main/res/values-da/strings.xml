@@ -232,7 +232,7 @@
     <string name="settings_language_label">App-sprog:</string>
     <string name="dialog_delete_playlist_title">Slet playliste?</string>
     <string name="dialog_delete_playlist_confirm">Slette \"%s\"? Dette kan ikke fortrydes.</string>
-    <string name="label_playlists_count">%d playliste%s</string>
+    <string name="label_playlists_count">%1d playliste%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d spor</string>
     <string name="label_playlist_no_playlists">Ingen playlister endnu</string>

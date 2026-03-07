@@ -232,7 +232,7 @@
     <string name="settings_language_label">Idioma do app:</string>
     <string name="dialog_delete_playlist_title">Excluir lista?</string>
     <string name="dialog_delete_playlist_confirm">Excluir \"%s\"? Não pode ser desfeito.</string>
-    <string name="label_playlists_count">%d lista%s de reprodução</string>
+    <string name="label_playlists_count">%1d lista%2s de reprodução</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d faixas</string>
     <string name="label_playlist_no_playlists">Sem listas ainda</string>

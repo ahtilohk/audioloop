@@ -253,7 +253,7 @@
 
     <string name="dialog_delete_playlist_title">¿Eliminar lista?</string>
     <string name="dialog_delete_playlist_confirm">¿Eliminar \"%s\"? No se puede deshacer.</string>
-    <string name="label_playlists_count">%d lista%s</string>
+    <string name="label_playlists_count">%1d lista%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d pistas</string>
     <string name="label_playlist_no_playlists">Sin listas aún</string>

@@ -1,5 +1,6 @@
 package com.example.audioloop.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -39,6 +40,7 @@ import com.example.audioloop.Playlist
 import com.example.audioloop.RecordingItem
 import com.example.audioloop.SortMode
 import com.example.audioloop.ui.FileItem
+import com.example.audioloop.ui.PracticeProgressCard
 import com.example.audioloop.ui.formatSessionTime
 import com.example.audioloop.ui.theme.Red500
 import com.example.audioloop.ui.theme.LocalSpacing
@@ -52,7 +54,8 @@ fun LibraryTab(
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
     isWide: Boolean = false,
-    onImportClick: () -> Unit
+    onImportClick: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val recordingItems = viewModel.getFilteredItems()
     val themeColors = uiState.currentTheme.palette
@@ -93,7 +96,7 @@ fun LibraryTab(
                     recommendation = uiState.practiceRecommendation,
                     goalProgress = uiState.practiceGoalProgress,
                     themeColors = themeColors,
-                    onStartRecommended = { viewModel.startRecommendedSession(it) },
+                    onStartRecommended = { suggested -> viewModel.startRecommendedSession(suggested) },
                     onViewDetails = { viewModel.setShowPracticeStats(true) },
                     isExpanded = uiState.isSmartCoachExpanded,
                     onToggleExpanded = { viewModel.toggleSmartCoach() },
@@ -120,7 +123,7 @@ fun LibraryTab(
         // Main File List with Drag & Drop
         Box(modifier = Modifier.weight(1f)) {
             if (uiRecordingItems.isEmpty()) {
-                EmptyLibraryState(uiState.searchQuery.isNotEmpty(), onImportClick)
+                EmptyLibraryState(uiState.searchQuery.isNotEmpty(), viewModel, onImportClick, onNavigate)
             } else {
                 DraggableFileList(uiState, viewModel, uiRecordingItems)
             }
@@ -565,7 +568,7 @@ private fun Pill(text: String, color: Color, bgColor: Color = MaterialTheme.colo
 }
 
 @Composable
-private fun EmptyLibraryState(isSearching: Boolean, onImportClick: () -> Unit) {
+private fun EmptyLibraryState(isSearching: Boolean, viewModel: AudioLoopViewModel, onImportClick: () -> Unit, onNavigate: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -601,7 +604,7 @@ private fun EmptyLibraryState(isSearching: Boolean, onImportClick: () -> Unit) {
             ) {
                 // Primary Action: Record
                 Button(
-                    onClick = { viewModel.setSelectedTab(1) }, // Switch to Record tab
+                    onClick = { onNavigate(com.example.audioloop.ui.navigation.Screen.Record.route) }, // Switch to Record tab
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)

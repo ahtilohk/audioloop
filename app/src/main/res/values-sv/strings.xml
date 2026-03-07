@@ -232,7 +232,7 @@
     <string name="settings_language_label">Appens språk:</string>
     <string name="dialog_delete_playlist_title">Radera spellista?</string>
     <string name="dialog_delete_playlist_confirm">Radera \"%s\"? Detta kan inte ångras.</string>
-    <string name="label_playlists_count">%d spellist%s</string>
+    <string name="label_playlists_count">%1d spellist%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d spår</string>
     <string name="label_playlist_no_playlists">Inga spellistor än</string>

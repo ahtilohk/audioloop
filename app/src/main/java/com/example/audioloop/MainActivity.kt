@@ -154,6 +154,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)

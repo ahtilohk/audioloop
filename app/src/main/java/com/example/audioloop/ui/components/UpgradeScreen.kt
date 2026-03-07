@@ -46,17 +46,17 @@ fun UpgradeSheet(
 
     val context = LocalContext.current
     val activity = context as? Activity
+    val scrollState = rememberScrollState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Zinc950,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Zinc700) },
-        windowInsets = WindowInsets(0)
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Zinc700) }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -148,7 +148,7 @@ fun UpgradeSheet(
                     CircularProgressIndicator(color = themeColors.primary, modifier = Modifier.size(32.dp))
                     Text(stringResource(R.string.msg_loading_offers), color = Zinc500, modifier = Modifier.padding(top = 16.dp), fontSize = 12.sp)
                 } else {
-                    products.sortedBy { it.productId }.forEach { product ->
+                    for (product in products.sortedBy { it.productId }) {
                         val price = product.subscriptionOfferDetails?.getOrNull(0)?.pricingPhases?.pricingPhaseList?.getOrNull(0)?.formattedPrice
                             ?: product.oneTimePurchaseOfferDetails?.formattedPrice
                             ?: "---"

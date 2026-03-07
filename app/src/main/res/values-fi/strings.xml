@@ -232,7 +232,7 @@
     <string name="settings_language_label">Sovelluksen kieli:</string>
     <string name="dialog_delete_playlist_title">Poistetaanko soittolista?</string>
     <string name="dialog_delete_playlist_confirm">Poistetaanko \"%s\"? Tätä ei voi peruuttaa.</string>
-    <string name="label_playlists_count">%d soittolista%s</string>
+    <string name="label_playlists_count">%1d soittolista%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d raitaa</string>
     <string name="label_playlist_no_playlists">Ei soittolistoja vielä</string>

@@ -1,0 +1,48 @@
+﻿> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdDebug UP-TO-DATE
+> Task :app:processDebugGoogleServices UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:kspDebugKotlin
+> Task :app:compileDebugKotlin
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AudioLoopViewModel.kt:1190:37 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AudioService.kt:368:25 'fun stopForeground(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/AudioService.kt:454:9 'fun stopForeground(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:5:8 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:6:8 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:7:8 'class GoogleSignInClient : GoogleApi<GoogleSignInOptions!>' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:8:8 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:40:26 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:45:28 'class GoogleSignInClient : GoogleApi<GoogleSignInOptions!>' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:46:19 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:46:47 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:50:16 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:55:33 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:57:39 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:59:34 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:64:19 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/DriveBackupManager.kt:78:31 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/MainActivity.kt:106:62 'class GoogleSignIn : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/MainActivity.kt:347:41 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/MainActivity.kt:348:50 'fun <T : Parcelable!> getParcelableArrayListExtra(p0: String!): ArrayList<T!>?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/MediaSessionManager.kt:75:36 'static field FLAG_HANDLES_MEDIA_BUTTONS: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/MediaSessionManager.kt:76:36 'static field FLAG_HANDLES_TRANSPORT_CONTROLS: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/NetworkHelper.kt:67:45 'fun buffer(): Buffer' is deprecated. moved to val: use getBuffer() instead.
+
+BUILD SUCCESSFUL in 40s
+19 actionable tasks: 2 executed, 17 up-to-date

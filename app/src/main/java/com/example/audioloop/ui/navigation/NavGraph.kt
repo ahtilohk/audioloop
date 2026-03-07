@@ -33,7 +33,7 @@ fun SetupNavGraph(
     ) {
         composable(Screen.Library.route) {
             // We might need to wrap current tabs in their own composables if they aren't already
-            LibraryTab(uiState, viewModel, onImportClick = {})
+            LibraryTab(uiState, viewModel, onImportClick = {}, onNavigate = { navController.navigate(it) })
         }
         composable(Screen.Record.route) {
             RecordTab(uiState, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)

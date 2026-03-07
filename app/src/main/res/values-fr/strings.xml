@@ -253,7 +253,7 @@
 
     <string name="dialog_delete_playlist_title">Supprimer la liste ?</string>
     <string name="dialog_delete_playlist_confirm">Supprimer \"%s\" ? Cette opération est irréversible.</string>
-    <string name="label_playlists_count">%d liste%s</string>
+    <string name="label_playlists_count">%1d liste%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d pistes</string>
     <string name="label_playlist_no_playlists">Pas encore de listes</string>

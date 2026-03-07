@@ -262,7 +262,7 @@
     <string name="settings_language_label">Rakenduse keel:</string>
     <string name="dialog_delete_playlist_title">Kustutada esitusloend?</string>
     <string name="dialog_delete_playlist_confirm">Kustutada \"%s\"? Seda ei saa tagasi võtta.</string>
-    <string name="label_playlists_count">%d esitusloend%s</string>
+    <string name="label_playlists_count">%1d esitusloend%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d lugu</string>
     <string name="label_playlist_no_playlists">Esitusloendeid veel pole</string>

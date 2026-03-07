@@ -252,7 +252,7 @@
 
     <string name="dialog_delete_playlist_title">Playlist löschen?</string>
     <string name="dialog_delete_playlist_confirm">Möchten Sie \"%s\" löschen? Dies kann nicht rückgängig gemacht werden.</string>
-    <string name="label_playlists_count">%d Playlist%s</string>
+    <string name="label_playlists_count">%1d Playlist%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d Titel</string>
     <string name="label_playlist_no_playlists">Noch keine Playlists</string>

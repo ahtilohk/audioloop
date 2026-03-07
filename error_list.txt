@@ -1,0 +1,13 @@
+﻿
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/M
+ainActivity.kt:202:34 This material3-window-size-class API is experimental and is likely to change or to be rem
+oved in the future.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/u
+i/FileItem.kt:506:49 Unresolved reference 'ProgressBar'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/u
+i/components/LibraryTab.kt:606:43 Unresolved reference 'setSelectedTab'.
+e: file:///C:/Users/kasutaja/Documents/Ahti/AndroidProjects/audioloop/app/src/main/java/com/example/audioloop/u
+i/components/SettingsTab.kt:186:35 Unresolved reference 'OpenInNew'.
+FAILURE: Build failed with an exception.
+
+

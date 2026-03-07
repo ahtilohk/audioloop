@@ -84,9 +84,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     private var lastDeletedWaveFile: File? = null
     private var lastDeletedOriginalPath: File? = null
     private var lastDeletedCategory: String? = null
-    private lateinit var playlistManager: PlaylistManager
-    lateinit var driveBackupManager: DriveBackupManager
-        private set
 
     private var shadowingJob: Job? = null
     private var sleepTimerJob: Job? = null
@@ -957,7 +954,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             _uiState.update { it.copy(isLoading = false) }
                             if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
                                 withContext(Dispatchers.Main) {
-                                    if (replace) {
                                     if (replace) {
                                         waveformCache.remove(file.absolutePath)
                                         getWaveformFile(file).delete()

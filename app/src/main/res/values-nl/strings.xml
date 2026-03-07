@@ -232,7 +232,7 @@
     <string name="settings_language_label">App-taal:</string>
     <string name="dialog_delete_playlist_title">Afspeellijst verwijderen?</string>
     <string name="dialog_delete_playlist_confirm">\"%s\" verwijderen? Dit kan niet ongedaan worden gemaakt.</string>
-    <string name="label_playlists_count">%d afspeellijst%s</string>
+    <string name="label_playlists_count">%1d afspeellijst%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d tracks</string>
     <string name="label_playlist_no_playlists">Nog geen afspeellijsten</string>

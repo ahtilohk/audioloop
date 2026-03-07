@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.audioloop.AppIcons
 import com.example.audioloop.CoachEngine
+import com.example.audioloop.R
 import com.example.audioloop.ui.theme.*
 
 @Composable
@@ -218,8 +219,9 @@ private fun SmartCoachDialog(
                 Spacer(Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
+                    val context = LocalContext.current
                     Text(
-                        "${formatMinutes(weeklyMinutes)} / ${formatMinutes(weeklyGoal.toFloat())}",
+                        "${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold

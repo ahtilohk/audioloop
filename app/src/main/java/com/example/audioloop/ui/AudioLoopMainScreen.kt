@@ -118,7 +118,7 @@ fun AudioLoopMainScreen(
             Box(modifier = Modifier.weight(1f)) {
                 NavHost(navController = navController, startDestination = Screen.Library.route) {
                     composable(Screen.Library.route) {
-                        LibraryTab(uiState, viewModel, isWide = !isCompact, onImportClick = { filePickerLauncher.launch("audio/*") })
+                        LibraryTab(uiState, viewModel, isWide = !isCompact, onImportClick = { filePickerLauncher.launch("audio/*") }, onNavigate = { navController.navigate(it) })
                     }
                     composable(Screen.Record.route) {
                         RecordTab(uiState, isWide = !isCompact, onStartRecord = { name, isStream -> onStartRecord(name, isStream) }, onStopRecord = onStopRecord)

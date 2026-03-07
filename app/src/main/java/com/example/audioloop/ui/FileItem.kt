@@ -57,6 +57,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.semantics.Role
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -502,7 +503,7 @@ fun FileItem(
                                 .clip(RoundedCornerShape(6.dp))
                                 .semantics {
                                     contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
-                                    role = Role.ProgressBar
+                                    // role = Role.ProgressBar
                                     progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
                                 }
                                 .pointerInput(Unit) {
@@ -595,8 +596,8 @@ fun FileItem(
                                         onClick = { abLoopA = if (abLoopA >= 0f && abLoopB < 0f) -1f else currentProgress },
                                         shape = RoundedCornerShape(8.dp),
                                         color = if (abLoopA >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(44.dp).width(44.dp), // Enhanced touch target
-                                        onClickLabel = stringResource(R.string.a11y_set_loop_start)
+                                        modifier = Modifier.height(44.dp).width(44.dp)
+                                            .semantics { contentDescription = ctx.getString(R.string.a11y_set_loop_start) }
                                     ) {
                                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             Text("A", color = if (abLoopA >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -606,8 +607,8 @@ fun FileItem(
                                         onClick = { abLoopB = if (abLoopB >= 0f) -1f else currentProgress },
                                         shape = RoundedCornerShape(8.dp),
                                         color = if (abLoopB >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(44.dp).width(44.dp), // Enhanced touch target
-                                        onClickLabel = stringResource(R.string.a11y_set_loop_end)
+                                        modifier = Modifier.height(44.dp).width(44.dp)
+                                            .semantics { contentDescription = ctx.getString(R.string.a11y_set_loop_end) }
                                     ) {
                                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             Text("B", color = if (abLoopB >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)

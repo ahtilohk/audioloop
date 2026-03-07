@@ -266,7 +266,7 @@
     <string name="settings_language_label">App Language:</string>
     <string name="dialog_delete_playlist_title">Delete playlist?</string>
     <string name="dialog_delete_playlist_confirm">Delete \"%s\"? This cannot be undone.</string>
-    <string name="label_playlists_count">%d playlist%s</string>
+    <string name="label_playlists_count">%1d playlist%2s</string>
     <string name="label_play_count_compact">%dx</string>
     <string name="label_playlist_tracks">%d tracks</string>
     <string name="label_playlist_no_playlists">No playlists yet</string>
