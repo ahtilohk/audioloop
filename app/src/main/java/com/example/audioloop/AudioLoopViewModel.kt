@@ -127,6 +127,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ── Initialization ──
 
+    fun setReady(ready: Boolean) {
+        _uiState.update { it.copy(isReady = ready) }
+    }
+
     fun initialize() {
         // Init managers
         practiceStats = PracticeStatsManager(ctx)

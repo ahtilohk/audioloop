@@ -434,15 +434,15 @@ fun ColorThemeSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
                 .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppTheme.values().forEach { theme ->
                 val isSelected = currentTheme == theme
                 Box(
                     modifier = Modifier
-                        .size(56.dp) // Larger touch targets
+                        .weight(1f)
+                        .aspectRatio(1f)
                         .clip(CircleShape)
                         .background(theme.palette.primary600)
                         .border(

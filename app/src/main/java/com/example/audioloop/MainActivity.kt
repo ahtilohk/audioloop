@@ -97,6 +97,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         } else if (results.isNotEmpty()) {
             vm?.showSnackbar(getString(R.string.msg_permission_denied), isError = true)
         }
+        vm?.setReady(true)
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -154,7 +155,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         try {
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
@@ -170,11 +171,33 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 viewModel.refreshFileList()
                 viewModel.startProgressTracking()
                 
-                // Check and request necessary permissions on startup
-                checkAndRequestNecessaryPermissions()
+                // Permission check
+                val permissions = mutableListOf<String>()
+                permissions.add(Manifest.permission.RECORD_AUDIO)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                    permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+                } else {
+                    permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+                
+                val toRequest = permissions.filter {
+                    ContextCompat.checkSelfPermission(this@MainActivity, it) != PackageManager.PERMISSION_GRANTED
+                }
+                
+                if (toRequest.isNotEmpty()) {
+                    requestPermissionsLauncher.launch(toRequest.toTypedArray())
+                    // isReady is set in the permission result callback or after a small delay
+                    // However, for better UX, we can set isReady after triggering the prompt 
+                    // or even better, wait for the result.
+                } else {
+                    viewModel.setReady(true)
+                }
             }
 
             val uiState by viewModel.uiState.collectAsState()
+            
+            splashScreen.setKeepOnScreenCondition { !uiState.isReady }
             
             val windowSizeClass = calculateWindowSizeClass(this)
 
@@ -261,9 +284,10 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     isPro = uiState.isProUser
                 )
 
-                Scaffold(
-                    snackbarHost = { SnackbarHost(snackbarHostState) }
-                ) { paddingValues ->
+                if (uiState.isReady) {
+                    Scaffold(
+                        snackbarHost = { SnackbarHost(snackbarHostState) }
+                    ) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
                         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                                 com.example.audioloop.ui.AudioLoopMainScreen(
@@ -296,6 +320,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                             )
 
                         }
+                    }
                     }
                 }
             }

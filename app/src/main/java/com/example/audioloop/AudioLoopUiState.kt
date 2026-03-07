@@ -109,7 +109,10 @@ data class AudioLoopUiState(
     
     // --- Onboarding ---
     val showOnboarding: Boolean = false,
-    val onboardingStep: Int = 1
+    val onboardingStep: Int = 1,
+    
+    // --- App Lifecycle ---
+    val isReady: Boolean = false
 )
 
 /**
