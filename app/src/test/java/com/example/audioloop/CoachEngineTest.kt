@@ -16,12 +16,8 @@ class CoachEngineTest {
     @Before
     fun setup() {
         context = mockk(relaxed = true)
-        stats = mockk()
+        stats = mockk(relaxed = true)
         engine = CoachEngine(context, stats)
-
-        // Default mock behaviors
-        every { context.getString(any()) } returns "MockString"
-        every { context.getString(any(), *anyVararg()) } returns "FormattedMockString"
     }
 
     @Test
