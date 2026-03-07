@@ -61,6 +61,15 @@ fun UpgradeSheet(
                 .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.btn_cancel), tint = Zinc600)
+                }
+            }
+
             // ── Premium Header ──
             Box(
                 modifier = Modifier
@@ -149,36 +158,64 @@ fun UpgradeSheet(
                             product.productId.contains("yearly") -> stringResource(R.string.label_per_year)
                             else -> ""
                         }
-
+                        val isYearly = product.productId.contains("yearly")
+                        
                         Surface(
                             onClick = { activity?.let { onPurchase(it, product) } },
-                            shape = RoundedCornerShape(16.dp),
-                            color = Zinc900,
-                            border = BorderStroke(1.dp, Zinc800),
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isYearly) themeColors.primary.copy(alpha = 0.05f) else Zinc900,
+                            border = BorderStroke(
+                                1.5.dp, 
+                                if (isYearly) themeColors.primary.copy(alpha = 0.5f) else Zinc800
+                            ),
                             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        product.name,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        product.description,
-                                        color = Zinc500,
-                                        fontSize = 12.sp
-                                    )
+                            Box {
+                                if (isYearly) {
+                                    Surface(
+                                        color = themeColors.primary,
+                                        shape = RoundedCornerShape(bottomStart = 12.dp),
+                                        modifier = Modifier.align(Alignment.TopEnd)
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.label_best_value),
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        )
+                                    }
                                 }
-                                Text(
-                                    text = "$price$period",
-                                    color = themeColors.primary200,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 18.sp
-                                )
+                                
+                                Row(
+                                    modifier = Modifier.padding(20.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            product.name,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 17.sp
+                                        )
+                                        Text(
+                                            product.description,
+                                            color = Zinc500,
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            text = price,
+                                            color = if (isYearly) Color.White else themeColors.primary200,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 20.sp
+                                        )
+                                        if (period.isNotEmpty()) {
+                                            Text(period, color = Zinc500, fontSize = 11.sp)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

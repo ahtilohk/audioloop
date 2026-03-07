@@ -91,6 +91,7 @@ data class AudioLoopUiState(
     val showPlaylistSheet: Boolean = false,
     val showBackupSheet: Boolean = false,
     val showPlaylistView: Boolean = false,
+    val showPrivacyPolicyDialog: Boolean = false,
 
     // --- Contextual Items ---
     val itemToModify: RecordingItem? = null,

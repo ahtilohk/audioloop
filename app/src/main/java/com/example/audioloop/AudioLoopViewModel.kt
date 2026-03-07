@@ -1814,5 +1814,50 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun isPro(): Boolean = _uiState.value.isProUser
+
+    fun setShowPrivacyPolicy(show: Boolean) {
+        _uiState.update { it.copy(showPrivacyPolicyDialog = show) }
+    }
+
+    fun exportAllData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val exportFile = File(ctx.cacheDir, "AudioLoop_Data_Export.zip")
+                if (exportFile.exists()) exportFile.delete()
+
+                val rootDir = filesDir
+                val filesToExport = rootDir.walkTopDown().filter { it.isFile && !it.name.startsWith(".") }.toList()
+
+                if (filesToExport.isEmpty()) {
+                    withContext(Dispatchers.Main) { showSnackbar("No data to export", isError = true) }
+                    return@launch
+                }
+
+                java.util.zip.ZipOutputStream(java.io.FileOutputStream(exportFile)).use { zos ->
+                    filesToExport.forEach { file ->
+                        val relativePath = file.absolutePath.removePrefix(rootDir.absolutePath + File.separator)
+                        zos.putNextEntry(java.util.zip.ZipEntry(relativePath))
+                        file.inputStream().use { it.copyTo(zos) }
+                        zos.closeEntry()
+                    }
+                }
+
+                val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", exportFile)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/zip"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, "AudioLoop Data Export")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                ctx.startActivity(Intent.createChooser(intent, "Export Data").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { showSnackbar("Export failed: ${e.message}", isError = true) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 }
 

@@ -11,6 +11,7 @@
     <include domain="database" path="."/>
     
     <!-- Exclude heavy audio files and volatile data -->
+    <exclude domain="file" path=".trash/"/>
     <exclude domain="file" path="."/>
     <exclude domain="external" path="."/>
     <exclude domain="root" path="."/>

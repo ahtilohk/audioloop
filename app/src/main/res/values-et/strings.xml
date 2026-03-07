@@ -16,6 +16,7 @@
     <string name="btn_got_it">Sain aru!</string>
     <string name="btn_import_audio">Impordi helifail</string>
     <string name="btn_add">Lisa</string>
+    <string name="btn_continue">Jätka</string>
 
 
     <!-- Labels -->
@@ -417,6 +418,10 @@
     <string name="aha_speed_success">Tempo muudetud! Iga detail loeb. ⏱️</string>
 
     <string name="state_playing">Mängib…</string>
+    <string name="a11y_waveform_seeker">Keri läbi salvestise</string>
+    <string name="a11y_set_loop_start">Määra korduse alguspunkt (A)</string>
+    <string name="a11y_set_loop_end">Määra korduse lõpp-punkt (B)</string>
+    <string name="a11y_clear_loop">Eemalda korduse punktid</string>
 
     <!-- Upgrade / Pro -->
     <string name="upgrade_pro_title">AudioLoop Pro</string>
@@ -428,6 +433,7 @@
     <string name="btn_restore_purchase">Taasta ostud</string>
     <string name="label_free">TASUTA</string>
     <string name="label_pro">PRO</string>
+    <string name="label_best_value">PARIM HIND</string>
     <string name="upgrade_success">Tere tulemast AudioLoop Pro kasutajaks!</string>
     <string name="label_subscription_active">Tellimus aktiivne</string>
     <string name="label_upgrade">Uuenda</string>

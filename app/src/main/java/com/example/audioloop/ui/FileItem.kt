@@ -500,6 +500,11 @@ fun FileItem(
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clip(RoundedCornerShape(6.dp))
+                                .semantics {
+                                    contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
+                                    role = Role.ProgressBar
+                                    progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
+                                }
                                 .pointerInput(Unit) {
                                     awaitEachGesture {
                                         val down = awaitFirstDown(requireUnconsumed = false)
@@ -588,22 +593,24 @@ fun FileItem(
                                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Surface(
                                         onClick = { abLoopA = if (abLoopA >= 0f && abLoopB < 0f) -1f else currentProgress },
-                                        shape = RoundedCornerShape(6.dp),
+                                        shape = RoundedCornerShape(8.dp),
                                         color = if (abLoopA >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(28.dp)
+                                        modifier = Modifier.height(44.dp).width(44.dp), // Enhanced touch target
+                                        onClickLabel = stringResource(R.string.a11y_set_loop_start)
                                     ) {
-                                        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-                                            Text("A", color = if (abLoopA >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Text("A", color = if (abLoopA >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                     Surface(
                                         onClick = { abLoopB = if (abLoopB >= 0f) -1f else currentProgress },
-                                        shape = RoundedCornerShape(6.dp),
+                                        shape = RoundedCornerShape(8.dp),
                                         color = if (abLoopB >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(28.dp)
+                                        modifier = Modifier.height(44.dp).width(44.dp), // Enhanced touch target
+                                        onClickLabel = stringResource(R.string.a11y_set_loop_end)
                                     ) {
-                                        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-                                            Text("B", color = if (abLoopB >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Text("B", color = if (abLoopB >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -612,9 +619,9 @@ fun FileItem(
                                 if (abActive) {
                                     IconButton(
                                         onClick = { abLoopA = -1f; abLoopB = -1f },
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(44.dp) // Professional touch target
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear), tint = Red500, modifier = Modifier.size(16.dp))
+                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear_loop), tint = Red500, modifier = Modifier.size(20.dp))
                                     }
                                 }
                             }

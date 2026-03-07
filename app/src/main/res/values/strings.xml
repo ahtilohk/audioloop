@@ -16,6 +16,7 @@
     <string name="btn_got_it">Got it!</string>
     <string name="btn_import_audio">Import Audio File</string>
     <string name="btn_add">Add</string>
+    <string name="btn_continue">Continue</string>
 
 
     <!-- Labels -->
@@ -386,6 +387,10 @@
     <string name="settings_data_location_desc">All audio and notes are stored locally on your device or in your personal Google Drive (if enabled).</string>
     <string name="settings_clear_data">Clear All Data</string>
     <string name="settings_clear_data_confirm">This will permanently delete ALL recordings, notes, and playlists. This cannot be undone. Are you sure?</string>
+    <string name="settings_export_data">Export My Data</string>
+    <string name="settings_export_data_desc">Download a zip archive of all your recordings, notes, and playlists.</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_content">AudioLoop respects your privacy. All your audio recordings and notes are stored locally on your device or in your personal Google Drive account. We do not have access to your recordings. \n\nPermissions used: \n- Microphone: To record your audio. \n- Storage: To store and play your audio files. \n- Google Drive: To provide backup functionality (if enabled by you). \n\nYour data is yours. You can export or delete it at any time from the app settings.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Master any audio segment</string>
@@ -424,6 +429,10 @@
 
     <!-- UI Action States -->
     <string name="state_playing">Playing…</string>
+    <string name="a11y_waveform_seeker">Seek through recording</string>
+    <string name="a11y_set_loop_start">Set loop start point (A)</string>
+    <string name="a11y_set_loop_end">Set loop end point (B)</string>
+    <string name="a11y_clear_loop">Clear loop points</string>
 
     <!-- Upgrade / Pro -->
     <string name="upgrade_pro_title">AudioLoop Pro</string>
@@ -435,6 +444,7 @@
     <string name="btn_restore_purchase">Restore Purchases</string>
     <string name="label_free">FREE</string>
     <string name="label_pro">PRO</string>
+    <string name="label_best_value">BEST VALUE</string>
     <string name="upgrade_success">Welcome to AudioLoop Pro!</string>
     <string name="label_subscription_active">Subscription active</string>
     <string name="label_upgrade">Upgrade</string>

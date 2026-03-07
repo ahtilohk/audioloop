@@ -16,6 +16,7 @@
     <string name="btn_got_it">了解！</string>
     <string name="btn_import_audio">オーディオを取り込む</string>
     <string name="btn_add">追加</string>
+    <string name="btn_continue">続行</string>
 
     <!-- Labels -->
     <string name="label_recording">録音中…</string>

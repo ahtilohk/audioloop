@@ -38,9 +38,22 @@ jobs:
           _JAVA_OPTIONS: -Xmx8192m -XX:MaxMetaspaceSize=1024m
         run: ./gradlew clean assembleDebug -Dorg.gradle.jvmargs="-Xmx8192m -XX:MaxMetaspaceSize=1024m" --stacktrace
 
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Run Lint
+        run: ./gradlew lintDebug --stacktrace
+
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html

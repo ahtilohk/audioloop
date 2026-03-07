@@ -16,6 +16,7 @@
     <string name="btn_got_it">Compris !</string>
     <string name="btn_import_audio">Importer audio</string>
     <string name="btn_add">Ajouter</string>
+    <string name="btn_continue">Continuer</string>
 
     <!-- Labels -->
     <string name="label_recording">Enregistrement en cours…</string>

@@ -170,6 +170,52 @@ fun SettingsTab(
 
             Spacer(Modifier.height(12.dp))
 
+            Spacer(Modifier.height(12.dp))
+
+            // Export Data button
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    .clickable { viewModel.exportAllData() }
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(AppIcons.OpenInNew, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.settings_export_data), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.settings_export_data_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Privacy Policy link
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { viewModel.setShowPrivacyPolicy(true) }
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(AppIcons.Info, contentDescription = null, tint = Zinc500, modifier = Modifier.size(18.dp))
+                Text(
+                    text = stringResource(R.string.privacy_policy_title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = themeColors.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             // Clear Data button
             OutlinedButton(
                 onClick = { showClearConfirm = true },
@@ -182,6 +228,19 @@ fun SettingsTab(
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.settings_clear_data), fontWeight = FontWeight.SemiBold)
             }
+        }
+
+        if (uiState.showPrivacyPolicyDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.setShowPrivacyPolicy(false) },
+                title = { Text(stringResource(R.string.privacy_policy_title)) },
+                text = { Text(stringResource(R.string.privacy_policy_content)) },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.setShowPrivacyPolicy(false) }) {
+                        Text(stringResource(R.string.btn_got_it).uppercase())
+                    }
+                }
+            )
         }
 
         if (showClearConfirm) {
