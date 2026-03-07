@@ -33,10 +33,10 @@ android {
     }
     
     lint {
-        isAbortOnError = true
-        isCheckReleaseBuilds = true
-        isWarningsAsErrors = true
-        baseline = file("lint-baseline.xml") // Allow current warnings to stay in baseline
+        abortOnError = true
+        checkReleaseBuilds = true
+        warningsAsErrors = true
+        baseline = file("lint-baseline.xml")
     }
     
     compileOptions {
