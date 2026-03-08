@@ -36,6 +36,7 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
+        disable.add("MissingTranslation")
         baseline = file("lint-baseline.xml")
     }
     

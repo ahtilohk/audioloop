@@ -436,7 +436,7 @@ fun ColorThemeSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             AppTheme.values().forEach { theme ->
                 val isSelected = currentTheme == theme
@@ -460,12 +460,10 @@ fun ColorThemeSelector(
                     contentAlignment = Alignment.Center
                 ) {
                     if (isSelected) {
-                        Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                        Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                 }
             }
-            // Add spacer at end to prevent the last item from being flush against the edge
-            Spacer(modifier = Modifier.width(32.dp))
         }
     }
 }

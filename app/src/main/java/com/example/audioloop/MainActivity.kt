@@ -13,6 +13,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.lifecycle.ViewModelProvider
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -56,6 +58,7 @@ import java.io.File
  */
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
+    private val viewModel: AudioLoopViewModel by viewModels()
     private var pendingRecordingName = ""
     private var pendingCategory = ""
     private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
@@ -158,12 +161,14 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        splashScreen.setKeepOnScreenCondition { !viewModel.uiState.value.isReady }
+
         try {
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
         } catch (e: Exception) { e.printStackTrace() }
 
         setContent {
-            val viewModel: AudioLoopViewModel = viewModel()
             vm = viewModel
 
             // Initialize ViewModel once
@@ -198,7 +203,11 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
             val uiState by viewModel.uiState.collectAsState()
             
-            splashScreen.setKeepOnScreenCondition { !uiState.isReady }
+            // UI visibility check to prevent flashing before permissions
+            if (!uiState.isReady) {
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+                return@setContent
+            }
             
             val windowSizeClass = calculateWindowSizeClass(this)
 
