@@ -599,6 +599,7 @@ object AppIcons {
             return _search!!
         }
     private var _search: ImageVector? = null
+    
 
     // Replacement for Icons.Default.Close (X)
     val Close: ImageVector
@@ -1278,24 +1279,6 @@ object AppIcons {
         }
     private var _backup: ImageVector? = null
 
-    val ChevronRight: ImageVector
-        get() {
-            if (_chevronRight != null) return _chevronRight!!
-            _chevronRight = materialIcon(name = "ChevronRight") {
-                materialPath {
-                    moveTo(10.0f, 6.0f)
-                    lineTo(8.59f, 7.41f)
-                    lineTo(13.17f, 12.0f)
-                    lineToRelative(-4.58f, 4.59f)
-                    lineTo(10.0f, 18.0f)
-                    lineToRelative(6.0f, -6.0f)
-                    close()
-                }
-            }
-            return _chevronRight!!
-        }
-    private var _chevronRight: ImageVector? = null
-
     // Sort Icon (List sort)
     val Sort: ImageVector
         get() {
@@ -1329,6 +1312,41 @@ object AppIcons {
     val Done: ImageVector
         get() = Check
 
+    val ChevronLeft: ImageVector
+        get() {
+            if (_chevronLeft != null) return _chevronLeft!!
+            _chevronLeft = materialIcon(name = "ChevronLeft") {
+                materialPath {
+                    moveTo(15.41f, 7.41f)
+                    lineTo(14.0f, 6.0f)
+                    lineToRelative(-6.0f, 6.0f)
+                    lineToRelative(6.0f, 6.0f)
+                    lineToRelative(1.41f, -1.41f)
+                    lineTo(10.83f, 12.0f)
+                    close()
+                }
+            }
+            return _chevronLeft!!
+        }
+    private var _chevronLeft: ImageVector? = null
+
+    val ChevronRight: ImageVector
+        get() {
+            if (_chevronRight != null) return _chevronRight!!
+            _chevronRight = materialIcon(name = "ChevronRight") {
+                materialPath {
+                    moveTo(10.0f, 6.0f)
+                    lineTo(8.59f, 7.41f)
+                    lineTo(13.17f, 12.0f)
+                    lineToRelative(-4.58f, 4.59f)
+                    lineTo(10.0f, 18.0f)
+                    lineToRelative(6.0f, -6.0f)
+                    close()
+                }
+            }
+            return _chevronRight!!
+        }
+    private var _chevronRight: ImageVector? = null
 }
 
 

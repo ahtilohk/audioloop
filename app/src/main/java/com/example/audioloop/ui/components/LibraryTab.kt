@@ -773,7 +773,15 @@ private fun DraggableFileList(
                     } else -1,
                     waveformData = viewModel.waveformCache[item.file.absolutePath] ?: emptyList(),
                     onSeekAbsolute = { viewModel.seekAbsolute(it) }, // use absolute ms
-                    shadowCountdownText = if (isPlaying) uiState.shadowCountdownText else ""
+                    shadowCountdownText = if (isPlaying) uiState.shadowCountdownText else "",
+                    abLoopStart = if (isPlaying) uiState.abLoopStart else -1f,
+                    abLoopEnd = if (isPlaying) uiState.abLoopEnd else -1f,
+                    onSetAbLoopStart = { viewModel.setAbLoopStart(it) },
+                    onSetAbLoopEnd = { viewModel.setAbLoopEnd(it) },
+                    onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
+                    onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
+                    isShadowingMode = uiState.isShadowingMode,
+                    onToggleShadowingMode = { viewModel.changeShadowingMode(it) }
                 )
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -807,7 +815,15 @@ private fun DraggableFileList(
                 onReorder = {},
                 isDragging = true,
                 themeColors = uiState.currentTheme.palette,
-                playlistPosition = -1
+                playlistPosition = -1,
+                abLoopStart = -1f,
+                abLoopEnd = -1f,
+                onSetAbLoopStart = {},
+                onSetAbLoopEnd = {},
+                onNudgeAbLoopStart = {},
+                onNudgeAbLoopEnd = {},
+                isShadowingMode = false,
+                onToggleShadowingMode = {}
             )
         }
     }

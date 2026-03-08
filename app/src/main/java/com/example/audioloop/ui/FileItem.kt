@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -120,7 +122,15 @@ fun FileItem(
     playlistPosition: Int = 0, // 0 means not in playlist, >0 is position in playlist
     waveformData: List<Int> = emptyList(),
     onSeekAbsolute: (Int) -> Unit = {}, // seek to absolute ms position
-    shadowCountdownText: String = "" // countdown text during Listen & Repeat pause
+    shadowCountdownText: String = "", // countdown text during Listen & Repeat pause
+    abLoopStart: Float = -1f,
+    abLoopEnd: Float = -1f,
+    onSetAbLoopStart: (Float) -> Unit = {},
+    onSetAbLoopEnd: (Float) -> Unit = {},
+    onNudgeAbLoopStart: (Int) -> Unit = {},
+    onNudgeAbLoopEnd: (Int) -> Unit = {},
+    isShadowingMode: Boolean = false,
+    onToggleShadowingMode: (Boolean) -> Unit = {}
 ) {
     val ctx = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
@@ -442,18 +452,8 @@ fun FileItem(
         }
 
         if (isPlaying) {
-            // A-B Loop state
-            var abLoopA by remember { mutableFloatStateOf(-1f) } // -1 = not set, 0..1 = position
-            var abLoopB by remember { mutableFloatStateOf(-1f) }
-            val abActive = abLoopA >= 0f && abLoopB >= 0f && abLoopB > abLoopA
-
-            // A-B Loop enforcement
-            if (abActive && currentProgress >= abLoopB) {
-                LaunchedEffect(currentProgress) {
-                    val targetMs = (abLoopA * item.durationMillis).toInt()
-                    onSeekAbsolute(targetMs)
-                }
-            }
+            val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
+            val haptic = LocalHapticFeedback.current
 
             Box(
                 modifier = Modifier
@@ -491,7 +491,7 @@ fun FileItem(
                         val bars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
                         val barCount = bars.size
                         
-                        val primaryColor = MaterialTheme.colorScheme.primary
+                        val primaryColor = themeColors.primary
                         val onSurfaceColor = MaterialTheme.colorScheme.onSurface
                         val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
                         val markerWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
@@ -499,11 +499,11 @@ fun FileItem(
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(6.dp))
+                                .height(56.dp) // Slightly taller for premium feel
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(onSurfaceVariantColor.copy(alpha = 0.05f))
                                 .semantics {
                                     contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
-                                    // role = Role.ProgressBar
                                     progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
                                 }
                                 .pointerInput(Unit) {
@@ -522,22 +522,26 @@ fun FileItem(
                             val w = size.width
                             val h = size.height
                             val barWidth = w / barCount
-                            val strokeWidth = (barWidth * 0.7f).coerceAtLeast(1.5f)
+                            val strokeWidth = (barWidth * 0.75f).coerceAtLeast(2f)
 
-                            // 1. Draw A-B loop region highlight
+                            // 1. Draw A-B loop region highlight (Premium Gradient)
                             if (abActive) {
                                 drawRect(
-                                    color = primaryColor.copy(alpha = 0.15f),
-                                    topLeft = Offset(abLoopA * w, 0f),
-                                    size = androidx.compose.ui.geometry.Size((abLoopB - abLoopA) * w, h)
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(primaryColor.copy(alpha = 0.1f), primaryColor.copy(alpha = 0.25f), primaryColor.copy(alpha = 0.1f)),
+                                        startX = abLoopStart * w,
+                                        endX = abLoopEnd * w
+                                    ),
+                                    topLeft = Offset(abLoopStart * w, 0f),
+                                    size = androidx.compose.ui.geometry.Size((abLoopEnd - abLoopStart) * w, h)
                                 )
                             }
 
                             fun drawWaveform(color: Color) {
                                 for (i in 0 until barCount) {
                                     val amp = bars[i]
-                                    val barFraction = (amp / 100f).coerceIn(0.05f, 1f)
-                                    val barH = barFraction * h * 0.8f
+                                    val barFraction = (amp / 100f).coerceIn(0.1f, 1f)
+                                    val barH = barFraction * h * 0.85f
                                     val x = i * barWidth + barWidth / 2f
                                     
                                     drawLine(
@@ -550,79 +554,122 @@ fun FileItem(
                                 }
                             }
 
-                            // 2. Draw Background Waveform
-                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.25f))
+                            // 2. Background
+                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.2f))
 
-                            // 3. Draw Active Waveform (Clipped)
+                            // 3. Active Waveform
                             clipRect(right = currentProgress * w) {
                                 drawWaveform(primaryColor)
                             }
 
-                            // 4. Draw markers
-                            if (abLoopA >= 0f) {
-                                val ax = abLoopA * w
-                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = markerWidthPx)
+                            // 4. A-B Markers (Premium Glowing Lines)
+                            if (abLoopStart >= 0f) {
+                                val ax = abLoopStart * w
+                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
+                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, 0f))
+                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, h))
                             }
-                            if (abLoopB >= 0f) {
-                                val bx = abLoopB * w
-                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = markerWidthPx)
+                            if (abLoopEnd >= 0f) {
+                                val bx = abLoopEnd * w
+                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
+                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, 0f))
+                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, h))
                             }
 
                             // 5. Playhead
                             val px = currentProgress * w
-                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx)
+                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 0.8f)
                         }
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                        // Controls row: time + A-B buttons
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "$currentTimeString / ${item.durationString}",
-                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                            )
-                            
+                        // Premium Controls Row
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                // A/B Buttons
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Surface(
-                                        onClick = { abLoopA = if (abLoopA >= 0f && abLoopB < 0f) -1f else currentProgress },
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = if (abLoopA >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(44.dp).width(44.dp)
-                                            .semantics { contentDescription = ctx.getString(R.string.a11y_set_loop_start) }
-                                    ) {
-                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                            Text("A", color = if (abLoopA >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "$currentTimeString / ${item.durationString}",
+                                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                                )
+                                
+                                // Shadowing Toggle (Premium)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else Color.Transparent)
+                                        .border(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else onSurfaceVariantColor.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                        .clickable { 
+                                            onToggleShadowingMode(!isShadowingMode)
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         }
-                                    }
-                                    Surface(
-                                        onClick = { abLoopB = if (abLoopB >= 0f) -1f else currentProgress },
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = if (abLoopB >= 0f) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.height(44.dp).width(44.dp)
-                                            .semantics { contentDescription = ctx.getString(R.string.a11y_set_loop_end) }
-                                    ) {
-                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                            Text("B", color = if (abLoopB >= 0f) Color.White else MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Shadow,
+                                        contentDescription = null,
+                                        tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                                        modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.settings_listen_repeat).uppercase(),
+                                        style = TextStyle(
+                                            color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black
+                                        )
+                                    )
                                 }
+                            }
 
-                                // Reset A-B
+                            // Marker Controls (A-B Buttons + Nudges)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // A-Group
+                                MarkerControlGroup(
+                                    label = "A",
+                                    isActive = abLoopStart >= 0f,
+                                    onMainClick = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onSetAbLoopStart(if (abLoopStart >= 0f && abLoopEnd < 0f) -1f else currentProgress) 
+                                    },
+                                    onNudge = { delta -> 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onNudgeAbLoopStart(delta) 
+                                    },
+                                    themeColors = themeColors
+                                )
+
+                                Spacer(Modifier.weight(1f))
+
+                                // B-Group
+                                MarkerControlGroup(
+                                    label = "B",
+                                    isActive = abLoopEnd >= 0f,
+                                    onMainClick = { 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) 
+                                    },
+                                    onNudge = { delta -> 
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onNudgeAbLoopEnd(delta) 
+                                    },
+                                    themeColors = themeColors
+                                )
+
                                 if (abActive) {
                                     IconButton(
-                                        onClick = { abLoopA = -1f; abLoopB = -1f },
-                                        modifier = Modifier.size(44.dp) // Professional touch target
+                                        onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                                        modifier = Modifier.size(40.dp).background(Red500.copy(alpha = 0.1f), CircleShape)
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_clear_loop), tint = Red500, modifier = Modifier.size(20.dp))
+                                        Icon(AppIcons.Close, contentDescription = null, tint = Red500, modifier = Modifier.size(18.dp))
                                     }
                                 }
                             }
@@ -666,7 +713,58 @@ fun FileItem(
             }
         }
 
+        }
     }
 }
+
+@Composable
+private fun MarkerControlGroup(
+    label: String,
+    isActive: Boolean,
+    onMainClick: () -> Unit,
+    onNudge: (Int) -> Unit,
+    themeColors: AppColorPalette
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        // Nudge Back (-100ms)
+        IconButton(
+            onClick = { onNudge(-100) },
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(AppIcons.ChevronLeft, contentDescription = null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+        }
+
+        // Main A/B Button
+        Surface(
+            onClick = onMainClick,
+            shape = RoundedCornerShape(8.dp),
+            color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.size(height = 40.dp, width = 48.dp),
+            tonalElevation = 2.dp,
+            shadowElevation = if (isActive) 2.dp else 0.dp
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = label,
+                    style = TextStyle(
+                        color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                )
+            }
+        }
+
+        // Nudge Forward (+100ms)
+        IconButton(
+            onClick = { onNudge(100) },
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(AppIcons.ChevronRight, contentDescription = null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+        }
+    }
 }
 

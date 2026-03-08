@@ -226,6 +226,10 @@
     <string name="info_codec">Codec</string>
     <string name="info_location">Location</string>
     <string name="info_unknown">Unknown</string>
+    <string name="msg_shadow_repeat_in">Repeat in %ds…</string>
+    <string name="a11y_nudge_left">Nudge Left</string>
+    <string name="a11y_nudge_right">Nudge Right</string>
+    <string name="a11y_toggle_shadowing">Toggle Shadowing Mode</string>
 
     <!-- Accessibility -->
     <string name="a11y_logo">Logo</string>

@@ -20,6 +20,8 @@ data class AudioLoopUiState(
     val playbackSpeed: Float = 1.0f,
     val playbackPitch: Float = 1.0f,
     val loopMode: Int = 1, // 0=off, 1=one, -1=inf
+    val abLoopStart: Float = -1f, // 0..1 phase
+    val abLoopEnd: Float = -1f,
 
     // Listen & Repeat (shadowing)
     val isShadowingMode: Boolean = false,

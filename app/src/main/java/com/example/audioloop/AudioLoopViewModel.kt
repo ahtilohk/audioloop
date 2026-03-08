@@ -682,6 +682,32 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         try { mediaPlayer?.seekTo(ms) } catch (_: IllegalStateException) {}
     }
 
+    fun setAbLoopStart(pos: Float) {
+        _uiState.update { it.copy(abLoopStart = pos) }
+    }
+
+    fun setAbLoopEnd(pos: Float) {
+        _uiState.update { it.copy(abLoopEnd = pos) }
+    }
+
+    fun nudgeAbLoopStart(deltaMs: Int) {
+        val mp = audioService?.getMediaPlayer() ?: return
+        val total = mp.duration
+        if (total <= 0) return
+        val currentMs = (_uiState.value.abLoopStart * total).toInt()
+        val nextMs = (currentMs + deltaMs).coerceIn(0, total)
+        _uiState.update { it.copy(abLoopStart = nextMs.toFloat() / total.toFloat()) }
+    }
+
+    fun nudgeAbLoopEnd(deltaMs: Int) {
+        val mp = audioService?.getMediaPlayer() ?: return
+        val total = mp.duration
+        if (total <= 0) return
+        val currentMs = (_uiState.value.abLoopEnd * total).toInt()
+        val nextMs = (currentMs + deltaMs).coerceIn(0, total)
+        _uiState.update { it.copy(abLoopEnd = nextMs.toFloat() / total.toFloat()) }
+    }
+
     fun pausePlaying() {
         val wasShadowCountdown = _uiState.value.shadowCountdownText.isNotEmpty()
         shadowingJob?.cancel()
@@ -728,7 +754,9 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             playingFileName = "",
             isPaused = false,
             currentlyPlayingPlaylistId = null,
-            shadowCountdownText = ""
+            shadowCountdownText = "",
+            abLoopStart = -1f,
+            abLoopEnd = -1f
         ) }
         shadowingJob?.cancel()
         shadowingJob = null
@@ -745,12 +773,49 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             while (true) {
                 val state = _uiState.value
                 val mp = audioService?.getMediaPlayer()
-                if (state.playingFileName.isNotEmpty() && mp?.isPlaying == true) {
+                if (state.playingFileName.isNotEmpty() && mp != null && mp.isPlaying) {
                     val current = mp.currentPosition
                     val total = mp.duration
+                    val progress = current.toFloat() / total.toFloat()
+                    
+                    // A-B Loop Logic
+                    val abStart = state.abLoopStart
+                    val abEnd = state.abLoopEnd
+                    val abActive = abStart >= 0f && abEnd >= 0f && abEnd > abStart
+                    
+                    if (abActive && progress >= abEnd) {
+                        if (state.isShadowingMode) {
+                            // Shadowing + A-B: Pause at B, wait, then seek to A
+                            pausePlaying()
+                            val pauseDuration = if (state.shadowPauseSeconds > 0) {
+                                state.shadowPauseSeconds * 1000L
+                            } else {
+                                ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
+                            }
+                            
+                            shadowingJob = viewModelScope.launch(Dispatchers.Main) {
+                                var remaining = pauseDuration
+                                while (remaining > 0 && isActive) {
+                                    val secs = (remaining / 1000) + 1
+                                    _uiState.update { s -> s.copy(shadowCountdownText = ctx.getString(R.string.msg_shadow_repeat_in, secs)) }
+                                    delay(1000L.coerceAtMost(remaining))
+                                    remaining -= 1000L
+                                }
+                                _uiState.update { s -> s.copy(shadowCountdownText = "") }
+                                if (isActive) {
+                                    seekAbsolute((abStart * total).toInt())
+                                    resumePlaying()
+                                }
+                            }
+                        } else {
+                            // Just seek to A
+                            seekAbsolute((abStart * total).toInt())
+                        }
+                    }
+
                     _uiState.update {
                         it.copy(
-                            currentProgress = current.toFloat() / total.toFloat(),
+                            currentProgress = progress,
                             currentTimeString = AudioMetadataHelper.formatTime(current.toLong())
                         )
                     }
