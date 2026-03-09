@@ -57,13 +57,15 @@ fun LibraryTab(
     onImportClick: () -> Unit,
     onNavigate: (String) -> Unit
 ) {
-    val recordingItems = viewModel.getFilteredItems()
+    val recordingItems = uiState.filteredItems
     val themeColors = uiState.currentTheme.palette
     val uiRecordingItems = remember { mutableStateListOf<RecordingItem>() }
 
     LaunchedEffect(recordingItems) {
-        uiRecordingItems.clear()
-        uiRecordingItems.addAll(recordingItems)
+        if (uiRecordingItems.size != recordingItems.size || uiRecordingItems.any { it !in recordingItems }) {
+            uiRecordingItems.clear()
+            uiRecordingItems.addAll(recordingItems)
+        }
     }
 
     val spacing = LocalSpacing.current
@@ -215,7 +217,7 @@ private fun LibraryHeader(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(14.dp))
-                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red500, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red500, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -623,7 +625,7 @@ private fun EmptyLibraryState(isSearching: Boolean, viewModel: AudioLoopViewMode
                 ) {
                     Icon(AppIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(stringResource(R.string.btn_import_audio), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.btn_import_audio), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }

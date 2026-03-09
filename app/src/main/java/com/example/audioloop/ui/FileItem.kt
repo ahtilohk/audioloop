@@ -362,22 +362,31 @@ fun FileItem(
                         }
                     }
                 }
-                if (isPlaying && shadowCountdownText.isNotEmpty()) {
-                    Text(
-                        text = "\u23F8 $shadowCountdownText",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                } else {
-                    Text(
-                        text = "${if(isPlaying) stringResource(R.string.label_playing_indicator) else ""}${item.durationString}",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
+                Box(modifier = Modifier.height(20.dp), contentAlignment = Alignment.CenterStart) {
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = isPlaying && shadowCountdownText.isNotEmpty(),
+                        label = "status_text"
+                    ) { showShadow ->
+                        if (showShadow) {
+                            Text(
+                                text = "\u23F8 $shadowCountdownText",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        } else {
+                            Text(
+                                text = "${if (isPlaying) stringResource(R.string.label_playing_indicator) else ""}${item.durationString}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            )
+                        }
+                    }
                 }
             }
 
@@ -565,12 +574,34 @@ fun FileItem(
                             // 4. A-B Markers (Premium Glowing Lines)
                             if (abLoopStart >= 0f) {
                                 val ax = abLoopStart * w
+                                // Outer Glow
+                                drawLine(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(primaryColor.copy(alpha = 0f), primaryColor.copy(alpha = 0.5f), primaryColor.copy(alpha = 0f)),
+                                        startX = ax - markerWidthPx * 10,
+                                        endX = ax + markerWidthPx * 10
+                                    ),
+                                    start = Offset(ax, 0f),
+                                    end = Offset(ax, h),
+                                    strokeWidth = markerWidthPx * 4f
+                                )
                                 drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
                                 drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, 0f))
                                 drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, h))
                             }
                             if (abLoopEnd >= 0f) {
                                 val bx = abLoopEnd * w
+                                // Outer Glow
+                                drawLine(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(primaryColor.copy(alpha = 0f), primaryColor.copy(alpha = 0.5f), primaryColor.copy(alpha = 0f)),
+                                        startX = bx - markerWidthPx * 10,
+                                        endX = bx + markerWidthPx * 10
+                                    ),
+                                    start = Offset(bx, 0f),
+                                    end = Offset(bx, h),
+                                    strokeWidth = markerWidthPx * 4f
+                                )
                                 drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
                                 drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, 0f))
                                 drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, h))
@@ -592,7 +623,14 @@ fun FileItem(
                             ) {
                                 Text(
                                     text = "$currentTimeString / ${item.durationString}",
-                                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                                    style = TextStyle(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                                        fontSize = 12.sp, 
+                                        fontWeight = FontWeight.Bold, 
+                                        letterSpacing = 0.5.sp,
+                                        fontFamily = FontFamily.Monospace
+                                    ),
+                                    modifier = Modifier.widthIn(min = 100.dp)
                                 )
                                 
                                 // Shadowing Toggle (Premium)

@@ -35,6 +35,7 @@ data class AudioLoopUiState(
     val searchQuery: String = "",
     val sortMode: SortMode = SortMode.DATE_DESC,
     val searchCategory: String? = null,
+    val filteredItems: List<RecordingItem> = emptyList(),
 
     // Sleep timer
     val sleepTimerRemainingMs: Long = 0L,

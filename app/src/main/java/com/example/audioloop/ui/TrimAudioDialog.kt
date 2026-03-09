@@ -43,6 +43,7 @@ import com.example.audioloop.WaveformGenerator
 import com.example.audioloop.AppIcons
 import com.example.audioloop.R
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 
 // Define local colors if not resolved
 private val Red100 = Color(0xFFFFE5E5)
@@ -1121,7 +1122,7 @@ fun TrimAudioScreen(
                         ) {
                             Icon(AppIcons.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.btn_save_copy), maxLines = 1)
+                            Text(stringResource(R.string.btn_save_copy), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
 
@@ -1140,7 +1141,13 @@ fun TrimAudioScreen(
                     ) {
                         Icon(AppIcons.Check, null, Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.btn_replace_original), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.btn_replace_original), 
+                            style = MaterialTheme.typography.titleMedium, 
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }

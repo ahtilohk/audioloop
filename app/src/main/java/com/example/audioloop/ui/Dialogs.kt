@@ -78,8 +78,15 @@ fun RenameDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String)
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     Button(
                         onClick = { onConfirm(textState.text) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) { Text(stringResource(R.string.btn_save)) }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.weight(1f)
+                    ) { 
+                        Text(
+                            stringResource(R.string.btn_save),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        ) 
+                    }
                 }
             }
         }
@@ -187,8 +194,15 @@ fun NoteEditDialog(
                         TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         Button(
                             onClick = { onConfirm(textState.text) },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) { Text(stringResource(R.string.btn_save)) }
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.weight(1f)
+                        ) { 
+                            Text(
+                                stringResource(R.string.btn_save),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            ) 
+                        }
                     }
                 }
             }

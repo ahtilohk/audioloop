@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -263,6 +265,47 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         // 3. Periodic or initial discovery
         viewModelScope.launch {
             repository.discoverRecordings(_uiState.value.categories)
+        }
+
+        // 4. Reactive filtering and sorting (Eliminates runBlocking in the UI thread)
+        viewModelScope.launch {
+            combine(
+                _uiState.map { it.searchQuery }.distinctUntilChanged(),
+                _uiState.map { it.sortMode }.distinctUntilChanged(),
+                _uiState.map { it.searchCategory }.distinctUntilChanged(),
+                _uiState.map { it.savedItems }.distinctUntilChanged(),
+                _uiState.map { it.currentCategory }.distinctUntilChanged()
+            ) { query, sort, cat, saved, current ->
+                val base = if (query.isNotBlank()) {
+                    if (cat != null) {
+                         repository.getRecordingsByCategorySync(cat)
+                    } else {
+                         repository.getAllRecordingsSync()
+                    }
+                } else {
+                    saved
+                }
+
+                val filtered = if (query.isBlank()) {
+                    base
+                } else {
+                    val q = query.lowercase()
+                    base.filter {
+                        it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
+                    }
+                }
+
+                when (sort) {
+                    SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
+                    SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
+                    SortMode.DATE_DESC -> filtered.sortedByDescending { it.file.lastModified() }
+                    SortMode.DATE_ASC -> filtered.sortedBy { it.file.lastModified() }
+                    SortMode.LENGTH_DESC -> filtered.sortedByDescending { it.durationMillis }
+                    SortMode.LENGTH_ASC -> filtered.sortedBy { it.durationMillis }
+                }
+            }.flowOn(Dispatchers.IO).collect { filtered ->
+                _uiState.update { it.copy(filteredItems = filtered) }
+            }
         }
     }
 
@@ -535,49 +578,17 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         refreshFileList()
     }
 
-    // ── Search / Filter ──
+    // ── Search / Filter ── (Getter versions removed in favor of reactive flow)
     fun getAllRecordings(): List<RecordingItem> {
         return runBlocking { repository.getAllRecordingsSync() }
     }
-
 
     fun updateSearchQuery(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
     }
 
-    fun getFilteredItems(): List<RecordingItem> {
-        val state = _uiState.value
-        val baseItems = if (state.searchQuery.isNotBlank()) {
-            if (state.searchCategory != null) {
-                // Search in specific category
-                runBlocking { repository.getRecordingsByCategorySync(state.searchCategory) }
-            } else {
-                // Global search across all
-                getAllRecordings()
-            }
-        } else {
-            // No search, just current category
-            state.savedItems
-        }
-
-        val items = if (state.searchQuery.isBlank()) {
-            baseItems
-        } else {
-            val q = state.searchQuery.lowercase()
-            baseItems.filter {
-                it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
-            }
-        }
-
-        return when (state.sortMode) {
-            SortMode.NAME_ASC -> items.sortedBy { it.name.lowercase() }
-            SortMode.NAME_DESC -> items.sortedByDescending { it.name.lowercase() }
-            SortMode.DATE_DESC -> items.sortedByDescending { it.file.lastModified() }
-            SortMode.DATE_ASC -> items.sortedBy { it.file.lastModified() }
-            SortMode.LENGTH_DESC -> items.sortedByDescending { it.durationMillis }
-            SortMode.LENGTH_ASC -> items.sortedBy { it.durationMillis }
-        }
-    }
+    // Deprecated: use uiState.filteredItems
+    fun getFilteredItems(): List<RecordingItem> = _uiState.value.filteredItems
 
     fun setSortMode(mode: SortMode) {
         _uiState.update { it.copy(sortMode = mode) }
