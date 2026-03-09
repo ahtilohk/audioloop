@@ -262,6 +262,20 @@ fun MainOverlays(
                     viewModel.closeTrimDialog()
                 }
             },
+            onExportLoop = { start, end, fadeIn, fadeOut, norm ->
+                viewModel.startExportLoop(uiState.recordingToTrim!!, start, end, fadeIn, fadeOut, norm)
+            },
+            themeColors = themeColors
+        )
+    }
+
+    if (uiState.showExportSegmentDialog) {
+        ExportSegmentDialog(
+            playlists = uiState.playlists,
+            onDismiss = { viewModel.setShowExportSegmentDialog(false) },
+            onConfirm = { cat, plist, newP ->
+                viewModel.finalizeExport(cat, plist, newP)
+            },
             themeColors = themeColors
         )
     }

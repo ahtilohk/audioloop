@@ -130,7 +130,12 @@ fun FileItem(
     onNudgeAbLoopStart: (Int) -> Unit = {},
     onNudgeAbLoopEnd: (Int) -> Unit = {},
     isShadowingMode: Boolean = false,
-    onToggleShadowingMode: (Boolean) -> Unit = {}
+    onToggleShadowingMode: (Boolean) -> Unit = {},
+    speed: Float = 1f,
+    onSpeedChange: (Float) -> Unit = {},
+    loopCount: Int = 1,
+    onLoopCountChange: (Int) -> Unit = {},
+    onSaveLoopToFile: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
@@ -661,6 +666,80 @@ fun FileItem(
                                             fontWeight = FontWeight.Black
                                         )
                                     )
+                                }
+                                
+                                // Speed Controls
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .border(1.dp, onSurfaceVariantColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                        .padding(2.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
+                                        val active = speed == s
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(if (active) primaryColor else Color.Transparent)
+                                                .clickable { onSpeedChange(s) }
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                "${if (s == 1f) "1" else s}x",
+                                                style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Loops & Save Local Loop
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                // Loops
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .border(1.dp, onSurfaceVariantColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                        .padding(2.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    listOf(1, 2, 5, -1).forEach { l ->
+                                        val active = loopCount == l
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(if (active) primaryColor else Color.Transparent)
+                                                .clickable { onLoopCountChange(l) }
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                if (l == -1) "∞" else "${l}x",
+                                                style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.weight(1f))
+
+                                // Save Loop FAB (Visible only when A-B active)
+                                if (abActive) {
+                                    Button(
+                                        onClick = onSaveLoopToFile,
+                                        modifier = Modifier.height(32.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary700, contentColor = Color.White),
+                                        shape = RoundedCornerShape(16.dp)
+                                    ) {
+                                        Icon(AppIcons.Save, null, Modifier.size(14.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(stringResource(R.string.btn_save_loop), style = MaterialTheme.typography.labelSmall)
+                                    }
                                 }
                             }
 

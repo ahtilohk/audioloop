@@ -427,3 +427,136 @@ private fun readCompressedInfo(file: File): AudioInfo {
     }
 }
 
+@Composable
+fun ExportSegmentDialog(
+    playlists: List<Playlist>,
+    onDismiss: () -> Unit,
+    onConfirm: (targetCategory: String?, targetPlaylistId: String?, newPlaylistName: String?) -> Unit,
+    themeColors: AppColorPalette = AppTheme.SLATE.palette
+) {
+    var selectedTab by remember { mutableStateOf(0) } // 0: Category, 1: New Playlist, 2: Existing Playlist
+    var newPlaylistName by remember { mutableStateOf("") }
+    var selectedPlaylistId by remember { mutableStateOf<String?>(null) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(20.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp).widthIn(max = 400.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    stringResource(R.string.dialog_export_segment),
+                    style = TextStyle(color = themeColors.primary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Tabs
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.Transparent,
+                    contentColor = themeColors.primary,
+                    edgePadding = 0.dp,
+                    divider = {},
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            color = themeColors.primary
+                        )
+                    }
+                ) {
+                    Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
+                        Text(stringResource(R.string.tab_category), modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.labelLarge)
+                    }
+                    Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
+                        Text(stringResource(R.string.tab_new_playlist), modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.labelLarge)
+                    }
+                    Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }) {
+                        Text(stringResource(R.string.tab_existing_playlist), modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(modifier = Modifier.height(180.dp).fillMaxWidth()) {
+                    when (selectedTab) {
+                        0 -> {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+                                Icon(AppIcons.Folder, null, modifier = Modifier.size(48.dp), tint = themeColors.primary.copy(alpha = 0.5f))
+                                Spacer(Modifier.height(8.dp))
+                                Text(stringResource(R.string.msg_save_to_current_cat), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        1 -> {
+                            OutlinedTextField(
+                                value = newPlaylistName,
+                                onValueChange = { newPlaylistName = it },
+                                label = { Text(stringResource(R.string.dialog_new_playlist_name)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        2 -> {
+                            if (playlists.isEmpty()) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(R.string.msg_no_playlists), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            } else {
+                                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    items(playlists) { p ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(if (selectedPlaylistId == p.id) themeColors.primary.copy(alpha = 0.1f) else Color.Transparent)
+                                                .border(1.dp, if (selectedPlaylistId == p.id) themeColors.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                                                .clickable { selectedPlaylistId = p.id }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(AppIcons.QueueMusic, null, modifier = Modifier.size(20.dp), tint = if (selectedPlaylistId == p.id) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Spacer(Modifier.width(12.dp))
+                                            Text(p.name, fontWeight = if (selectedPlaylistId == p.id) FontWeight.Bold else FontWeight.Normal, color = MaterialTheme.colorScheme.onSurface)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Button(
+                        onClick = { 
+                            when(selectedTab) {
+                                0 -> onConfirm(null, null, null)
+                                1 -> if (newPlaylistName.isNotBlank()) onConfirm(null, null, newPlaylistName)
+                                2 -> if (selectedPlaylistId != null) onConfirm(null, selectedPlaylistId, null)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
+                        modifier = Modifier.weight(1f),
+                        enabled = when(selectedTab) {
+                            0 -> true
+                            1 -> newPlaylistName.isNotBlank()
+                            2 -> selectedPlaylistId != null
+                            else -> false
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.btn_save))
+                    }
+                }
+            }
+        }
+    }
+}

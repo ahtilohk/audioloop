@@ -1837,6 +1837,97 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         super.onCleared()
     }
 
+    fun setShowExportSegmentDialog(show: Boolean) {
+        _uiState.update { it.copy(showExportSegmentDialog = show) }
+    }
+
+    fun startExportLoop(item: RecordingItem, start: Long, end: Long, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) {
+        _uiState.update { it.copy(
+            showExportSegmentDialog = true,
+            itemToModify = item,
+            exportSegmentParams = ExportParams(start, end, fadeInMs, fadeOutMs, normalize)
+        ) }
+    }
+
+    fun finalizeExport(targetCategory: String? = null, targetPlaylistId: String? = null, newPlaylistName: String? = null) {
+        val item = _uiState.value.itemToModify ?: return
+        val params = _uiState.value.exportSegmentParams ?: return
+        
+        _uiState.update { it.copy(showExportSegmentDialog = false, showTrimDialog = false, isLoading = true) }
+        
+        val categoryPrefix = targetCategory ?: _uiState.value.currentCategory
+        
+        // Wrap trimAudioFile functionality manually to handle playlist insertion
+        stopPlaying()
+        logEditEvent("export_segment")
+
+        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
+            .setInputData(workDataOf(
+                "type" to "trim",
+                "file_path" to item.file.absolutePath,
+                "start" to params.startMs,
+                "end" to params.endMs,
+                "remove_selection" to false,
+                "replace" to false,
+                "normalize" to params.normalize,
+                "fade_in" to params.fadeInMs,
+                "fade_out" to params.fadeOutMs
+            ))
+            .build()
+
+        workManager.enqueue(workRequest)
+
+        viewModelScope.launch {
+            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+                if (workInfo != null && workInfo.state.isFinished) {
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
+                        val newPath = workInfo.outputData.getString("output_path") ?: ""
+                        if (newPath.isNotEmpty()) {
+                            val newFile = File(newPath)
+                            // 1. If targetCategory differs from current, move it
+                            if (targetCategory != null && targetCategory != _uiState.value.currentCategory) {
+                                // Move is handled by processing in worker implicitly to specific folders 
+                                // if we pass output_dir, but trim worker saves to same folder.
+                                // Let's move it if needed.
+                                val targetDir = if (targetCategory == "General") filesDir else File(filesDir, targetCategory).apply { mkdirs() }
+                                val finalDest = File(targetDir, newFile.name)
+                                if (newFile.renameTo(finalDest)) {
+                                    // Refresh logic
+                                }
+                            }
+                            
+                            // 2. Playlist Logic
+                            if (newPlaylistName != null) {
+                                val newList = Playlist(
+                                    id = System.currentTimeMillis().toString(),
+                                    name = newPlaylistName,
+                                    fileNames = listOf(newFile.name)
+                                )
+                                playlistManager.save(newList)
+                            } else if (targetPlaylistId != null) {
+                                val p = playlistManager.loadAll().find { it.id == targetPlaylistId }
+                                if (p != null) {
+                                    playlistManager.save(p.copy(fileNames = p.fileNames + newFile.name))
+                                }
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                showSnackbar(ctx.getString(R.string.msg_studio_saved))
+                                refreshFileList()
+                                _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
+                            }
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            showSnackbar(ctx.getString(R.string.msg_processing_failed), isError = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun syncDatabase() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

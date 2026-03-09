@@ -297,7 +297,15 @@
     <string name="error_open_audio">Could not open audio file</string>
     <string name="error_corrupted_format">The file may be corrupted or in an unsupported format.</string>
     <string name="btn_save_copy">Save Copy</string>
+    <string name="btn_export_loop">Export Loop</string>
     <string name="btn_replace_original">Replace Original</string>
+    <string name="dialog_export_segment">Export Segment</string>
+    <string name="tab_category">Category</string>
+    <string name="tab_new_playlist">New Playlist</string>
+    <string name="tab_existing_playlist">Existing</string>
+    <string name="msg_save_to_current_cat">Save as a new file in the currently active category.</string>
+    <string name="dialog_new_playlist_name">Playlist Name</string>
+    <string name="msg_no_playlists">No playlists available yet.</string>
     <string name="label_status_completed">COMPLETED</string>
     <string name="label_status_paused">PAUSED</string>
     <string name="label_status_now_playing">NOW PLAYING</string>

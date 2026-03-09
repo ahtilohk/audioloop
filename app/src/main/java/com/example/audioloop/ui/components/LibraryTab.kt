@@ -781,7 +781,19 @@ private fun DraggableFileList(
                     onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
                     onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
                     isShadowingMode = uiState.isShadowingMode,
-                    onToggleShadowingMode = { viewModel.changeShadowingMode(it) }
+                    onToggleShadowingMode = { viewModel.changeShadowingMode(it) },
+                    speed = uiState.playbackSpeed,
+                    onSpeedChange = { viewModel.setPlaybackSpeed(it) },
+                    loopCount = uiState.loopMode,
+                    onLoopCountChange = { viewModel.setLoopMode(it) },
+                    onSaveLoopToFile = { 
+                        viewModel.startExportLoop(
+                            item, 
+                            (uiState.abLoopStart * item.durationMillis).toLong(),
+                            (uiState.abLoopEnd * item.durationMillis).toLong(),
+                            0L, 0L, false
+                        )
+                    }
                 )
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -822,8 +834,13 @@ private fun DraggableFileList(
                 onSetAbLoopEnd = {},
                 onNudgeAbLoopStart = {},
                 onNudgeAbLoopEnd = {},
-                isShadowingMode = false,
-                onToggleShadowingMode = {}
+                isShadowingMode = uiState.isShadowingMode,
+                onToggleShadowingMode = { viewModel.changeShadowingMode(it) },
+                speed = uiState.playbackSpeed,
+                onSpeedChange = { viewModel.setPlaybackSpeed(it) },
+                loopCount = uiState.loopMode,
+                onLoopCountChange = { viewModel.setLoopMode(it) },
+                onSaveLoopToFile = { }
             )
         }
     }

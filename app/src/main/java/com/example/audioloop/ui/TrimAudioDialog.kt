@@ -72,6 +72,7 @@ fun TrimAudioScreen(
     durationMs: Long,
     onDismiss: () -> Unit,
     onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
+    onExportLoop: (start: Long, end: Long, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
     themeColors: AppColorPalette = AppTheme.SLATE.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
@@ -190,7 +191,7 @@ fun TrimAudioScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -276,7 +277,7 @@ fun TrimAudioScreen(
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp) // Adjusted to fit screen without scrolling
+                            .height(160.dp) // Slightly shorter to fit
                             .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                             .clip(RoundedCornerShape(20.dp))
@@ -676,8 +677,8 @@ fun TrimAudioScreen(
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                             .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         // Row 1: CURRENT + NEW LENGTH
                         Row(
@@ -1045,7 +1046,7 @@ fun TrimAudioScreen(
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     } // Column (Time Info Card)
                 } // Column (Scrollable Content)
             } else if (playerInitError) {
@@ -1111,22 +1112,22 @@ fun TrimAudioScreen(
                         ) {
                             Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold)
                         }
-                        // Copy
+                        // Export Loop (New Feature)
                         Button(
                             onClick = {
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
                                 val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
                                 val fd = (dur / 10).coerceIn(200, 3000)
-                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                                onExportLoop(s, e, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                             },
                             modifier = Modifier.weight(1.4f).height(50.dp),
                             shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = Color.White),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary700, contentColor = Color.White),
+                            border = BorderStroke(1.dp, themeColors.primary400)
                         ) {
-                            Icon(AppIcons.Add, null, Modifier.size(18.dp))
+                            Icon(AppIcons.Save, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.btn_save_copy), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.btn_save_loop), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
 

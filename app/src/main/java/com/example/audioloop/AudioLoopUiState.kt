@@ -95,6 +95,7 @@ data class AudioLoopUiState(
     val showBackupSheet: Boolean = false,
     val showPlaylistView: Boolean = false,
     val showPrivacyPolicyDialog: Boolean = false,
+    val showExportSegmentDialog: Boolean = false,
 
     // --- Contextual Items ---
     val itemToModify: RecordingItem? = null,
@@ -104,6 +105,7 @@ data class AudioLoopUiState(
     val recordingToInfo: RecordingItem? = null,
     val editingPlaylist: Playlist? = null,
     val viewingPlaylistId: String? = null,
+    val exportSegmentParams: ExportParams? = null,
     
     // --- Billing / Pro ---
     val isProUser: Boolean = false,
@@ -130,3 +132,11 @@ data class SnackbarMessage(
 )
 
 enum class SnackbarDuration { Short, Long, Indefinite }
+
+data class ExportParams(
+    val startMs: Long,
+    val endMs: Long,
+    val fadeInMs: Long,
+    val fadeOutMs: Long,
+    val normalize: Boolean
+)
