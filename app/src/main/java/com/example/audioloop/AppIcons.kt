@@ -1308,6 +1308,39 @@ object AppIcons {
             return _sort!!
         }
     private var _sort: ImageVector? = null
+    
+    val Save: ImageVector
+        get() {
+            if (_save != null) return _save!!
+            _save = materialIcon(name = "Save") {
+                materialPath {
+                    moveTo(17.0f, 3.0f)
+                    horizontalLineTo(5.0f)
+                    curveToRelative(-1.11f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
+                    verticalLineToRelative(14.0f)
+                    curveToRelative(0.0f, 1.1f, 0.89f, 2.0f, 2.0f, 2.0f)
+                    horizontalLineToRelative(14.0f)
+                    curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
+                    verticalLineTo(7.0f)
+                    lineToRelative(-4.0f, -4.0f)
+                    close()
+                    moveTo(12.0f, 19.0f)
+                    curveToRelative(-1.66f, 0.0f, -3.0f, -1.34f, -3.0f, -3.0f)
+                    reflectiveCurveToRelative(1.34f, -3.0f, 3.0f, -3.0f)
+                    reflectiveCurveToRelative(3.0f, 1.34f, 3.0f, 3.0f)
+                    reflectiveCurveToRelative(-1.34f, 3.0f, -3.0f, 3.0f)
+                    close()
+                    moveTo(15.0f, 9.0f)
+                    horizontalLineTo(5.0f)
+                    verticalLineTo(5.0f)
+                    horizontalLineToRelative(10.0f)
+                    verticalLineToRelative(4.0f)
+                    close()
+                }
+            }
+            return _save!!
+        }
+    private var _save: ImageVector? = null
 
     val Done: ImageVector
         get() = Check

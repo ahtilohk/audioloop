@@ -738,7 +738,7 @@ fun FileItem(
                                     ) {
                                         Icon(AppIcons.Save, null, Modifier.size(14.dp))
                                         Spacer(Modifier.width(6.dp))
-                                        Text(stringResource(R.string.btn_save_loop), style = MaterialTheme.typography.labelSmall)
+                                        Text(stringResource(R.string.btn_export_loop), style = MaterialTheme.typography.labelSmall)
                                     }
                                 }
                             }

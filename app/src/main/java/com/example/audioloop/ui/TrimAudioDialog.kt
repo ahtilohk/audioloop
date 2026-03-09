@@ -1127,7 +1127,7 @@ fun TrimAudioScreen(
                         ) {
                             Icon(AppIcons.Save, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.btn_save_loop), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.btn_export_loop), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
 
