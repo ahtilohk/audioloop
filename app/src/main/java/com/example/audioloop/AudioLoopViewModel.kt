@@ -1934,7 +1934,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             }
         }
-    }
 
     fun syncDatabase() {
         viewModelScope.launch {
