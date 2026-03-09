@@ -223,9 +223,24 @@ fun DeleteConfirmDialog(title: String, text: String, onDismiss: () -> Unit, onCo
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = Red600)
-            ) { Text(stringResource(R.string.btn_delete)) }
+            ) { 
+                Text(
+                    stringResource(R.string.btn_delete),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                ) 
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+        dismissButton = { 
+            TextButton(onClick = onDismiss) { 
+                Text(
+                    stringResource(R.string.btn_cancel), 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                ) 
+            } 
+        }
     )
 }
 

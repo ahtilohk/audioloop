@@ -100,4 +100,18 @@ class ABLoopTest {
         val finalPause = segmentDuration.coerceAtMost(15000L)
         assertEquals(3000L, finalPause)
     }
+
+    @Test
+    fun `nudge precision test for high-end studio feel`() {
+        val totalMs = 30000 // 30s
+        val currentProgress = 0.5f // 15000ms
+        val nudgeMs = 50 // 50ms tap
+        
+        val nextMs = ((currentProgress * totalMs).toInt() + nudgeMs).coerceIn(0, totalMs)
+        val nextProgress = nextMs.toFloat() / totalMs.toFloat()
+        
+        // 15050 / 30000 = 0.50166...
+        assertEquals(15050, nextMs)
+        assertEquals(0.501666f, nextProgress, 0.0001f)
+    }
 }
