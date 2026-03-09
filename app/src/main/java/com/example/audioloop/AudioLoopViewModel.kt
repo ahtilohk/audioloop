@@ -1690,6 +1690,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun setPlaybackSpeed(speed: Float) {
         val wasPlayedBefore = practiceStats.hasEventOccurred("aha_speed_used")
         _uiState.update { it.copy(playbackSpeed = speed) }
+        updatePlaybackParams(speed, _uiState.value.playbackPitch)
         if (speed != 1.0f) {
             practiceStats.logEvent("aha_speed_used", "speed=$speed")
             if (!wasPlayedBefore) {

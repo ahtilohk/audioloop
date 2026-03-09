@@ -42,7 +42,7 @@ data class AudioLoopUiState(
     val selectedSleepMinutes: Int = 0,
 
     // Theme & Language
-    val currentTheme: AppTheme = AppTheme.SLATE,
+    val currentTheme: AppTheme = AppTheme.BLUE,
     val themeMode: ThemeMode = ThemeMode.DARK,
     val appLanguage: String = "en",
 

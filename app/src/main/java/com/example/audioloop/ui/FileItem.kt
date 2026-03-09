@@ -142,9 +142,9 @@ fun FileItem(
 
     // Modern MD3 card states
     val backgroundColor = when {
-        isDragging -> themeColors.primary.copy(alpha = 0.12f)
-        isPlaying -> themeColors.primary.copy(alpha = 0.08f)
-        isSelected -> themeColors.secondary.copy(alpha = 0.08f)
+        isDragging -> themeColors.primary.copy(alpha = 0.15f)
+        isPlaying -> themeColors.primary.copy(alpha = 0.1f)
+        isSelected -> themeColors.secondary.copy(alpha = 0.12f)
         else -> MaterialTheme.colorScheme.surface
     }
 
@@ -160,36 +160,27 @@ fun FileItem(
     val elevation by animateDpAsState(targetValue = if (isDragging) spacing.small else if (isPlaying) spacing.extraSmall else 2.dp, label = "elevation")
 
     Surface(
-        onClick = {
-            if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
-        },
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 0.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .semantics(mergeDescendants = true) {
-                val status = when {
-                    isPlaying && isPaused -> ctx.getString(R.string.a11y_paused)
-                    isPlaying -> ctx.getString(R.string.a11y_playing)
-                    else -> ""
-                }
-                contentDescription = "${item.name}, ${item.durationString}. $status"
-            },
-        shape = RoundedCornerShape(12.dp),
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .shadow(if (isPlaying) 6.dp else 2.dp, RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                if (isPlaying) themeColors.primary.copy(alpha = 0.5f) else Color.Transparent,
+                RoundedCornerShape(16.dp)
+            ),
         color = backgroundColor,
-        border = BorderStroke(1.dp, borderColor),
-        shadowElevation = if (isDragging) 8.dp else 0.dp
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .clickable {
+                    if (isSelectionMode) onToggleSelect() else if (isPlaying) onStop() else onPlay()
+                }
+                .padding(12.dp)
         ) {
             Row(
                 modifier = Modifier
-                    .padding(horizontal = spacing.small, vertical = spacing.small)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(spacing.small)
@@ -533,10 +524,12 @@ fun FileItem(
                                     }
                                 }
                         ) {
+                            val barCount = bars.size
                             val w = size.width
                             val h = size.height
                             val barWidth = if (barCount > 0) w / barCount else 1f
-                            val strokeWidth = (barWidth * 0.6f).coerceIn(1.2f, 3.dp.toPx())
+                            // Thinner lines for higher definition and more "Premium" feel
+                            val strokeWidth = (barWidth * 0.4f).coerceIn(1f, 2.5.dp.toPx())
 
                             fun drawWaveform(color: Color, isFullColor: Boolean = false) {
                                 for (i in 0 until barCount) {
@@ -589,37 +582,30 @@ fun FileItem(
                             // 4. A-B Markers (Premium Glowing Lines)
                             if (abLoopStart >= 0f) {
                                 val ax = abLoopStart * w
-                                // Outer Glow
+                                // A Marker - Refined visualization
                                 drawLine(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(primaryColor.copy(alpha = 0f), primaryColor.copy(alpha = 0.5f), primaryColor.copy(alpha = 0f)),
-                                        startX = ax - markerWidthPx * 10,
-                                        endX = ax + markerWidthPx * 10
-                                    ),
+                                    color = Color.White.copy(alpha = 0.8f),
                                     start = Offset(ax, 0f),
                                     end = Offset(ax, h),
-                                    strokeWidth = markerWidthPx * 4f
+                                    strokeWidth = 2.dp.toPx(),
+                                    cap = StrokeCap.Round
                                 )
-                                drawLine(primaryColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
-                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, 0f))
-                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(ax, h))
+                                // Highlight top/bottom
+                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, 0f))
+                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, h))
                             }
                             if (abLoopEnd >= 0f) {
                                 val bx = abLoopEnd * w
-                                // Outer Glow
                                 drawLine(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(primaryColor.copy(alpha = 0f), primaryColor.copy(alpha = 0.5f), primaryColor.copy(alpha = 0f)),
-                                        startX = bx - markerWidthPx * 10,
-                                        endX = bx + markerWidthPx * 10
-                                    ),
+                                    color = Color.White.copy(alpha = 0.8f),
                                     start = Offset(bx, 0f),
                                     end = Offset(bx, h),
-                                    strokeWidth = markerWidthPx * 4f
+                                    strokeWidth = 2.dp.toPx(),
+                                    cap = StrokeCap.Round
                                 )
-                                drawLine(primaryColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = markerWidthPx * 1.5f, cap = StrokeCap.Round)
-                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, 0f))
-                                drawCircle(primaryColor, radius = markerWidthPx * 3, center = Offset(bx, h))
+                                // Highlight top/bottom
+                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, 0f))
+                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, h))
                             }
 
                             // 5. Playhead
@@ -693,70 +679,72 @@ fun FileItem(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                // Speed
-                                Row(
-                                    modifier = Modifier.weight(1f),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                // Improved Speed Control
+                                FlowRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(AppIcons.Speed, null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                                    // Speedpill
                                     Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                            .padding(2.dp)
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
-                                            val active = speed == s
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (active) themeColors.primary else Color.Transparent)
-                                                    .clickable { onSpeedChange(s) }
-                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                                            ) {
-                                                Text(
-                                                    "${if (s == 1f) "1" else s}x",
-                                                    style = TextStyle(
-                                                        color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        fontSize = 10.sp,
-                                                        fontWeight = FontWeight.Bold
+                                        Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f))
+                                                .padding(2.dp)
+                                        ) {
+                                            listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
+                                                val active = speed == s
+                                                Surface(
+                                                    onClick = { onSpeedChange(s) },
+                                                    shape = CircleShape,
+                                                    color = if (active) themeColors.primary else Color.Transparent,
+                                                    contentColor = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                                ) {
+                                                    Text(
+                                                        "${if (s == 1f) "1" else s}x",
+                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                                                     )
-                                                )
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                // Loops
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(AppIcons.Loop, null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                                    // Loop pill
                                     Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                            .padding(2.dp)
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        listOf(1, 2, 5, -1).forEach { l ->
-                                            val active = loopCount == l
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (active) themeColors.primary else Color.Transparent)
-                                                    .clickable { onLoopCountChange(l) }
-                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                                            ) {
-                                                Text(
-                                                    if (l == -1) "∞" else "${l}x",
-                                                    style = TextStyle(
-                                                        color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        fontSize = 10.sp,
-                                                        fontWeight = FontWeight.Bold
+                                        Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f))
+                                                .padding(2.dp)
+                                        ) {
+                                            listOf(1, 2, 5, -1).forEach { l ->
+                                                val active = loopCount == l
+                                                Surface(
+                                                    onClick = { onLoopCountChange(l) },
+                                                    shape = CircleShape,
+                                                    color = if (active) themeColors.primary else Color.Transparent,
+                                                    contentColor = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                                ) {
+                                                    Text(
+                                                        if (l == -1) "∞" else "${l}x",
+                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                                                     )
-                                                )
+                                                }
                                             }
                                         }
                                     }

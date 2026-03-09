@@ -130,7 +130,8 @@ class AudioRepository(private val context: Context) {
                 android.provider.MediaStore.Audio.Media.RELATIVE_PATH
             )
             val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
-            val selection = "${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+            // Filter out system temp files and our own processing temps
+            val selection = "${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} LIKE ? AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'temp_%' AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'trim_%'"
             val selectionArgs = arrayOf("$targetPath%")
 
             context.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
