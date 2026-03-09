@@ -538,6 +538,33 @@ fun FileItem(
                             val barWidth = w / barCount
                             val strokeWidth = (barWidth * 0.75f).coerceAtLeast(2f)
 
+                            fun drawWaveform(color: Color, isFullColor: Boolean = false) {
+                                for (i in 0 until barCount) {
+                                    val amp = bars[i]
+                                    val barFraction = (amp / 100f).coerceIn(0.08f, 1f)
+                                    val barH = barFraction * h * 0.7f
+                                    val x = i * barWidth + barWidth / 2f
+                                    
+                                    val barColor = if (isFullColor) {
+                                        Brush.verticalGradient(
+                                            colors = listOf(color.copy(alpha = 0.7f), color, color.copy(alpha = 0.7f)),
+                                            startY = (h - barH) / 2,
+                                            endY = (h + barH) / 2
+                                        )
+                                    } else {
+                                        SolidColor(color)
+                                    }
+
+                                    drawLine(
+                                        brush = if (barColor is Brush) barColor else SolidColor(color),
+                                        start = Offset(x, (h - barH) / 2),
+                                        end = Offset(x, (h + barH) / 2),
+                                        strokeWidth = strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                }
+                            }
+
                             // 1. Draw A-B loop region highlight (Premium Gradient)
                             if (abActive) {
                                 drawRect(
@@ -551,29 +578,12 @@ fun FileItem(
                                 )
                             }
 
-                            fun drawWaveform(color: Color) {
-                                for (i in 0 until barCount) {
-                                    val amp = bars[i]
-                                    val barFraction = (amp / 100f).coerceIn(0.1f, 1f)
-                                    val barH = barFraction * h * 0.85f
-                                    val x = i * barWidth + barWidth / 2f
-                                    
-                                    drawLine(
-                                        color = color,
-                                        start = Offset(x, (h - barH) / 2),
-                                        end = Offset(x, (h + barH) / 2),
-                                        strokeWidth = strokeWidth,
-                                        cap = StrokeCap.Round
-                                    )
-                                }
-                            }
+                            // 2. Background (Grayed out)
+                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.15f))
 
-                            // 2. Background
-                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.2f))
-
-                            // 3. Active Waveform
+                            // 3. Active Waveform (Primary themed)
                             clipRect(right = currentProgress * w) {
-                                drawWaveform(primaryColor)
+                                drawWaveform(primaryColor, isFullColor = true)
                             }
 
                             // 4. A-B Markers (Premium Glowing Lines)
@@ -614,134 +624,157 @@ fun FileItem(
 
                             // 5. Playhead
                             val px = currentProgress * w
-                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 0.8f)
+                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 1f)
+                            drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, 0f))
+                            drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Premium Controls Row
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
+                        // Time Display (Monospaced for precision)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                             Text(
                                     text = "$currentTimeString / ${item.durationString}",
                                     style = TextStyle(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                                        fontSize = 12.sp, 
+                                        color = onSurfaceColor.copy(alpha = 0.9f), 
+                                        fontSize = 11.sp, 
                                         fontWeight = FontWeight.Bold, 
-                                        letterSpacing = 0.5.sp,
+                                        letterSpacing = 0.8.sp,
                                         fontFamily = FontFamily.Monospace
-                                    ),
-                                    modifier = Modifier.widthIn(min = 100.dp)
+                                    )
                                 )
-                                
-                                // Shadowing Toggle (Premium)
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else Color.Transparent)
-                                        .border(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else onSurfaceVariantColor.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                                        .clickable { 
-                                            onToggleShadowingMode(!isShadowingMode)
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = AppIcons.Shadow,
-                                        contentDescription = null,
-                                        tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                        modifier = Modifier.size(16.dp).graphicsLayer { rotationZ = 90f }
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.settings_listen_repeat).uppercase(),
-                                        style = TextStyle(
-                                            color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Black
-                                        )
-                                    )
-                                }
-                                
-                                // Speed Controls
-                                Row(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .border(1.dp, onSurfaceVariantColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                                        .padding(2.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
-                                        val active = speed == s
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(10.dp))
-                                                .background(if (active) primaryColor else Color.Transparent)
-                                                .clickable { onSpeedChange(s) }
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                "${if (s == 1f) "1" else s}x",
-                                                style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
 
-                            // Loops & Save Local Loop
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                // Loops
-                                Row(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .border(1.dp, onSurfaceVariantColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                                        .padding(2.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                // Listen & Repeat (Shadowing Mode) Toggle with Icon
+                                Surface(
+                                    onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isShadowingMode) primaryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
                                 ) {
-                                    listOf(1, 2, 5, -1).forEach { l ->
-                                        val active = loopCount == l
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(10.dp))
-                                                .background(if (active) primaryColor else Color.Transparent)
-                                                .clickable { onLoopCountChange(l) }
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                if (l == -1) "∞" else "${l}x",
-                                                style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                            )
-                                        }
-                                    }
-                                }
-
-                                Spacer(Modifier.weight(1f))
-
-                                // Save Loop FAB (Visible only when A-B active)
-                                if (abActive) {
-                                    Button(
-                                        onClick = onSaveLoopToFile,
-                                        modifier = Modifier.height(32.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary700, contentColor = Color.White),
-                                        shape = RoundedCornerShape(16.dp)
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Icon(AppIcons.Save, null, Modifier.size(14.dp))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(stringResource(R.string.btn_export_loop), style = MaterialTheme.typography.labelSmall)
+                                        Icon(
+                                            imageVector = AppIcons.Shadow,
+                                            contentDescription = null,
+                                            tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                                            modifier = Modifier.size(14.dp).graphicsLayer { rotationZ = 90f }
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.settings_listen_repeat).uppercase(),
+                                            style = TextStyle(
+                                                color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Black,
+                                                letterSpacing = 0.5.sp
+                                            )
+                                        )
+                                    }
+                                }
+                        }
+
+                        // Playback Settings Section (Speed & Loops)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = BorderStroke(1.dp, onSurfaceVariantColor.copy(alpha = 0.05f))
+                        ) {
+                            Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    // Speed Label + Selection
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Icon(AppIcons.Speed, null, tint = onSurfaceVariantColor.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                                .padding(2.dp)
+                                        ) {
+                                            listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
+                                                val active = speed == s
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(if (active) primaryColor else Color.Transparent)
+                                                        .clickable { onSpeedChange(s) }
+                                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                                ) {
+                                                    Text(
+                                                        "${if (s == 1f) "1" else s}x",
+                                                        style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Loop Count Selection
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Icon(AppIcons.Loop, null, tint = onSurfaceVariantColor.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                                .padding(2.dp)
+                                        ) {
+                                            listOf(1, 2, 5, -1).forEach { l ->
+                                                val active = loopCount == l
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(if (active) primaryColor else Color.Transparent)
+                                                        .clickable { onLoopCountChange(l) }
+                                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                                ) {
+                                                    Text(
+                                                        if (l == -1) "∞" else "${l}x",
+                                                        style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (abActive) {
+                                    Divider(color = onSurfaceVariantColor.copy(alpha = 0.1f))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            "Export current loop (A-B) to a new file or playlist",
+                                            style = MaterialTheme.typography.labelSmall.copy(color = onSurfaceVariantColor),
+                                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                        )
+                                        Button(
+                                            onClick = onSaveLoopToFile,
+                                            modifier = Modifier.height(30.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = primaryColor, contentColor = Color.White),
+                                            shape = RoundedCornerShape(15.dp),
+                                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                                        ) {
+                                            Icon(AppIcons.Save, null, Modifier.size(12.dp))
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(stringResource(R.string.btn_export_loop), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                        }
                                     }
                                 }
                             }
+                        }
 
                             // Marker Controls (A-B Buttons + Nudges)
                             Row(

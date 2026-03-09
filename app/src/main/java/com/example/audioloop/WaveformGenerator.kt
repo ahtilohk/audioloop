@@ -185,13 +185,11 @@ object WaveformGenerator {
             val start = (i * chunkSize).toInt()
             val end = ((i + 1) * chunkSize).toInt().coerceAtMost(data.size)
 
-            var sum = 0L
-            var count = 0
+            var maxInChunk = 0L
             for (j in start until end) {
-                sum += data[j]
-                count++
+                if (data[j] > maxInChunk) maxInChunk = data[j].toLong()
             }
-            rawValues.add(if (count > 0) sum / count else 0L)
+            rawValues.add(maxInChunk)
         }
 
         // Normaliseerime suhteliselt max väärtuse suhtes

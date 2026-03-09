@@ -490,18 +490,29 @@ fun TrimAudioScreen(
                                         }
                                     }
 
-                                    val rawHeight = (amplitude / 100f).coerceAtLeast(0.08f) * size.height * 0.8f
+                                    val rawHeight = (amplitude / 100f).coerceAtLeast(0.08f) * size.height * 0.75f
                                     val barHeight = rawHeight * fadeMultiplier
-                                     val barColor = if (isKept) {
-                                         if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
-                                         else primaryColor
-                                     } else outlineColor
+                                    
+                                    val baseColor = if (isKept) {
+                                        if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
+                                        else primaryColor
+                                    } else outlineColor
 
-                                     drawLine(
-                                         color = barColor,
+                                    val barBrush = if (isKept && !isSilent) {
+                                        Brush.verticalGradient(
+                                            colors = listOf(baseColor.copy(alpha = 0.7f), baseColor, baseColor.copy(alpha = 0.7f)),
+                                            startY = (size.height - barHeight) / 2,
+                                            endY = (size.height + barHeight) / 2
+                                        )
+                                    } else {
+                                        SolidColor(baseColor)
+                                    }
+
+                                    drawLine(
+                                        brush = barBrush,
                                         start = Offset(x, (size.height - barHeight) / 2),
                                         end = Offset(x, (size.height + barHeight) / 2),
-                                        strokeWidth = (barWidth * 0.7f).coerceAtLeast(1f),
+                                        strokeWidth = (barWidth * 0.75f).coerceAtLeast(1.5f),
                                         cap = StrokeCap.Round
                                     )
                                 }
