@@ -383,6 +383,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.update { it.copy(isLoading = true) }
             repository.discoverRecordings(_uiState.value.categories)
             _uiState.update { it.copy(isLoading = false) }
+            // Trigger precomputation for all visible recordings for better UX
+            _uiState.value.savedItems.forEach { precomputeWaveformAsync(it.file) }
         }
     }
 
@@ -1852,7 +1854,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun finalizeExport(targetCategory: String? = null, targetPlaylistId: String? = null, newPlaylistName: String? = null) {
         val item = _uiState.value.itemToModify ?: return
         val params = _uiState.value.exportSegmentParams ?: return
-        
+        if (_uiState.value.isLoading) return
+
         _uiState.update { it.copy(showExportSegmentDialog = false, showTrimDialog = false, isLoading = true) }
         
         val categoryPrefix = targetCategory ?: _uiState.value.currentCategory
@@ -1878,8 +1881,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         workManager.enqueue(workRequest)
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
-                if (workInfo != null && workInfo.state.isFinished) {
+            workManager.getWorkInfoByIdFlow(workRequest.id)
+                .mapNotNull { if (it?.state?.isFinished == true) it else null }
+                .first()
+                .let { workInfo ->
                     _uiState.update { it.copy(isLoading = false) }
                     if (workInfo.state == androidx.work.WorkInfo.State.SUCCEEDED) {
                         val newPath = workInfo.outputData.getString("output_path") ?: ""

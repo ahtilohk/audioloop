@@ -481,4 +481,5 @@
     <string name="day_f">F</string>
     <string name="day_s">S</string>
     <string name="day_su">S</string>
+    <string name="hint_export_ab">Export selection (A-B) to a new file or playlist</string>
 </resources>

@@ -267,6 +267,7 @@ fun TrimAudioScreen(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 20.dp, vertical = 4.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
                     var startMs by remember { mutableFloatStateOf(0f) }
@@ -514,7 +515,7 @@ fun TrimAudioScreen(
                                         brush = barBrush,
                                         start = Offset(x, (size.height - barHeight) / 2),
                                         end = Offset(x, (size.height + barHeight) / 2),
-                                        strokeWidth = (barWidth * 0.75f).coerceAtLeast(1.5f),
+                                        strokeWidth = (barWidth * 0.6f).coerceIn(1.2f, 3.dp.toPx()),
                                         cap = StrokeCap.Round
                                     )
                                 }
@@ -528,6 +529,8 @@ fun TrimAudioScreen(
                             } else {
                                 drawRect(dimColor, topLeft = Offset(selectionStartX, 0f), size = Size((selectionEndX - selectionStartX).coerceAtLeast(0f), size.height))
                             }
+
+
 
                             // Handles
                             val handleH = size.height

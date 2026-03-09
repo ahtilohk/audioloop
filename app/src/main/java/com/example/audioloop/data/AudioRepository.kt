@@ -162,9 +162,10 @@ class AudioRepository(private val context: Context) {
         if (!targetDir.exists()) return
 
         val files = targetDir.listFiles { _, name ->
-            name.endsWith(".m4a", ignoreCase = true) || 
-            name.endsWith(".mp3", ignoreCase = true) || 
-            name.endsWith(".wav", ignoreCase = true)
+            val isAudio = name.endsWith(".m4a", ignoreCase = true) || 
+                          name.endsWith(".mp3", ignoreCase = true) || 
+                          name.endsWith(".wav", ignoreCase = true)
+            isAudio && !name.startsWith("temp_", ignoreCase = true)
         }
 
         files?.forEach { file ->

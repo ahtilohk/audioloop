@@ -535,8 +535,8 @@ fun FileItem(
                         ) {
                             val w = size.width
                             val h = size.height
-                            val barWidth = w / barCount
-                            val strokeWidth = (barWidth * 0.75f).coerceAtLeast(2f)
+                            val barWidth = if (barCount > 0) w / barCount else 1f
+                            val strokeWidth = (barWidth * 0.6f).coerceIn(1.2f, 3.dp.toPx())
 
                             fun drawWaveform(color: Color, isFullColor: Boolean = false) {
                                 for (i in 0 until barCount) {
@@ -680,97 +680,121 @@ fun FileItem(
                         }
 
                         // Playback Settings Section (Speed & Loops)
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            border = BorderStroke(1.dp, onSurfaceVariantColor.copy(alpha = 0.05f))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                // Speed
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.weight(1f),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // Speed Label + Selection
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        Icon(AppIcons.Speed, null, tint = onSurfaceVariantColor.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(10.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                                .padding(2.dp)
-                                        ) {
-                                            listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
-                                                val active = speed == s
-                                                Box(
-                                                    modifier = Modifier
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(if (active) primaryColor else Color.Transparent)
-                                                        .clickable { onSpeedChange(s) }
-                                                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(
-                                                        "${if (s == 1f) "1" else s}x",
-                                                        style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Icon(AppIcons.Speed, null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                            .padding(2.dp)
+                                    ) {
+                                        listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
+                                            val active = speed == s
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(if (active) themeColors.primary else Color.Transparent)
+                                                    .clickable { onSpeedChange(s) }
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    "${if (s == 1f) "1" else s}x",
+                                                    style = TextStyle(
+                                                        color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
                                                     )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Loop Count Selection
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        Icon(AppIcons.Loop, null, tint = onSurfaceVariantColor.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(10.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                                .padding(2.dp)
-                                        ) {
-                                            listOf(1, 2, 5, -1).forEach { l ->
-                                                val active = loopCount == l
-                                                Box(
-                                                    modifier = Modifier
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(if (active) primaryColor else Color.Transparent)
-                                                        .clickable { onLoopCountChange(l) }
-                                                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(
-                                                        if (l == -1) "∞" else "${l}x",
-                                                        style = TextStyle(color = if (active) Color.White else onSurfaceVariantColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                                    )
-                                                }
+                                                )
                                             }
                                         }
                                     }
                                 }
 
-                                if (abActive) {
-                                    Divider(color = onSurfaceVariantColor.copy(alpha = 0.1f))
+                                // Loops
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(AppIcons.Loop, null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
                                     Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                            .padding(2.dp)
                                     ) {
-                                        Text(
-                                            "Export current loop (A-B) to a new file or playlist",
-                                            style = MaterialTheme.typography.labelSmall.copy(color = onSurfaceVariantColor),
-                                            modifier = Modifier.weight(1f).padding(end = 8.dp)
-                                        )
-                                        Button(
-                                            onClick = onSaveLoopToFile,
-                                            modifier = Modifier.height(30.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = primaryColor, contentColor = Color.White),
-                                            shape = RoundedCornerShape(15.dp),
-                                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-                                        ) {
-                                            Icon(AppIcons.Save, null, Modifier.size(12.dp))
-                                            Spacer(Modifier.width(6.dp))
-                                            Text(stringResource(R.string.btn_export_loop), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                        listOf(1, 2, 5, -1).forEach { l ->
+                                            val active = loopCount == l
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(if (active) themeColors.primary else Color.Transparent)
+                                                    .clickable { onLoopCountChange(l) }
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    if (l == -1) "∞" else "${l}x",
+                                                    style = TextStyle(
+                                                        color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
+                                            }
                                         }
+                                    }
+                                }
+                            }
+
+                            if (abActive) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        stringResource(R.string.hint_export_ab),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            fontSize = 9.sp
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Button(
+                                        onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
+                                        modifier = Modifier.height(32.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = themeColors.primary,
+                                            contentColor = Color.White
+                                        ),
+                                        shape = RoundedCornerShape(16.dp),
+                                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                                    ) {
+                                        Icon(AppIcons.Save, null, Modifier.size(12.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            stringResource(R.string.btn_export_loop),
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold)
+                                        )
                                     }
                                 }
                             }
@@ -875,43 +899,48 @@ private fun MarkerControlGroup(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Nudge Back (-100ms)
-        IconButton(
+        // Nudge Back
+        SmallFloatingActionButton(
             onClick = { onNudge(-100) },
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(32.dp),
+            containerColor = Color.Transparent,
+            contentColor = themeColors.primary,
+            elevation = FloatingActionButtonDefaults.elevation(0.dp)
         ) {
-            Icon(AppIcons.ChevronLeft, contentDescription = null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+            Icon(AppIcons.ChevronLeft, null, modifier = Modifier.size(16.dp))
         }
 
-        // Main A/B Button
+        // Main A/B Circle
         Surface(
             onClick = onMainClick,
-            shape = RoundedCornerShape(8.dp),
-            color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.size(height = 40.dp, width = 48.dp),
-            tonalElevation = 2.dp,
-            shadowElevation = if (isActive) 2.dp else 0.dp
+            shape = CircleShape,
+            color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier.size(44.dp),
+            border = BorderStroke(1.5.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.2f))
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = label,
                     style = TextStyle(
                         color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Black
                     )
                 )
             }
         }
 
-        // Nudge Forward (+100ms)
-        IconButton(
+        // Nudge Forward
+        SmallFloatingActionButton(
             onClick = { onNudge(100) },
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(32.dp),
+            containerColor = Color.Transparent,
+            contentColor = themeColors.primary,
+            elevation = FloatingActionButtonDefaults.elevation(0.dp)
         ) {
-            Icon(AppIcons.ChevronRight, contentDescription = null, tint = themeColors.primary.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+            Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(16.dp))
         }
     }
 }
