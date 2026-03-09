@@ -3,6 +3,8 @@
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -65,6 +67,7 @@ private enum class TrimMode {
     Remove
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrimAudioScreen(
     file: File,
@@ -258,7 +261,6 @@ fun TrimAudioScreen(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 4.dp)
                 ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
@@ -665,7 +667,7 @@ fun TrimAudioScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // Time Info Card Container
                     Column(
@@ -673,8 +675,8 @@ fun TrimAudioScreen(
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                             .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         // Row 1: CURRENT + NEW LENGTH
                         Row(
@@ -691,10 +693,9 @@ fun TrimAudioScreen(
                                         previewPositionMs = 0L
                                         try { previewPlayer.seekTo(0) } catch (_: Exception) {}
                                     }
-                                    .padding(10.dp)
+                                    .padding(8.dp)
                             ) {
                                 Text(stringResource(R.string.label_current), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     formatDuration(previewPositionMs),
                                     color = themeColors.primary,
@@ -708,7 +709,7 @@ fun TrimAudioScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
-                                    .padding(10.dp),
+                                    .padding(8.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
                                 val start = range.start.toLong()
@@ -839,123 +840,70 @@ fun TrimAudioScreen(
                             }
                         }
 
-                        // Row 3: Effect toggles (2x2 Grid for Premium Studio)
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        // Row 3: Effect toggles (single compact row)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            // Fade In toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(if (fadeInEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                    .border(1.dp, if (fadeInEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                    .combinedClickable(
+                                        onClick = { fadeInEnabled = !fadeInEnabled },
+                                        onLongClick = { helpHintTitle = context.getString(R.string.label_fade_in); helpHintText = context.getString(R.string.hint_smooth_fade) }
+                                    )
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                // Fade In toggle
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .background(if (fadeInEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                                        .border(1.dp, if (fadeInEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                                        .clickable { fadeInEnabled = !fadeInEnabled }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(stringResource(R.string.label_fade_in), color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                                        Icon(
-                                            imageVector = AppIcons.Info,
-                                            contentDescription = null,
-                                            tint = (if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { 
-                                                    helpHintTitle = context.getString(R.string.label_fade_in)
-                                                    helpHintText = context.getString(R.string.hint_smooth_fade) 
-                                                }
-                                                .padding(6.dp)
-                                        )
-                                    }
-                                }
-                                // Fade Out toggle
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .background(if (fadeOutEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                                        .border(1.dp, if (fadeOutEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                                        .clickable { fadeOutEnabled = !fadeOutEnabled }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(stringResource(R.string.label_fade_out), color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                                        Icon(
-                                            imageVector = AppIcons.Info,
-                                            contentDescription = null,
-                                            tint = (if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { 
-                                                    helpHintTitle = context.getString(R.string.label_fade_out)
-                                                    helpHintText = context.getString(R.string.hint_smooth_fade) 
-                                                }
-                                                .padding(6.dp)
-                                        )
-                                    }
-                                }
+                                Text(stringResource(R.string.label_fade_in), color = if (fadeInEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1)
                             }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            // Fade Out toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(if (fadeOutEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                    .border(1.dp, if (fadeOutEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                    .combinedClickable(
+                                        onClick = { fadeOutEnabled = !fadeOutEnabled },
+                                        onLongClick = { helpHintTitle = context.getString(R.string.label_fade_out); helpHintText = context.getString(R.string.hint_smooth_fade) }
+                                    )
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                // Auto-trim Silence toggle
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .background(if (autoTrimSilence) Amber700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                                        .border(1.dp, if (autoTrimSilence) Amber500 else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                                        .clickable { autoTrimSilence = !autoTrimSilence }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(stringResource(R.string.label_silence), color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                                        Icon(
-                                            imageVector = AppIcons.Info,
-                                            contentDescription = null,
-                                            tint = (if (autoTrimSilence) Color.White else Amber500).copy(alpha = 0.5f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { 
-                                                    helpHintTitle = context.getString(R.string.label_silence)
-                                                    helpHintText = context.getString(R.string.hint_remove_silence) 
-                                                }
-                                                .padding(6.dp)
-                                        )
-                                    }
-                                }
-                                // Normalize toggle
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .background(if (normalizeEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                                        .border(1.dp, if (normalizeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                                        .clickable { normalizeEnabled = !normalizeEnabled }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(stringResource(R.string.label_normalize), color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                    
-                                    // Info icon for help
-                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                                        Icon(
-                                            imageVector = AppIcons.Info,
-                                            contentDescription = null,
-                                            tint = (if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.primary).copy(alpha = 0.5f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { 
-                                                    helpHintTitle = context.getString(R.string.label_normalize)
-                                                    helpHintText = context.getString(R.string.hint_balance_volume) 
-                                                }
-                                                .padding(6.dp)
-                                        )
-                                    }
-                                }
+                                Text(stringResource(R.string.label_fade_out), color = if (fadeOutEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1)
+                            }
+                            // Auto-trim Silence toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(if (autoTrimSilence) Amber700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                    .border(1.dp, if (autoTrimSilence) Amber500 else MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                    .combinedClickable(
+                                        onClick = { autoTrimSilence = !autoTrimSilence },
+                                        onLongClick = { helpHintTitle = context.getString(R.string.label_silence); helpHintText = context.getString(R.string.hint_remove_silence) }
+                                    )
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(stringResource(R.string.label_silence), color = if (autoTrimSilence) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1)
+                            }
+                            // Normalize toggle
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(if (normalizeEnabled) themeColors.primary700 else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                    .border(1.dp, if (normalizeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                    .combinedClickable(
+                                        onClick = { normalizeEnabled = !normalizeEnabled },
+                                        onLongClick = { helpHintTitle = context.getString(R.string.label_normalize); helpHintText = context.getString(R.string.hint_balance_volume) }
+                                    )
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(stringResource(R.string.label_normalize), color = if (normalizeEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1)
                             }
                         }
 
@@ -984,11 +932,11 @@ fun TrimAudioScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 // Reset Button
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
+                                        .size(36.dp)
                                         .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                                         .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                                         .clickable {
@@ -1008,7 +956,7 @@ fun TrimAudioScreen(
                                 // Play Button
                                 Box(
                                     modifier = Modifier
-                                        .size(56.dp)
+                                        .size(48.dp)
                                         .shadow(
                                             elevation = if (isPreviewPlaying) 16.dp else 8.dp,
                                             shape = CircleShape,
@@ -1037,12 +985,12 @@ fun TrimAudioScreen(
                                         imageVector = if (isPreviewPlaying) AppIcons.Pause else AppIcons.Play,
                                         contentDescription = if (isPreviewPlaying) stringResource(R.string.menu_pause) else stringResource(R.string.menu_play),
                                         tint = if (isPreviewPlaying) Color.White else MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     } // Column (Time Info Card)
                 } // Column (Scrollable Content)
             } else if (playerInitError) {
