@@ -204,19 +204,24 @@ fun TrimAudioScreen(
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         stringResource(R.string.title_trim_audio),
                         style = MaterialTheme.typography.titleLarge.copy(
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold
-                        )
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         stringResource(R.string.label_studio_editor),
                         style = MaterialTheme.typography.labelMedium.copy(
                             color = MaterialTheme.colorScheme.primary
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 
@@ -484,7 +489,7 @@ fun TrimAudioScreen(
                                         }
                                     }
 
-                                    val rawHeight = (amplitude / 100f) * size.height * 0.8f
+                                    val rawHeight = (amplitude / 100f).coerceAtLeast(0.08f) * size.height * 0.8f
                                     val barHeight = rawHeight * fadeMultiplier
                                      val barColor = if (isKept) {
                                          if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
@@ -607,10 +612,9 @@ fun TrimAudioScreen(
                                                 if (target != null) {
                                                     // Consume ONLY if we are moving a handle
                                                     change.consume()
-                                                    val dragDeltaMs = ( (change.position.x - prevX) / (widthPx * zoomScale) ) * totalDuration
                                                     when (target) {
-                                                        TrimDragTarget.Start -> startMs = (startMs + dragDeltaMs).coerceIn(0f, totalDuration)
-                                                        TrimDragTarget.End -> endMs = (endMs + dragDeltaMs).coerceIn(0f, totalDuration)
+                                                        TrimDragTarget.Start -> startMs = pxToMs(change.position.x).coerceIn(0f, totalDuration)
+                                                        TrimDragTarget.End -> endMs = pxToMs(change.position.x).coerceIn(0f, totalDuration)
                                                         TrimDragTarget.Playhead -> {
                                                             val tappedMs = pxToMs(change.position.x)
                                                             previewPositionMs = resolvePreviewPosition(tappedMs)
@@ -1097,7 +1101,7 @@ fun TrimAudioScreen(
                         // Cancel
                         Button(
                             onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(50.dp),
+                            modifier = Modifier.weight(0.8f).height(50.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -1115,7 +1119,7 @@ fun TrimAudioScreen(
                                 val fd = (dur / 10).coerceIn(200, 3000)
                                 onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
                             },
-                            modifier = Modifier.weight(1.2f).height(50.dp),
+                            modifier = Modifier.weight(1.4f).height(50.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = Color.White),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)

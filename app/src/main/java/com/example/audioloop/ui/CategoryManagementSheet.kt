@@ -138,7 +138,7 @@ fun CategoryManagementSheet(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.label_categories),
                     style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)

@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -243,13 +244,14 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun syncDatabaseAndObserve() {
-        // 1. Observe items for current category
+        // 1. Observe items for current category (Uses flatMapLatest to cancel old flows)
         viewModelScope.launch {
-            _uiState.map { it.currentCategory }.distinctUntilChanged().collect { category ->
-                repository.getRecordingsByCategory(category).collect { items ->
+            _uiState.map { it.currentCategory }
+                .distinctUntilChanged()
+                .flatMapLatest { category -> repository.getRecordingsByCategory(category) }
+                .collect { items ->
                     _uiState.update { it.copy(savedItems = items) }
                 }
-            }
         }
         
         // 2. Observe all categories from DB and combine with disk discovery

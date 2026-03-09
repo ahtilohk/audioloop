@@ -62,10 +62,8 @@ fun LibraryTab(
     val uiRecordingItems = remember { mutableStateListOf<RecordingItem>() }
 
     LaunchedEffect(recordingItems) {
-        if (uiRecordingItems.size != recordingItems.size || uiRecordingItems.any { it !in recordingItems }) {
-            uiRecordingItems.clear()
-            uiRecordingItems.addAll(recordingItems)
-        }
+        uiRecordingItems.clear()
+        uiRecordingItems.addAll(recordingItems)
     }
 
     val spacing = LocalSpacing.current

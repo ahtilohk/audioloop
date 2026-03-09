@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -101,8 +102,12 @@ fun PlaylistEditorScreen(
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
+                            fontSize = 18.sp
+                        ),
+                        modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     Button(
@@ -360,4 +365,3 @@ private fun TrackItem(
         }
     }
 }
-
