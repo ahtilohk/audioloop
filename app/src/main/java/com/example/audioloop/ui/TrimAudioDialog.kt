@@ -258,6 +258,7 @@ fun TrimAudioScreen(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 4.dp)
                 ) {
                     // Shared state for trim handles (accessible by nudge buttons below)
