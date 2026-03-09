@@ -1898,17 +1898,20 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             }
                             
                             // 2. Playlist Logic
+                            val playlistPath = if (categoryPrefix == "General") newFile.name else "$categoryPrefix/${newFile.name}"
+                            
                             if (newPlaylistName != null) {
                                 val newList = Playlist(
                                     id = System.currentTimeMillis().toString(),
                                     name = newPlaylistName,
-                                    fileNames = listOf(newFile.name)
+                                    files = listOf(playlistPath),
+                                    createdAt = System.currentTimeMillis()
                                 )
                                 playlistManager.save(newList)
                             } else if (targetPlaylistId != null) {
                                 val p = playlistManager.loadAll().find { it.id == targetPlaylistId }
                                 if (p != null) {
-                                    playlistManager.save(p.copy(fileNames = p.fileNames + newFile.name))
+                                    playlistManager.save(p.copy(files = p.files + playlistPath))
                                 }
                             }
 
