@@ -101,6 +101,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             when (intent?.action) {
                 AudioService.ACTION_RECORDING_SAVED -> {
                     setRecording(false)
+                    // Compute waveform for newly saved recording
+                    val savedPath = intent?.getStringExtra("file_path")
+                    if (savedPath != null) {
+                        precomputeWaveformAsync(java.io.File(savedPath))
+                    }
                     syncDatabase()
                 }
                 AudioService.ACTION_START_RECORDING_EVENT -> {
@@ -248,6 +253,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.map { it.currentCategory }.distinctUntilChanged().collect { category ->
                 repository.getRecordingsByCategory(category).collect { items ->
                     _uiState.update { it.copy(savedItems = items) }
+                    // Ensure waveform data is computed for all visible items
+                    items.forEach { item -> precomputeWaveformAsync(item.file) }
                 }
             }
         }
@@ -276,32 +283,37 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 _uiState.map { it.savedItems }.distinctUntilChanged(),
                 _uiState.map { it.currentCategory }.distinctUntilChanged()
             ) { query, sort, cat, saved, current ->
-                val base = if (query.isNotBlank()) {
-                    if (cat != null) {
-                         repository.getRecordingsByCategorySync(cat)
+                try {
+                    val base = if (query.isNotBlank()) {
+                        if (cat != null) {
+                             repository.getRecordingsByCategorySync(cat)
+                        } else {
+                             repository.getAllRecordingsSync()
+                        }
                     } else {
-                         repository.getAllRecordingsSync()
+                        saved
                     }
-                } else {
+
+                    val filtered = if (query.isBlank()) {
+                        base
+                    } else {
+                        val q = query.lowercase()
+                        base.filter {
+                            it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
+                        }
+                    }
+
+                    when (sort) {
+                        SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
+                        SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
+                        SortMode.DATE_DESC -> filtered.sortedByDescending { it.file.lastModified() }
+                        SortMode.DATE_ASC -> filtered.sortedBy { it.file.lastModified() }
+                        SortMode.LENGTH_DESC -> filtered.sortedByDescending { it.durationMillis }
+                        SortMode.LENGTH_ASC -> filtered.sortedBy { it.durationMillis }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AudioLoopVM", "Search filtering error", e)
                     saved
-                }
-
-                val filtered = if (query.isBlank()) {
-                    base
-                } else {
-                    val q = query.lowercase()
-                    base.filter {
-                        it.name.lowercase().contains(q) || it.note.lowercase().contains(q)
-                    }
-                }
-
-                when (sort) {
-                    SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
-                    SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
-                    SortMode.DATE_DESC -> filtered.sortedByDescending { it.file.lastModified() }
-                    SortMode.DATE_ASC -> filtered.sortedBy { it.file.lastModified() }
-                    SortMode.LENGTH_DESC -> filtered.sortedByDescending { it.durationMillis }
-                    SortMode.LENGTH_ASC -> filtered.sortedBy { it.durationMillis }
                 }
             }.flowOn(Dispatchers.IO).collect { filtered ->
                 _uiState.update { it.copy(filteredItems = filtered) }
@@ -803,7 +815,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             } else {
                                 ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
                             }
-                            
+
                             shadowingJob = viewModelScope.launch(Dispatchers.Main) {
                                 var remaining = pauseDuration
                                 while (remaining > 0 && isActive) {
@@ -820,15 +832,23 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                             }
                         } else {
                             // Just seek to A
-                            seekAbsolute((abStart * total).toInt())
+                            val seekMs = (abStart * total).toInt()
+                            seekAbsolute(seekMs)
+                            // Update progress immediately to avoid visual jump
+                            _uiState.update {
+                                it.copy(
+                                    currentProgress = abStart,
+                                    currentTimeString = AudioMetadataHelper.formatTime(seekMs.toLong())
+                                )
+                            }
                         }
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            currentProgress = progress,
-                            currentTimeString = AudioMetadataHelper.formatTime(current.toLong())
-                        )
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                currentProgress = progress,
+                                currentTimeString = AudioMetadataHelper.formatTime(current.toLong())
+                            )
+                        }
                     }
                 } else if (state.playingFileName.isEmpty()) {
                     _uiState.update { it.copy(currentProgress = 0f, currentTimeString = "00:00") }

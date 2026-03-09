@@ -497,7 +497,17 @@ fun FileItem(
                             }
                         }
 
-                        val bars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
+                        val rawBars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
+                        // Re-normalize to ensure full visual range (handles edge cases with very low or very high values)
+                        val bars = remember(rawBars) {
+                            val maxVal = rawBars.maxOrNull()?.coerceAtLeast(1) ?: 1
+                            if (maxVal < 10) {
+                                // All values very low - normalize to fill range
+                                rawBars.map { ((it.toFloat() / maxVal) * 100).toInt().coerceIn(5, 100) }
+                            } else {
+                                rawBars
+                            }
+                        }
                         val barCount = bars.size
                         
                         val primaryColor = themeColors.primary

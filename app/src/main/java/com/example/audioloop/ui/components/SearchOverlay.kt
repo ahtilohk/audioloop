@@ -119,6 +119,11 @@ fun SearchOverlay(
     }
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        try {
+            kotlinx.coroutines.delay(100) // Allow composition to settle
+            focusRequester.requestFocus()
+        } catch (_: Exception) {
+            // FocusRequester may not yet be attached; ignore
+        }
     }
 }

@@ -102,7 +102,10 @@ fun PlaylistEditorScreen(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
-                        )
+                        ),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                     )
 
                     Button(
@@ -125,7 +128,7 @@ fun PlaylistEditorScreen(
                     ) {
                         Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
             }
