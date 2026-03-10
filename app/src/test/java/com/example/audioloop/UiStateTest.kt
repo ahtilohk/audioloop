@@ -79,9 +79,9 @@ class UiStateTest {
     }
 
     @Test
-    fun `default theme is SLATE`() {
+    fun `default theme is OCEAN`() {
         val state = AudioLoopUiState()
-        assertEquals(com.example.audioloop.ui.theme.AppTheme.SLATE, state.currentTheme)
+        assertEquals(com.example.audioloop.ui.theme.AppTheme.OCEAN, state.currentTheme)
     }
 
     // ── State Transition Tests (via copy) ──
