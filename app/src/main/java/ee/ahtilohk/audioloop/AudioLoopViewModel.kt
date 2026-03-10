@@ -758,12 +758,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.update { it.copy(shadowCountdownText = "") }
         }
         val mp = mediaPlayer ?: return
-            if (!mp.isPlaying) {
-                mp.start()
-                _uiState.update { it.copy(isPaused = false) }
-                mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-            }
-        } catch (_: IllegalStateException) {}
+        if (!mp.isPlaying) {
+            mp.start()
+            _uiState.update { it.copy(isPaused = false) }
+            mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
+        }
     }
 
     fun stopPlayingAndReset() {
