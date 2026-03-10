@@ -736,7 +736,6 @@ fun FileItem(
                                     }
                                 }
                             }
-                        }
 
                             // Marker Controls (A-B Buttons + Nudges)
                             Row(
