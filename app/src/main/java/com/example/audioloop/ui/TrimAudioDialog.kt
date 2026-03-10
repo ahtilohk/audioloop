@@ -74,7 +74,7 @@ fun TrimAudioScreen(
     uri: Uri,
     durationMs: Long,
     onDismiss: () -> Unit,
-    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
+    onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean, gainDb: Float) -> Unit,
     themeColors: AppColorPalette = AppTheme.SLATE.palette
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
@@ -89,6 +89,7 @@ fun TrimAudioScreen(
     var fadeOutEnabled by remember { mutableStateOf(false) }
     var autoTrimSilence by remember { mutableStateOf(false) }
     var normalizeEnabled by remember { mutableStateOf(false) }
+    var gainDb by remember { mutableFloatStateOf(0f) }
     var helpHintText by remember { mutableStateOf<String?>(null) }
     var helpHintTitle by remember { mutableStateOf<String?>(null) }
 
@@ -1062,7 +1063,7 @@ fun TrimAudioScreen(
                                 val s = range.start.toLong(); val e = range.endInclusive.toLong()
                                 val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
                                 val fd = (dur / 10).coerceIn(200, 3000)
-                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                                onConfirm(s, e, false, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled, gainDb)
                             },
                             modifier = Modifier.weight(1.2f).height(50.dp),
                             shape = RoundedCornerShape(16.dp),
@@ -1081,7 +1082,7 @@ fun TrimAudioScreen(
                             val s = range.start.toLong(); val e = range.endInclusive.toLong()
                             val dur = if (trimMode == TrimMode.Keep) e - s else durationMs - (e - s)
                             val fd = (dur / 10).coerceIn(200, 3000)
-                            onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled)
+                            onConfirm(s, e, true, trimMode == TrimMode.Remove, if (fadeInEnabled) fd else 0L, if (fadeOutEnabled) fd else 0L, normalizeEnabled, gainDb)
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(16.dp),

@@ -1019,7 +1019,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun trimAudioFile(
         file: File, start: Long, end: Long, replace: Boolean,
         removeSelection: Boolean, fadeInMs: Long = 0, fadeOutMs: Long = 0,
-        normalize: Boolean = false, onSuccess: () -> Unit
+        normalize: Boolean = false, gainDb: Float = 0f, onSuccess: () -> Unit
     ) {
         stopPlaying()
         val ext = file.extension
@@ -1035,6 +1035,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 "remove_selection" to removeSelection,
                 "replace" to replace,
                 "normalize" to normalize,
+                "gain_db" to gainDb,
                 "fade_in" to fadeInMs,
                 "fade_out" to fadeOutMs
             ))

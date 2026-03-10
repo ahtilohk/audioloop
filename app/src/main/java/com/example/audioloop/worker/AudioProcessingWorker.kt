@@ -54,6 +54,15 @@ class AudioProcessingWorker(
                         }
                     }
 
+                    val gainDb = inputData.getFloat("gain_db", 0f)
+                    if (gainDb != 0f) {
+                        val gainFile = File(file.parent, "temp_gain_${ts}.$ext")
+                        if (AudioProcessor.applyGain(currentWorkFile, gainFile, gainDb)) {
+                            currentWorkFile.delete()
+                            currentWorkFile = gainFile
+                        }
+                    }
+
                     val fadeInMs = inputData.getLong("fade_in", 0)
                     val fadeOutMs = inputData.getLong("fade_out", 0)
                     if (fadeInMs > 0 || fadeOutMs > 0) {

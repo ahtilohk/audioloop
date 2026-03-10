@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.tanh
 
 object AudioProcessor {
 
@@ -45,7 +46,7 @@ object AudioProcessor {
     }
 
     /**
-     * Applies gain (volume boost/cut) to audio.
+     * Applies gain (volume boost/cut) to audio with soft limiting to prevent distortion.
      * @param gainDb gain in decibels (e.g. 6.0 = double volume, -6.0 = half)
      */
     suspend fun applyGain(
@@ -53,19 +54,35 @@ object AudioProcessor {
         outputFile: File,
         gainDb: Float
     ): Boolean = withContext(Dispatchers.IO) {
+        if (gainDb == 0f) {
+            inputFile.copyTo(outputFile, overwrite = true)
+            return@withContext true
+        }
         val multiplier = Math.pow(10.0, gainDb / 20.0).toFloat()
+        val processBlock: (ShortArray, Int, Int) -> ShortArray = { samples, _, _ ->
+            ShortArray(samples.size) { i ->
+                softLimit((samples[i] * multiplier).toFloat()).toShort()
+            }
+        }
         if (inputFile.extension.equals("wav", ignoreCase = true)) {
-            processWavSamples(inputFile, outputFile) { samples, _, _ ->
-                ShortArray(samples.size) { i ->
-                    (samples[i] * multiplier).toInt().coerceIn(-32767, 32767).toShort()
-                }
-            }
+            processWavSamples(inputFile, outputFile, processBlock)
         } else {
-            processCompressed(inputFile, outputFile) { samples, _, _ ->
-                ShortArray(samples.size) { i ->
-                    (samples[i] * multiplier).toInt().coerceIn(-32767, 32767).toShort()
-                }
-            }
+            processCompressed(inputFile, outputFile, processBlock)
+        }
+    }
+
+    /**
+     * Soft limiter using tanh curve. Prevents hard clipping distortion by
+     * smoothly compressing samples that exceed the threshold.
+     */
+    private fun softLimit(sample: Float): Int {
+        val threshold = 30000f
+        return if (abs(sample) <= threshold) {
+            sample.toInt()
+        } else {
+            val sign = if (sample >= 0) 1f else -1f
+            val excess = (abs(sample) - threshold) / threshold
+            (sign * (threshold + (32767f - threshold) * tanh(excess))).toInt()
         }
     }
 
