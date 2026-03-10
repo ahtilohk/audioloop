@@ -506,7 +506,7 @@ fun FileItem(
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp) // Slightly taller for premium feel
+                                .height(40.dp) // Much more compact waveform
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(onSurfaceVariantColor.copy(alpha = 0.05f))
                                 .semantics {
@@ -665,40 +665,44 @@ fun FileItem(
                                 }
                         }
 
-                        // Compact Playback Settings (Speed & Loops)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        // Compact Settings Row: Speed and Loops on separate thin rows for better range
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            // Speed Selection
-                            Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
-                            CompactOptionSelector(
-                                items = listOf(0.75f, 1f, 1.25f, 1.5f),
-                                selected = speed,
-                                onSelect = onSpeedChange,
-                                labelProvider = { if (it == 1f) "1x" else "${it}x" },
-                                themeColors = themeColors,
-                                modifier = Modifier.weight(1f)
-                            )
+                            // Speed Selection Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(14.dp))
+                                CompactOptionSelector(
+                                    items = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f),
+                                    selected = speed,
+                                    onSelect = onSpeedChange,
+                                    labelProvider = { if (it == 1f) "1x" else "${it}x" },
+                                    themeColors = themeColors,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
 
-                            VerticalDivider(
-                                modifier = Modifier.height(20.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Loop Selection
-                            Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
-                            CompactOptionSelector(
-                                items = listOf(1, 2, 5, -1),
-                                selected = loopCount,
-                                onSelect = onLoopCountChange,
-                                labelProvider = { if (it == -1) "∞" else "${it}x" },
-                                themeColors = themeColors,
-                                modifier = Modifier.weight(1f)
-                            )
+                            // Loop Selection Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(14.dp))
+                                CompactOptionSelector(
+                                    items = listOf(1, 2, 3, 5, 10, -1),
+                                    selected = loopCount,
+                                    onSelect = onLoopCountChange,
+                                    labelProvider = { if (it == -1) "∞" else "${it}x" },
+                                    themeColors = themeColors,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                         
                         if (abActive) {
@@ -854,7 +858,7 @@ private fun MarkerControlGroup(
             onClick = onMainClick,
             shape = CircleShape,
             color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(44.dp),
+            modifier = Modifier.size(36.dp),
             border = BorderStroke(1.5.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.2f))
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -893,25 +897,28 @@ private fun <T> CompactOptionSelector(
 ) {
     Row(
         modifier = modifier
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
-            .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+            .padding(1.dp),
+        horizontalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         items.forEach { item ->
             val isActive = item == selected
-            Surface(
-                onClick = { onSelect(item) },
-                shape = CircleShape,
-                color = if (isActive) themeColors.primary else Color.Transparent,
-                contentColor = if (isActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            Box(
+                modifier = Modifier
+                    .weight(1f, fill = true)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (isActive) themeColors.primary else Color.Transparent)
+                    .clickable { onSelect(item) }
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = labelProvider(item),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
+                        color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 9.sp
                     )
                 )
             }
