@@ -218,16 +218,24 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         // Sync and Observe DB
         syncDatabaseAndObserve()
 
-        // Scan public Music/AudioLoop folder on first launch after reinstall
-        viewModelScope.launch {
-            when (val result = repository.importFromPublicStorage()) {
-                is AudioResult.Success -> {
-                    if (result.data > 0) {
-                        showSnackbar(ctx.getString(R.string.msg_found_imported, result.data))
-                        refreshFileList()
+        // Scan public Music/AudioLoop folder only on first launch after reinstall
+        if (isFirstLaunch()) {
+            viewModelScope.launch {
+                try {
+                    when (val result = repository.importFromPublicStorage()) {
+                        is AudioResult.Success -> {
+                            if (result.data > 0) {
+                                withContext(Dispatchers.Main) {
+                                    showSnackbar(ctx.getString(R.string.msg_found_imported, result.data))
+                                    refreshFileList()
+                                }
+                            }
+                        }
+                        else -> {}
                     }
+                } finally {
+                    setFirstLaunchComplete()
                 }
-                else -> {}
             }
         }
 

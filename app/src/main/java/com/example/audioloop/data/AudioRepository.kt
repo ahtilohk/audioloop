@@ -132,9 +132,13 @@ class AudioRepository(private val context: Context) {
             val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
             // Filter out system temp files and our own processing temps
             // Using exact RELATIVE_PATH match to avoid duplicates from sub-folders
-            val selection = "${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} = ? AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'temp_%' AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'trim_%'"
-            val selectionArgs = arrayOf(targetPath)
+            val targetPathWithSlash = if (targetPath.endsWith("/")) targetPath else "$targetPath/"
+            val targetPathNoSlash = targetPath.trimEnd('/')
+            
+            val selection = "(${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} = ? OR ${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} = ?) AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'temp_%' AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'trim_%'"
+            val selectionArgs = arrayOf(targetPathWithSlash, targetPathNoSlash)
 
+            val toInsert = mutableListOf<RecordingEntity>()
             context.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
                 val idCol = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID)
                 val nameCol = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media.DISPLAY_NAME)
@@ -146,15 +150,16 @@ class AudioRepository(private val context: Context) {
                     if (!dao.exists(path)) {
                         val id = cursor.getLong(idCol)
                         val name = cursor.getString(nameCol)
-                        val durationMs = cursor.getLong(durCol)
-                        val file = File(path)
-                        val uri = android.content.ContentUris.withAppendedId(collection, id)
-                        val (durStr, durMs) = AudioMetadataHelper.getDuration(file)
+                        val (durStr, durMs) = AudioMetadataHelper.getDuration(File(path))
                         
-                        val item = RecordingItem(file, name, durStr, durMs, uri, "")
-                        dao.insertRecording(item.toEntity(category, true))
+                        val uri = android.content.ContentUris.withAppendedId(collection, id)
+                        val item = RecordingItem(File(path), name, durStr, durMs, uri, "")
+                        toInsert.add(item.toEntity(category, true))
                     }
                 }
+            }
+            if (toInsert.isNotEmpty()) {
+                dao.insertAll(toInsert)
             }
         } catch (e: Exception) { e.printStackTrace() }
     }
@@ -170,6 +175,7 @@ class AudioRepository(private val context: Context) {
             isAudio && !name.startsWith("temp_", ignoreCase = true)
         }
 
+        val toInsert = mutableListOf<RecordingEntity>()
         files?.forEach { file ->
             if (!dao.exists(file.absolutePath)) {
                 val (durStr, durMs) = AudioMetadataHelper.getDuration(file)
@@ -181,8 +187,11 @@ class AudioRepository(private val context: Context) {
                     uri = Uri.fromFile(file),
                     note = ""
                 )
-                dao.insertRecording(item.toEntity(category, false))
+                toInsert.add(item.toEntity(category, false))
             }
+        }
+        if (toInsert.isNotEmpty()) {
+            dao.insertAll(toInsert)
         }
     }
 
@@ -249,6 +258,7 @@ class AudioRepository(private val context: Context) {
             val selectionArgs = arrayOf("Music/AudioLoop/%")
 
             var importedCount = 0
+            val toInsert = mutableListOf<RecordingEntity>()
             context.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
                 val idCol = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Audio.Media._ID)
                 val nameCol = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Audio.Media.DISPLAY_NAME)
@@ -271,7 +281,7 @@ class AudioRepository(private val context: Context) {
                                      else File(filesDir, categoryName).apply { mkdirs() }
                     val destFile = File(destFolder, name)
 
-                    if (destFile.exists()) continue
+                    if (destFile.exists() || dao.exists(destFile.absolutePath)) continue
 
                     val uri = android.content.ContentUris.withAppendedId(collection, mediaId)
                     try {
@@ -280,9 +290,12 @@ class AudioRepository(private val context: Context) {
                         }
                         val (durStr, durMs) = AudioMetadataHelper.getDuration(destFile)
                         val item = RecordingItem(destFile, name, durStr, durMs, Uri.fromFile(destFile), "")
-                        dao.insertRecording(item.toEntity(categoryName, false))
+                        toInsert.add(item.toEntity(categoryName, false))
                         importedCount++
                     } catch (_: Exception) {}
+                }
+                if (toInsert.isNotEmpty()) {
+                    dao.insertAll(toInsert)
                 }
             }
             AudioResult.Success(importedCount)
