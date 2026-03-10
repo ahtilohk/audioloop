@@ -385,8 +385,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.update { it.copy(isLoading = true) }
             repository.discoverRecordings(_uiState.value.categories)
             _uiState.update { it.copy(isLoading = false) }
-            // Trigger precomputation for all visible recordings for better UX
-            _uiState.value.savedItems.forEach { precomputeWaveformAsync(it.file) }
         }
     }
 

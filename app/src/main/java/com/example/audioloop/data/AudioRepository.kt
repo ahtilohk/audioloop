@@ -131,8 +131,9 @@ class AudioRepository(private val context: Context) {
             )
             val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
             // Filter out system temp files and our own processing temps
-            val selection = "${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} LIKE ? AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'temp_%' AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'trim_%'"
-            val selectionArgs = arrayOf("$targetPath%")
+            // Using exact RELATIVE_PATH match to avoid duplicates from sub-folders
+            val selection = "${android.provider.MediaStore.Audio.Media.RELATIVE_PATH} = ? AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'temp_%' AND ${android.provider.MediaStore.Audio.Media.DISPLAY_NAME} NOT LIKE 'trim_%'"
+            val selectionArgs = arrayOf(targetPath)
 
             context.contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
                 val idCol = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID)
