@@ -908,6 +908,38 @@ fun TrimAudioScreen(
                             }
                         }
 
+                        // Gain slider
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                stringResource(R.string.label_gain),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Slider(
+                                value = gainDb,
+                                onValueChange = { gainDb = it },
+                                valueRange = -12f..12f,
+                                steps = 23,
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(
+                                    thumbColor = themeColors.primary,
+                                    activeTrackColor = themeColors.primary700
+                                )
+                            )
+                            Text(
+                                if (gainDb == 0f) "0 dB" else String.format("%+.0f dB", gainDb),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (gainDb != 0f) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(48.dp)
+                            )
+                        }
+
                         // Help Hint Dialog
                         if (helpHintText != null) {
                             AlertDialog(

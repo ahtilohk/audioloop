@@ -286,6 +286,7 @@
     <string name="label_fade_out">Sujuv lõpp</string>
     <string name="label_silence">Eemalda vaikus</string>
     <string name="label_normalize">Ühtlusta heli</string>
+    <string name="label_gain">Võimendus</string>
     <string name="error_open_audio">Helifaili ei saanud avada</string>
     <string name="error_corrupted_format">Fail võib olla rikutud või mittetoetatud vormingus.</string>
     <string name="btn_save_copy">Salvesta koopia</string>

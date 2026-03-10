@@ -257,8 +257,8 @@ fun MainOverlays(
             uri = uiState.recordingToTrim!!.uri,
             durationMs = uiState.recordingToTrim!!.durationMillis,
             onDismiss = { viewModel.closeTrimDialog() },
-            onConfirm = { start, end, replace, remove, fadeIn, fadeOut, norm ->
-                viewModel.trimAudioFile(uiState.recordingToTrim!!.file, start, end, replace, remove, fadeIn, fadeOut, norm) {
+            onConfirm = { start, end, replace, remove, fadeIn, fadeOut, norm, gain ->
+                viewModel.trimAudioFile(uiState.recordingToTrim!!.file, start, end, replace, remove, fadeIn, fadeOut, norm, gain) {
                     viewModel.closeTrimDialog()
                 }
             },

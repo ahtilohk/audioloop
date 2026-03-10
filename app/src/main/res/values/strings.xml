@@ -294,6 +294,7 @@
     <string name="label_fade_out">Smooth end</string>
     <string name="label_silence">Remove silence</string>
     <string name="label_normalize">Balance volume</string>
+    <string name="label_gain">Gain</string>
     <string name="error_open_audio">Could not open audio file</string>
     <string name="error_corrupted_format">The file may be corrupted or in an unsupported format.</string>
     <string name="btn_save_copy">Save Copy</string>
