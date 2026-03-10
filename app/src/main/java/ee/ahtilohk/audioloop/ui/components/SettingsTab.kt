@@ -24,6 +24,7 @@ import ee.ahtilohk.audioloop.R
 import ee.ahtilohk.audioloop.ui.PlaybackSettingsCard
 import ee.ahtilohk.audioloop.ui.theme.*
 import ee.ahtilohk.audioloop.ThemeMode
+import ee.ahtilohk.audioloop.BuildConfig
 
 @Composable
 fun SettingsTab(
@@ -275,7 +276,7 @@ fun SettingsTab(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "AudioLoop v${ee.ahtilohk.audioloop.BuildConfig.VERSION_NAME} (${ee.ahtilohk.audioloop.BuildConfig.VERSION_CODE})",
+                text = "AudioLoop v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )

@@ -792,7 +792,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         progressJob?.cancel()
         progressJob = viewModelScope.launch {
             while (isActive) {
-                val player = AudioServiceManager.getMediaPlayer()
+                val player = mediaPlayer
                 val state = _uiState.value
                 if (state.playingFileName.isNotEmpty() && player != null && player.isPlaying) {
                     val current = player.currentPosition
