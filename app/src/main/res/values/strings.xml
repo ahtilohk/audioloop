@@ -482,4 +482,11 @@
     <string name="day_s">S</string>
     <string name="day_su">S</string>
     <string name="hint_export_ab">Export selection (A-B) to a new file or playlist</string>
+    <string name="msg_restoring_purchases">Checking for previous purchases…</string>
+    <string name="notification_recording_mic">Microphone recording…</string>
+    <string name="notification_recording_stream">Stream recording active…</string>
+    <string name="notification_playing">Playing: %s</string>
+    <string name="msg_no_data_to_export">No data to export</string>
+    <string name="msg_export_failed">Export failed: %s</string>
+    <string name="menu_export_data">Export Data</string>
 </resources>
