@@ -617,8 +617,6 @@ fun FileItem(
                             drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
                         // Time Display (Monospaced for precision)
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -639,121 +637,71 @@ fun FileItem(
                                 // Listen & Repeat (Shadowing Mode) Toggle with Icon
                                 Surface(
                                     onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = RoundedCornerShape(8.dp),
                                     color = if (isShadowingMode) primaryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                     border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Icon(
                                             imageVector = AppIcons.Shadow,
                                             contentDescription = null,
                                             tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                            modifier = Modifier.size(14.dp).graphicsLayer { rotationZ = 90f }
+                                            modifier = Modifier.size(12.dp).graphicsLayer { rotationZ = 90f }
                                         )
                                         Text(
                                             text = stringResource(R.string.settings_listen_repeat).uppercase(),
                                             style = TextStyle(
                                                 color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                                fontSize = 9.sp,
+                                                fontSize = 8.sp,
                                                 fontWeight = FontWeight.Black,
-                                                letterSpacing = 0.5.sp
+                                                letterSpacing = 0.3.sp
                                             )
                                         )
                                     }
                                 }
                         }
 
-                        // Playback Settings Section (Speed & Loops)
-                        Column(
+                        // Compact Playback Settings (Speed & Loops)
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                // Improved Speed Control
-                                FlowRow(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                                        .padding(8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    // Speedpill
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f))
-                                                .padding(2.dp)
-                                        ) {
-                                            listOf(0.75f, 1f, 1.25f, 1.5f).forEach { s ->
-                                                val active = speed == s
-                                                Surface(
-                                                    onClick = { onSpeedChange(s) },
-                                                    shape = CircleShape,
-                                                    color = if (active) themeColors.primary else Color.Transparent,
-                                                    contentColor = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                                                ) {
-                                                    Text(
-                                                        "${if (s == 1f) "1" else s}x",
-                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
+                            // Speed Selection
+                            Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
+                            CompactOptionSelector(
+                                items = listOf(0.75f, 1f, 1.25f, 1.5f),
+                                selected = speed,
+                                onSelect = onSpeedChange,
+                                labelProvider = { if (it == 1f) "1x" else "${it}x" },
+                                themeColors = themeColors,
+                                modifier = Modifier.weight(1f)
+                            )
 
-                                    // Loop pill
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f))
-                                                .padding(2.dp)
-                                        ) {
-                                            listOf(1, 2, 5, -1).forEach { l ->
-                                                val active = loopCount == l
-                                                Surface(
-                                                    onClick = { onLoopCountChange(l) },
-                                                    shape = CircleShape,
-                                                    color = if (active) themeColors.primary else Color.Transparent,
-                                                    contentColor = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                                                ) {
-                                                    Text(
-                                                        if (l == -1) "∞" else "${l}x",
-                                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            VerticalDivider(
+                                modifier = Modifier.height(20.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
 
-                            if (abActive) {
+                            // Loop Selection
+                            Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
+                            CompactOptionSelector(
+                                items = listOf(1, 2, 5, -1),
+                                selected = loopCount,
+                                onSelect = onLoopCountChange,
+                                labelProvider = { if (it == -1) "∞" else "${it}x" },
+                                themeColors = themeColors,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        
+                        if (abActive) {
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -915,7 +863,7 @@ private fun MarkerControlGroup(
                     text = label,
                     style = TextStyle(
                         color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Black
                     )
                 )
@@ -931,6 +879,43 @@ private fun MarkerControlGroup(
             elevation = FloatingActionButtonDefaults.elevation(0.dp)
         ) {
             Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun <T> CompactOptionSelector(
+    items: List<T>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    labelProvider: (T) -> String,
+    themeColors: AppColorPalette,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+            .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        items.forEach { item ->
+            val isActive = item == selected
+            Surface(
+                onClick = { onSelect(item) },
+                shape = CircleShape,
+                color = if (isActive) themeColors.primary else Color.Transparent,
+                contentColor = if (isActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            ) {
+                Text(
+                    text = labelProvider(item),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
+                    )
+                )
+            }
         }
     }
 }
