@@ -224,8 +224,9 @@ fun RecordingTimer() {
     val m = (seconds % 3600) / 60
     val s = seconds % 60
     Text(
-        text = "%02d:%02d:%02d".format(h, m, s),
+        text = java.lang.String.format(java.util.Locale.US, "%02d:%02d:%02d", h, m, s),
         style = MaterialTheme.typography.headlineMedium.copy(
+
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
