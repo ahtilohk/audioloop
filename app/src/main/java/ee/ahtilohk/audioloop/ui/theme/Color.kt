@@ -105,6 +105,16 @@ val Slate700 = Color(0xFF334155)
 val Slate800 = Color(0xFF1E293B)
 val Slate900 = Color(0xFF0F172A)
 
+// Midnight Premium Theme (Deep Navy & Gold)
+val Midnight950 = Color(0xFF020617)
+val Midnight900 = Color(0xFF0F172A)
+val Midnight800 = Color(0xFF1E293B)
+val Gold500 = Color(0xFFEAB308)  // Vibrant Gold
+val Gold600 = Color(0xFFCA8A04)
+val Gold400 = Color(0xFFFACC15)
+val Gold100 = Color(0xFFFEF9C3)
+
+
 // MD3 Theme data class with full tonal palette
 data class AppColorPalette(
     val name: String,
@@ -133,6 +143,12 @@ data class AppColorPalette(
     val tertiaryContainer = primary700
     val onTertiary = Zinc950
     val onTertiaryContainer = primary100
+
+    // Premium Gradient
+    val primaryGradient = Brush.verticalGradient(listOf(primary400, primary600))
+    val glassBackground = Color.White.copy(alpha = 0.05f)
+}
+
 }
 
 // Available themes with full MD3 tonal palettes
@@ -142,7 +158,10 @@ enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
     SUNSET("Sunset", AppColorPalette("Sunset", Sunset100, Sunset200, Sunset300, Sunset400, Sunset500, Sunset600, Sunset700, Sunset800, Sunset900)),
     FOREST("Forest", AppColorPalette("Forest", Forest100, Forest200, Forest300, Forest400, Forest500, Forest600, Forest700, Forest800, Forest900)),
     VIOLET("Violet", AppColorPalette("Violet", Violet100, Violet200, Violet300, Violet400, Violet500, Violet600, Violet700, Violet800, Violet900)),
-    ROSE("Rose", AppColorPalette("Rose", Rose100, Rose200, Rose300, Rose400, Rose500, Rose600, Rose700, Rose800, Rose900))
+    ROSE("Rose", AppColorPalette("Rose", Rose100, Rose200, Rose300, Rose400, Rose500, Rose600, Rose700, Rose800, Rose900)),
+    MIDNIGHT("Midnight", AppColorPalette("Midnight", Gold100, Gold400, Gold500, Gold600, Gold500, Gold600, Midnight800, Midnight900, Midnight950))
+}
+
 }
 
 // Legacy theme colors (for compatibility)

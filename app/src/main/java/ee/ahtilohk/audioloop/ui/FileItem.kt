@@ -232,34 +232,46 @@ fun FileItem(
                 if (!isPaused) {
                    FilledIconButton(
                         onClick = { onPause() },
-                        modifier = Modifier.size(44.dp),
+                        modifier = Modifier.size(44.dp).shadow(4.dp, CircleShape),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = themeColors.primary,
+                            containerColor = Color.Transparent,
                             contentColor = Color.White
                         )
                     ) {
-                        // Pause Icon (Two vertical bars)
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
-                            Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(themeColors.primaryGradient, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Pause Icon
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                                Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            }
                         }
                     }
+
                 } else {
                     // Paused -> Show Play (Resume)
                     FilledIconButton(
                         onClick = { onResume() },
-                        modifier = Modifier.size(44.dp),
+                        modifier = Modifier.size(44.dp).shadow(4.dp, CircleShape),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = themeColors.primary,
+                            containerColor = Color.Transparent,
                             contentColor = Color.White
                         )
                     ) {
-                        Icon(
-                            imageVector = AppIcons.PlayArrow,
-                            contentDescription = stringResource(R.string.btn_resume),
-                            modifier = Modifier.size(24.dp)
-                        )
+                         Box(
+                            modifier = Modifier.fillMaxSize().background(themeColors.primaryGradient, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.PlayArrow,
+                                contentDescription = stringResource(R.string.btn_resume),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
+
                 }
 
                // Stop Button
@@ -665,20 +677,21 @@ fun FileItem(
                                 }
                         }
 
-                        // Compact Settings Row: Speed and Loops on separate thin rows for better range
-                        Column(
+                        // Compact Settings Row: Speed and Loops combined
+                        Row(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Speed Selection Row
+                            // Speed Selection
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.weight(1.2f),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(14.dp))
+                                Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(12.dp))
                                 CompactOptionSelector(
-                                    items = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f),
+                                    items = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f),
                                     selected = speed,
                                     onSelect = onSpeedChange,
                                     labelProvider = { if (it == 1f) "1x" else "${it}x" },
@@ -687,15 +700,15 @@ fun FileItem(
                                 )
                             }
 
-                            // Loop Selection Row
+                            // Loop Selection
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.weight(1f),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(14.dp))
+                                Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(12.dp))
                                 CompactOptionSelector(
-                                    items = listOf(1, 2, 3, 5, 10, -1),
+                                    items = listOf(1, 3, 5, -1),
                                     selected = loopCount,
                                     onSelect = onLoopCountChange,
                                     labelProvider = { if (it == -1) "∞" else "${it}x" },
@@ -704,90 +717,72 @@ fun FileItem(
                                 )
                             }
                         }
+
                         
-                        if (abActive) {
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        stringResource(R.string.hint_export_ab),
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                            fontSize = 9.sp
-                                        ),
-                                        modifier = Modifier.weight(1f)
+                        // Marker Controls (A-B Buttons + Export combined for maximum compactness)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // A-Group
+                            MarkerControlGroup(
+                                label = "A",
+                                isActive = abLoopStart >= 0f,
+                                onMainClick = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onSetAbLoopStart(if (abLoopStart >= 0f && abLoopEnd < 0f) -1f else currentProgress) 
+                                },
+                                onNudge = { delta -> 
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onNudgeAbLoopStart(delta) 
+                                },
+                                themeColors = themeColors
+                            )
+
+                            // Export Button (Only when A-B active)
+                            if (abActive) {
+                                FilledIconButton(
+                                    onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
+                                    modifier = Modifier.size(36.dp),
+                                    colors = IconButtonDefaults.filledIconButtonColors(
+                                        containerColor = themeColors.primary,
+                                        contentColor = Color.White
                                     )
-                                    Button(
-                                        onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
-                                        modifier = Modifier.height(32.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = themeColors.primary,
-                                            contentColor = Color.White
-                                        ),
-                                        shape = RoundedCornerShape(16.dp),
-                                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
-                                    ) {
-                                        Icon(AppIcons.Save, null, Modifier.size(12.dp))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(
-                                            stringResource(R.string.btn_export_loop),
-                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold)
-                                        )
-                                    }
+                                ) {
+                                    Icon(AppIcons.Save, null, Modifier.size(18.dp))
                                 }
-                            }
-
-                            // Marker Controls (A-B Buttons + Nudges)
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // A-Group
-                                MarkerControlGroup(
-                                    label = "A",
-                                    isActive = abLoopStart >= 0f,
-                                    onMainClick = { 
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onSetAbLoopStart(if (abLoopStart >= 0f && abLoopEnd < 0f) -1f else currentProgress) 
-                                    },
-                                    onNudge = { delta -> 
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onNudgeAbLoopStart(delta) 
-                                    },
-                                    themeColors = themeColors
-                                )
-
-                                Spacer(Modifier.weight(1f))
-
-                                // B-Group
-                                MarkerControlGroup(
-                                    label = "B",
-                                    isActive = abLoopEnd >= 0f,
-                                    onMainClick = { 
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) 
-                                    },
-                                    onNudge = { delta -> 
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onNudgeAbLoopEnd(delta) 
-                                    },
-                                    themeColors = themeColors
-                                )
-
-                                if (abActive) {
+                            } else {
+                                // Close/Clear AB when only one marker exists
+                                if (abLoopStart >= 0f || abLoopEnd >= 0f) {
                                     IconButton(
-                                        onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
-                                        modifier = Modifier.size(40.dp).background(Red500.copy(alpha = 0.1f), CircleShape)
+                                        onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f) },
+                                        modifier = Modifier.size(36.dp)
                                     ) {
-                                        Icon(AppIcons.Close, contentDescription = null, tint = Red500, modifier = Modifier.size(18.dp))
+                                        Icon(AppIcons.Close, null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
                                     }
                                 }
                             }
+
+                            // B-Group
+                            MarkerControlGroup(
+                                label = "B",
+                                isActive = abLoopEnd >= 0f,
+                                onMainClick = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) 
+                                },
+                                onNudge = { delta -> 
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onNudgeAbLoopEnd(delta) 
+                                },
+                                themeColors = themeColors
+                            )
+                        }
+                    }
+                }
+            }
+
                         }
                     }
                 }

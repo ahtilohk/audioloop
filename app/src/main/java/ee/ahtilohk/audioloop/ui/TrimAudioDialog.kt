@@ -244,12 +244,13 @@ fun TrimAudioScreen(
                         
                         Box(
                             modifier = Modifier
-                                .background(if (keepSelected) themeColors.primary700 else Color.Transparent, RoundedCornerShape(12.dp))
+                                .background(if (keepSelected) themeColors.primaryGradient else SolidColor(Color.Transparent), RoundedCornerShape(12.dp))
                                 .clickable { trimMode = TrimMode.Keep }
                                 .then(itemModifier)
                         ) {
                             Text(stringResource(R.string.label_keep), color = if (keepSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                         }
+
                         Box(
                             modifier = Modifier
                                 .background(if (!keepSelected) Red900 else Color.Transparent, RoundedCornerShape(12.dp))

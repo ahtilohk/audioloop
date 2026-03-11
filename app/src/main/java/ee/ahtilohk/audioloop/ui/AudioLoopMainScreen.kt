@@ -88,8 +88,16 @@ fun AudioLoopMainScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.background
+                            )
+                        )
+                    )
             ) {
+
             // Header
             HomeHeader(
                 uiState = uiState,
