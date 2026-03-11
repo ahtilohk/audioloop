@@ -35,6 +35,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 import ee.ahtilohk.audioloop.data.AudioRepository
+import ee.ahtilohk.audioloop.data.SettingsManager
+import ee.ahtilohk.audioloop.data.AudioProcessingManager
 import ee.ahtilohk.audioloop.data.AudioMetadataHelper
 import ee.ahtilohk.audioloop.data.AudioResult
 import java.io.File
@@ -59,6 +61,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     private val ctx: Context get() = getApplication()
     private val filesDir: File get() = ctx.filesDir
     private val repository = AudioRepository(ctx)
+    private val settingsManager = SettingsManager(ctx)
+    private val audioProcessingManager = AudioProcessingManager(ctx)
     private val workManager = WorkManager.getInstance(ctx)
 
     // ── State ──
@@ -181,11 +185,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         mediaSessionManager.initialize()
 
         // Load persisted state
-        val theme = getThemePref(ctx)
-        val mode = getThemeModePref(ctx)
-        val lang = getLanguagePref(ctx)
-        val isCoachExpanded = getSmartCoachExpandedPref(ctx)
-        val isCoachEnabled = getSmartCoachEnabledPref(ctx)
+        val theme = settingsManager.getTheme()
+        val mode = settingsManager.getThemeMode()
+        val lang = settingsManager.getLanguage()
+        val isCoachExpanded = settingsManager.isSmartCoachExpanded()
+        val isCoachEnabled = settingsManager.isSmartCoachEnabled()
+        val savedCats = settingsManager.loadCategoryOrder()
+        val initialCats = if (savedCats.isEmpty()) listOf("General") else savedCats
 
         // Init backup
         var signedIn = false
@@ -200,11 +206,12 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 currentTheme = theme,
                 themeMode = mode,
                 appLanguage = lang,
+                categories = initialCats,
                 isSmartCoachExpanded = isCoachExpanded,
                 isSmartCoachEnabled = isCoachEnabled,
                 isBackupSignedIn = signedIn,
                 backupEmail = email,
-                showOnboarding = isFirstLaunch()
+                showOnboarding = settingsManager.isFirstLaunch()
             )
         }
 
@@ -377,15 +384,15 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             val newIdx = idx + direction
             if (newIdx in cats.indices) {
                 java.util.Collections.swap(cats, idx, newIdx)
-                saveCategoryOrder(cats)
+                settingsManager.saveCategoryOrder(cats)
                 _uiState.update { it.copy(categories = cats) }
             }
         }
     }
 
     fun reorderCategories(newOrder: List<String>) {
-        saveCategoryOrder(newOrder)
         _uiState.update { it.copy(categories = newOrder) }
+        settingsManager.saveCategoryOrder(newOrder)
     }
 
     // ── File Operations ──
@@ -439,7 +446,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         val newOrder = loadFileOrder(toCategory).toMutableList()
         if (!newOrder.contains(fileName)) {
             newOrder.add(0, fileName)
-            saveFileOrder(toCategory, newOrder)
+            settingsManager.saveFileOrder(toCategory, newOrder)
         }
     }
 
@@ -450,7 +457,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun reorderFinished(orderedFiles: List<File>) {
         if (orderedFiles.isEmpty()) return
         val names = orderedFiles.map { it.name }
-        saveFileOrder(_uiState.value.currentCategory, names)
+        settingsManager.saveFileOrder(_uiState.value.currentCategory, names)
         refreshFileList()
     }
 
@@ -1016,23 +1023,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         logEditEvent("trim")
         _uiState.update { it.copy(isLoading = true) }
 
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "trim",
-                "file_path" to file.absolutePath,
-                "start" to start,
-                "end" to end,
-                "remove_selection" to removeSelection,
-                "replace" to replace,
-                "normalize" to normalize,
-                "fade_in" to fadeInMs,
-                "fade_out" to fadeOutMs
-            ))
-            .build()
+        val workId = audioProcessingManager.trim(
+            file, start, end, removeSelection, replace, normalize, fadeInMs, fadeOutMs
+        )
 
-        workManager.enqueue(workRequest)
-
-        workManager.getWorkInfoByIdFlow(workRequest.id).let { flow ->
+        audioProcessingManager.getWorkInfoFlow(workId).let { flow ->
             viewModelScope.launch {
                 flow.collect { workInfo ->
                     if (workInfo != null) {
@@ -1064,21 +1059,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun splitFile(item: RecordingItem) {
         logEditEvent("split")
-        _uiState.update { it.copy(isLoading = true) }
         val category = _uiState.value.currentCategory
         val outputDir = if (category == "General") filesDir else File(filesDir, category).also { it.mkdirs() }
 
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "split",
-                "file_path" to item.file.absolutePath,
-                "output_dir_path" to outputDir.absolutePath
-            ))
-            .build()
-        workManager.enqueue(workRequest)
+        val workId = audioProcessingManager.split(item.file, outputDir)
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+            audioProcessingManager.getWorkInfoFlow(workId).collect { workInfo ->
                 if (workInfo != null && workInfo.state.isFinished) {
                     _uiState.update { it.copy(isLoading = false) }
                     withContext(Dispatchers.Main) {
@@ -1099,16 +1086,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun normalizeFile(item: RecordingItem) {
         logEditEvent("normalize")
         _uiState.update { it.copy(isLoading = true) }
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "normalize",
-                "file_path" to item.file.absolutePath
-            ))
-            .build()
-        workManager.enqueue(workRequest)
+        val workId = audioProcessingManager.normalize(item.file)
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+            audioProcessingManager.getWorkInfoFlow(workId).collect { workInfo ->
                 if (workInfo != null && workInfo.state.isFinished) {
                     _uiState.update { it.copy(isLoading = false) }
                     withContext(Dispatchers.Main) {
@@ -1130,16 +1111,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun autoTrimFile(item: RecordingItem) {
         logEditEvent("auto_trim")
         _uiState.update { it.copy(isLoading = true) }
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "autotrim",
-                "file_path" to item.file.absolutePath
-            ))
-            .build()
-        workManager.enqueue(workRequest)
+        val workId = audioProcessingManager.autoTrim(item.file)
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+            audioProcessingManager.getWorkInfoFlow(workId).collect { workInfo ->
                 if (workInfo != null && workInfo.state.isFinished) {
                     _uiState.update { it.copy(isLoading = false) }
                     withContext(Dispatchers.Main) {
@@ -1179,17 +1154,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         var outputFile = File(outputDir, "${baseName}_merged.$ext")
         while (outputFile.exists()) { counter++; outputFile = File(outputDir, "${baseName}_merged_$counter.$ext") }
 
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "merge",
-                "file_paths" to files.map { it.absolutePath }.toTypedArray(),
-                "output_file_path" to outputFile.absolutePath
-            ))
-            .build()
-        workManager.enqueue(workRequest)
+        val workId = audioProcessingManager.merge(files, outputFile)
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+            audioProcessingManager.getWorkInfoFlow(workId).collect { workInfo ->
                 if (workInfo != null && workInfo.state.isFinished) {
                     _uiState.update { it.copy(isLoading = false) }
                     withContext(Dispatchers.Main) {
@@ -1253,13 +1221,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun changeTheme(theme: AppTheme) {
         _uiState.update { it.copy(currentTheme = theme) }
-        saveThemePref(ctx, theme)
+        settingsManager.saveTheme(theme)
         ee.ahtilohk.audioloop.widget.WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
     }
 
     fun changeLanguage(langCode: String) {
         _uiState.update { it.copy(appLanguage = langCode) }
-        saveLanguagePref(ctx, langCode)
+        settingsManager.saveLanguage(langCode)
         
         // Apply locale using AppCompatDelegate (API 33+ or backward compatible)
         val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(langCode)
@@ -1268,7 +1236,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun changeThemeMode(mode: ThemeMode) {
         _uiState.update { it.copy(themeMode = mode) }
-        saveThemeModePref(ctx, mode)
+        settingsManager.saveThemeMode(mode)
     }
 
     // ── Backup & Restore ──
@@ -1335,8 +1303,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             }
             result.onSuccess {
                 _uiState.update { it.copy(backupProgress = "Restoring settings...") }
-                val theme = getThemePref(ctx)
-                val newOrder = loadCategoryOrder()
+                val theme = settingsManager.getTheme()
+                val newOrder = settingsManager.loadCategoryOrder()
                 val cats = if ("General" in newOrder) newOrder else listOf("General") + newOrder
                 _uiState.update { it.copy(currentTheme = theme, categories = cats) }
                 refreshFileList()
@@ -1380,13 +1348,13 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     fun toggleSmartCoach() {
         val expanded = !_uiState.value.isSmartCoachExpanded
         _uiState.update { it.copy(isSmartCoachExpanded = expanded) }
-        saveSmartCoachExpandedPref(ctx, expanded)
+        settingsManager.saveSmartCoachExpanded(expanded)
     }
 
     fun toggleSmartCoachEnabled() {
         val enabled = !_uiState.value.isSmartCoachEnabled
         _uiState.update { it.copy(isSmartCoachEnabled = enabled) }
-        saveSmartCoachEnabledPref(ctx, enabled)
+        settingsManager.saveSmartCoachEnabled(enabled)
     }
 
     fun setShowPracticeStats(show: Boolean) {
@@ -1533,138 +1501,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     // Old file discovery and utility methods removed.
     // Replaced by data layer helpers in AudioRepository and AudioMetadataHelper.
 
-    // ── Preferences Helpers ──
-
-    private fun saveThemePref(context: Context, theme: AppTheme) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("app_theme", theme.name).apply()
-    }
-
-    private fun getThemePref(context: Context): AppTheme {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        val name = prefs.getString("app_theme", "SLATE") ?: "SLATE"
-        return try { AppTheme.valueOf(name) } catch (_: Exception) { AppTheme.SLATE }
-    }
-
-    private fun saveThemeModePref(context: Context, mode: ThemeMode) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("app_theme_mode", mode.name).apply()
-    }
-
-    private fun getThemeModePref(context: Context): ThemeMode {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        val name = prefs.getString("app_theme_mode", "DARK") ?: "DARK"
-        return try { ThemeMode.valueOf(name) } catch (_: Exception) { ThemeMode.DARK }
-    }
-
-    private fun saveSmartCoachExpandedPref(context: Context, expanded: Boolean) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("smart_coach_expanded", expanded).apply()
-    }
-
-    private fun getSmartCoachExpandedPref(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("smart_coach_expanded", false)
-    }
-
-    private fun saveSmartCoachEnabledPref(context: Context, enabled: Boolean) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("smart_coach_enabled", enabled).apply()
-    }
-
-    private fun getSmartCoachEnabledPref(context: Context): Boolean {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("smart_coach_enabled", true)
-    }
-
-    fun isFirstLaunch(): Boolean {
-        val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("is_first_launch", true)
-    }
-
-    fun setFirstLaunchComplete() {
-        val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("is_first_launch", false).apply()
-    }
-
-    private fun saveLanguagePref(context: Context, lang: String) {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("app_language", lang).apply()
-    }
-
-    private fun getLanguagePref(context: Context): String {
-        val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        val deviceLang = java.util.Locale.getDefault().language
-        return prefs.getString("app_language", if (deviceLang in listOf("en", "et", "de", "pl")) deviceLang else "en") ?: "en"
-    }
-
-    fun getPublicStoragePref(): Boolean {
-        val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("use_public_storage", true)
-    }
-
-    fun setPublicStoragePref(enabled: Boolean) {
-        val prefs = ctx.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("use_public_storage", enabled).apply()
-    }
-
-
-    // ── File/Category Order Persistence ──
-
-    private fun getOrderFile(category: String): File {
-        val dir = if (category == "General") filesDir else File(filesDir, category)
-        if (!dir.exists()) dir.mkdirs()
-        return File(dir, "ordering.json")
-    }
-
-    private fun saveFileOrder(category: String, order: List<String>) {
-        try {
-            val file = getOrderFile(category)
-            val jsonArray = org.json.JSONArray()
-            order.forEach { jsonArray.put(it) }
-            file.writeText(jsonArray.toString())
-        } catch (_: Exception) {}
-    }
-
-    private fun loadFileOrder(category: String): List<String> {
-        val list = mutableListOf<String>()
-        try {
-            val file = getOrderFile(category)
-            if (file.exists()) {
-                val content = file.readText()
-                if (content.isNotBlank()) {
-                    val array = org.json.JSONArray(content)
-                    for (i in 0 until array.length()) list.add(array.getString(i))
-                }
-            }
-        } catch (_: Exception) {}
-        return list
-    }
-
-    private fun getCategoryOrderFile(): File = File(filesDir, "category_order.json")
-
-    private fun saveCategoryOrder(categories: List<String>) {
-        try {
-            val jsonArray = org.json.JSONArray()
-            categories.forEach { jsonArray.put(it) }
-            getCategoryOrderFile().writeText(jsonArray.toString())
-        } catch (_: Exception) {}
-    }
-
-    private fun loadCategoryOrder(): List<String> {
-        val list = mutableListOf<String>()
-        try {
-            val file = getCategoryOrderFile()
-            if (file.exists() && file.length() > 0) {
-                val content = file.readText()
-                if (content.isNotBlank()) {
-                    val array = org.json.JSONArray(content)
-                    for (i in 0 until array.length()) list.add(array.getString(i))
-                }
-            }
-        } catch (_: Exception) {}
-        return list
-    }
+    // Preferences and ordering logic moved to SettingsManager
 
     // --- UI Actions ---
 
@@ -1809,6 +1646,9 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { it.copy(onboardingStep = it.onboardingStep + 1) }
     }
 
+    fun getPublicStoragePref(): Boolean = settingsManager.getUsePublicStorage()
+    fun setPublicStoragePref(enabled: Boolean) = settingsManager.setUsePublicStorage(enabled)
+
     fun selectOnboardingUseCase(useCase: String) {
         // 1. Define category based on use case
         val categoryKey = when(useCase) {
@@ -1822,7 +1662,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         if (_uiState.value.categories == listOf("General")) {
             val initial = listOf(categoryKey, "General").distinct()
             viewModelScope.launch {
-                saveCategoryOrder(initial)
+                settingsManager.saveCategoryOrder(initial)
                 _uiState.update { it.copy(categories = initial, currentCategory = categoryKey) }
                 syncDatabase()
             }
@@ -1835,7 +1675,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun finishOnboarding() {
-        setFirstLaunchComplete()
+        settingsManager.setFirstLaunchComplete()
         _uiState.update { it.copy(showOnboarding = false) }
     }
 
@@ -1872,24 +1712,14 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         stopPlaying()
         logEditEvent("export_segment")
 
-        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
-            .setInputData(workDataOf(
-                "type" to "trim",
-                "file_path" to item.file.absolutePath,
-                "start" to params.startMs,
-                "end" to params.endMs,
-                "remove_selection" to false,
-                "replace" to false,
-                "normalize" to params.normalize,
-                "fade_in" to params.fadeInMs,
-                "fade_out" to params.fadeOutMs
-            ))
-            .build()
-
-        workManager.enqueue(workRequest)
+        val workId = audioProcessingManager.trim(
+            item.file, params.startMs, params.endMs,
+            removeSelection = false, replace = false, normalize = params.normalize,
+            fadeInMs = params.fadeInMs, fadeOutMs = params.fadeOutMs
+        )
 
         viewModelScope.launch {
-            workManager.getWorkInfoByIdFlow(workRequest.id)
+            audioProcessingManager.getWorkInfoFlow(workId)
                 .mapNotNull { if (it?.state?.isFinished == true) it else null }
                 .first()
                 .let { workInfo ->
@@ -1974,7 +1804,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             repository.discoverRecordings(emptyList()) 
             
             // 3. Reset categories
-            saveCategoryOrder(listOf("General"))
+            settingsManager.saveCategoryOrder(listOf("General"))
             
             withContext(Dispatchers.Main) {
                 _uiState.update { 
