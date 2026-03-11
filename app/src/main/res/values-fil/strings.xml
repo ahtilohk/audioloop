@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Makinig at Ulitin</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Welcome sa Loop & Learn!</string>
-    <string name="welcome_modes_intro">Sinu-portahan ng Loop & Learn ang dalawang mode ng pag-record:</string>
+    <string name="welcome_title">Welcome sa Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Sinu-portahan ng Loop &amp; Learn ang dalawang mode ng pag-record:</string>
     <string name="welcome_stream_note">Paalala tungkol sa Stream recording:</string>
     <string name="welcome_stream_warning">Kailangan ng kumpirmasyon ng pahintulot ng Android sa tuwing magsisimula ka ng Stream recording. Ito ay isang security feature at hindi maaaring lampasan.</string>
 

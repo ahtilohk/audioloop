@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Слушай и повторяй</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Добро пожаловать в Loop & Learn!</string>
-    <string name="welcome_modes_intro">Loop & Learn поддерживает два режима:</string>
+    <string name="welcome_title">Добро пожаловать в Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn поддерживает два режима:</string>
     <string name="welcome_stream_note">Заметка о Потоковой записи:</string>
     <string name="welcome_stream_warning">Android требует подтверждения при каждом запуске. Это мера безопасности.</string>
 

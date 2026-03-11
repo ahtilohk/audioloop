@@ -459,7 +459,7 @@
     <string name="label_free">FREE</string>
     <string name="label_pro">PRO</string>
     <string name="label_best_value">BEST VALUE</string>
-    <string name="upgrade_success">Welcome to Loop & Learn Pro!</string>
+    <string name="upgrade_success">Welcome to Loop &amp; Learn Pro!</string>
     <string name="label_subscription_active">Subscription active</string>
     <string name="label_upgrade">Upgrade</string>
     <string name="label_pro_benefit_summary">No limits. Advanced tools.</string>

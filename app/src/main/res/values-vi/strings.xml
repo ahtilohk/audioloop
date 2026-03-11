@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Nghe và Lặp lại</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Chào mừng bạn đến với Loop & Learn!</string>
-    <string name="welcome_modes_intro">Loop & Learn hỗ trợ hai chế độ:</string>
+    <string name="welcome_title">Chào mừng bạn đến với Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn hỗ trợ hai chế độ:</string>
     <string name="welcome_stream_note">Lưu ý về ghi âm Luồng:</string>
     <string name="welcome_stream_warning">Android yêu cầu xác nhận mỗi lần. Đây là tính năng bảo mật của hệ thống.</string>
 

@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Klausyti ir kartoti</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Sveiki atvykę į „Loop & Learn“!</string>
-    <string name="welcome_modes_intro">„Loop & Learn“ palaiko du režimus:</string>
+    <string name="welcome_title">Sveiki atvykę į „Loop &amp; Learn“!</string>
+    <string name="welcome_modes_intro">„Loop &amp; Learn“ palaiko du režimus:</string>
     <string name="welcome_stream_note">Pastaba dėl srauto įrašymo:</string>
     <string name="welcome_stream_warning">„Android“ kaskart prašo patvirtinimo. Tai sistemos saugumo funkcija.</string>
 

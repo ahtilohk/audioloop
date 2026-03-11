@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">सुनें और दोहराएं</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Loop & Learn में आपका स्वागत है!</string>
-    <string name="welcome_modes_intro">Loop & Learn दो रिकॉर्डिंग मोड का समर्थन करता है:</string>
+    <string name="welcome_title">Loop &amp; Learn में आपका स्वागत है!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn दो रिकॉर्डिंग मोड का समर्थन करता है:</string>
     <string name="welcome_stream_note">स्ट्रीम रिकॉर्डिंग के बारे में नोट:</string>
     <string name="welcome_stream_warning">Android को हर बार स्ट्रीम रिकॉर्डिंग शुरू करने पर अनुमति पुष्टि की आवश्यकता होती है। यह सुरक्षा सुविधा है और इसे बायपास नहीं किया जा सकता है।</string>
 

@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Lytt og gjenta</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Velkommen til Loop & Learn!</string>
-    <string name="welcome_modes_intro">Loop & Learn støtter to moduser:</string>
+    <string name="welcome_title">Velkommen til Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn støtter to moduser:</string>
     <string name="welcome_stream_note">Info om strømopptak:</string>
     <string name="welcome_stream_warning">Android krever bekreftelse hver gang. Dette er en sikkerhetsfunksjon i systemet.</string>
 

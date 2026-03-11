@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Kuuntele ja toista</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Tervetuloa Loop & Learniin!</string>
-    <string name="welcome_modes_intro">Loop & Learn tukee kahta tilaa:</string>
+    <string name="welcome_title">Tervetuloa Loop &amp; Learniin!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn tukee kahta tilaa:</string>
     <string name="welcome_stream_note">Huomio Striimi-tallennuksesta:</string>
     <string name="welcome_stream_warning">Android vaatii vahvistuksen joka kerta. Se on järjestelmän suojaominaisuus.</string>
 

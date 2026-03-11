@@ -138,8 +138,8 @@
     <string name="settings_listen_repeat">Écouter et Répéter</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Bienvenue sur Loop & Learn !</string>
-    <string name="welcome_modes_intro">Loop & Learn prend en charge deux modes d\'enregistrement :</string>
+    <string name="welcome_title">Bienvenue sur Loop &amp; Learn !</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn prend en charge deux modes d\'enregistrement :</string>
     <string name="welcome_stream_note">Note sur l\'enregistrement interne :</string>
     <string name="welcome_stream_warning">Android nécessite une confirmation à chaque début d\'enregistrement interne pour des raisons de sécurité.</string>
 
@@ -414,7 +414,7 @@
     <string name="state_playing">Lecture en cours…</string>
 
     <!-- Upgrade / Pro -->
-    <string name="upgrade_pro_title">Loop & Learn Pro</string>
+    <string name="upgrade_pro_title">Loop &amp; Learn Pro</string>
     <string name="upgrade_pro_desc">Débloquez tout sans limites.</string>
     <string name="upgrade_feature_unlimited">Catégories et listes illimitées</string>
     <string name="upgrade_feature_cloud">Sauvegarde et restau totale Google Drive</string>
@@ -423,7 +423,7 @@
     <string name="btn_restore_purchase">Restaurer les achats</string>
     <string name="label_free">GRATUIT</string>
     <string name="label_pro">PRO</string>
-    <string name="upgrade_success">Bienvenue sur Loop & Learn Pro !</string>
+    <string name="upgrade_success">Bienvenue sur Loop &amp; Learn Pro !</string>
     <string name="label_subscription_active">Abonnement actif</string>
     <string name="label_upgrade">Améliorer</string>
     <string name="label_pro_benefit_summary">Sans limites. Outils techniques.</string>

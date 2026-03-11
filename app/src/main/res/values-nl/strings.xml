@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Luisteren en herhalen</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Welkom bij Loop & Learn!</string>
-    <string name="welcome_modes_intro">Loop & Learn ondersteunt twee opnamemodi:</string>
+    <string name="welcome_title">Welkom bij Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn ondersteunt twee opnamemodi:</string>
     <string name="welcome_stream_note">Opmerking over Stream-opname:</string>
     <string name="welcome_stream_warning">Android vereist elke keer toestemming bij het starten van een Stream-opname. Dit is een beveiligingsfunctie en kan niet worden omzeild.</string>
 

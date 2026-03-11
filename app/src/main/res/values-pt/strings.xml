@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Ouvir e Repetir</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Bem-vindo ao Loop & Learn!</string>
-    <string name="welcome_modes_intro">O Loop & Learn suporta dois modos:</string>
+    <string name="welcome_title">Bem-vindo ao Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">O Loop &amp; Learn suporta dois modos:</string>
     <string name="welcome_stream_note">Nota sobre gravação de Fluxo:</string>
     <string name="welcome_stream_warning">O Android exige confirmação toda vez que inicia. É uma função de segurança.</string>
 

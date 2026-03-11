@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Dengar dan Ulangi</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Selamat datang di Loop & Learn!</string>
-    <string name="welcome_modes_intro">Loop & Learn mendukung dua mode:</string>
+    <string name="welcome_title">Selamat datang di Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn mendukung dua mode:</string>
     <string name="welcome_stream_note">Catatan tentang rekaman Aliran:</string>
     <string name="welcome_stream_warning">Android memerlukan konfirmasi setiap saat. Ini adalah fitur keamanan sistem.</string>
 
