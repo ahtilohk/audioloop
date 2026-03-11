@@ -190,7 +190,7 @@ class PlaybackManager @Inject constructor(
         _playbackState.update { it.copy(
             isPaused = false,
             currentProgress = if (itemToPlay.durationMillis > 0) startMs.toFloat() / itemToPlay.durationMillis else 0f,
-            currentTimeString = formatTime(startMs)
+            currentTimeString = formatDuration(startMs.toLong())
         ) }
         startProgressTracking()
     }
