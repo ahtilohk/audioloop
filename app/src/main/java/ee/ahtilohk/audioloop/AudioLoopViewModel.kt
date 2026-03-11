@@ -12,11 +12,14 @@ import android.os.Build
 import android.provider.MediaStore
 import android.content.Intent
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ee.ahtilohk.audioloop.ui.theme.AppTheme
 import ee.ahtilohk.audioloop.ui.PlaybackManager
+
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -47,6 +50,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import ee.ahtilohk.audioloop.worker.AudioProcessingWorker
+// Coroutines, Data, Work are already imported.
+// Correcting local imports:
+// These are in the same package usually, but let's be explicit if they were moved.
+// Actually they are in 'ee.ahtilohk.audioloop' package.
+
 
 /**
  * ViewModel for AudioLoop. Holds all UI state and business logic
@@ -57,13 +65,23 @@ import ee.ahtilohk.audioloop.worker.AudioProcessingWorker
  * - Testable without Android framework
  * - Clear separation of concerns
  */
-class AudioLoopViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class AudioLoopViewModel @Inject constructor(
+    application: Application,
+    private val repository: AudioRepository,
+    private val settingsManager: SettingsManager,
+    private val audioProcessingManager: AudioProcessingManager,
+    val mediaSessionManager: MediaSessionManager,
+    val practiceStats: PracticeStatsManager,
+    val coachEngine: CoachEngine,
+    val billingManager: BillingManager,
+    val playlistManager: PlaylistManager,
+    val driveBackupManager: DriveBackupManager,
+    val playbackManager: PlaybackManager
+) : AndroidViewModel(application), PlaybackManager.Listener {
 
     private val ctx: Context get() = getApplication()
     private val filesDir: File get() = ctx.filesDir
-    private val repository = AudioRepository(ctx)
-    private val settingsManager = SettingsManager(ctx)
-    private val audioProcessingManager = AudioProcessingManager(ctx)
     private val workManager = WorkManager.getInstance(ctx)
 
     // ── State ──
@@ -74,21 +92,26 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     // Waveform cache (observable map for Compose)
     val waveformCache = mutableStateMapOf<String, List<Int>>()
 
-    // ── Internal refs ──
-    lateinit var mediaSessionManager: MediaSessionManager
-        private set
-    lateinit var practiceStats: PracticeStatsManager
-        private set
-    lateinit var coachEngine: CoachEngine
-        private set
-    lateinit var billingManager: BillingManager
-        private set
-    lateinit var playlistManager: PlaylistManager
-        private set
-    lateinit var driveBackupManager: DriveBackupManager
-        private set
-    lateinit var playbackManager: PlaybackManager
-        private set
+    init {
+        playbackManager.setListener(this)
+        mediaSessionManager.setCallback(playbackManager)
+        mediaSessionManager.initialize()
+
+        billingManager.startConnection()
+
+        // Sync Pro status and products
+        viewModelScope.launch {
+            billingManager.isProUser.collect { isPro ->
+                _uiState.update { it.copy(isProUser = isPro) }
+            }
+        }
+        viewModelScope.launch {
+            billingManager.products.collect { prods ->
+                _uiState.update { it.copy(billingProducts = prods) }
+            }
+        }
+    }
+
 
     // Backup for Undo
     private var lastDeletedFile: File? = null
@@ -130,6 +153,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             audioService?.setMediaSessionManager(mediaSessionManager)
             playbackManager.setService(audioService)
         }
+
         override fun onServiceDisconnected(name: android.content.ComponentName?) {
             audioService = null
             playbackManager.setService(null)
@@ -143,59 +167,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun initialize() {
-        // Init managers
-        practiceStats = PracticeStatsManager(ctx)
-        coachEngine = CoachEngine(ctx, practiceStats)
-        playlistManager = PlaylistManager(ctx)
-        driveBackupManager = DriveBackupManager(ctx)
-        billingManager = BillingManager(ctx, viewModelScope)
-        billingManager.startConnection()
-
-        // Sync Pro status and products
-        viewModelScope.launch {
-            billingManager.isProUser.collect { isPro ->
-                _uiState.update { it.copy(isProUser = isPro) }
-            }
-        }
-        viewModelScope.launch {
-            billingManager.products.collect { prods ->
-                _uiState.update { it.copy(billingProducts = prods) }
-            }
-        }
-
-        // Initialize PlaybackManager before MediaSession
-        playbackManager = PlaybackManager(
-            context = ctx,
-            scope = viewModelScope,
-            mediaSessionManager = MediaSessionManager(ctx, {}, {}, {}), // Temporary, will be replaced
-            onSessionStart = { onSessionStart() },
-            onSessionEnd = { onSessionEnd() },
-            onPlaylistComplete = { p -> 
-                playlistManager.incrementPlayCount(p.id)
-                _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
-            },
-            showSnackbar = { msg, isErr -> showSnackbar(msg, isErr) }
-        )
-
-        // Init MediaSession
-        mediaSessionManager = MediaSessionManager(
-            context = ctx,
-            onPlay = { playbackManager.resumePlaying() },
-            onPause = { playbackManager.pausePlaying() },
-            onStop = { 
-                playbackManager.stopPlaying()
-                mediaSessionManager.abandonAudioFocus()
-            }
-        )
-        mediaSessionManager.initialize()
-        
-        // Re-inject proper MediaSessionManager into playbackManager
-        // In a real DI system this would be cleaner
-        val field = PlaybackManager::class.java.getDeclaredField("mediaSessionManager")
-        field.isAccessible = true
-        field.set(playbackManager, mediaSessionManager)
-
         // Load persisted state
+
         val theme = settingsManager.getTheme()
         val mode = settingsManager.getThemeMode()
         val lang = settingsManager.getLanguage()
@@ -1592,6 +1565,33 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun refreshFileList() {
         syncDatabase()
+    }
+
+    // ── PlaybackManager.Listener Implementation ──
+
+    override fun onSessionStart() {
+        sessionStartTimeMs = System.currentTimeMillis()
+        startSessionTimer()
+    }
+
+    override fun onSessionEnd() {
+        if (sessionStartTimeMs > 0) {
+            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
+            practiceStats.logSession(durationMs)
+            sessionStartTimeMs = 0L
+            sessionTimerJob?.cancel()
+            sessionTimerJob = null
+            _uiState.update { it.copy(currentSessionElapsedMs = 0L) }
+        }
+    }
+
+    override fun onPlaylistComplete(playlist: Playlist) {
+        playlistManager.incrementPlayCount(playlist.id)
+        _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
+    }
+
+    override fun showSnackbar(message: String, isError: Boolean) {
+        showSnackbar(message, isError)
     }
 }
 

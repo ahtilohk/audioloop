@@ -19,7 +19,12 @@ import java.util.Locale
  *  - Weekly goal progress
  *  - Session count
  */
-class PracticeStatsManager(context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class PracticeStatsManager @Inject constructor(@ApplicationContext context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences("PracticeStats", Context.MODE_PRIVATE)

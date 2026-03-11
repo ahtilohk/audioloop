@@ -13,12 +13,30 @@ import android.support.v4.media.session.PlaybackStateCompat
  * Manages MediaSession for Bluetooth/headset media button handling
  * and AudioFocus for proper audio coexistence with other apps.
  */
-class MediaSessionManager(
-    private val context: Context,
-    private val onPlay: () -> Unit,
-    private val onPause: () -> Unit,
-    private val onStop: () -> Unit
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+/**
+ * Manages MediaSession for Bluetooth/headset media button handling
+ * and AudioFocus for proper audio coexistence with other apps.
+ */
+@Singleton
+class MediaSessionManager @Inject constructor(
+    @ApplicationContext private val context: Context
 ) {
+    interface Callback {
+        fun onPlay()
+        fun onPause()
+        fun onStop()
+    }
+
+    private var callback: Callback? = null
+
+    fun setCallback(callback: Callback) {
+        this.callback = callback
+    }
+
     private var mediaSession: MediaSessionCompat? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -30,7 +48,7 @@ class MediaSessionManager(
             AudioManager.AUDIOFOCUS_GAIN -> {
                 // Regained focus - resume if we were playing before
                 if (wasPlayingBeforeFocusLoss) {
-                    onPlay()
+                    callback?.onPlay()
                     wasPlayingBeforeFocusLoss = false
                 }
             }
@@ -38,18 +56,19 @@ class MediaSessionManager(
                 // Permanent loss - stop playback
                 wasPlayingBeforeFocusLoss = false
                 hasAudioFocus = false
-                onStop()
+                callback?.onStop()
             }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
                 // Temporary loss (e.g. phone call) - pause
                 wasPlayingBeforeFocusLoss = true
-                onPause()
+                callback?.onPause()
             }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                 // Can duck - for a practice/learning app, pause is better than ducking
                 wasPlayingBeforeFocusLoss = true
-                onPause()
+                callback?.onPause()
             }
+
         }
     }
 
@@ -57,13 +76,13 @@ class MediaSessionManager(
         mediaSession = MediaSessionCompat(context, "AudioLoopSession").apply {
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
-                    this@MediaSessionManager.onPlay()
+                    callback?.onPlay()
                 }
                 override fun onPause() {
-                    this@MediaSessionManager.onPause()
+                    callback?.onPause()
                 }
                 override fun onStop() {
-                    this@MediaSessionManager.onStop()
+                    callback?.onStop()
                 }
                 override fun onMediaButtonEvent(mediaButtonEvent: android.content.Intent): Boolean {
                     // Let the default handler process the KeyEvent from the intent
@@ -77,6 +96,7 @@ class MediaSessionManager(
             )
             isActive = true
         }
+
     }
 
     fun requestAudioFocus(): Boolean {

@@ -7,7 +7,12 @@ import ee.ahtilohk.audioloop.AppLog
 import org.json.JSONArray
 import java.io.File
 
-class SettingsManager(private val context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class SettingsManager @Inject constructor(@ApplicationContext private val context: Context) {
     private val prefs = context.getSharedPreferences("AudioLoopPrefs", Context.MODE_PRIVATE)
     private val filesDir: File get() = context.filesDir
 

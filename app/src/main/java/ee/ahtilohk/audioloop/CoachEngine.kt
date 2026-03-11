@@ -4,7 +4,12 @@ package ee.ahtilohk.audioloop
  * Rule-based practice coach that generates simple recommendations
  * based on current stats. V1: pure if/then logic, no ML needed.
  */
-class CoachEngine(private val context: android.content.Context, private val stats: PracticeStatsManager) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class CoachEngine @Inject constructor(@ApplicationContext private val context: android.content.Context, private val stats: PracticeStatsManager) {
 
     data class Recommendation(
         val title: String,

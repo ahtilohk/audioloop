@@ -8,11 +8,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+import javax.inject.Inject
+import javax.inject.Singleton
+
 /**
  * Manages Google Play Billing for the Pro version.
  * Handles connections, product queries, and purchase flows.
  */
-class BillingManager(
+@Singleton
+class BillingManager @Inject constructor(
     private val context: Context,
     private val scope: CoroutineScope
 ) : PurchasesUpdatedListener {

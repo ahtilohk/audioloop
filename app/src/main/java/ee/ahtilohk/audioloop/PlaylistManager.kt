@@ -10,7 +10,12 @@ import java.io.File
 import java.util.UUID
 import ee.ahtilohk.audioloop.AppLog
 
-class PlaylistManager(private val context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class PlaylistManager @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val playlistDir: File
         get() = File(context.filesDir, ".playlists").also { it.mkdirs() }

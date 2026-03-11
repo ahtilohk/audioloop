@@ -28,7 +28,12 @@ data class BackupInfo(
     val sizeBytes: Long
 )
 
-class DriveBackupManager(private val context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class DriveBackupManager @Inject constructor(@ApplicationContext private val context: Context) {
 
     companion object {
         private const val DRIVE_FILES_URL = "https://www.googleapis.com/drive/v3/files"

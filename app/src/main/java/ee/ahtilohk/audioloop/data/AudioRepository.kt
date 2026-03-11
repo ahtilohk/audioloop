@@ -10,7 +10,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class AudioRepository(private val context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class AudioRepository @Inject constructor(@ApplicationContext private val context: Context) {
     private val database = AppDatabase.getDatabase(context)
     private val dao = database.recordingDao()
     private val filesDir: File get() = context.filesDir

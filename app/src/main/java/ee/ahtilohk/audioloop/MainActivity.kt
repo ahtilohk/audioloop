@@ -56,6 +56,9 @@ import java.io.File
  * - Permission launchers (recording, screen capture, sign-in)
  * - Setting Compose content
  */
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private val viewModel: AudioLoopViewModel by viewModels()

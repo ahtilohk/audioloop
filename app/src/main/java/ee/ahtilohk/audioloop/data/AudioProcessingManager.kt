@@ -14,7 +14,12 @@ import java.util.UUID
  * Manages background audio processing tasks using WorkManager.
  * Centralizes all complex audio operations that could be long-running.
  */
-class AudioProcessingManager(private val context: Context) {
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+@Singleton
+class AudioProcessingManager @Inject constructor(@ApplicationContext private val context: Context) {
     private val workManager = WorkManager.getInstance(context)
 
     fun trim(

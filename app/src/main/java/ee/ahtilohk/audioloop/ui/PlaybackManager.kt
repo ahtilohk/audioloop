@@ -14,19 +14,40 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
+
 /**
  * Manages audio playback, playlists, and related UI states.
  * Extracted from AudioLoopViewModel to reduce its complexity.
  */
-class PlaybackManager(
-    private val context: Context,
+@Singleton
+class PlaybackManager @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val scope: CoroutineScope,
-    private val mediaSessionManager: MediaSessionManager,
-    private val onSessionStart: () -> Unit,
-    private val onSessionEnd: () -> Unit,
-    private val onPlaylistComplete: (Playlist) -> Unit,
-    private val showSnackbar: (String, Boolean) -> Unit
-) {
+    private val mediaSessionManager: MediaSessionManager
+) : MediaSessionManager.Callback {
+    interface Listener {
+        fun onSessionStart()
+        fun onSessionEnd()
+        fun onPlaylistComplete(playlist: Playlist)
+        fun showSnackbar(message: String, isError: Boolean)
+    }
+
+    private var listener: Listener? = null
+
+    fun setListener(listener: Listener) {
+        this.listener = listener
+    }
+
+    override fun onPlay() { resumePlaying() }
+    override fun onPause() { pausePlaying() }
+    override fun onStop() { 
+        stopPlaying()
+        mediaSessionManager.abandonAudioFocus()
+    }
+
     private val _playbackState = MutableStateFlow(PlaybackUiState())
     val playbackState = _playbackState.asStateFlow()
 
@@ -89,9 +110,14 @@ class PlaybackManager(
             } else {
                 stopPlaying()
                 onComplete()
+                // Custom playlist complete notification
+                // Assuming allFiles belongs to some playlist if it was a playlist playback
+                // This is a bit weak, but in this refactoring we can improve it later.
+                // Currently AudioLoopViewModel handles the specific Playlist call.
             }
             return
         }
+
 
         val speed = speedProvider()
         val pitch = pitchProvider()
@@ -101,8 +127,9 @@ class PlaybackManager(
         onNext(itemToPlay.name)
 
         if (currentIndex == 0 && currentIteration == 1) {
-            onSessionStart()
+            listener?.onSessionStart()
         }
+
 
         audioService?.setOnCompletionListener {
             if (isShadowing) {
@@ -192,8 +219,9 @@ class PlaybackManager(
         ) }
         shadowingJob?.cancel()
         shadowingJob = null
-        if (endSession) onSessionEnd()
+        if (endSession) listener?.onSessionEnd()
         mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
+
         mediaSessionManager.abandonAudioFocus()
     }
 
