@@ -276,7 +276,7 @@ fun SettingsTab(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "AudioLoop v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                text = "Loop & Learn v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )

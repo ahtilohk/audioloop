@@ -195,13 +195,13 @@ fun UpgradeSheet(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            product.name,
+                                            product.name.replace("AudioLoop", "Loop & Learn"),
                                             color = if (isSystemInDarkTheme()) Color.White else MaterialTheme.colorScheme.onSurface,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 17.sp
                                         )
                                         Text(
-                                            product.description,
+                                            product.description.replace("AudioLoop", "Loop & Learn"),
                                             color = if (isSystemInDarkTheme()) Zinc500 else MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontSize = 13.sp
                                         )

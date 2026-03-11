@@ -137,8 +137,8 @@
     <string name="settings_listen_repeat">Hören &amp; Wiederholen</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Willkommen bei AudioLoop!</string>
-    <string name="welcome_modes_intro">AudioLoop unterstützt zwei Aufnahmemodi:</string>
+    <string name="welcome_title">Willkommen bei Loop & Learn!</string>
+    <string name="welcome_modes_intro">Loop & Learn unterstützt zwei Aufnahmemodi:</string>
     <string name="welcome_stream_note">Hinweis zur internen Aufnahme:</string>
     <string name="welcome_stream_warning">Android benötigt aus Sicherheitsgründen jedes Mal eine Bestätigung für interne Aufnahmen.</string>
 
@@ -413,7 +413,7 @@
     <string name="state_playing">Wiedergabe läuft…</string>
 
     <!-- Upgrade / Pro -->
-    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_title">Loop & Learn Pro</string>
     <string name="upgrade_pro_desc">Schalte alles frei und meistere Dein Audio ohne Limits.</string>
     <string name="upgrade_feature_unlimited">Unbegrenzt Kategorien &amp; Playlists</string>
     <string name="upgrade_feature_cloud">Google Drive Sicherung &amp; Wiederherstellung</string>
@@ -422,7 +422,7 @@
     <string name="btn_restore_purchase">Käufe wiederherstellen</string>
     <string name="label_free">GRATIS</string>
     <string name="label_pro">PRO</string>
-    <string name="upgrade_success">Willkommen bei AudioLoop Pro!</string>
+    <string name="upgrade_success">Willkommen bei Loop & Learn Pro!</string>
     <string name="label_subscription_active">Abo aktiv</string>
     <string name="label_upgrade">Upgrade</string>
     <string name="label_pro_benefit_summary">Keine Limits. Profi-Werkzeuge.</string>

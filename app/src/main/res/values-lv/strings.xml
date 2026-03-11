@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Klausīties un atkārtot</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Laipni lūdzam AudioLoop!</string>
-    <string name="welcome_modes_intro">AudioLoop atbalsta divus režīmus:</string>
+    <string name="welcome_title">Laipni lūdzam Loop & Learn!</string>
+    <string name="welcome_modes_intro">Loop & Learn atbalsta divus režīmus:</string>
     <string name="welcome_stream_note">Piezīme par straumēšanas ierakstīšanu:</string>
     <string name="welcome_stream_warning">Android pieprasa apstiprinājumu katru reizi. Tā ir sistēmas drošības funkcija.</string>
 

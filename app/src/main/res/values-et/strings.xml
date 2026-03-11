@@ -143,8 +143,8 @@
     <string name="settings_listen_repeat">Kuula ja korda</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Tere tulemast rakendusse AudioLoop!</string>
-    <string name="welcome_modes_intro">AudioLoop toetab kahte salvestusrežiimi:</string>
+    <string name="welcome_title">Tere tulemast rakendusse Loop &amp; Learn!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn toetab kahte salvestusrežiimi:</string>
     <string name="welcome_stream_note">Märkus Voog-salvestuse kohta:</string>
     <string name="welcome_stream_warning">Android küsib Voog-salvestuse alustamisel iga kord kinnitust. See on turvafunktsioon ja sellest ei saa mööda minna.</string>
 
@@ -426,7 +426,7 @@
     <string name="a11y_clear_loop">Eemalda korduse punktid</string>
 
     <!-- Upgrade / Pro -->
-    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_title">Loop &amp; Learn Pro</string>
     <string name="upgrade_pro_desc">Ava kõik võimalused ja meisterda oma helifaile ilma piiranguteta.</string>
     <string name="upgrade_feature_unlimited">Piiramatu arv kategooriaid ja pleiliste</string>
     <string name="upgrade_feature_cloud">Täielik Google Drive varundus ja taastamine</string>
@@ -436,7 +436,7 @@
     <string name="label_free">TASUTA</string>
     <string name="label_pro">PRO</string>
     <string name="label_best_value">PARIM HIND</string>
-    <string name="upgrade_success">Tere tulemast AudioLoop Pro kasutajaks!</string>
+    <string name="upgrade_success">Tere tulemast Loop &amp; Learn Pro kasutajaks!</string>
     <string name="label_subscription_active">Tellimus aktiivne</string>
     <string name="label_upgrade">Uuenda</string>
     <string name="label_pro_benefit_summary">Piirangudeta. Professionaalsed tööriistad.</string>

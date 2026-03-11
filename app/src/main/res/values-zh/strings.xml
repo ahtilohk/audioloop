@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">听录与跟读</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">欢迎使用 AudioLoop！</string>
-    <string name="welcome_modes_intro">AudioLoop 支持两种录音模式：</string>
+    <string name="welcome_title">欢迎使用 Loop & Learn！</string>
+    <string name="welcome_modes_intro">Loop & Learn 支持两种录音模式：</string>
     <string name="welcome_stream_note">关于串流录音的提示：</string>
     <string name="welcome_stream_warning">Android 要求每次开始串流录音时都进行权限确认。这是安全特性，无法绕过。</string>
 

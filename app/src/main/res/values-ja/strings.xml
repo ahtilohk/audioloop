@@ -414,7 +414,7 @@
     <string name="state_playing">再生中…</string>
 
     <!-- Upgrade / Pro -->
-    <string name="upgrade_pro_title">AudioLoop Pro</string>
+    <string name="upgrade_pro_title">Loop & Learn Pro</string>
     <string name="upgrade_pro_desc">制限を解除してすべての機能を利用しましょう。</string>
     <string name="upgrade_feature_unlimited">カテゴリ・プレイリスト無制限</string>
     <string name="upgrade_feature_cloud">Google ドライブ完全自動バックアップ</string>
@@ -423,7 +423,7 @@
     <string name="btn_restore_purchase">購入情報を復元</string>
     <string name="label_free">無料版</string>
     <string name="label_pro">Pro版</string>
-    <string name="upgrade_success">AudioLoop Pro へようこそ！</string>
+    <string name="upgrade_success">Loop & Learn Pro へようこそ！</string>
     <string name="label_subscription_active">メンバーシップ有効</string>
     <string name="label_upgrade">アップグレード</string>
     <string name="label_pro_benefit_summary">無制限。高度なプロ用ツール。</string>

@@ -143,8 +143,8 @@
     <string name="settings_listen_repeat">Listen &amp; Repeat</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Welcome to AudioLoop!</string>
-    <string name="welcome_modes_intro">AudioLoop supports two recording modes:</string>
+    <string name="welcome_title">Loop &amp; Learn Audio!</string>
+    <string name="welcome_modes_intro">Loop &amp; Learn Audio supports two recording modes:</string>
     <string name="welcome_stream_note">Note about Stream recording:</string>
     <string name="welcome_stream_warning">Android requires permission confirmation each time you start Stream recording. This is a security feature and cannot be bypassed.</string>
 
@@ -404,7 +404,7 @@
     <string name="settings_export_data">Export My Data</string>
     <string name="settings_export_data_desc">Download a zip archive of all your recordings, notes, and playlists.</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="privacy_policy_content">AudioLoop respects your privacy. All your audio recordings and notes are stored locally on your device or in your personal Google Drive account. We do not have access to your recordings. \n\nPermissions used: \n- Microphone: To record your audio. \n- Storage: To store and play your audio files. \n- Google Drive: To provide backup functionality (if enabled by you). \n\nYour data is yours. You can export or delete it at any time from the app settings.</string>
+    <string name="privacy_policy_content">Loop &amp; Learn Audio respects your privacy. All your audio recordings and notes are stored locally on your device or in your personal Google Drive account. We do not have access to your recordings. \n\nPermissions used: \n- Microphone: To record your audio. \n- Storage: To store and play your audio files. \n- Google Drive: To provide backup functionality (if enabled by you). \n\nYour data is yours. You can export or delete it at any time from the app settings.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Master any audio segment</string>
@@ -449,8 +449,8 @@
     <string name="a11y_clear_loop">Clear loop points</string>
 
     <!-- Upgrade / Pro -->
-    <string name="upgrade_pro_title">AudioLoop Pro</string>
-    <string name="upgrade_pro_desc">Unlock everything and master your audio with no limits.</string>
+    <string name="upgrade_pro_title">Loop &amp; Learn Audio Pro</string>
+    <string name="upgrade_pro_desc">Get the most out of Loop &amp; Learn Audio and master your audio with no limits.</string>
     <string name="upgrade_feature_unlimited">Unlimited categories &amp; playlists</string>
     <string name="upgrade_feature_cloud">Full Google Drive backup &amp; restore</string>
     <string name="upgrade_feature_processing">Advanced audio processing tools</string>
@@ -459,7 +459,7 @@
     <string name="label_free">FREE</string>
     <string name="label_pro">PRO</string>
     <string name="label_best_value">BEST VALUE</string>
-    <string name="upgrade_success">Welcome to AudioLoop Pro!</string>
+    <string name="upgrade_success">Welcome to Loop & Learn Pro!</string>
     <string name="label_subscription_active">Subscription active</string>
     <string name="label_upgrade">Upgrade</string>
     <string name="label_pro_benefit_summary">No limits. Advanced tools.</string>

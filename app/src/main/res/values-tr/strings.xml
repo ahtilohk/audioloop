@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Dinle ve Tekrar Et</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">AudioLoop\'a hoş geldiniz!</string>
-    <string name="welcome_modes_intro">AudioLoop iki modu destekler:</string>
+    <string name="welcome_title">Loop & Learn\'a hoş geldiniz!</string>
+    <string name="welcome_modes_intro">Loop & Learn iki modu destekler:</string>
     <string name="welcome_stream_note">Akış kaydı hakkında not:</string>
     <string name="welcome_stream_warning">Android her seferinde onay gerektirir. Bu bir sistem güvenlik özelliğidir.</string>
 

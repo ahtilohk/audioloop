@@ -101,7 +101,7 @@ class PlaybackManager @Inject constructor(
         onIterationChange: (Int) -> Unit = { iter -> _playbackState.update { it.copy(currentPlaylistIteration = iter) } },
         currentIteration: Int = 1,
         gapSeconds: Int = 0,
-        onComplete: () -> Unit = { _playbackState.update { it.copy(playingFileName = "") } }
+        onComplete: () -> Unit = { }
     ) {
         if (allFiles.isEmpty()) return
         this.currentPlaylist = allFiles
@@ -187,7 +187,11 @@ class PlaybackManager @Inject constructor(
         } else 0
 
         audioService?.playFile(itemToPlay, speed, pitch, startMs)
-        _playbackState.update { it.copy(isPaused = false) }
+        _playbackState.update { it.copy(
+            isPaused = false,
+            currentProgress = if (itemToPlay.durationMillis > 0) startMs.toFloat() / itemToPlay.durationMillis else 0f,
+            currentTimeString = formatTime(startMs)
+        ) }
         startProgressTracking()
     }
 
@@ -219,8 +223,15 @@ class PlaybackManager @Inject constructor(
             shadowingJob = null
             _playbackState.update { it.copy(shadowCountdownText = "") }
         }
-        val mp = mediaPlayer ?: return
-        if (!mp.isPlaying) {
+        val mp = mediaPlayer
+        if (mp == null && _playbackState.value.playingFileName.isNotEmpty()) {
+            // Re-start session if it was stopped at loop limit
+            if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
+                playPlaylist(currentPlaylist, currentFileIndex, currentIteration = 1)
+            }
+            return
+        }
+        if (mp != null && !mp.isPlaying) {
             mp.start()
             _playbackState.update { it.copy(isPaused = false) }
             mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
@@ -231,7 +242,7 @@ class PlaybackManager @Inject constructor(
         audioService?.stopPlayback()
         _playbackState.update { it.copy(
             playingFileName = if (endSession) "" else it.playingFileName,
-            isPaused = false,
+            isPaused = !endSession, // If we reached limit but kept panel, show it as paused (so Play button shows up)
             currentlyPlayingPlaylistId = if (endSession) null else it.currentlyPlayingPlaylistId,
             shadowCountdownText = "",
             abLoopStart = if (endSession) -1f else it.abLoopStart,
@@ -273,39 +284,36 @@ class PlaybackManager @Inject constructor(
                     val abActive = abStart >= 0f && abEnd >= 0f && abEnd > abStart
                     
                     if (abActive && progress >= abEnd) {
-                        val loopMode = state.loopMode
-                        if (loopMode == -1 || state.currentPlaylistIteration < loopMode) {
-                            if (state.isShadowingMode) {
-                                pausePlaying()
-                                val pauseDuration = if (state.shadowPauseSeconds > 0) {
-                                    state.shadowPauseSeconds * 1000L
-                                } else {
-                                    ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
-                                }
-                                
-                                shadowingJob = scope.launch(Dispatchers.Main) {
-                                    var remaining = pauseDuration
-                                    while (remaining > 0 && isActive) {
-                                        val secs = (remaining / 1000) + 1
-                                        _playbackState.update { s -> s.copy(shadowCountdownText = context.getString(R.string.msg_shadow_repeat_in, secs.toInt())) }
-                                        delay(1000L.coerceAtMost(remaining))
-                                        remaining -= 1000L
-                                    }
-                                    _playbackState.update { s -> s.copy(shadowCountdownText = "") }
-                                    if (isActive) {
-                                        _playbackState.update { it.copy(currentPlaylistIteration = it.currentPlaylistIteration + 1) }
-                                        seekAbsolute((abStart * total).toInt())
-                                        resumePlaying()
-                                    }
-                                }
+                        // A-B Loop is ALWAYS infinite as per user request
+                        if (state.isShadowingMode) {
+                            pausePlaying()
+                            val pauseDuration = if (state.shadowPauseSeconds > 0) {
+                                state.shadowPauseSeconds * 1000L
                             } else {
-                                _playbackState.update { it.copy(currentPlaylistIteration = it.currentPlaylistIteration + 1) }
-                                seekAbsolute((abStart * total).toInt())
+                                ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
+                            }
+                            
+                            shadowingJob = scope.launch(Dispatchers.Main) {
+                                var remaining = pauseDuration
+                                while (remaining > 0 && isActive) {
+                                    val secs = (remaining / 1000) + 1
+                                    _playbackState.update { s -> s.copy(shadowCountdownText = context.getString(R.string.msg_shadow_repeat_in, secs.toInt())) }
+                                    delay(1000L.coerceAtMost(remaining))
+                                    remaining -= 1000L
+                                }
+                                _playbackState.update { s -> s.copy(shadowCountdownText = "") }
+                                if (isActive) {
+                                    // A-B loop doesn't increment main iteration counter if it's "whole file only"
+                                    seekAbsolute((abStart * total).toInt())
+                                    resumePlaying()
+                                }
                             }
                         } else {
-                             // Loop limit reached
-                             audioService?.onPlaybackComplete()
+                            seekAbsolute((abStart * total).toInt())
                         }
+                    } else if (!abActive && progress >= 0.999f) {
+                        // This technically shouldn't happen here as onCompletion covers it, 
+                        // but it's good for safety if we had some custom logic.
                     }
 
                     _playbackState.update {
@@ -327,8 +335,8 @@ class PlaybackManager @Inject constructor(
     }
 
     fun setAbLoopEnd(pos: Float) {
-        val state = _playbackState.value
         _playbackState.update { it.copy(abLoopEnd = pos, currentPlaylistIteration = 1) }
+        val state = _playbackState.value // Read updated state
         
         // If we just set B and have A, start looping immediately
         if (pos >= 0f && state.abLoopStart >= 0f) {

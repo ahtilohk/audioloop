@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">Lyssna och upprepa</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">Välkommen till AudioLoop!</string>
-    <string name="welcome_modes_intro">AudioLoop stöder två lägen:</string>
+    <string name="welcome_title">Välkommen till Loop & Learn!</string>
+    <string name="welcome_modes_intro">Loop & Learn stöder två lägen:</string>
     <string name="welcome_stream_note">Info om ströminspelning:</string>
     <string name="welcome_stream_warning">Android kräver bekräftelse varje gång. Det är en säkerhetsfunktion i systemet.</string>
 

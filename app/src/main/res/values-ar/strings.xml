@@ -127,8 +127,8 @@
     <string name="settings_listen_repeat">استماع وتكرار</string>
 
     <!-- Welcome -->
-    <string name="welcome_title">مرحباً بك في AudioLoop!</string>
-    <string name="welcome_modes_intro">يدعم AudioLoop وضعين:</string>
+    <string name="welcome_title">مرحباً بك في Loop & Learn!</string>
+    <string name="welcome_modes_intro">يدعم Loop & Learn وضعين:</string>
     <string name="welcome_stream_note">ملاحظة حول تسجيل البث:</string>
     <string name="welcome_stream_warning">يتطلب Android تأكيداً في كل مرة. هذه ميزة أمان للنظام.</string>
 
