@@ -16,6 +16,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ee.ahtilohk.audioloop.ui.theme.AppTheme
+import ee.ahtilohk.audioloop.ui.PlaybackManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -86,6 +87,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         private set
     lateinit var driveBackupManager: DriveBackupManager
         private set
+    lateinit var playbackManager: PlaybackManager
+        private set
 
     // Backup for Undo
     private var lastDeletedFile: File? = null
@@ -125,9 +128,11 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             val binder = service as AudioService.AudioBinder
             audioService = binder.getService()
             audioService?.setMediaSessionManager(mediaSessionManager)
+            playbackManager.setService(audioService)
         }
         override fun onServiceDisconnected(name: android.content.ComponentName?) {
             audioService = null
+            playbackManager.setService(null)
         }
     }
 
@@ -158,31 +163,37 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
 
+        // Initialize PlaybackManager before MediaSession
+        playbackManager = PlaybackManager(
+            context = ctx,
+            scope = viewModelScope,
+            mediaSessionManager = MediaSessionManager(ctx, {}, {}, {}), // Temporary, will be replaced
+            onSessionStart = { onSessionStart() },
+            onSessionEnd = { onSessionEnd() },
+            onPlaylistComplete = { p -> 
+                playlistManager.incrementPlayCount(p.id)
+                _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
+            },
+            showSnackbar = { msg, isErr -> showSnackbar(msg, isErr) }
+        )
+
         // Init MediaSession
         mediaSessionManager = MediaSessionManager(
             context = ctx,
-            onPlay = {
-                val mp = audioService?.getMediaPlayer()
-                if (_uiState.value.isPaused && mp != null) {
-                    resumePlaying()
-                    mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-                }
-            },
-            onPause = {
-                val mp = audioService?.getMediaPlayer()
-                if (mp?.isPlaying == true) {
-                    pausePlaying()
-                    mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
-                }
-            },
-            onStop = {
-                stopPlaying()
-                _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
+            onPlay = { playbackManager.resumePlaying() },
+            onPause = { playbackManager.pausePlaying() },
+            onStop = { 
+                playbackManager.stopPlaying()
                 mediaSessionManager.abandonAudioFocus()
             }
         )
         mediaSessionManager.initialize()
+        
+        // Re-inject proper MediaSessionManager into playbackManager
+        // In a real DI system this would be cleaner
+        val field = PlaybackManager::class.java.getDeclaredField("mediaSessionManager")
+        field.isAccessible = true
+        field.set(playbackManager, mediaSessionManager)
 
         // Load persisted state
         val theme = settingsManager.getTheme()
@@ -215,6 +226,28 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             )
         }
 
+        // Observe PlaybackManager state
+        viewModelScope.launch {
+            playbackManager.playbackState.collect { playback ->
+                _uiState.update { it.copy(
+                    playingFileName = playback.playingFileName,
+                    isPaused = playback.isPaused,
+                    currentProgress = playback.currentProgress,
+                    currentTimeString = playback.currentTimeString,
+                    loopMode = playback.loopMode,
+                    playbackSpeed = playback.playbackSpeed,
+                    playbackPitch = playback.playbackPitch,
+                    isShadowingMode = playback.isShadowingMode,
+                    shadowPauseSeconds = playback.shadowPauseSeconds,
+                    shadowCountdownText = playback.shadowCountdownText,
+                    abLoopStart = playback.abLoopStart,
+                    abLoopEnd = playback.abLoopEnd,
+                    currentlyPlayingPlaylistId = playback.currentlyPlayingPlaylistId,
+                    currentPlaylistIteration = playback.currentPlaylistIteration
+                ) }
+            }
+        }
+
         // Apply locale on start
         val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(lang)
         androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
@@ -226,7 +259,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
         syncDatabaseAndObserve()
 
         // Scan public Music/AudioLoop folder only on first launch after reinstall
-        if (isFirstLaunch()) {
+        if (settingsManager.isFirstLaunch()) {
             viewModelScope.launch {
                 try {
                     when (val result = repository.importFromPublicStorage()) {
@@ -241,7 +274,7 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                         else -> {}
                     }
                 } finally {
-                    setFirstLaunchComplete()
+                    settingsManager.setFirstLaunchComplete()
                 }
             }
         }
@@ -619,34 +652,10 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ── Playback ──
 
-    fun playFile(item: RecordingItem) {
-        _uiState.update { it.copy(playingFileName = item.name, isPaused = false) }
-        playPlaylist(listOf(item), 0,
-            loopCountProvider = { _uiState.value.loopMode },
-            speedProvider = { _uiState.value.playbackSpeed },
-            pitchProvider = { _uiState.value.playbackPitch },
-            shadowingProvider = { _uiState.value.isShadowingMode },
-            onNext = { name -> _uiState.update { it.copy(playingFileName = name, isPaused = false) } },
-            onComplete = { /* stopPlaying() already handles state reset */ }
-        )
-    }
+    fun playFile(item: RecordingItem) = playbackManager.playFile(item)
 
-    fun startPlaylistPlayback(
-        files: List<RecordingItem>,
-        loop: Boolean,
-        speed: Float,
-        onComplete: () -> Unit
-    ) {
-        playPlaylist(files, 0,
-            loopCountProvider = { _uiState.value.loopMode },
-            speedProvider = { _uiState.value.playbackSpeed },
-            pitchProvider = { _uiState.value.playbackPitch },
-            shadowingProvider = { _uiState.value.isShadowingMode },
-            onNext = { name -> _uiState.update { it.copy(playingFileName = name, isPaused = false) } },
-            onComplete = {
-            onComplete()
-        }
-        )
+    fun startPlaylistPlayback(files: List<RecordingItem>, loop: Boolean, speed: Float, onComplete: () -> Unit) {
+        playbackManager.startPlaylistPlayback(files, if (loop) -1 else 1, speed, 1.0f, _uiState.value.isShadowingMode, onComplete)
     }
 
     fun playPlaylistFromPlaylist(playlist: Playlist) {
@@ -654,204 +663,42 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             val allRecordings = repository.getAllRecordingsSync()
             val resolvedItems = playlistManager.resolveFiles(playlist, allRecordings)
             if (resolvedItems.isNotEmpty()) {
-                _uiState.update {
-                    it.copy(currentlyPlayingPlaylistId = playlist.id, currentPlaylistIteration = 1)
-                }
-                playPlaylist(
+                playbackManager.updateCurrentlyPlayingPlaylist(playlist.id, 1)
+                playbackManager.playPlaylist(
                     allFiles = resolvedItems,
                     currentIndex = 0,
                     loopCountProvider = { playlist.loopCount },
                     speedProvider = { playlist.speed },
                     pitchProvider = { playlist.pitch },
                     shadowingProvider = { _uiState.value.isShadowingMode },
-                    onNext = { name -> _uiState.update { it.copy(playingFileName = name) } },
-                    onIterationChange = { iter -> _uiState.update { it.copy(currentPlaylistIteration = iter) } },
                     gapSeconds = playlist.gapSeconds,
                     onComplete = {
-                        _uiState.update { it.copy(currentlyPlayingPlaylistId = null, currentPlaylistIteration = 1, playingFileName = "") }
+                        playbackManager.updateCurrentlyPlayingPlaylist(null, 1)
                         playlistManager.incrementPlayCount(playlist.id)
                         _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
                     }
                 )
                 if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
             } else {
-                _uiState.update { it.copy(currentlyPlayingPlaylistId = null) }
+                playbackManager.updateCurrentlyPlayingPlaylist(null, 1)
                 showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)
             }
         }
     }
 
-    fun changeSpeed(speed: Float) {
-        _uiState.update { it.copy(playbackSpeed = speed) }
-        updatePlaybackParams(speed, _uiState.value.playbackPitch)
+    private fun onSessionStart() {
+        sessionStartTimeMs = System.currentTimeMillis()
+        startSessionTimer()
     }
 
-    fun changePitch(pitch: Float) {
-        _uiState.update { it.copy(playbackPitch = pitch) }
-        updatePlaybackParams(_uiState.value.playbackSpeed, pitch)
-    }
-
-    fun changeLoopMode(mode: Int) {
-        _uiState.update { it.copy(loopMode = mode) }
-    }
-
-    fun changeShadowingMode(enabled: Boolean) {
-        _uiState.update { it.copy(isShadowingMode = enabled) }
-    }
-
-    fun changeShadowPause(seconds: Int) {
-        _uiState.update { it.copy(shadowPauseSeconds = seconds) }
-    }
-
-    fun seekTo(pos: Float) {
-        try { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
-        catch (_: IllegalStateException) {}
-    }
-
-    fun seekAbsolute(ms: Int) {
-        try { mediaPlayer?.seekTo(ms) } catch (_: IllegalStateException) {}
-    }
-
-    fun setAbLoopStart(pos: Float) {
-        _uiState.update { it.copy(abLoopStart = pos) }
-    }
-
-    fun setAbLoopEnd(pos: Float) {
-        _uiState.update { it.copy(abLoopEnd = pos) }
-    }
-
-    fun nudgeAbLoopStart(deltaMs: Int) {
-        val mp = audioService?.getMediaPlayer() ?: return
-        val total = mp.duration
-        if (total <= 0) return
-        val currentMs = (_uiState.value.abLoopStart * total).toInt()
-        val nextMs = (currentMs + deltaMs).coerceIn(0, total)
-        _uiState.update { it.copy(abLoopStart = nextMs.toFloat() / total.toFloat()) }
-    }
-
-    fun nudgeAbLoopEnd(deltaMs: Int) {
-        val mp = audioService?.getMediaPlayer() ?: return
-        val total = mp.duration
-        if (total <= 0) return
-        val currentMs = (_uiState.value.abLoopEnd * total).toInt()
-        val nextMs = (currentMs + deltaMs).coerceIn(0, total)
-        _uiState.update { it.copy(abLoopEnd = nextMs.toFloat() / total.toFloat()) }
-    }
-
-    fun pausePlaying() {
-        val wasShadowCountdown = _uiState.value.shadowCountdownText.isNotEmpty()
-        shadowingJob?.cancel()
-        shadowingJob = null
-        _uiState.update { it.copy(shadowCountdownText = "") }
-        try {
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
-                _uiState.update { it.copy(isPaused = true) }
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
-            } else if (wasShadowCountdown) {
-                stopPlaying()
-                _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
-            }
-        } catch (_: IllegalStateException) {
-            stopPlaying()
-            _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
-        }
-    }
-
-    fun resumePlaying() {
-        if (_uiState.value.shadowCountdownText.isNotEmpty()) {
-            shadowingJob?.cancel()
-            shadowingJob = null
-            _uiState.update { it.copy(shadowCountdownText = "") }
-        }
-        val mp = mediaPlayer ?: return
-        if (!mp.isPlaying) {
-            mp.start()
-            _uiState.update { it.copy(isPaused = false) }
-            mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
-        }
-    }
-
-    fun stopPlayingAndReset() {
-        stopPlaying(true)
-    }
-
-    fun stopPlaying(endSession: Boolean = true) {
-        audioService?.stopPlayback()
-        _uiState.update { it.copy(
-            playingFileName = "",
-            isPaused = false,
-            currentlyPlayingPlaylistId = null,
-            shadowCountdownText = "",
-            abLoopStart = -1f,
-            abLoopEnd = -1f
-        ) }
-        shadowingJob?.cancel()
-        shadowingJob = null
-        if (endSession) onSessionEnd()
-        if (::mediaSessionManager.isInitialized) {
-            mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
-            mediaSessionManager.abandonAudioFocus()
-        }
-    }
-
-    fun startProgressTracking() {
-        progressJob?.cancel()
-        progressJob = viewModelScope.launch {
-            while (isActive) {
-                val player = mediaPlayer
-                val state = _uiState.value
-                if (state.playingFileName.isNotEmpty() && player != null && player.isPlaying) {
-                    val current = player.currentPosition
-                    val total = player.duration
-                    val progress = current.toFloat() / total.toFloat()
-                    
-                    // A-B Loop Logic
-                    val abStart = state.abLoopStart
-                    val abEnd = state.abLoopEnd
-                    val abActive = abStart >= 0f && abEnd >= 0f && abEnd > abStart
-                    
-                    if (abActive && progress >= abEnd) {
-                        if (state.isShadowingMode) {
-                            // Shadowing + A-B: Pause at B, wait, then seek to A
-                            pausePlaying()
-                            val pauseDuration = if (state.shadowPauseSeconds > 0) {
-                                state.shadowPauseSeconds * 1000L
-                            } else {
-                                ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
-                            }
-                            
-                            shadowingJob = viewModelScope.launch(Dispatchers.Main) {
-                                var remaining = pauseDuration
-                                while (remaining > 0 && isActive) {
-                                    val secs = (remaining / 1000) + 1
-                                    _uiState.update { s -> s.copy(shadowCountdownText = ctx.getString(R.string.msg_shadow_repeat_in, secs)) }
-                                    delay(1000L.coerceAtMost(remaining))
-                                    remaining -= 1000L
-                                }
-                                _uiState.update { s -> s.copy(shadowCountdownText = "") }
-                                if (isActive) {
-                                    seekAbsolute((abStart * total).toInt())
-                                    resumePlaying()
-                                }
-                            }
-                        } else {
-                            // Just seek to A
-                            seekAbsolute((abStart * total).toInt())
-                        }
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            currentProgress = progress,
-                            currentTimeString = AudioMetadataHelper.formatTime(current.toLong())
-                        )
-                    }
-                } else if (state.playingFileName.isEmpty()) {
-                    _uiState.update { it.copy(currentProgress = 0f, currentTimeString = "00:00") }
-                }
-                delay(100)
-            }
+    private fun onSessionEnd() {
+        if (sessionStartTimeMs > 0) {
+            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
+            practiceStats.logSession(durationMs)
+            sessionStartTimeMs = 0L
+            sessionTimerJob?.cancel()
+            sessionTimerJob = null
+            _uiState.update { it.copy(currentSessionElapsedMs = 0L) }
         }
     }
 
@@ -866,149 +713,6 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
             }
             _uiState.update { it.copy(currentSessionElapsedMs = 0L) }
         }
-    }
-
-    private fun playPlaylist(
-        allFiles: List<RecordingItem>,
-        currentIndex: Int,
-        loopCountProvider: () -> Int,
-        speedProvider: () -> Float,
-        pitchProvider: () -> Float,
-        shadowingProvider: () -> Boolean,
-        onNext: (String) -> Unit,
-        onIterationChange: (Int) -> Unit = {},
-        currentIteration: Int = 1,
-        gapSeconds: Int = 0,
-        onComplete: () -> Unit
-    ) {
-        if (allFiles.isEmpty() || currentIndex < 0) { onComplete(); return }
-
-        val loopCount = loopCountProvider()
-        val speed = speedProvider()
-        val pitch = pitchProvider()
-        val isShadowing = shadowingProvider()
-
-        if (currentIndex >= allFiles.size) {
-            when {
-                loopCount == -1 -> playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                currentIteration < loopCount -> {
-                    val next = currentIteration + 1
-                    onIterationChange(next)
-                    playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, next, gapSeconds, onComplete)
-                }
-                else -> {
-                stopPlaying()
-                onComplete()
-            }
-            }
-            return
-        }
-
-        // DELEGATE TO SERVICE
-        val itemToPlay = allFiles[currentIndex]
-        onNext(itemToPlay.name)
-        
-        if (currentIndex == 0 && sessionStartTimeMs == 0L) {
-            onSessionStart()
-        }
-
-        audioService?.setOnCompletionListener {
-            if (isShadowing) {
-                 // Shadowing logic
-                 val duration = audioService?.getMediaPlayer()?.duration?.toLong() ?: 0L
-                 val pauseDuration = if (_uiState.value.shadowPauseSeconds > 0) {
-                     _uiState.value.shadowPauseSeconds * 1000L
-                 } else {
-                     duration.coerceAtMost(15000L)
-                 }
-                 shadowingJob = viewModelScope.launch(Dispatchers.Main) {
-                     _uiState.update { s -> s.copy(isPaused = true) }
-                     var remaining = pauseDuration
-                     while (remaining > 0 && isActive) {
-                         val secs = (remaining / 1000) + 1
-                         _uiState.update { s -> s.copy(shadowCountdownText = ctx.getString(R.string.msg_shadow_repeat_in, secs.toInt())) }
-                         delay(1000L.coerceAtMost(remaining))
-                         remaining -= 1000L
-                     }
-                     _uiState.update { s -> s.copy(shadowCountdownText = "") }
-                     if (isActive) {
-                         playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                     }
-                 }
-            } else {
-                if (gapSeconds > 0 && currentIndex + 1 < allFiles.size) {
-                    shadowingJob = viewModelScope.launch(Dispatchers.Main) {
-                        _uiState.update { s -> s.copy(isPaused = true) }
-                        delay(gapSeconds * 1000L)
-                        if (isActive) {
-                            playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                        }
-                    }
-                } else {
-                    playPlaylist(allFiles, currentIndex + 1, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
-                }
-            }
-        }
-
-        audioService?.playFile(itemToPlay, speed, pitch)
-        _uiState.update { it.copy(isPaused = false) }
-
-        // Start progress tracking locally in VM for UI updates
-        startProgressTracking()
-
-        // Listen for completion through service?
-        // Actually we can set a listener on the player in the service
-        // But for easier playlist logic, we can use the completion broadcast
-        // Or better: pass the complete callback to the service? 
-        // No, Binder is better. Let's assume progress tracking will detect completion or we use completion observer.
-    }
-
-    private fun updatePlaybackParams(speed: Float, pitch: Float) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
-            } catch (_: IllegalStateException) {}
-        }
-    }
-
-    // ── Sleep Timer ──
-
-    fun setSleepTimer(minutes: Int) {
-        sleepTimerJob?.cancel()
-        sleepTimerJob = null
-        _uiState.update { it.copy(selectedSleepMinutes = minutes) }
-        if (minutes <= 0) {
-            _uiState.update { it.copy(sleepTimerRemainingMs = 0L) }
-            return
-        }
-        _uiState.update { it.copy(sleepTimerRemainingMs = minutes * 60_000L) }
-        sleepTimerJob = viewModelScope.launch(Dispatchers.Main) {
-            while (isActive && _uiState.value.sleepTimerRemainingMs > 0L) {
-                delay(1000L)
-                _uiState.update { it.copy(sleepTimerRemainingMs = it.sleepTimerRemainingMs - 1000L) }
-                if (_uiState.value.sleepTimerRemainingMs <= 0L) {
-                    _uiState.update { it.copy(sleepTimerRemainingMs = 0L) }
-                    fadeOutAndStop()
-                    break
-                }
-            }
-        }
-    }
-
-    private suspend fun fadeOutAndStop() {
-        mediaPlayer?.let { mp ->
-            try { mp.setVolume(1f, 1f) } catch (_: Exception) {}
-            if (mp.isPlaying) {
-                for (i in 20 downTo 0) {
-                    val vol = i / 20f
-                    try { mp.setVolume(vol, vol) } catch (_: Exception) {}
-                    delay(150L)
-                }
-            }
-        }
-        stopPlaying()
-        _uiState.update { it.copy(playingFileName = "", currentlyPlayingPlaylistId = null) }
-        mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = false)
     }
 
     // ── Audio Processing ──
@@ -1642,6 +1346,8 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
 
     // --- Onboarding Actions ---
 
+    // Playback logic moved to PlaybackManager
+
     fun nextOnboardingStep() {
         _uiState.update { it.copy(onboardingStep = it.onboardingStep + 1) }
     }
@@ -1876,6 +1582,16 @@ class AudioLoopViewModel(application: Application) : AndroidViewModel(applicatio
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    fun showSnackbar(message: String, isError: Boolean = false) {
+        _uiState.update { it.copy(snackbarMessage = SnackbarMessage(message, isError = isError)) }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun refreshFileList() {
+        syncDatabase()
     }
 }
 
