@@ -166,7 +166,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
         try {
             mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (e: Exception) { AppLog.e("Error getting MediaProjectionManager", e) }
 
         setContent {
             vm = viewModel
@@ -263,7 +263,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                                             lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
                                             lastFileDuration = latestItem?.durationString ?: ""
                                         )
-                                    } catch (e: Exception) { e.printStackTrace() }
+                                    } catch (e: Exception) { AppLog.e("Error in recording saved receiver", e) }
                                 }
                             }
                         }

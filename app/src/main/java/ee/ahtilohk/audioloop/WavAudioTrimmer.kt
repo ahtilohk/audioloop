@@ -7,6 +7,7 @@ import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import ee.ahtilohk.audioloop.AppLog
 
 object WavAudioTrimmer {
 
@@ -97,7 +98,7 @@ object WavAudioTrimmer {
             }
             return@withContext false
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error trimming WAV file", e)
             outputFile.delete()
             return@withContext false
         }
@@ -196,7 +197,7 @@ object WavAudioTrimmer {
             }
             return@withContext false
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error removing segment from WAV file", e)
             outputFile.delete()
             return@withContext false
         }

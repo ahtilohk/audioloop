@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
+import ee.ahtilohk.audioloop.AppLog
 
 object AudioTrimmer {
 
@@ -77,7 +78,7 @@ object AudioTrimmer {
             
             return@withContext true
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error trimming audio file", e)
             outputFile.delete() // Cleanup on fail
             return@withContext false
         } finally {
@@ -158,7 +159,7 @@ object AudioTrimmer {
 
             return@withContext true
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error removing audio segment", e)
             outputFile.delete()
             return@withContext false
         } finally {

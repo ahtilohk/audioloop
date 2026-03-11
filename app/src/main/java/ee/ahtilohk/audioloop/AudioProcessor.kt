@@ -221,7 +221,7 @@ object AudioProcessor {
             }
             return false
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error processing WAV samples", e)
             outputFile.delete()
             return false
         }
@@ -266,7 +266,7 @@ object AudioProcessor {
             // Step 3: Re-encode to M4A (AAC)
             return encodeToM4a(processed, sampleRate, channels, outputFile)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error processing compressed audio", e)
             outputFile.delete()
             return false
         } finally {
@@ -439,7 +439,7 @@ object AudioProcessor {
             }
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error writing WAV output", e)
             outputFile.delete()
             return false
         }

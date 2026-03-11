@@ -6,6 +6,7 @@ import androidx.glance.appwidget.updateAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ee.ahtilohk.audioloop.AppLog
 
 /**
  * Helper to update the AudioLoop home screen widget with fresh data.
@@ -41,7 +42,7 @@ object WidgetStateHelper {
             try {
                 AudioLoopWidget().updateAll(context)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.e("Error updating widget state", e)
             }
         }
     }

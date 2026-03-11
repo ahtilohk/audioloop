@@ -8,6 +8,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.UUID
+import ee.ahtilohk.audioloop.AppLog
 
 class PlaylistManager(private val context: Context) {
 
@@ -140,7 +141,7 @@ class PlaylistManager(private val context: Context) {
                 sleepMinutes = json.optInt("sleepMinutes", 0)
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error parsing playlist JSON at ${file.name}", e)
             null
         }
     }

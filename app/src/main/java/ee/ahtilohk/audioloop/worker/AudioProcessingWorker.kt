@@ -12,6 +12,7 @@ import ee.ahtilohk.audioloop.WavAudioTrimmer
 import ee.ahtilohk.audioloop.AudioMerger
 import ee.ahtilohk.audioloop.SilenceSplitter
 import ee.ahtilohk.audioloop.RecordingItem
+import ee.ahtilohk.audioloop.AppLog
 
 class AudioProcessingWorker(
     context: Context,
@@ -123,7 +124,7 @@ class AudioProcessingWorker(
                 else -> return Result.failure()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error in AudioProcessingWorker (type=$type)", e)
         }
 
         return Result.failure()

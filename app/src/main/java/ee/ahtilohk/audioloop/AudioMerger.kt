@@ -12,6 +12,7 @@ import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
+import ee.ahtilohk.audioloop.AppLog
 
 object AudioMerger {
 
@@ -56,7 +57,7 @@ object AudioMerger {
                 encodeToAac(combined, detectedSampleRate, detectedChannels, outputFile)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error merging files", e)
             outputFile.delete()
             false
         }
@@ -102,7 +103,7 @@ object AudioMerger {
             }
             return null
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error decoding WAV to PCM", e)
             return null
         }
     }
@@ -168,7 +169,7 @@ object AudioMerger {
 
             return PcmResult(ShortArray(allSamples.size) { allSamples[it] }, sampleRate, channels)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error decoding compressed file to PCM", e)
             return null
         } finally {
             try { extractor.release() } catch (_: Exception) {}
@@ -201,7 +202,7 @@ object AudioMerger {
             }
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error writing WAV output in merger", e)
             outputFile.delete()
             return false
         }
