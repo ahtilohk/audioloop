@@ -91,6 +91,8 @@ class AudioService : Service() {
     private var mediaSessionManager: MediaSessionManager? = null
     private var isPlaying = false
     private var onCompletionListener: (() -> Unit)? = null
+    private var playbackListener: Player.Listener? = null
+
 
     inner class AudioBinder : Binder() {
         fun getService(): AudioService = this@AudioService
@@ -406,64 +408,79 @@ class AudioService : Service() {
     // ── Playback Logic (NEW: Managed Foreground Playback with Media3/ExoPlayer) ──
 
     fun playFile(item: RecordingItem, speed: Float, pitch: Float, startMs: Int = 0) {
-        stopPlayback()
-        isPlaying = true
-        startForegroundNotification(NOTIFICATION_ID_PLAYBACK, getString(R.string.notification_playing, item.name), false, false)
-        
-        exoPlayer = ExoPlayer.Builder(this).build().apply {
-            setAudioAttributes(
-                Media3AudioAttributes.Builder()
-                    .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(androidx.media3.common.C.USAGE_MEDIA)
-                    .build(),
-                true
-            )
-            
-            val mediaItem = if (item.uri != android.net.Uri.EMPTY) {
-                MediaItem.fromUri(item.uri)
-            } else {
-                MediaItem.fromUri(android.net.Uri.fromFile(item.file))
-            }
-            
-            setMediaItem(mediaItem)
-            playbackParameters = PlaybackParameters(speed, pitch)
-            
-            addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_ENDED) {
-                        onPlaybackComplete()
+        val mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post {
+            try {
+                // Ensure we have a player
+                val player = exoPlayer ?: ExoPlayer.Builder(this)
+                    .setLooper(Looper.getMainLooper())
+                    .build().also { exoPlayer = it }
+                
+                player.stop()
+                player.clearMediaItems()
+                
+                // Add listener once if not already there
+                if (playbackListener == null) {
+                    playbackListener = object : Player.Listener {
+                        override fun onPlaybackStateChanged(state: Int) {
+                            if (state == Player.STATE_ENDED) {
+                                onPlaybackComplete()
+                            }
+                        }
+                        override fun onPlayerError(error: PlaybackException) {
+                            Log.e("AudioService", "ExoPlayer error: ${error.message}", error)
+                            onPlaybackComplete()
+                        }
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            mediaSessionManager?.updatePlaybackState(
+                                isPlaying = isPlaying,
+                                isPaused = !isPlaying && player.playbackState != Player.STATE_ENDED,
+                                position = player.currentPosition
+                            )
+                        }
                     }
+                    player.addListener(playbackListener!!)
+                }
+
+                isPlaying = true
+                startForegroundNotification(NOTIFICATION_ID_PLAYBACK, getString(R.string.notification_playing, item.name), false, false)
+
+                if (mediaSessionManager?.requestAudioFocus() == false) {
+                    stopPlayback()
+                    return@post
+                }
+
+                val mediaItem = if (item.uri != android.net.Uri.EMPTY) {
+                    MediaItem.fromUri(item.uri)
+                } else {
+                    MediaItem.fromUri(android.net.Uri.fromFile(item.file))
                 }
                 
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    mediaSessionManager?.updatePlaybackState(
-                        isPlaying = isPlaying,
-                        isPaused = !isPlaying && playbackState != Player.STATE_ENDED,
-                        position = currentPosition
-                    )
-                }
-            })
-
-            if (mediaSessionManager?.requestAudioFocus() == false) {
+                player.setMediaItem(mediaItem)
+                player.playbackParameters = PlaybackParameters(speed, pitch)
+                if (startMs > 0) player.seekTo(startMs.toLong())
+                player.prepare()
+                player.play()
+                
+                mediaSessionManager?.updateMetadata(item.name, item.durationMillis)
+            } catch (e: Exception) {
+                Log.e("AudioService", "Critical playback error", e)
                 stopPlayback()
-                return@apply
             }
-
-            if (startMs > 0) seekTo(startMs.toLong())
-            prepare()
-            play()
-            
-            mediaSessionManager?.updateMetadata(item.name, item.durationMillis)
         }
     }
 
     fun updatePlaybackParams(speed: Float, pitch: Float) {
-        exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
+        Handler(Looper.getMainLooper()).post {
+            exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
+        }
     }
+
 
     fun setMediaSessionManager(manager: MediaSessionManager) {
         this.mediaSessionManager = manager
     }
+
 
     fun pausePlayback() {
         exoPlayer?.let { 
@@ -484,16 +501,20 @@ class AudioService : Service() {
     }
 
     fun stopPlayback() {
-        isPlaying = false
-        onCompletionListener = null
-        exoPlayer?.let {
-            it.stop()
-            it.release()
+        Handler(Looper.getMainLooper()).post {
+            isPlaying = false
+            onCompletionListener = null
+            exoPlayer?.let {
+                it.stop()
+                it.release()
+            }
+            exoPlayer = null
+            playbackListener = null
+            mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = false)
+            stopForeground(true)
         }
-        exoPlayer = null
-        mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = false)
-        stopForeground(true)
     }
+
 
     fun onPlaybackComplete() {
         onCompletionListener?.invoke()

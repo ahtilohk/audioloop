@@ -206,21 +206,18 @@ class PlaybackManager @Inject constructor(
         val wasShadowCountdown = _playbackState.value.shadowCountdownText.isNotEmpty()
         shadowingJob?.cancel()
         shadowingJob = null
-        _playbackState.update { it.copy(shadowCountdownText = "") }
+        _playbackState.update { it.copy(shadowCountdownText = "", isPaused = true) }
         try {
-            if (exoPlayer?.isPlaying == true) {
-
-                exoPlayer?.pause()
-                _playbackState.update { it.copy(isPaused = true) }
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true, position = exoPlayer?.currentPosition ?: 0L)
-
-            } else if (wasShadowCountdown) {
+            exoPlayer?.pause()
+            mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true, position = exoPlayer?.currentPosition ?: 0L)
+            if (!wasShadowCountdown && exoPlayer == null) {
                 stopPlaying()
             }
-        } catch (_: IllegalStateException) {
+        } catch (_: Exception) {
             stopPlaying()
         }
     }
+
 
     fun resumePlaying() {
         if (_playbackState.value.shadowCountdownText.isNotEmpty()) {

@@ -737,7 +737,7 @@ private fun DraggableFileList(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
         ) {
             itemsIndexed(uiRecordingItems, key = { _, item -> item.file.absolutePath }) { index, item ->
-                val isPlaying = item.file.name == uiState.playingFileName
+                val isPlaying = item.name == uiState.playingFileName
                 val alpha = if (draggingItemIndex == index) 0f else 1f
                 FileItem(
                     modifier = Modifier.alpha(alpha),
