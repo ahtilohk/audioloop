@@ -105,7 +105,7 @@ class DriveBackupManager(private val context: Context) {
             onProgress(context.getString(R.string.msg_backup_complete))
             Result.success(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Drive backup creation failed", e)
             Result.failure(e)
         }
     }
@@ -252,7 +252,7 @@ class DriveBackupManager(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Drive backup listing failed", e)
             Result.failure(e)
         }
     }
@@ -306,7 +306,7 @@ class DriveBackupManager(private val context: Context) {
             onProgress("Restore complete!")
             Result.success(Unit)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Drive backup restore failed", e)
             // Cleanup on failure
             try { File(context.cacheDir, "restore_temp.zip").delete() } catch(_: Exception) {}
             Result.failure(e)
@@ -424,7 +424,7 @@ class DriveBackupManager(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Drive backup deletion failed", e)
             Result.failure(e)
         }
     }

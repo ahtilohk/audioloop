@@ -146,7 +146,7 @@ object SilenceSplitter {
 
             segments
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error detecting silence segments", e)
             emptyList()
         } finally {
             try { codec?.stop() } catch (_: Exception) {}
@@ -260,7 +260,7 @@ object SilenceSplitter {
             val safeEnd = lastContentMs + 20
             Pair(safeStart, safeEnd)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error detecting content bounds", e)
             null
         } finally {
             try { codec?.stop() } catch (_: Exception) {}

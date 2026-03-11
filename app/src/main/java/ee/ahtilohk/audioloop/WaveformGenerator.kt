@@ -25,7 +25,7 @@ object WaveformGenerator {
                      val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
                      if (list.isNotEmpty()) return@withContext list
                  }
-             } catch (e: Exception) { e.printStackTrace() }
+             } catch (e: Exception) { AppLog.e("Error reading pre-calculated wave file", e) }
         }
 
         if (!file.exists() || file.length() < 100) return@withContext emptyList()
@@ -127,7 +127,7 @@ object WaveformGenerator {
                 codec?.stop()
                 codec?.release()
                 extractor.release()
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) { AppLog.e("Error releasing media resources in WaveformGenerator", e) }
         }
     }
 
@@ -250,7 +250,7 @@ object WaveformGenerator {
                 waveform.add(maxAmp)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error generating waveform from PCM", e)
         } finally {
             stream.close()
         }

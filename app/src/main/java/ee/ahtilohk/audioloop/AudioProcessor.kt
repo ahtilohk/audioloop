@@ -1,5 +1,7 @@
 package ee.ahtilohk.audioloop
 
+import android.util.Log
+
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
@@ -401,7 +403,7 @@ object AudioProcessor {
             muxer = null
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error encoding to M4A", e)
             try { encoder?.stop() } catch (_: Exception) {}
             try { encoder?.release() } catch (_: Exception) {}
             try { muxer?.stop() } catch (_: Exception) {}

@@ -223,7 +223,7 @@ class AudioService : Service() {
             startAmplitudeTicker()
             if (pfd != null) recordingPfd = pfd
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.e("Error starting mic recording", e)
             cleanupMicRecorder()
             currentFile?.delete()
             currentUri?.let { contentResolver.delete(it, null, null) }
@@ -298,7 +298,7 @@ class AudioService : Service() {
             startEncodingLoop(record, encoder, bufferSize)
             startAmplitudeTicker()
         } catch (e: Throwable) {
-            e.printStackTrace()
+            AppLog.e("Error starting internal recording", e)
             safelyStopRecorder()
             synchronized(stateLock) { if (recordingState == RecordingState.RECORDING) recordingState = RecordingState.IDLE }
         }

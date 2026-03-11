@@ -161,7 +161,7 @@ class AudioRepository(private val context: Context) {
             if (toInsert.isNotEmpty()) {
                 dao.insertAll(toInsert)
             }
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (e: Exception) { AppLog.e("Error scanning media store for category $category", e) }
     }
 
     private suspend fun syncCategory(category: String) {
