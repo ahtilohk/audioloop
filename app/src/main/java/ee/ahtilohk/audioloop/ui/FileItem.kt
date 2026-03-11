@@ -473,10 +473,16 @@ fun FileItem(
             if (isPlaying) {
             val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
             val haptic = LocalHapticFeedback.current
+            
+            // HUD State for gestures
+            var hudVisible by remember { mutableStateOf(false) }
+            var hudText by remember { mutableStateOf("") }
+            var hudIcon by remember { mutableStateOf<ImageVector>(AppIcons.Speed) }
+            var accumulatedSpeedDelta by remember { mutableFloatStateOf(0f) }
 
             Box(
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 4.dp, bottom = 10.dp)
+                    .padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
                     .fillMaxWidth()
             ) {
                 Box(
@@ -515,192 +521,268 @@ fun FileItem(
                         val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
                         val markerWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
 
-                        androidx.compose.foundation.Canvas(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(32.dp) // even more compact waveform
+                                .height(32.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(onSurfaceVariantColor.copy(alpha = 0.04f))
-                                .semantics {
-                                    contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
-                                    progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
-                                }
-                                .pointerInput(Unit) {
-                                    awaitEachGesture {
-                                        val down = awaitFirstDown(requireUnconsumed = false)
-                                        val pos = (down.position.x / size.width.toFloat()).coerceIn(0f, 1f)
-                                        onSeek(pos)
-                                        drag(down.id) { change ->
-                                            change.consume()
-                                            val dragPos = (change.position.x / size.width.toFloat()).coerceIn(0f, 1f)
-                                            onSeek(dragPos)
+                                .background(onSurfaceVariantColor.copy(alpha = 0.04f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            androidx.compose.foundation.Canvas(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .semantics {
+                                        contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
+                                        progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
+                                    }
+                                    .pointerInput(item.file.absolutePath) {
+                                        awaitEachGesture {
+                                            val down = awaitFirstDown(requireUnconsumed = false)
+                                            var isTwoFinger = false
+                                            
+                                            // Look for common states
+                                            while (true) {
+                                                val event = awaitPointerEvent()
+                                                if (event.changes.size > 1) {
+                                                    isTwoFinger = true
+                                                    hudIcon = AppIcons.Speed
+                                                    hudVisible = true
+                                                    accumulatedSpeedDelta = 0f
+                                                    break
+                                                }
+                                                if (event.changes.any { it.positionChanged() }) break
+                                                if (event.changes.all { !it.pressed }) break
+                                            }
+
+                                            if (isTwoFinger) {
+                                                // Handle Speed Adjustment (Two fingers)
+                                                while (true) {
+                                                    val event = awaitPointerEvent()
+                                                    val changes = event.changes
+                                                    if (changes.all { !it.pressed }) break
+                                                    
+                                                    // Average delta of all fingers
+                                                    val deltaX = changes.map { it.position.x - it.previousPosition.x }.average().toFloat()
+                                                    accumulatedSpeedDelta += deltaX
+                                                    
+                                                    // Change speed every 120 pixels
+                                                    if (kotlin.math.abs(accumulatedSpeedDelta) > 120f) {
+                                                        val speeds = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
+                                                        val currentIndex = speeds.indexOf(speed).coerceAtLeast(1) // default to 1x
+                                                        val direction = if (accumulatedSpeedDelta > 0) 1 else -1
+                                                        val nextIndex = (currentIndex + direction).coerceIn(0, speeds.size - 1)
+                                                        val nextSpeed = speeds[nextIndex]
+                                                        
+                                                        if (nextSpeed != speed) {
+                                                            onSpeedChange(nextSpeed)
+                                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                        }
+                                                        accumulatedSpeedDelta = 0f
+                                                    }
+                                                    
+                                                    hudText = "${speed}x"
+                                                    changes.forEach { it.consume() }
+                                                }
+                                            } else {
+                                                // Standard Seek (One finger)
+                                                onSeek((down.position.x / size.width.toFloat()).coerceIn(0f, 1f))
+                                                drag(down.id) { change ->
+                                                    change.consume()
+                                                    onSeek((change.position.x / size.width.toFloat()).coerceIn(0f, 1f))
+                                                }
+                                            }
+                                            hudVisible = false
                                         }
                                     }
-                                }
-                        ) {
-                            val barCount = bars.size
-                            val w = size.width
-                            val h = size.height
-                            val barWidth = if (barCount > 0) w / barCount else 1f
-                            // Thinner lines for higher definition and more "Premium" feel
-                            val strokeWidth = (barWidth * 0.4f).coerceIn(1f, 2.5.dp.toPx())
+                            ) {
+                                val barCount = bars.size
+                                val w = size.width
+                                val h = size.height
+                                val barWidth = if (barCount > 0) w / barCount else 1f
+                                // Thinner lines for higher definition and more "Premium" feel
+                                val strokeWidth = (barWidth * 0.4f).coerceIn(1f, 2.5.dp.toPx())
 
-                            fun drawWaveform(color: Color, isFullColor: Boolean = false) {
-                                for (i in 0 until barCount) {
-                                    val amp = bars[i]
-                                    val barFraction = (amp / 100f).coerceIn(0.08f, 1f)
-                                    val barH = barFraction * h * 0.7f
-                                    val x = i * barWidth + barWidth / 2f
-                                    
-                                    val barColor = if (isFullColor) {
-                                        Brush.verticalGradient(
-                                            colors = listOf(color.copy(alpha = 0.7f), color, color.copy(alpha = 0.7f)),
-                                            startY = (h - barH) / 2,
-                                            endY = (h + barH) / 2
+                                fun drawWaveform(color: Color, isFullColor: Boolean = false) {
+                                    for (i in 0 until barCount) {
+                                        val amp = bars[i]
+                                        val barFraction = (amp / 100f).coerceIn(0.08f, 1f)
+                                        val barH = barFraction * h * 0.7f
+                                        val x = i * barWidth + barWidth / 2f
+                                        
+                                        val barColor = if (isFullColor) {
+                                            Brush.verticalGradient(
+                                                colors = listOf(color.copy(alpha = 0.7f), color, color.copy(alpha = 0.7f)),
+                                                startY = (h - barH) / 2,
+                                                endY = (h + barH) / 2
+                                            )
+                                        } else {
+                                            SolidColor(color)
+                                        }
+
+                                        drawLine(
+                                            brush = if (barColor is Brush) barColor else SolidColor(color),
+                                            start = Offset(x, (h - barH) / 2),
+                                            end = Offset(x, (h + barH) / 2),
+                                            strokeWidth = strokeWidth,
+                                            cap = StrokeCap.Round
                                         )
-                                    } else {
-                                        SolidColor(color)
                                     }
+                                }
 
-                                    drawLine(
-                                        brush = if (barColor is Brush) barColor else SolidColor(color),
-                                        start = Offset(x, (h - barH) / 2),
-                                        end = Offset(x, (h + barH) / 2),
-                                        strokeWidth = strokeWidth,
-                                        cap = StrokeCap.Round
+                                // 1. Draw A-B loop region highlight (Premium Gradient)
+                                if (abActive) {
+                                    drawRect(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(primaryColor.copy(alpha = 0.1f), primaryColor.copy(alpha = 0.25f), primaryColor.copy(alpha = 0.1f)),
+                                            startX = abLoopStart * w,
+                                            endX = abLoopEnd * w
+                                        ),
+                                        topLeft = Offset(abLoopStart * w, 0f),
+                                        size = androidx.compose.ui.geometry.Size((abLoopEnd - abLoopStart) * w, h)
                                     )
                                 }
-                            }
 
-                            // 1. Draw A-B loop region highlight (Premium Gradient)
-                            if (abActive) {
-                                drawRect(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(primaryColor.copy(alpha = 0.1f), primaryColor.copy(alpha = 0.25f), primaryColor.copy(alpha = 0.1f)),
-                                        startX = abLoopStart * w,
-                                        endX = abLoopEnd * w
-                                    ),
-                                    topLeft = Offset(abLoopStart * w, 0f),
-                                    size = androidx.compose.ui.geometry.Size((abLoopEnd - abLoopStart) * w, h)
-                                )
-                            }
+                                // 2. Background (Grayed out)
+                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.15f))
 
-                            // 2. Background (Grayed out)
-                            drawWaveform(onSurfaceVariantColor.copy(alpha = 0.15f))
+                                // 3. Active Waveform (Primary themed)
+                                clipRect(right = currentProgress * w) {
+                                    drawWaveform(primaryColor, isFullColor = true)
+                                }
 
-                            // 3. Active Waveform (Primary themed)
-                            clipRect(right = currentProgress * w) {
-                                drawWaveform(primaryColor, isFullColor = true)
-                            }
+                                // 4. A-B Markers (Premium Glowing Lines)
+                                if (abLoopStart >= 0f) {
+                                    val ax = abLoopStart * w
+                                    // A Marker - Refined visualization
+                                    drawLine(
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        start = Offset(ax, 0f),
+                                        end = Offset(ax, h),
+                                        strokeWidth = 2.dp.toPx(),
+                                        cap = StrokeCap.Round
+                                    )
+                                    // Highlight top/bottom
+                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, 0f))
+                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, h))
+                                }
+                                if (abLoopEnd >= 0f) {
+                                    val bx = abLoopEnd * w
+                                    drawLine(
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        start = Offset(bx, 0f),
+                                        end = Offset(bx, h),
+                                        strokeWidth = 2.dp.toPx(),
+                                        cap = StrokeCap.Round
+                                    )
+                                    // Highlight top/bottom
+                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, 0f))
+                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, h))
+                                }
 
-                            // 4. A-B Markers (Premium Glowing Lines)
-                            if (abLoopStart >= 0f) {
-                                val ax = abLoopStart * w
-                                // A Marker - Refined visualization
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(ax, 0f),
-                                    end = Offset(ax, h),
-                                    strokeWidth = 2.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                                // Highlight top/bottom
-                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, 0f))
-                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, h))
+                                // 5. Playhead
+                                val px = currentProgress * w
+                                drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 1f)
+                                drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, 0f))
+                                drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
                             }
-                            if (abLoopEnd >= 0f) {
-                                val bx = abLoopEnd * w
-                                drawLine(
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    start = Offset(bx, 0f),
-                                    end = Offset(bx, h),
-                                    strokeWidth = 2.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                                // Highlight top/bottom
-                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, 0f))
-                                drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, h))
+                            
+                            // Gesture HUD Overlay
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = hudVisible,
+                                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
+                                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Surface(
+                                    color = Color.Black.copy(alpha = 0.75f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(hudIcon, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                        Text(
+                                            text = hudText, 
+                                            color = Color.White, 
+                                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                                        )
+                                    }
+                                }
                             }
-
-                            // 5. Playhead
-                            val px = currentProgress * w
-                            drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 1f)
-                            drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, 0f))
-                            drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
                         }
 
-                        // Combined Settings and Info Row (Ultra Compact)
+                        // Modern Minimal Controls Row
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             // Time Display
                              Text(
                                     text = "$currentTimeString / ${item.durationString}",
                                     style = TextStyle(
-                                        color = onSurfaceColor.copy(alpha = 0.9f), 
+                                        color = onSurfaceColor.copy(alpha = 0.7f), 
                                         fontSize = 10.sp, 
                                         fontWeight = FontWeight.Bold, 
-                                        letterSpacing = 0.5.sp,
+                                        letterSpacing = 0.4.sp,
                                         fontFamily = FontFamily.Monospace
-                                    ),
-                                    modifier = Modifier.weight(1.1f)
+                                    )
                                 )
 
-                            // Speed Selection
                             Row(
-                                modifier = Modifier.weight(1.5f),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(AppIcons.Speed, null, tint = themeColors.primary.copy(alpha = 0.7f), modifier = Modifier.size(10.dp))
-                                CompactOptionSelector(
-                                    items = listOf(0.75f, 1f, 1.25f, 1.5f), // Removed 0.5 for space
-                                    selected = speed,
-                                    onSelect = onSpeedChange,
-                                    labelProvider = { if (it == 1f) "1x" else "${it}x" },
-                                    themeColors = themeColors,
-                                    modifier = Modifier.weight(1f)
+                                // Speed Chip
+                                ControlChip(
+                                    icon = AppIcons.Speed,
+                                    label = "${speed}x",
+                                    onClick = { 
+                                        val speeds = listOf(0.75f, 1f, 1.25f, 1.5f)
+                                        val next = speeds[(speeds.indexOf(speed) + 1) % speeds.size]
+                                        onSpeedChange(next)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    themeColors = themeColors
                                 )
-                            }
 
-                            // Loop Selection
-                            Row(
-                                modifier = Modifier.weight(1.2f),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Icon(AppIcons.Loop, null, tint = themeColors.primary.copy(alpha = 0.7f), modifier = Modifier.size(10.dp))
-                                CompactOptionSelector(
-                                    items = listOf(1, 3, 5, -1),
-                                    selected = loopCount,
-                                    onSelect = onLoopCountChange,
-                                    labelProvider = { if (it == -1) "∞" else "${it}x" },
-                                    themeColors = themeColors,
-                                    modifier = Modifier.weight(1f)
+                                // Loop Chip
+                                ControlChip(
+                                    icon = AppIcons.Loop,
+                                    label = if (loopCount == -1) "∞" else "${loopCount}x",
+                                    onClick = {
+                                        val loops = listOf(1, 3, 5, -1)
+                                        val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
+                                        onLoopCountChange(next)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    themeColors = themeColors
                                 )
-                            }
 
-                             // Listen & Repeat Toggle
-                             Surface(
-                                    onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                    border = BorderStroke(0.5.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.5f) else Color.Transparent)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.2.dp),
-                                        contentAlignment = Alignment.Center
+                                 // Listen & Repeat Toggle
+                                 Surface(
+                                        onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
+                                        border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
                                     ) {
-                                        Icon(
-                                            imageVector = AppIcons.Shadow,
-                                            contentDescription = null,
-                                            tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                            modifier = Modifier.size(11.dp).graphicsLayer { rotationZ = 90f }
-                                        )
+                                        Box(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = AppIcons.Shadow,
+                                                contentDescription = null,
+                                                tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor.copy(alpha = 0.7f),
+                                                modifier = Modifier.size(12.dp).graphicsLayer { rotationZ = 90f }
+                                            )
+                                        }
                                     }
-                                }
+                            }
                         }
 
                         
@@ -810,6 +892,38 @@ fun FileItem(
                     }
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+private fun ControlChip(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    themeColors: AppColorPalette
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Icon(icon, null, modifier = Modifier.size(11.dp), tint = themeColors.primary)
+            Text(
+                text = label,
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
         }
     }
 }
