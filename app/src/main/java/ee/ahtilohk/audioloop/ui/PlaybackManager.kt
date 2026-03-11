@@ -63,7 +63,7 @@ class PlaybackManager @Inject constructor(
     }
 
     fun playFile(item: RecordingItem) {
-        _playbackState.update { it.copy(playingFileName = item.name, isPaused = false) }
+        _playbackState.update { it.copy(playingFileName = item.name, isPaused = false, currentPlaylistIteration = 1) }
         playPlaylist(listOf(item), 0)
     }
 
@@ -150,7 +150,14 @@ class PlaybackManager @Inject constructor(
                     }
                     _playbackState.update { s -> s.copy(shadowCountdownText = "") }
                     if (isActive) {
-                        playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration, gapSeconds, onComplete)
+                        val loopMode = loopCountProvider()
+                        if (loopMode == -1 || currentIteration < loopMode) {
+                            onIterationChange(currentIteration + 1)
+                            playPlaylist(allFiles, currentIndex, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration + 1, gapSeconds, onComplete)
+                        } else {
+                            stopPlaying()
+                            onComplete()
+                        }
                     }
                 }
             } else {
@@ -255,30 +262,38 @@ class PlaybackManager @Inject constructor(
                     val abActive = abStart >= 0f && abEnd >= 0f && abEnd > abStart
                     
                     if (abActive && progress >= abEnd) {
-                        if (state.isShadowingMode) {
-                            pausePlaying()
-                            val pauseDuration = if (state.shadowPauseSeconds > 0) {
-                                state.shadowPauseSeconds * 1000L
+                        val loopMode = state.loopMode
+                        if (loopMode == -1 || state.currentPlaylistIteration < loopMode) {
+                            if (state.isShadowingMode) {
+                                pausePlaying()
+                                val pauseDuration = if (state.shadowPauseSeconds > 0) {
+                                    state.shadowPauseSeconds * 1000L
+                                } else {
+                                    ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
+                                }
+                                
+                                shadowingJob = scope.launch(Dispatchers.Main) {
+                                    var remaining = pauseDuration
+                                    while (remaining > 0 && isActive) {
+                                        val secs = (remaining / 1000) + 1
+                                        _playbackState.update { s -> s.copy(shadowCountdownText = context.getString(R.string.msg_shadow_repeat_in, secs.toInt())) }
+                                        delay(1000L.coerceAtMost(remaining))
+                                        remaining -= 1000L
+                                    }
+                                    _playbackState.update { s -> s.copy(shadowCountdownText = "") }
+                                    if (isActive) {
+                                        _playbackState.update { it.copy(currentPlaylistIteration = it.currentPlaylistIteration + 1) }
+                                        seekAbsolute((abStart * total).toInt())
+                                        resumePlaying()
+                                    }
+                                }
                             } else {
-                                ((abEnd - abStart) * total).toLong().coerceAtMost(15000L)
-                            }
-                            
-                            shadowingJob = scope.launch(Dispatchers.Main) {
-                                var remaining = pauseDuration
-                                while (remaining > 0 && isActive) {
-                                    val secs = (remaining / 1000) + 1
-                                    _playbackState.update { s -> s.copy(shadowCountdownText = context.getString(R.string.msg_shadow_repeat_in, secs.toInt())) }
-                                    delay(1000L.coerceAtMost(remaining))
-                                    remaining -= 1000L
-                                }
-                                _playbackState.update { s -> s.copy(shadowCountdownText = "") }
-                                if (isActive) {
-                                    seekAbsolute((abStart * total).toInt())
-                                    resumePlaying()
-                                }
+                                _playbackState.update { it.copy(currentPlaylistIteration = it.currentPlaylistIteration + 1) }
+                                seekAbsolute((abStart * total).toInt())
                             }
                         } else {
-                            seekAbsolute((abStart * total).toInt())
+                             // Loop limit reached
+                             stopPlaying(false) // stop but keep markers
                         }
                     }
 

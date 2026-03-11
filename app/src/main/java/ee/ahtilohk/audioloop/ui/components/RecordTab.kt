@@ -154,11 +154,11 @@ fun RecordTab(
                     RecordingTimer()
                 } else {
                     Text(
-                        text = stringResource(R.string.record_start).uppercase(),
+                        text = stringResource(R.string.btn_start_short).uppercase(),
                         style = MaterialTheme.typography.titleMedium.copy(
                             color = Color.White,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = 2.sp
+                            letterSpacing = 1.sp
                         )
                     )
                 }

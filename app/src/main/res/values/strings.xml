@@ -18,6 +18,7 @@
     <string name="btn_import_audio">Import Audio File</string>
     <string name="btn_add">Add</string>
     <string name="btn_continue">Continue</string>
+    <string name="btn_start_short">Start</string>
 
 
     <!-- Labels -->
