@@ -224,12 +224,13 @@ fun RecordingTimer() {
     val m = (seconds % 3600) / 60
     val s = seconds % 60
     Text(
-        text = String.format("%02d:%02d:%02d", h, m, s),
+        text = "%02d:%02d:%02d".format(h, m, s),
         style = MaterialTheme.typography.headlineMedium.copy(
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
         )
     )
+
 }
 

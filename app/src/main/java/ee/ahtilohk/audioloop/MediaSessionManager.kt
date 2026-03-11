@@ -5,9 +5,10 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import androidx.media.MediaMetadataCompat
+import androidx.media.session.MediaSessionCompat
+import androidx.media.session.PlaybackStateCompat
+
 
 /**
  * Manages MediaSession for Bluetooth/headset media button handling

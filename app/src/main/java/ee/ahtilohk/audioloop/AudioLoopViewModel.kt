@@ -6,7 +6,8 @@ import android.media.AudioAttributes
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
+import androidx.media3.exoplayer.ExoPlayer
+
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -129,7 +130,8 @@ class AudioLoopViewModel @Inject constructor(
 
     // Service binding
     private var audioService: AudioService? = null
-    private val mediaPlayer: MediaPlayer? get() = audioService?.getMediaPlayer()
+    private val exoPlayer: ExoPlayer? get() = audioService?.getExoPlayer()
+
     private val recordingReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
@@ -640,7 +642,8 @@ class AudioLoopViewModel @Inject constructor(
     fun nudgeAbLoopEnd(deltaMs: Int) = playbackManager.nudgeAbLoopEnd(deltaMs)
 
     fun seekTo(pos: Float) = playbackManager.seekTo(pos)
-    fun seekAbsolute(ms: Int) = playbackManager.seekAbsolute(ms)
+    fun seekAbsolute(ms: Int) = playbackManager.seekAbsolute(ms.toLong())
+
     fun startProgressTracking() = playbackManager.startProgressTracking()
 
     fun startPlaylistPlayback(files: List<RecordingItem>, loop: Boolean, speed: Float, onComplete: () -> Unit) {
