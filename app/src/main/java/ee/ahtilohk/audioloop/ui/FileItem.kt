@@ -399,7 +399,6 @@ fun FileItem(
                     }
                 }
             }
-
             if (!isSelectionMode && !isPlaying) {
                 Box {
                     IconButton(
@@ -468,9 +467,10 @@ fun FileItem(
                     }
                 }
             }
-        }
+            }
 
-        if (isPlaying) {
+
+            if (isPlaying) {
             val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
             val haptic = LocalHapticFeedback.current
 
@@ -782,11 +782,15 @@ fun FileItem(
                     }
                 }
             }
-
-                        }
-                    }
-                }
             }
+
+
+
+
+
+
+
+
 
             // Note text display during playback
             if (item.note.isNotBlank()) {
@@ -824,6 +828,7 @@ fun FileItem(
         }
     }
 }
+
 
 @Composable
 private fun MarkerControlGroup(

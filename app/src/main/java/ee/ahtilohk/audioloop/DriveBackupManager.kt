@@ -1,6 +1,9 @@
 package ee.ahtilohk.audioloop
 
 import android.content.Context
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Intent
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -28,9 +31,6 @@ data class BackupInfo(
     val sizeBytes: Long
 )
 
-import javax.inject.Inject
-import javax.inject.Singleton
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class DriveBackupManager @Inject constructor(@ApplicationContext private val context: Context) {

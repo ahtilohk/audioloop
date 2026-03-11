@@ -1,6 +1,8 @@
 package ee.ahtilohk.audioloop.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+
 
 // === NEUTRAL PALETTE (Updated for MD3) ===
 // Background & Surface colors
@@ -149,9 +151,8 @@ data class AppColorPalette(
     val glassBackground = Color.White.copy(alpha = 0.05f)
 }
 
-}
-
 // Available themes with full MD3 tonal palettes
+
 enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
     SLATE("Pro", AppColorPalette("Pro", Slate100, Slate200, Slate300, Slate400, Slate500, Slate600, Slate700, Slate800, Slate900)),
     OCEAN("Ocean", AppColorPalette("Ocean", Ocean100, Ocean200, Ocean300, Ocean400, Ocean500, Ocean600, Ocean700, Ocean800, Ocean900)),
@@ -162,9 +163,8 @@ enum class AppTheme(val displayName: String, val palette: AppColorPalette) {
     MIDNIGHT("Midnight", AppColorPalette("Midnight", Gold100, Gold400, Gold500, Gold600, Gold500, Gold600, Midnight800, Midnight900, Midnight950))
 }
 
-}
-
 // Legacy theme colors (for compatibility)
+
 val Background = Zinc950
 val Surface = Zinc900
 val Primary = Cyan500

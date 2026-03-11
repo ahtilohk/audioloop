@@ -173,6 +173,10 @@ class PlaybackManager @Inject constructor(
         startProgressTracking()
     }
 
+    fun updateCurrentlyPlayingPlaylist(id: String?, iteration: Int) {
+        _playbackState.update { it.copy(currentlyPlayingPlaylistId = id, currentPlaylistIteration = iteration) }
+    }
+
     fun pausePlaying() {
         val wasShadowCountdown = _playbackState.value.shadowCountdownText.isNotEmpty()
         shadowingJob?.cancel()

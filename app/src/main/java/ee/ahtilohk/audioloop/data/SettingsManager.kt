@@ -1,7 +1,7 @@
 package ee.ahtilohk.audioloop.data
 
 import android.content.Context
-import ee.ahtilohk.audioloop.AppTheme
+import ee.ahtilohk.audioloop.ui.theme.AppTheme
 import ee.ahtilohk.audioloop.ThemeMode
 import ee.ahtilohk.audioloop.AppLog
 import org.json.JSONArray
@@ -19,8 +19,8 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     // --- App Settings ---
 
     fun getTheme(): AppTheme {
-        val name = prefs.getString("app_theme", AppTheme.CYAN.name) ?: AppTheme.CYAN.name
-        return try { AppTheme.valueOf(name) } catch (_: Exception) { AppTheme.CYAN }
+        val name = prefs.getString("app_theme", AppTheme.OCEAN.name) ?: AppTheme.OCEAN.name
+        return try { AppTheme.valueOf(name) } catch (_: Exception) { AppTheme.OCEAN }
     }
 
     fun saveTheme(theme: AppTheme) {

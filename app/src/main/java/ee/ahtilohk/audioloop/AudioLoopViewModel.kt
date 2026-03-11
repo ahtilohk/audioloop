@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.content.Intent
+import androidx.core.content.FileProvider
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -349,7 +350,7 @@ class AudioLoopViewModel @Inject constructor(
         val newCats = _uiState.value.categories.toMutableList()
         if (!newCats.contains(catName)) {
             newCats.add(catName)
-            saveCategoryOrder(newCats)
+            settingsManager.saveCategoryOrder(newCats)
         }
         _uiState.update { it.copy(categories = newCats, currentCategory = catName) }
         refreshFileList()
@@ -365,7 +366,7 @@ class AudioLoopViewModel @Inject constructor(
         val idx = newCats.indexOf(oldName)
         if (idx != -1) {
             newCats[idx] = newName
-            saveCategoryOrder(newCats)
+            settingsManager.saveCategoryOrder(newCats)
         }
 
         val currentCat = if (_uiState.value.currentCategory == oldName) newName else _uiState.value.currentCategory
@@ -378,7 +379,7 @@ class AudioLoopViewModel @Inject constructor(
         File(filesDir, catName).deleteRecursively()
         val newCats = _uiState.value.categories.toMutableList()
         newCats.remove(catName)
-        saveCategoryOrder(newCats)
+        settingsManager.saveCategoryOrder(newCats)
         _uiState.update { it.copy(categories = newCats, currentCategory = "General") }
         refreshFileList()
     }
@@ -445,11 +446,11 @@ class AudioLoopViewModel @Inject constructor(
     }
 
     private fun updateOrderAfterMove(fileName: String, fromCategory: String, toCategory: String) {
-        val oldOrder = loadFileOrder(fromCategory).toMutableList()
+        val oldOrder = settingsManager.loadFileOrder(fromCategory).toMutableList()
         oldOrder.remove(fileName)
-        saveFileOrder(fromCategory, oldOrder)
+        settingsManager.saveFileOrder(fromCategory, oldOrder)
 
-        val newOrder = loadFileOrder(toCategory).toMutableList()
+        val newOrder = settingsManager.loadFileOrder(toCategory).toMutableList()
         if (!newOrder.contains(fileName)) {
             newOrder.add(0, fileName)
             settingsManager.saveFileOrder(toCategory, newOrder)
@@ -626,6 +627,20 @@ class AudioLoopViewModel @Inject constructor(
     // ── Playback ──
 
     fun playFile(item: RecordingItem) = playbackManager.playFile(item)
+    fun pausePlaying() = playbackManager.pausePlaying()
+    fun resumePlaying() = playbackManager.resumePlaying()
+    fun stopPlaying() = playbackManager.stopPlaying()
+    fun stopPlayingAndReset() = playbackManager.stopPlaying(true)
+    fun changeShadowingMode(enabled: Boolean) = setShadowingMode(enabled)
+
+    fun setAbLoopStart(pos: Float) = playbackManager.setAbLoopStart(pos)
+    fun setAbLoopEnd(pos: Float) = playbackManager.setAbLoopEnd(pos)
+    fun nudgeAbLoopStart(deltaMs: Int) = playbackManager.nudgeAbLoopStart(deltaMs)
+    fun nudgeAbLoopEnd(deltaMs: Int) = playbackManager.nudgeAbLoopEnd(deltaMs)
+
+    fun seekTo(pos: Float) = playbackManager.seekTo(pos)
+    fun seekAbsolute(ms: Int) = playbackManager.seekAbsolute(ms)
+    fun startProgressTracking() = playbackManager.startProgressTracking()
 
     fun startPlaylistPlayback(files: List<RecordingItem>, loop: Boolean, speed: Float, onComplete: () -> Unit) {
         playbackManager.startPlaylistPlayback(files, if (loop) -1 else 1, speed, 1.0f, _uiState.value.isShadowingMode, onComplete)
@@ -659,21 +674,7 @@ class AudioLoopViewModel @Inject constructor(
         }
     }
 
-    private fun onSessionStart() {
-        sessionStartTimeMs = System.currentTimeMillis()
-        startSessionTimer()
-    }
 
-    private fun onSessionEnd() {
-        if (sessionStartTimeMs > 0) {
-            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
-            practiceStats.logSession(durationMs)
-            sessionStartTimeMs = 0L
-            sessionTimerJob?.cancel()
-            sessionTimerJob = null
-            _uiState.update { it.copy(currentSessionElapsedMs = 0L) }
-        }
-    }
 
     private fun startSessionTimer() {
         sessionTimerJob?.cancel()
@@ -1047,13 +1048,13 @@ class AudioLoopViewModel @Inject constructor(
             val items = _uiState.value.savedItems
             if (items.isNotEmpty()) {
                 _uiState.update { it.copy(playingFileName = items.first().file.name) }
-                playPlaylist(
+                playbackManager.playPlaylist(
                     allFiles = items, currentIndex = 0,
                     loopCountProvider = { _uiState.value.loopMode },
                     speedProvider = { _uiState.value.playbackSpeed },
                     pitchProvider = { _uiState.value.playbackPitch },
                     shadowingProvider = { _uiState.value.isShadowingMode },
-                    onNext = { name -> _uiState.update { it.copy(playingFileName = name) } },
+                    onNext = { name: String -> _uiState.update { it.copy(playingFileName = name) } },
                     gapSeconds = 0,
                     onComplete = {
                         _uiState.update { it.copy(playingFileName = "") }
@@ -1084,20 +1085,7 @@ class AudioLoopViewModel @Inject constructor(
         }
     }
 
-    private fun onSessionStart() {
-        sessionStartTimeMs = System.currentTimeMillis()
-        startSessionTimer()
-    }
 
-    private fun onSessionEnd() {
-        if (sessionStartTimeMs > 0) {
-            val durationMs = System.currentTimeMillis() - sessionStartTimeMs
-            practiceStats.logSession(durationMs)
-            sessionStartTimeMs = 0L
-            sessionTimerJob?.cancel()
-            refreshPracticeStats()
-        }
-    }
 
     private fun logEditEvent(type: String) {
         practiceStats.logEdit(type)
@@ -1221,6 +1209,7 @@ class AudioLoopViewModel @Inject constructor(
     fun setLoopMode(mode: Int) {
         val wasPlayedBefore = practiceStats.hasEventOccurred("aha_loop_used")
         _uiState.update { it.copy(loopMode = mode) }
+        playbackManager.setLoopMode(mode)
         if (mode != 0) {
             practiceStats.logEvent("aha_loop_used", "mode=$mode")
             if (!wasPlayedBefore) {
@@ -1231,10 +1220,21 @@ class AudioLoopViewModel @Inject constructor(
 
     fun setShadowingMode(enabled: Boolean) {
         _uiState.update { it.copy(isShadowingMode = enabled) }
+        playbackManager.setShadowingMode(enabled)
     }
 
     fun setShadowPauseSeconds(seconds: Int) {
         _uiState.update { it.copy(shadowPauseSeconds = seconds) }
+        playbackManager.setShadowPause(seconds)
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        _uiState.update { it.copy(selectedSleepMinutes = minutes) }
+        playbackManager.setSleepTimer(minutes)
+    }
+
+    private fun updatePlaybackParams(speed: Float, pitch: Float) {
+        playbackManager.updatePlaybackParams(speed, pitch)
     }
 
     fun setSettingsOpen(open: Boolean) {
@@ -1361,7 +1361,7 @@ class AudioLoopViewModel @Inject constructor(
     override fun onCleared() {
         stopPlaying()
         try { ctx.unregisterReceiver(recordingReceiver) } catch (_: Exception) {}
-        if (::mediaSessionManager.isInitialized) mediaSessionManager.release()
+        mediaSessionManager.release()
         try { ctx.unbindService(serviceConnection) } catch (_: Exception) {}
         super.onCleared()
     }
@@ -1555,17 +1555,9 @@ class AudioLoopViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
-    fun showSnackbar(message: String, isError: Boolean = false) {
-        _uiState.update { it.copy(snackbarMessage = SnackbarMessage(message, isError = isError)) }
     }
 
-    fun clearSnackbar() {
-        _uiState.update { it.copy(snackbarMessage = null) }
-    }
 
-    fun refreshFileList() {
-        syncDatabase()
-    }
 
     // ── PlaybackManager.Listener Implementation ──
 
@@ -1582,6 +1574,7 @@ class AudioLoopViewModel @Inject constructor(
             sessionTimerJob?.cancel()
             sessionTimerJob = null
             _uiState.update { it.copy(currentSessionElapsedMs = 0L) }
+            refreshPracticeStats()
         }
     }
 
@@ -1593,5 +1586,6 @@ class AudioLoopViewModel @Inject constructor(
     override fun showSnackbar(message: String, isError: Boolean) {
         showSnackbar(message, isError)
     }
+
 }
 

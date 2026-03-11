@@ -17,9 +17,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class BillingManager @Inject constructor(
-    private val context: Context,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
     private val scope: CoroutineScope
 ) : PurchasesUpdatedListener {
+
 
     private val TAG = "BillingManager"
 
