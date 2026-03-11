@@ -114,7 +114,7 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         try {
             categories.forEach { cat ->
                 syncCategory(cat)
-                syncPublicStorage(cat)
+                // syncPublicStorage(cat) // Only sync on explicit import to avoid "unexpected files"
             }
             cleanupStaleEntries()
             AudioResult.Success(Unit)

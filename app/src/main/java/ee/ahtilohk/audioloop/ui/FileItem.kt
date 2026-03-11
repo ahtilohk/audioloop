@@ -745,6 +745,7 @@ fun FileItem(
                                         val speeds = listOf(0.75f, 1f, 1.25f, 1.5f)
                                         val next = speeds[(speeds.indexOf(speed) + 1) % speeds.size]
                                         onSpeedChange(next)
+                                        if (!isPlaying) onPlay()
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     },
                                     themeColors = themeColors
@@ -758,6 +759,7 @@ fun FileItem(
                                         val loops = listOf(1, 3, 5, -1)
                                         val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
                                         onLoopCountChange(next)
+                                        if (!isPlaying) onPlay()
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     },
                                     themeColors = themeColors

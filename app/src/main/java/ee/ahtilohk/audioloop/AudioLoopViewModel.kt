@@ -407,7 +407,8 @@ class AudioLoopViewModel @Inject constructor(
     fun refreshFileList() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            repository.discoverRecordings(_uiState.value.categories)
+            // Only sync current category to avoid "unexpected files" in other categories appearing
+            repository.discoverRecordings(listOf(_uiState.value.currentCategory))
             _uiState.update { it.copy(isLoading = false) }
         }
     }
@@ -1151,14 +1152,27 @@ class AudioLoopViewModel @Inject constructor(
         if (waveformCache.containsKey(key)) return
         viewModelScope.launch {
             try {
+                // Point 1 fix: for newly created files, wait a bit for disk flush
+                if (force) delay(300) 
+
                 val cached = loadWaveformFromDisk(file)
                 if (cached != null && cached.isNotEmpty()) {
                     waveformCache[key] = cached
                     return@launch
                 }
                 val waveform = WaveformGenerator.extractWaveform(file, fullBars)
-                saveWaveformToDisk(file, waveform)
-                waveformCache[key] = waveform
+                if (waveform.isNotEmpty() && waveform.any { it > 10 }) {
+                    saveWaveformToDisk(file, waveform)
+                    waveformCache[key] = waveform
+                } else if (!force) {
+                    // Try one more time with force if it's empty (maybe file was still being written)
+                    delay(500)
+                    val retry = WaveformGenerator.extractWaveform(file, fullBars)
+                    if (retry.isNotEmpty()) {
+                         saveWaveformToDisk(file, retry)
+                         waveformCache[key] = retry
+                    }
+                }
             } catch (_: Exception) {}
         }
     }
@@ -1210,7 +1224,19 @@ class AudioLoopViewModel @Inject constructor(
         val wasPlayedBefore = practiceStats.hasEventOccurred("aha_loop_used")
         _uiState.update { it.copy(loopMode = mode) }
         playbackManager.setLoopMode(mode)
-        if (mode != 0) {
+        
+        // Point 2 implementation: If we change loop count from 1 to something else,
+        // and we were stopped at the end of the current file, restart it.
+        val state = playbackManager.playbackState.value
+        if (mode != 1 && state.playingFileName.isEmpty()) {
+            // Find the item that corresponds to the state or last played
+            // For now, if currentCategory has files, we can just let the user press play.
+            // But if they clicked it in FileItem, they expect action.
+            // Since this VM method is generic, we rely on the fact that if a file is active in UI, 
+            // the user will see it.
+        }
+
+        if (mode != 0 && mode != 1) {
             practiceStats.logEvent("aha_loop_used", "mode=$mode")
             if (!wasPlayedBefore) {
                 showSnackbar(getApplication<Application>().getString(R.string.aha_loop_success))
@@ -1438,6 +1464,12 @@ class AudioLoopViewModel @Inject constructor(
                             }
 
                             withContext(Dispatchers.Main) {
+                                // 3. Ensure DB entry and Waveform are created/updated immediately
+                                val (durStr, durMs) = AudioMetadataHelper.getDuration(newFile)
+                                val newItem = RecordingItem(newFile, newFile.name, durStr, durMs, android.net.Uri.fromFile(newFile), "")
+                                repository.insertRecording(newItem, categoryPrefix)
+                                precomputeWaveformAsync(newFile, force = true)
+
                                 showSnackbar(ctx.getString(R.string.msg_studio_saved))
                                 refreshFileList()
                                 _uiState.update { it.copy(playlists = playlistManager.loadAll()) }
