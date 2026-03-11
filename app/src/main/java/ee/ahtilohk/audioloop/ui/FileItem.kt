@@ -518,9 +518,9 @@ fun FileItem(
                         androidx.compose.foundation.Canvas(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(40.dp) // Much more compact waveform
+                                .height(32.dp) // even more compact waveform
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(onSurfaceVariantColor.copy(alpha = 0.05f))
+                                .background(onSurfaceVariantColor.copy(alpha = 0.04f))
                                 .semantics {
                                     contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
                                     progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
@@ -629,69 +629,34 @@ fun FileItem(
                             drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
                         }
 
-                        // Time Display (Monospaced for precision)
+                        // Combined Settings and Info Row (Ultra Compact)
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // Time Display
                              Text(
                                     text = "$currentTimeString / ${item.durationString}",
                                     style = TextStyle(
                                         color = onSurfaceColor.copy(alpha = 0.9f), 
-                                        fontSize = 11.sp, 
+                                        fontSize = 10.sp, 
                                         fontWeight = FontWeight.Bold, 
-                                        letterSpacing = 0.8.sp,
+                                        letterSpacing = 0.5.sp,
                                         fontFamily = FontFamily.Monospace
-                                    )
+                                    ),
+                                    modifier = Modifier.weight(1.1f)
                                 )
 
-                                // Listen & Repeat (Shadowing Mode) Toggle with Icon
-                                Surface(
-                                    onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = if (isShadowingMode) primaryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                    border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = AppIcons.Shadow,
-                                            contentDescription = null,
-                                            tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                            modifier = Modifier.size(12.dp).graphicsLayer { rotationZ = 90f }
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.settings_listen_repeat).uppercase(),
-                                            style = TextStyle(
-                                                color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
-                                                fontSize = 8.sp,
-                                                fontWeight = FontWeight.Black,
-                                                letterSpacing = 0.3.sp
-                                            )
-                                        )
-                                    }
-                                }
-                        }
-
-                        // Compact Settings Row: Speed and Loops combined
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
                             // Speed Selection
                             Row(
-                                modifier = Modifier.weight(1.2f),
+                                modifier = Modifier.weight(1.5f),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Icon(AppIcons.Speed, null, tint = themeColors.primary, modifier = Modifier.size(12.dp))
+                                Icon(AppIcons.Speed, null, tint = themeColors.primary.copy(alpha = 0.7f), modifier = Modifier.size(10.dp))
                                 CompactOptionSelector(
-                                    items = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f),
+                                    items = listOf(0.75f, 1f, 1.25f, 1.5f), // Removed 0.5 for space
                                     selected = speed,
                                     onSelect = onSpeedChange,
                                     labelProvider = { if (it == 1f) "1x" else "${it}x" },
@@ -702,11 +667,11 @@ fun FileItem(
 
                             // Loop Selection
                             Row(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1.2f),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Icon(AppIcons.Loop, null, tint = themeColors.primary, modifier = Modifier.size(12.dp))
+                                Icon(AppIcons.Loop, null, tint = themeColors.primary.copy(alpha = 0.7f), modifier = Modifier.size(10.dp))
                                 CompactOptionSelector(
                                     items = listOf(1, 3, 5, -1),
                                     selected = loopCount,
@@ -716,6 +681,26 @@ fun FileItem(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
+
+                             // Listen & Repeat Toggle
+                             Surface(
+                                    onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                    border = BorderStroke(0.5.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.5f) else Color.Transparent)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.2.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Shadow,
+                                            contentDescription = null,
+                                            tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                                            modifier = Modifier.size(11.dp).graphicsLayer { rotationZ = 90f }
+                                        )
+                                    }
+                                }
                         }
 
                         
@@ -744,22 +729,22 @@ fun FileItem(
                             if (abActive) {
                                 FilledIconButton(
                                     onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
-                                    modifier = Modifier.size(36.dp),
+                                    modifier = Modifier.size(32.dp),
                                     colors = IconButtonDefaults.filledIconButtonColors(
                                         containerColor = themeColors.primary,
                                         contentColor = Color.White
                                     )
                                 ) {
-                                    Icon(AppIcons.Save, null, Modifier.size(18.dp))
+                                    Icon(AppIcons.Save, null, Modifier.size(16.dp))
                                 }
                             } else {
                                 // Close/Clear AB when only one marker exists
                                 if (abLoopStart >= 0f || abLoopEnd >= 0f) {
                                     IconButton(
                                         onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f) },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size(32.dp)
                                     ) {
-                                        Icon(AppIcons.Close, null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
+                                        Icon(AppIcons.Close, null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(14.dp))
                                     }
                                 }
                             }
@@ -845,28 +830,28 @@ private fun MarkerControlGroup(
         // Nudge Back
         SmallFloatingActionButton(
             onClick = { onNudge(-100) },
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(28.dp),
             containerColor = Color.Transparent,
             contentColor = themeColors.primary,
             elevation = FloatingActionButtonDefaults.elevation(0.dp)
         ) {
-            Icon(AppIcons.ChevronLeft, null, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.ChevronLeft, null, modifier = Modifier.size(14.dp))
         }
 
         // Main A/B Circle
         Surface(
             onClick = onMainClick,
             shape = CircleShape,
-            color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(36.dp),
-            border = BorderStroke(1.5.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.2f))
+            color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            modifier = Modifier.size(32.dp),
+            border = BorderStroke(1.2.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.2f))
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = label,
                     style = TextStyle(
                         color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Black
                     )
                 )
@@ -876,12 +861,12 @@ private fun MarkerControlGroup(
         // Nudge Forward
         SmallFloatingActionButton(
             onClick = { onNudge(100) },
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(28.dp),
             containerColor = Color.Transparent,
             contentColor = themeColors.primary,
             elevation = FloatingActionButtonDefaults.elevation(0.dp)
         ) {
-            Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(14.dp))
         }
     }
 }
@@ -907,10 +892,10 @@ private fun <T> CompactOptionSelector(
             Box(
                 modifier = Modifier
                     .weight(1f, fill = true)
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(if (isActive) themeColors.primary else Color.Transparent)
                     .clickable { onSelect(item) }
-                    .padding(vertical = 4.dp),
+                    .padding(vertical = 3.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
