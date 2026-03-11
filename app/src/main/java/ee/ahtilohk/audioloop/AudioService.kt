@@ -29,6 +29,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.AudioAttributes as Media3AudioAttributes
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.*
