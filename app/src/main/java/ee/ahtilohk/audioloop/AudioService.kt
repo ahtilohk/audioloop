@@ -16,7 +16,6 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.MediaMuxer
-import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Binder
 import android.os.Build
@@ -27,6 +26,11 @@ import android.util.Log
 import android.annotation.SuppressLint
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.AudioAttributes as Media3AudioAttributes
+import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -83,7 +87,7 @@ class AudioService : Service() {
     private var recordingStartTime = 0L
 
     // --- Playback State ---
-    private var mediaPlayer: MediaPlayer? = null
+    private var exoPlayer: ExoPlayer? = null
     private var mediaSessionManager: MediaSessionManager? = null
     private var isPlaying = false
     private var onCompletionListener: (() -> Unit)? = null
@@ -399,39 +403,62 @@ class AudioService : Service() {
     private suspend fun stopRecording() { safelyStopRecorder() }
     private fun cleanupMicRecorder() { try { mediaRecorder?.release() } catch (_: Exception) {}; mediaRecorder = null }
 
-    // ── Playback Logic (NEW: Managed Foreground Playback) ──
+    // ── Playback Logic (NEW: Managed Foreground Playback with Media3/ExoPlayer) ──
 
     fun playFile(item: RecordingItem, speed: Float, pitch: Float, startMs: Int = 0) {
         stopPlayback()
         isPlaying = true
         startForegroundNotification(NOTIFICATION_ID_PLAYBACK, getString(R.string.notification_playing, item.name), false, false)
         
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build())
-            try {
-                if (item.uri != android.net.Uri.EMPTY) setDataSource(this@AudioService, item.uri)
-                else java.io.FileInputStream(item.file).use { setDataSource(it.fd) }
-                
-                setOnPreparedListener { mp ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        try { mp.playbackParams = mp.playbackParams.setSpeed(speed).setPitch(pitch) } catch (_: Exception) {}
+        exoPlayer = ExoPlayer.Builder(this).build().apply {
+            setAudioAttributes(
+                Media3AudioAttributes.Builder()
+                    .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+                    .build(),
+                true
+            )
+            
+            val mediaItem = if (item.uri != android.net.Uri.EMPTY) {
+                MediaItem.fromUri(item.uri)
+            } else {
+                MediaItem.fromUri(android.net.Uri.fromFile(item.file))
+            }
+            
+            setMediaItem(mediaItem)
+            playbackParameters = PlaybackParameters(speed, pitch)
+            
+            addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_ENDED) {
+                        onPlaybackComplete()
                     }
-                    
-                    if (mediaSessionManager?.requestAudioFocus() == false) {
-                        stopPlayback()
-                        return@setOnPreparedListener
-                    }
-
-                    if (startMs > 0) mp.seekTo(startMs)
-                    mp.start()
-                    mediaSessionManager?.updateMetadata(item.name, mp.duration.toLong())
-                    mediaSessionManager?.updatePlaybackState(isPlaying = true, isPaused = false)
                 }
-                setOnCompletionListener { onPlaybackComplete() }
-                setOnErrorListener { _, _, _ -> stopPlayback(); true }
-                prepareAsync()
-            } catch (e: Exception) { stopPlayback() }
+                
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    mediaSessionManager?.updatePlaybackState(
+                        isPlaying = isPlaying,
+                        isPaused = !isPlaying && playbackState != Player.STATE_ENDED,
+                        position = currentPosition
+                    )
+                }
+            })
+
+            if (mediaSessionManager?.requestAudioFocus() == false) {
+                stopPlayback()
+                return@apply
+            }
+
+            if (startMs > 0) seekTo(startMs.toLong())
+            prepare()
+            play()
+            
+            mediaSessionManager?.updateMetadata(item.name, item.durationMillis)
         }
+    }
+
+    fun updatePlaybackParams(speed: Float, pitch: Float) {
+        exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
     }
 
     fun setMediaSessionManager(manager: MediaSessionManager) {
@@ -439,18 +466,31 @@ class AudioService : Service() {
     }
 
     fun pausePlayback() {
-        mediaPlayer?.let { if (it.isPlaying) { it.pause(); mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = true) } }
+        exoPlayer?.let { 
+            if (it.isPlaying) { 
+                it.pause() 
+                mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = true, position = it.currentPosition) 
+            } 
+        }
     }
 
     fun resumePlayback() {
-        mediaPlayer?.let { if (!it.isPlaying) { it.start(); mediaSessionManager?.updatePlaybackState(isPlaying = true, isPaused = false) } }
+        exoPlayer?.let { 
+            if (!it.isPlaying) { 
+                it.play() 
+                mediaSessionManager?.updatePlaybackState(isPlaying = true, isPaused = false, position = it.currentPosition) 
+            } 
+        }
     }
 
     fun stopPlayback() {
         isPlaying = false
         onCompletionListener = null
-        mediaPlayer?.apply { try { if (isPlaying) stop() } catch (_: Exception) {}; release() }
-        mediaPlayer = null
+        exoPlayer?.let {
+            it.stop()
+            it.release()
+        }
+        exoPlayer = null
         mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = false)
         stopForeground(true)
     }
@@ -464,7 +504,7 @@ class AudioService : Service() {
         this.onCompletionListener = listener
     }
 
-    fun getMediaPlayer(): MediaPlayer? = mediaPlayer
+    fun getExoPlayer(): ExoPlayer? = exoPlayer
 
     // ── Common Helpers ──
 

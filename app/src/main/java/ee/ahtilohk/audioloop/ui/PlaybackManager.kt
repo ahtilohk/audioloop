@@ -1,7 +1,8 @@
 package ee.ahtilohk.audioloop.ui
 
 import android.content.Context
-import android.media.MediaPlayer
+import androidx.media3.exoplayer.ExoPlayer
+
 import android.os.Build
 import ee.ahtilohk.audioloop.AudioService
 import ee.ahtilohk.audioloop.MediaSessionManager
@@ -52,7 +53,8 @@ class PlaybackManager @Inject constructor(
     val playbackState = _playbackState.asStateFlow()
 
     private var audioService: AudioService? = null
-    private val mediaPlayer: MediaPlayer? get() = audioService?.getMediaPlayer()
+    private val exoPlayer: ExoPlayer? get() = audioService?.getExoPlayer()
+
 
     private var shadowingJob: Job? = null
     private var progressJob: Job? = null
@@ -137,10 +139,11 @@ class PlaybackManager @Inject constructor(
             listener?.onSessionStart()
         }
 
-
         audioService?.setOnCompletionListener {
             if (isShadowing) {
-                val duration = audioService?.getMediaPlayer()?.duration?.toLong() ?: 0L
+
+                val duration = audioService?.getExoPlayer()?.duration ?: 0L
+
                 val pauseDuration = if (_playbackState.value.shadowPauseSeconds > 0) {
                     _playbackState.value.shadowPauseSeconds * 1000L
                 } else {
@@ -205,10 +208,12 @@ class PlaybackManager @Inject constructor(
         shadowingJob = null
         _playbackState.update { it.copy(shadowCountdownText = "") }
         try {
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
+            if (exoPlayer?.isPlaying == true) {
+
+                exoPlayer?.pause()
                 _playbackState.update { it.copy(isPaused = true) }
-                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true)
+                mediaSessionManager.updatePlaybackState(isPlaying = false, isPaused = true, position = exoPlayer?.currentPosition ?: 0L)
+
             } else if (wasShadowCountdown) {
                 stopPlaying()
             }
@@ -223,19 +228,20 @@ class PlaybackManager @Inject constructor(
             shadowingJob = null
             _playbackState.update { it.copy(shadowCountdownText = "") }
         }
-        val mp = mediaPlayer
-        if (mp == null && _playbackState.value.playingFileName.isNotEmpty()) {
+        val ep = exoPlayer
+        if (ep == null && _playbackState.value.playingFileName.isNotEmpty()) {
             // Re-start session if it was stopped at loop limit
             if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
                 playPlaylist(currentPlaylist, currentFileIndex, currentIteration = 1)
             }
             return
         }
-        if (mp != null && !mp.isPlaying) {
-            mp.start()
+        if (ep != null && !ep.isPlaying) {
+            ep.play()
             _playbackState.update { it.copy(isPaused = false) }
-            mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false)
+            mediaSessionManager.updatePlaybackState(isPlaying = true, isPaused = false, position = ep.currentPosition)
         }
+
     }
 
     fun stopPlaying(endSession: Boolean = true) {
@@ -259,24 +265,26 @@ class PlaybackManager @Inject constructor(
     }
 
     fun seekTo(pos: Float) {
-        try { mediaPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toInt()) } }
-        catch (_: IllegalStateException) {}
+        try { exoPlayer?.let { if (it.duration > 0) it.seekTo((it.duration * pos).toLong()) } }
+        catch (_: Exception) {}
     }
 
-    fun seekAbsolute(ms: Int) {
-        try { mediaPlayer?.seekTo(ms) } catch (_: IllegalStateException) {}
+    fun seekAbsolute(ms: Long) {
+        try { exoPlayer?.seekTo(ms) } catch (_: Exception) {}
     }
+
 
     fun startProgressTracking() {
         progressJob?.cancel()
         progressJob = scope.launch {
             while (isActive) {
-                val player = mediaPlayer
+                val player = exoPlayer
                 val state = _playbackState.value
                 if (state.playingFileName.isNotEmpty() && player != null && player.isPlaying) {
                     val current = player.currentPosition
                     val total = player.duration
                     val progress = if (total > 0) current.toFloat() / total.toFloat() else 0f
+
                     
                     // A-B Loop Logic
                     val abStart = state.abLoopStart
@@ -304,13 +312,14 @@ class PlaybackManager @Inject constructor(
                                 _playbackState.update { s -> s.copy(shadowCountdownText = "") }
                                 if (isActive) {
                                     // A-B loop doesn't increment main iteration counter if it's "whole file only"
-                                    seekAbsolute((abStart * total).toInt())
+                                    seekAbsolute((abStart * total).toLong())
                                     resumePlaying()
                                 }
                             }
                         } else {
-                            seekAbsolute((abStart * total).toInt())
+                            seekAbsolute((abStart * total).toLong())
                         }
+
                     } else if (!abActive && progress >= 0.999f) {
                         // This technically shouldn't happen here as onCompletion covers it, 
                         // but it's good for safety if we had some custom logic.
@@ -348,12 +357,9 @@ class PlaybackManager @Inject constructor(
 
     fun updatePlaybackParams(speed: Float, pitch: Float) {
         _playbackState.update { it.copy(playbackSpeed = speed, playbackPitch = pitch) }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                mediaPlayer?.let { if (it.isPlaying) it.playbackParams = it.playbackParams.setSpeed(speed).setPitch(pitch) }
-            } catch (_: IllegalStateException) {}
-        }
+        audioService?.updatePlaybackParams(speed, pitch)
     }
+
 
     fun setLoopMode(mode: Int) {
         _playbackState.update { it.copy(loopMode = mode, currentPlaylistIteration = 1) }
@@ -383,22 +389,23 @@ class PlaybackManager @Inject constructor(
     }
 
     fun nudgeAbLoopStart(deltaMs: Int) {
-        val mp = mediaPlayer ?: return
-        val total = mp.duration
+        val ep = exoPlayer ?: return
+        val total = ep.duration
         if (total <= 0) return
-        val currentMs = (_playbackState.value.abLoopStart * total).toInt()
+        val currentMs = (_playbackState.value.abLoopStart * total).toLong()
         val nextMs = (currentMs + deltaMs).coerceIn(0, total)
         _playbackState.update { it.copy(abLoopStart = nextMs.toFloat() / total.toFloat()) }
     }
 
     fun nudgeAbLoopEnd(deltaMs: Int) {
-        val mp = mediaPlayer ?: return
-        val total = mp.duration
+        val ep = exoPlayer ?: return
+        val total = ep.duration
         if (total <= 0) return
-        val currentMs = (_playbackState.value.abLoopEnd * total).toInt()
+        val currentMs = (_playbackState.value.abLoopEnd * total).toLong()
         val nextMs = (currentMs + deltaMs).coerceIn(0, total)
         _playbackState.update { it.copy(abLoopEnd = nextMs.toFloat() / total.toFloat()) }
     }
+
 }
 
 data class PlaybackUiState(

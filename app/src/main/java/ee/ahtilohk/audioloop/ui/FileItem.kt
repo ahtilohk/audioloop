@@ -650,35 +650,39 @@ fun FileItem(
                                 clipRect(right = currentProgress * w) {
                                     drawWaveform(primaryColor, isFullColor = true)
                                 }
-
                                 // 4. A-B Markers (Premium Glowing Lines)
                                 if (abLoopStart >= 0f) {
                                     val ax = abLoopStart * w
                                     // A Marker - Refined visualization
                                     drawLine(
-                                        color = Color.White.copy(alpha = 0.8f),
+                                        color = Color.White.copy(alpha = 0.9f),
                                         start = Offset(ax, 0f),
                                         end = Offset(ax, h),
-                                        strokeWidth = 2.dp.toPx(),
+                                        strokeWidth = 2.5.dp.toPx(),
                                         cap = StrokeCap.Round
                                     )
-                                    // Highlight top/bottom
-                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, 0f))
-                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(ax, h))
+                                    // Glow effect
+                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, 0f))
+                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, h))
+                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(ax, 0f))
+                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(ax, h))
                                 }
                                 if (abLoopEnd >= 0f) {
                                     val bx = abLoopEnd * w
                                     drawLine(
-                                        color = Color.White.copy(alpha = 0.8f),
+                                        color = Color.White.copy(alpha = 0.9f),
                                         start = Offset(bx, 0f),
                                         end = Offset(bx, h),
-                                        strokeWidth = 2.dp.toPx(),
+                                        strokeWidth = 2.5.dp.toPx(),
                                         cap = StrokeCap.Round
                                     )
-                                    // Highlight top/bottom
-                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, 0f))
-                                    drawCircle(primaryColor, radius = 5.dp.toPx(), center = Offset(bx, h))
+                                    // Glow effect
+                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, 0f))
+                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, h))
+                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(bx, 0f))
+                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(bx, h))
                                 }
+
 
                                 // 5. Playhead
                                 val px = currentProgress * w

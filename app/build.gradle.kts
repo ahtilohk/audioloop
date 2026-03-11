@@ -91,8 +91,11 @@ dependencies {
     implementation("com.github.lincollincol:compose-audiowaveform:1.1.1")
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
-    // MediaSession for Bluetooth/headset media button support + audio focus
-    implementation("androidx.media:media:1.7.0")
+    // Media3 for high-quality playback (Slow-mo) + MediaSession
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
+    implementation(libs.media3.common)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

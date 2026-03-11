@@ -154,14 +154,18 @@ fun RecordTab(
                     RecordingTimer()
                 } else {
                     Text(
-                        text = stringResource(R.string.btn_start_short).uppercase(),
+                        text = stringResource(R.string.record_start).uppercase(),
                         style = MaterialTheme.typography.titleMedium.copy(
                             color = Color.White,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp
-                        )
+                            letterSpacing = 0.5.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
+                        ),
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     )
                 }
+
             }
         }
 
