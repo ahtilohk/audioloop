@@ -58,6 +58,9 @@ class PlaybackManager @Inject constructor(
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
 
+    private var currentPlaylist: List<RecordingItem> = emptyList()
+    private var currentFileIndex: Int = 0
+
     fun setService(service: AudioService?) {
         this.audioService = service
     }
@@ -101,6 +104,8 @@ class PlaybackManager @Inject constructor(
         onComplete: () -> Unit = { _playbackState.update { it.copy(playingFileName = "") } }
     ) {
         if (allFiles.isEmpty()) return
+        this.currentPlaylist = allFiles
+        this.currentFileIndex = currentIndex
 
         if (currentIndex >= allFiles.size) {
             val loopMode = loopCountProvider()
@@ -108,12 +113,8 @@ class PlaybackManager @Inject constructor(
                 onIterationChange(currentIteration + 1)
                 playPlaylist(allFiles, 0, loopCountProvider, speedProvider, pitchProvider, shadowingProvider, onNext, onIterationChange, currentIteration + 1, gapSeconds, onComplete)
             } else {
-                stopPlaying()
+                stopPlaying(false)
                 onComplete()
-                // Custom playlist complete notification
-                // Assuming allFiles belongs to some playlist if it was a playlist playback
-                // This is a bit weak, but in this refactoring we can improve it later.
-                // Currently AudioLoopViewModel handles the specific Playlist call.
             }
             return
         }
@@ -124,6 +125,12 @@ class PlaybackManager @Inject constructor(
         val isShadowing = shadowingProvider()
 
         val itemToPlay = allFiles[currentIndex]
+        
+        // Clear markers if we moved to a new track in a playlist
+        if (itemToPlay.name != _playbackState.value.playingFileName && _playbackState.value.playingFileName.isNotEmpty()) {
+            _playbackState.update { it.copy(abLoopStart = -1f, abLoopEnd = -1f) }
+        }
+
         onNext(itemToPlay.name)
 
         if (currentIndex == 0 && currentIteration == 1) {
@@ -175,7 +182,11 @@ class PlaybackManager @Inject constructor(
             }
         }
 
-        audioService?.playFile(itemToPlay, speed, pitch)
+        val startMs = if (_playbackState.value.abLoopStart >= 0f) {
+            (_playbackState.value.abLoopStart * itemToPlay.durationMillis).toInt()
+        } else 0
+
+        audioService?.playFile(itemToPlay, speed, pitch, startMs)
         _playbackState.update { it.copy(isPaused = false) }
         startProgressTracking()
     }
@@ -219,12 +230,12 @@ class PlaybackManager @Inject constructor(
     fun stopPlaying(endSession: Boolean = true) {
         audioService?.stopPlayback()
         _playbackState.update { it.copy(
-            playingFileName = "",
+            playingFileName = if (endSession) "" else it.playingFileName,
             isPaused = false,
-            currentlyPlayingPlaylistId = null,
+            currentlyPlayingPlaylistId = if (endSession) null else it.currentlyPlayingPlaylistId,
             shadowCountdownText = "",
-            abLoopStart = -1f,
-            abLoopEnd = -1f,
+            abLoopStart = if (endSession) -1f else it.abLoopStart,
+            abLoopEnd = if (endSession) -1f else it.abLoopEnd,
             currentProgress = 0f,
             currentTimeString = "00:00"
         ) }
@@ -293,7 +304,7 @@ class PlaybackManager @Inject constructor(
                             }
                         } else {
                              // Loop limit reached
-                             stopPlaying(false) // stop but keep markers
+                             audioService?.onPlaybackComplete()
                         }
                     }
 
@@ -312,11 +323,19 @@ class PlaybackManager @Inject constructor(
     }
 
     fun setAbLoopStart(pos: Float) {
-        _playbackState.update { it.copy(abLoopStart = pos) }
+        _playbackState.update { it.copy(abLoopStart = pos, currentPlaylistIteration = 1) }
     }
 
     fun setAbLoopEnd(pos: Float) {
-        _playbackState.update { it.copy(abLoopEnd = pos) }
+        val state = _playbackState.value
+        _playbackState.update { it.copy(abLoopEnd = pos, currentPlaylistIteration = 1) }
+        
+        // If we just set B and have A, start looping immediately
+        if (pos >= 0f && state.abLoopStart >= 0f) {
+            if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
+                playPlaylist(currentPlaylist, currentFileIndex)
+            }
+        }
     }
 
     fun updatePlaybackParams(speed: Float, pitch: Float) {
@@ -329,7 +348,14 @@ class PlaybackManager @Inject constructor(
     }
 
     fun setLoopMode(mode: Int) {
-        _playbackState.update { it.copy(loopMode = mode) }
+        _playbackState.update { it.copy(loopMode = mode, currentPlaylistIteration = 1) }
+        
+        // Restart playback if a file is selected to show it's active
+        if (_playbackState.value.playingFileName.isNotEmpty()) {
+            if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
+                playPlaylist(currentPlaylist, currentFileIndex)
+            }
+        }
     }
 
     fun setShadowingMode(enabled: Boolean) {

@@ -401,7 +401,7 @@ class AudioService : Service() {
 
     // ── Playback Logic (NEW: Managed Foreground Playback) ──
 
-    fun playFile(item: RecordingItem, speed: Float, pitch: Float) {
+    fun playFile(item: RecordingItem, speed: Float, pitch: Float, startMs: Int = 0) {
         stopPlayback()
         isPlaying = true
         startForegroundNotification(NOTIFICATION_ID_PLAYBACK, getString(R.string.notification_playing, item.name), false, false)
@@ -422,6 +422,7 @@ class AudioService : Service() {
                         return@setOnPreparedListener
                     }
 
+                    if (startMs > 0) mp.seekTo(startMs)
                     mp.start()
                     mediaSessionManager?.updateMetadata(item.name, mp.duration.toLong())
                     mediaSessionManager?.updatePlaybackState(isPlaying = true, isPaused = false)
@@ -454,7 +455,7 @@ class AudioService : Service() {
         stopForeground(true)
     }
 
-    private fun onPlaybackComplete() {
+    fun onPlaybackComplete() {
         onCompletionListener?.invoke()
         sendBroadcast(Intent("ee.ahtilohk.audioloop.PLAYBACK_COMPLETE").setPackage(packageName))
     }
