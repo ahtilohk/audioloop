@@ -273,7 +273,7 @@ class PlaybackManager @Inject constructor(
 
     fun startProgressTracking() {
         progressJob?.cancel()
-        progressJob = scope.launch {
+        progressJob = scope.launch(Dispatchers.Main.immediate) {
             while (isActive) {
                 val player = exoPlayer
                 val state = _playbackState.value

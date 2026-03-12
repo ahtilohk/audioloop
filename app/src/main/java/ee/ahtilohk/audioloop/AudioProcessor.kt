@@ -18,6 +18,7 @@ import kotlin.math.min
 import androidx.media3.common.C
 import androidx.media3.common.audio.AudioProcessor as Media3AudioProcessor
 import androidx.media3.common.audio.SonicAudioProcessor
+import androidx.media3.common.util.UnstableApi
 
 object AudioProcessor {
 
@@ -125,6 +126,7 @@ object AudioProcessor {
         }
     }
 
+    @OptIn(UnstableApi::class)
     private fun applySonic(
         samples: ShortArray,
         sampleRate: Int,
