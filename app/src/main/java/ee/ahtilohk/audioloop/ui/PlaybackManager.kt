@@ -227,9 +227,10 @@ class PlaybackManager @Inject constructor(
         }
         val ep = exoPlayer
         if (ep == null && _playbackState.value.playingFileName.isNotEmpty()) {
-            // Re-start session if it was stopped at loop limit
-            if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
-                playPlaylist(currentPlaylist, currentFileIndex, currentIteration = 1)
+            // Re-start session if it was stopped at loop limit or completion
+            if (currentPlaylist.isNotEmpty()) {
+                val indexToPlay = if (currentFileIndex in currentPlaylist.indices) currentFileIndex else 0
+                playPlaylist(currentPlaylist, indexToPlay, currentIteration = 1)
             }
             return
         }
