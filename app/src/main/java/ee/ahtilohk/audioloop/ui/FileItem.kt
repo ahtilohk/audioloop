@@ -567,7 +567,7 @@ fun FileItem(
                                                     
                                                     // Change speed every 120 pixels
                                                     if (kotlin.math.abs(accumulatedSpeedDelta) > 120f) {
-                                                        val speeds = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
+                                                        val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
                                                         val currentIndex = speeds.indexOf(speed).coerceAtLeast(1) // default to 1x
                                                         val direction = if (accumulatedSpeedDelta > 0) 1 else -1
                                                         val nextIndex = (currentIndex + direction).coerceIn(0, speeds.size - 1)
@@ -642,10 +642,10 @@ fun FileItem(
                                     )
                                 }
 
-                                // 2. Background (Grayed out)
-                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.15f))
+                                // 2. Background (Subtle but clearly visible gray)
+                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.25f))
 
-                                // 3. Active Waveform (Primary themed)
+                                // 3. Active Waveform (Primary themed with full opacity and gradient)
                                 clipRect(right = currentProgress * w) {
                                     drawWaveform(primaryColor, isFullColor = true)
                                 }

@@ -19,6 +19,7 @@ import androidx.media3.common.C
 import androidx.media3.common.audio.AudioProcessor as Media3AudioProcessor
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.UnstableApi
+import androidx.annotation.OptIn
 
 object AudioProcessor {
 
@@ -31,10 +32,10 @@ object AudioProcessor {
         outputFile: File,
         targetPeak: Float = 0.95f // 0..1, how loud the peak should be
     ): Boolean = withContext(Dispatchers.IO) {
-        if (inputFile.extension.equals("wav", ignoreCase = true)) {
+        if (inputFile.extension.lowercase() == "wav") {
             normalizeWav(inputFile, outputFile, targetPeak)
         } else {
-            processCompressed(inputFile, outputFile) { samples, sampleRate, channels ->
+            processCompressed(inputFile, outputFile) { samples, _, _ ->
                 // Find peak
                 var peak = 0
                 for (s in samples) {
@@ -51,31 +52,6 @@ object AudioProcessor {
     }
 
     /**
-     * Applies gain (volume boost/cut) to audio.
-     * @param gainDb gain in decibels (e.g. 6.0 = double volume, -6.0 = half)
-     */
-    suspend fun applyGain(
-        inputFile: File,
-        outputFile: File,
-        gainDb: Float
-    ): Boolean = withContext(Dispatchers.IO) {
-        val multiplier = Math.pow(10.0, gainDb / 20.0).toFloat()
-        if (inputFile.extension.equals("wav", ignoreCase = true)) {
-            processWavSamples(inputFile, outputFile) { samples, _, _ ->
-                ShortArray(samples.size) { i ->
-                    (samples[i] * multiplier).toInt().coerceIn(-32767, 32767).toShort()
-                }
-            }
-        } else {
-            processCompressed(inputFile, outputFile) { samples, _, _ ->
-                ShortArray(samples.size) { i ->
-                    (samples[i] * multiplier).toInt().coerceIn(-32767, 32767).toShort()
-                }
-            }
-        }
-    }
-
-    /**
      * Applies fade-in and/or fade-out to audio.
      * @param fadeInMs duration of fade-in in milliseconds (0 = no fade-in)
      * @param fadeOutMs duration of fade-out in milliseconds (0 = no fade-out)
@@ -86,7 +62,7 @@ object AudioProcessor {
         fadeInMs: Long,
         fadeOutMs: Long
     ): Boolean = withContext(Dispatchers.IO) {
-        if (inputFile.extension.equals("wav", ignoreCase = true)) {
+        if (inputFile.extension.lowercase() == "wav") {
             processWavSamples(inputFile, outputFile) { samples, sampleRate, channels ->
                 applyFadeToSamples(samples, sampleRate, channels, fadeInMs, fadeOutMs)
             }
@@ -110,12 +86,12 @@ object AudioProcessor {
             return@withContext try {
                 inputFile.copyTo(outputFile, overwrite = true)
                 true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
 
-        if (inputFile.extension.equals("wav", ignoreCase = true)) {
+        if (inputFile.extension.lowercase() == "wav") {
             processWavSamples(inputFile, outputFile) { samples, sampleRate, channels ->
                 applySonic(samples, sampleRate, channels, speed)
             }
@@ -157,10 +133,10 @@ object AudioProcessor {
         val tempShorts = ShortArray(4096)
 
         fun drainOutput() {
-            var output = sonicProcessor.getOutput()
+            val output = sonicProcessor.getOutput()
             while (output.hasRemaining()) {
                 val shortCount = output.remaining() / 2
-                val toRead = minOf(shortCount, tempShorts.size)
+                val toRead = min(shortCount, tempShorts.size)
                 output.asShortBuffer().get(tempShorts, 0, toRead)
                 
                 // Add to outArr
@@ -185,7 +161,6 @@ object AudioProcessor {
             if (!sonicProcessor.getOutput().hasRemaining() && !sonicProcessor.isEnded) {
                 // Safety break for unexpected behavior
                 if (outSize > samples.size * 10) break
-                // Keep polling as per Media3 processor contract
             }
         }
 
@@ -277,7 +252,6 @@ object AudioProcessor {
                     val chunkSize = ByteBuffer.wrap(sizeBuf).order(ByteOrder.LITTLE_ENDIAN).getInt()
 
                     if (chunkId == "data") {
-                        val dataPos = raf.filePointer
                         val numSamples = chunkSize / 2
 
                         // Read all samples
@@ -320,7 +294,7 @@ object AudioProcessor {
             }
             return false
         } catch (e: Exception) {
-            AppLog.e("Error processing WAV samples", e)
+            AppLog.e("WAV processing failed", e)
             outputFile.delete()
             return false
         }
@@ -507,38 +481,6 @@ object AudioProcessor {
             try { encoder?.release() } catch (_: Exception) {}
             try { muxer?.stop() } catch (_: Exception) {}
             try { muxer?.release() } catch (_: Exception) {}
-            outputFile.delete()
-            return false
-        }
-    }
-
-    private fun writeWavOutput(samples: ShortArray, sampleRate: Int, channels: Int, outputFile: File): Boolean {
-        try {
-            outputFile.outputStream().use { fos ->
-                val dataLen = samples.size * 2
-                val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
-                header.put("RIFF".toByteArray())
-                header.putInt(dataLen + 36)
-                header.put("WAVE".toByteArray())
-                header.put("fmt ".toByteArray())
-                header.putInt(16)
-                header.putShort(1)
-                header.putShort(channels.toShort())
-                header.putInt(sampleRate)
-                header.putInt(sampleRate * channels * 2)
-                header.putShort((channels * 2).toShort())
-                header.putShort(16)
-                header.put("data".toByteArray())
-                header.putInt(dataLen)
-                fos.write(header.array())
-
-                val outBuf = ByteBuffer.allocate(samples.size * 2).order(ByteOrder.LITTLE_ENDIAN)
-                for (s in samples) outBuf.putShort(s)
-                fos.write(outBuf.array())
-            }
-            return true
-        } catch (e: Exception) {
-            AppLog.e("Error writing WAV output", e)
             outputFile.delete()
             return false
         }
