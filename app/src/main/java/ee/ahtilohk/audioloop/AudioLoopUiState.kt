@@ -141,5 +141,6 @@ data class ExportParams(
     val endMs: Long,
     val fadeInMs: Long,
     val fadeOutMs: Long,
-    val normalize: Boolean
+    val normalize: Boolean,
+    val speed: Float = 1.0f
 )

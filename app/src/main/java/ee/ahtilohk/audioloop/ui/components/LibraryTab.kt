@@ -791,7 +791,8 @@ private fun DraggableFileList(
                             item, 
                             (uiState.abLoopStart * item.durationMillis).toLong(),
                             (uiState.abLoopEnd * item.durationMillis).toLong(),
-                            0L, 0L, false
+                            0L, 0L, false,
+                            uiState.playbackSpeed
                         )
                     }
                 )

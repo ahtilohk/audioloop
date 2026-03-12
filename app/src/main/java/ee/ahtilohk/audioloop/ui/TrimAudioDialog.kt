@@ -34,7 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import android.media.MediaPlayer
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import android.net.Uri
 import java.io.File
 import kotlinx.coroutines.*
@@ -75,11 +77,24 @@ fun TrimAudioScreen(
     onDismiss: () -> Unit,
     onConfirm: (start: Long, end: Long, replace: Boolean, removeSelection: Boolean, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
     onExportLoop: (start: Long, end: Long, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) -> Unit,
-    themeColors: AppColorPalette = AppTheme.SLATE.palette
+    themeColors: AppColorPalette = AppTheme.SLATE.palette,
+    playbackSpeed: Float = 1.0f
 ) {
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current
-    val previewPlayer = remember(file) { MediaPlayer() }
+    val previewPlayer = remember(context) { 
+        ExoPlayer.Builder(context).build().apply {
+            repeatMode = Player.REPEAT_MODE_OFF
+        }
+    }
+    
+    DisposableEffect(previewPlayer) {
+        onDispose { previewPlayer.release() }
+    }
+
+    LaunchedEffect(playbackSpeed) {
+        previewPlayer.playbackParameters = androidx.media3.common.PlaybackParameters(playbackSpeed)
+    }
     var isPreviewPlaying by remember { mutableStateOf(false) }
     var previewPositionMs by remember { mutableLongStateOf(0L) }
     var trimMode by remember { mutableStateOf(TrimMode.Keep) }
@@ -117,7 +132,7 @@ fun TrimAudioScreen(
         }
     }
 
-    // Initialize MediaPlayer
+    // Initialize ExoPlayer
     LaunchedEffect(uri) {
         isPreviewPlaying = false
         previewPositionMs = 0L
@@ -130,38 +145,21 @@ fun TrimAudioScreen(
             try {
                 val success = withContext(Dispatchers.IO) {
                     try {
-                        if (uri != Uri.EMPTY) {
-                            val pfd = context.contentResolver.openFileDescriptor(uri, "r")
-                            if (pfd != null) {
-                                previewPlayer.reset()
-                                previewPlayer.setDataSource(pfd.fileDescriptor)
-                                previewPlayer.prepare()
-                                pfd.close()
-                                true
-                            } else false
+                        val mediaItem = if (uri != Uri.EMPTY) {
+                            MediaItem.fromUri(uri)
                         } else {
-                            // Fallback to File
-                            if (file.exists()) {
-                                previewPlayer.reset()
-                                java.io.FileInputStream(file).use { fis ->
-                                    previewPlayer.setDataSource(fis.fd)
-                                }
-                                previewPlayer.prepare()
-                                true
-                            } else false
+                            if (file.exists()) MediaItem.fromUri(Uri.fromFile(file)) else null
                         }
-                    } catch (e: Exception) {
-                        // If URI failed but we have a file, try file as last resort in this attempt
-                        if (uri != Uri.EMPTY && file.exists()) {
-                            try {
-                                previewPlayer.reset()
-                                java.io.FileInputStream(file).use { fis ->
-                                    previewPlayer.setDataSource(fis.fd)
-                                }
+                        
+                        if (mediaItem != null) {
+                            withContext(Dispatchers.Main) {
+                                previewPlayer.setMediaItem(mediaItem)
                                 previewPlayer.prepare()
-                                true
-                            } catch (_: Exception) { false }
+                            }
+                            true
                         } else false
+                    } catch (e: Exception) {
+                        false
                     }
                 }
                 if (success) {
@@ -347,10 +345,10 @@ fun TrimAudioScreen(
                             if (dragTarget == null) {
                                 val current = previewPositionMs.toFloat()
                                 val validated = resolvePreviewPosition(current)
-                                if (validated != current.toLong()) {
-                                     previewPositionMs = validated
-                                     if (isPreviewPlaying) try { previewPlayer.seekTo(validated.toInt()) } catch (_: Exception) {}
-                                }
+                                 if (validated != current.toLong()) {
+                                      previewPositionMs = validated
+                                      if (isPreviewPlaying) try { previewPlayer.seekTo(validated) } catch (_: Exception) {}
+                                 }
                             }
                         }
 
@@ -387,22 +385,22 @@ fun TrimAudioScreen(
                                                   vol = min(vol, fadeOutVol)
                                               }
                                           }
-                                          try { previewPlayer.setVolume(vol, vol) } catch (_: Exception) {}
+                                          try { previewPlayer.volume = vol } catch (_: Exception) {}
 
                                           if (trimMode == TrimMode.Keep) {
                                               if (currentMs >= selectionEndMs) {
                                                     try {
                                                         previewPlayer.pause()
-                                                        previewPlayer.setVolume(1f, 1f)
-                                                        previewPlayer.seekTo(selectionStartMs.toInt())
+                                                        previewPlayer.volume = 1f
+                                                        previewPlayer.seekTo(selectionStartMs.toLong())
                                                     } catch (_: Exception) {}
                                                     previewPositionMs = selectionStartMs.toLong()
                                                     isPreviewPlaying = false
                                               }
                                           } else {
                                                if (currentMs >= selectionStartMs && currentMs < selectionEndMs) {
-                                                    val seekPos = (selectionEndMs + 10).toInt().coerceAtMost(durationMs.toInt())
-                                                    try { previewPlayer.seekTo(seekPos) } catch (_: Exception) {}
+                                                     val seekPos = (selectionEndMs + 10).toLong().coerceAtMost(durationMs)
+                                                     try { previewPlayer.seekTo(seekPos) } catch (_: Exception) {}
                                                     previewPositionMs = seekPos.toLong()
                                                     delay(50)
                                                }
@@ -414,9 +412,9 @@ fun TrimAudioScreen(
                                   }
                                   // Playback ended naturally - loop back
                                   try {
-                                      previewPlayer.setVolume(1f, 1f)
+                                      previewPlayer.volume = 1f
                                       if (trimMode == TrimMode.Keep) {
-                                          previewPlayer.seekTo(selectionStartMs.toInt())
+                                          previewPlayer.seekTo(selectionStartMs.toLong())
                                           previewPositionMs = selectionStartMs.toLong()
                                       } else {
                                           previewPlayer.seekTo(0)
@@ -636,7 +634,7 @@ fun TrimAudioScreen(
                                                         TrimDragTarget.Playhead -> {
                                                             val tappedMs = pxToMs(change.position.x)
                                                             previewPositionMs = resolvePreviewPosition(tappedMs)
-                                                            try { previewPlayer.seekTo(previewPositionMs.toInt()) } catch (_: Exception) {}
+                                                            try { previewPlayer.seekTo(previewPositionMs) } catch (_: Exception) {}
                                                         }
                                                     }
                                                 } else {
@@ -652,7 +650,7 @@ fun TrimAudioScreen(
                                         if (!wasDragged && currentEvent.changes.all { it.changedToUp() }) {
                                             val tapMs = pxToMs(downX)
                                             previewPositionMs = resolvePreviewPosition(tapMs)
-                                            try { previewPlayer.seekTo(previewPositionMs.toInt()) } catch (_: Exception) {}
+                                            try { previewPlayer.seekTo(previewPositionMs) } catch (_: Exception) {}
                                         }
                                     }
                                 }
@@ -707,10 +705,9 @@ fun TrimAudioScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp))
                                     .clickable {
                                         previewPositionMs = 0L
-                                        try { previewPlayer.seekTo(0) } catch (_: Exception) {}
+                                        try { previewPlayer.seekTo(0L) } catch (_: Exception) {}
                                     }
                                     .padding(10.dp)
                             ) {
@@ -1014,7 +1011,7 @@ fun TrimAudioScreen(
                                         .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                                         .clickable {
                                             previewPositionMs = 0L
-                                            try { previewPlayer.seekTo(0) } catch (_: Exception) {}
+                                            try { previewPlayer.seekTo(0L) } catch (_: Exception) {}
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -1044,8 +1041,8 @@ fun TrimAudioScreen(
                                                      isPreviewPlaying = false
                                                  } else {
                                                      previewPositionMs = resolvePreviewPosition(previewPositionMs.toFloat())
-                                                     previewPlayer.seekTo(previewPositionMs.toInt())
-                                                     previewPlayer.start()
+                                                     previewPlayer.seekTo(previewPositionMs)
+                                                     previewPlayer.play()
                                                      isPreviewPlaying = true
                                                  }
                                              } catch (_: Exception) {

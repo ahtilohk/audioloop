@@ -65,6 +65,15 @@ class AudioProcessingWorker(
                         }
                     }
 
+                    val speed = inputData.getFloat("speed", 1.0f)
+                    if (speed != 1.0f) {
+                        val stretchFile = File(file.parent, "temp_stretch_${ts}.$ext")
+                        if (AudioProcessor.timeStretch(currentWorkFile, stretchFile, speed)) {
+                            currentWorkFile.delete()
+                            currentWorkFile = stretchFile
+                        }
+                    }
+
                     return finalizeProcessedFile(file, currentWorkFile, inputData.getBoolean("replace", false))
                 }
                 "split" -> {
@@ -119,6 +128,17 @@ class AudioProcessingWorker(
                     
                     if (success) {
                         return finalizeProcessedFile(file, tempFile, true)
+                    }
+                }
+                "timestretch" -> {
+                    val filePath = inputData.getString("file_path") ?: return Result.failure()
+                    val speed = inputData.getFloat("speed", 1.0f)
+                    val file = File(filePath)
+                    val ts = System.currentTimeMillis()
+                    val tempFile = File(file.parent, "temp_stretch_${ts}.${file.extension}")
+                    
+                    if (AudioProcessor.timeStretch(file, tempFile, speed)) {
+                        return finalizeProcessedFile(file, tempFile, false) // Save as new file by default
                     }
                 }
                 else -> return Result.failure()

@@ -263,9 +263,10 @@ fun MainOverlays(
                 }
             },
             onExportLoop = { start, end, fadeIn, fadeOut, norm ->
-                viewModel.startExportLoop(uiState.recordingToTrim!!, start, end, fadeIn, fadeOut, norm)
+                viewModel.startExportLoop(uiState.recordingToTrim!!, start, end, fadeIn, fadeOut, norm, uiState.playbackSpeed)
             },
-            themeColors = themeColors
+            themeColors = themeColors,
+            playbackSpeed = uiState.playbackSpeed
         )
     }
 

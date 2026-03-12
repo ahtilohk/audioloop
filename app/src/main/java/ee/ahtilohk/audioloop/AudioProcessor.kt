@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.min
+import androidx.media3.common.audio.Sonic
 
 object AudioProcessor {
 
@@ -91,6 +92,71 @@ object AudioProcessor {
                 applyFadeToSamples(samples, sampleRate, channels, fadeInMs, fadeOutMs)
             }
         }
+    }
+
+    /**
+     * Changes the playback speed of the audio while maintaining pitch.
+     * Uses the Sonic algorithm for high-quality time-stretching.
+     */
+    suspend fun timeStretch(
+        inputFile: File,
+        outputFile: File,
+        speed: Float
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (speed == 1.0f) {
+            return@withContext try {
+                inputFile.copyTo(outputFile, overwrite = true)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        if (inputFile.extension.equals("wav", ignoreCase = true)) {
+            processWavSamples(inputFile, outputFile) { samples, sampleRate, channels ->
+                applySonic(samples, sampleRate, channels, speed)
+            }
+        } else {
+            processCompressed(inputFile, outputFile) { samples, sampleRate, channels ->
+                applySonic(samples, sampleRate, channels, speed)
+            }
+        }
+    }
+
+    private fun applySonic(
+        samples: ShortArray,
+        sampleRate: Int,
+        channels: Int,
+        speed: Float,
+        pitch: Float = 1.0f
+    ): ShortArray {
+        val sonic = Sonic(sampleRate, channels)
+        sonic.speed = speed
+        sonic.pitch = pitch
+        
+        // Feed input samples
+        // Sonic expects samples in a ByteBuffer or similar if we use the underlying implementation,
+        // but the Media3 Sonic class has queueInput(ShortBuffer).
+        // Let's use the ShortBuffer approach.
+        val inputBuffer = java.nio.ShortBuffer.wrap(samples)
+        sonic.queueInput(inputBuffer)
+        
+        // Get output samples
+        val outputSamplesCount = sonic.outputSamplesAvailable
+        val outputBuffer = ShortArray(outputSamplesCount * channels)
+        val outputShortBuffer = java.nio.ShortBuffer.wrap(outputBuffer)
+        sonic.getOutput(outputShortBuffer)
+        
+        // Wait, sonic might need to be flushed or processed in chunks if it's large.
+        // For offline processing of the whole file, we should flush it.
+        sonic.queueEndOfStream()
+        
+        val totalOutputCount = sonic.outputSamplesAvailable
+        val finalOutput = ShortArray(totalOutputCount * channels)
+        val finalShortBuffer = java.nio.ShortBuffer.wrap(finalOutput)
+        sonic.getOutput(finalShortBuffer)
+        
+        return finalOutput
     }
 
     private fun applyFadeToSamples(

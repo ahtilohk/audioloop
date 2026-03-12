@@ -3,7 +3,6 @@ package ee.ahtilohk.audioloop.data
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -56,16 +55,6 @@ object AudioMetadataHelper {
         } catch (_: Exception) {}
         finally { try { mmr.release() } catch (_: Exception) {} }
 
-        if (millis == 0L) {
-            var mp: MediaPlayer? = null
-            try {
-                mp = MediaPlayer()
-                mp.setDataSource(file.absolutePath)
-                mp.prepare()
-                millis = mp.duration.toLong()
-            } catch (_: Exception) {}
-            finally { try { mp?.release() } catch (_: Exception) {} }
-        }
 
         if (millis == 0L) {
             var extractor: MediaExtractor? = null

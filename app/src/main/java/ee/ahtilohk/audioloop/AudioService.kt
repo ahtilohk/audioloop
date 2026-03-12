@@ -413,9 +413,14 @@ class AudioService : Service() {
         mainHandler.post {
             try {
                 // Ensure we have a player
-                val player = exoPlayer ?: ExoPlayer.Builder(this)
-                    .setLooper(Looper.getMainLooper())
-                    .build().also { exoPlayer = it }
+                val player = exoPlayer ?: run {
+                    val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
+                        .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                    
+                    ExoPlayer.Builder(this, renderersFactory)
+                        .setLooper(Looper.getMainLooper())
+                        .build().also { exoPlayer = it }
+                }
                 
                 player.stop()
                 player.clearMediaItems()

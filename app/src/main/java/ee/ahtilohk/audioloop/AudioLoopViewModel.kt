@@ -1399,11 +1399,11 @@ class AudioLoopViewModel @Inject constructor(
         _uiState.update { it.copy(showExportSegmentDialog = show) }
     }
 
-    fun startExportLoop(item: RecordingItem, start: Long, end: Long, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean) {
+    fun startExportLoop(item: RecordingItem, start: Long, end: Long, fadeInMs: Long, fadeOutMs: Long, normalize: Boolean, speed: Float = 1.0f) {
         _uiState.update { it.copy(
             showExportSegmentDialog = true,
             itemToModify = item,
-            exportSegmentParams = ExportParams(start, end, fadeInMs, fadeOutMs, normalize)
+            exportSegmentParams = ExportParams(start, end, fadeInMs, fadeOutMs, normalize, speed)
         ) }
     }
 
@@ -1423,7 +1423,8 @@ class AudioLoopViewModel @Inject constructor(
         val workId = audioProcessingManager.trim(
             item.file, params.startMs, params.endMs,
             removeSelection = false, replace = false, normalize = params.normalize,
-            fadeInMs = params.fadeInMs, fadeOutMs = params.fadeOutMs
+            fadeInMs = params.fadeInMs, fadeOutMs = params.fadeOutMs,
+            speed = params.speed
         )
 
         viewModelScope.launch {

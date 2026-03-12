@@ -30,7 +30,8 @@ class AudioProcessingManager @Inject constructor(@ApplicationContext private val
         replace: Boolean,
         normalize: Boolean,
         fadeInMs: Long,
-        fadeOutMs: Long
+        fadeOutMs: Long,
+        speed: Float = 1.0f
     ): UUID {
         val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
             .setInputData(workDataOf(
@@ -42,7 +43,8 @@ class AudioProcessingManager @Inject constructor(@ApplicationContext private val
                 "replace" to replace,
                 "normalize" to normalize,
                 "fade_in" to fadeInMs,
-                "fade_out" to fadeOutMs
+                "fade_out" to fadeOutMs,
+                "speed" to speed
             ))
             .build()
         workManager.enqueue(workRequest)
@@ -89,6 +91,18 @@ class AudioProcessingManager @Inject constructor(@ApplicationContext private val
                 "type" to "merge",
                 "file_paths" to files.map { it.absolutePath }.toTypedArray(),
                 "output_file_path" to outputFile.absolutePath
+            ))
+            .build()
+        workManager.enqueue(workRequest)
+        return workRequest.id
+    }
+
+    fun timeStretch(file: File, speed: Float): UUID {
+        val workRequest = OneTimeWorkRequestBuilder<AudioProcessingWorker>()
+            .setInputData(workDataOf(
+                "type" to "timestretch",
+                "file_path" to file.absolutePath,
+                "speed" to speed
             ))
             .build()
         workManager.enqueue(workRequest)

@@ -64,7 +64,6 @@ import androidx.compose.ui.semantics.Role
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import android.media.MediaPlayer
 import ee.ahtilohk.audioloop.AppIcons
 import ee.ahtilohk.audioloop.RecordingItem
 import ee.ahtilohk.audioloop.ui.theme.*
