@@ -369,13 +369,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private fun startRecording(fileName: String, category: String, useRawAudio: Boolean) {
         val usePublic = vm?.getPublicStoragePref() ?: true
-        val finalName = if (category == "General") fileName else {
-            if (usePublic) fileName else {
-                val folder = File(filesDir, category)
-                if (!folder.exists()) folder.mkdirs()
-                "$category/$fileName"
-            }
-        }
+        val finalName = fileName
         val intent = Intent(this, AudioService::class.java).apply {
             action = AudioService.ACTION_START_RECORDING
             putExtra(AudioService.EXTRA_FILENAME, finalName)

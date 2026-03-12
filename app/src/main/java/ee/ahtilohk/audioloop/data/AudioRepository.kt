@@ -96,7 +96,8 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                     dao.deleteByPath(oldFile.absolutePath)
                     dao.insertRecording(entity.copy(
                         filePath = newFile.absolutePath,
-                        name = newFile.name
+                        name = newFile.name,
+                        mediaStoreUri = if (entity.isPublic) entity.mediaStoreUri else null
                     ))
                     AudioResult.Success(newFile)
                 } else {
