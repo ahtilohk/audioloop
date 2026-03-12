@@ -459,4 +459,10 @@
     <string name="day_f">R</string>
     <string name="day_s">L</string>
     <string name="day_su">P</string>
+    <string name="notification_recording_mic">Mikrofoni salvestus…</string>
+    <string name="notification_recording_stream">Sisemise heli salvestus aktiivne…</string>
+    <string name="notification_playing">Mängib: %s</string>
+    <string name="msg_no_data_to_export">Eksportimiseks pole andmeid</string>
+    <string name="msg_export_failed">Eksport ebaõnnestus: %s</string>
+    <string name="menu_export_data">Andmete eksport</string>
 </resources>

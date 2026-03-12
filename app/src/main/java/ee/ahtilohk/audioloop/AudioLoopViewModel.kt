@@ -1620,7 +1620,7 @@ class AudioLoopViewModel @Inject constructor(
     }
 
     override fun showSnackbar(message: String, isError: Boolean) {
-        showSnackbar(message, isError)
+        showSnackbar(message = message, isError = isError, actionLabel = null)
     }
 
 }

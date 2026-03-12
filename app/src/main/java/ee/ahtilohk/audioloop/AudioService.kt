@@ -415,7 +415,7 @@ class AudioService : Service() {
                 // Ensure we have a player
                 val player = exoPlayer ?: run {
                     val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
-                        .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                        .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
                     
                     ExoPlayer.Builder(this, renderersFactory)
                         .setLooper(Looper.getMainLooper())
