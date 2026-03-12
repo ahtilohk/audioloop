@@ -15,7 +15,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.min
-import androidx.media3.common.audio.Sonic
+import androidx.media3.common.C
+import androidx.media3.common.audio.AudioProcessor as Media3AudioProcessor
+import androidx.media3.common.audio.SonicAudioProcessor
 
 object AudioProcessor {
 
@@ -130,33 +132,62 @@ object AudioProcessor {
         speed: Float,
         pitch: Float = 1.0f
     ): ShortArray {
-        val sonic = Sonic(sampleRate, channels)
-        sonic.speed = speed
-        sonic.pitch = pitch
-        
-        // Feed input samples
-        // Sonic expects samples in a ByteBuffer or similar if we use the underlying implementation,
-        // but the Media3 Sonic class has queueInput(ShortBuffer).
-        // Let's use the ShortBuffer approach.
-        val inputBuffer = java.nio.ShortBuffer.wrap(samples)
-        sonic.queueInput(inputBuffer)
-        
-        // Get output samples
-        val outputSamplesCount = sonic.outputSamplesAvailable
-        val outputBuffer = ShortArray(outputSamplesCount * channels)
-        val outputShortBuffer = java.nio.ShortBuffer.wrap(outputBuffer)
-        sonic.getOutput(outputShortBuffer)
-        
-        // Wait, sonic might need to be flushed or processed in chunks if it's large.
-        // For offline processing of the whole file, we should flush it.
-        sonic.queueEndOfStream()
-        
-        val totalOutputCount = sonic.outputSamplesAvailable
-        val finalOutput = ShortArray(totalOutputCount * channels)
-        val finalShortBuffer = java.nio.ShortBuffer.wrap(finalOutput)
-        sonic.getOutput(finalShortBuffer)
-        
-        return finalOutput
+        val sonicProcessor = SonicAudioProcessor()
+        sonicProcessor.setSpeed(speed)
+        sonicProcessor.setPitch(pitch)
+
+        try {
+            val inputFormat = Media3AudioProcessor.AudioFormat(sampleRate, channels, C.ENCODING_PCM_16BIT)
+            sonicProcessor.configure(inputFormat)
+            sonicProcessor.flush()
+        } catch (e: Exception) {
+            AppLog.e("Sonic configuration failed", e)
+            return samples
+        }
+
+        // Convert ShortArray to ByteBuffer
+        val inputByteBuffer = ByteBuffer.allocateDirect(samples.size * 2).order(ByteOrder.nativeOrder())
+        inputByteBuffer.asShortBuffer().put(samples)
+        inputByteBuffer.limit(samples.size * 2)
+
+        var outArr = ShortArray(samples.size)
+        var outSize = 0
+        val tempShorts = ShortArray(4096)
+
+        fun drainOutput() {
+            var output = sonicProcessor.getOutput()
+            while (output.hasRemaining()) {
+                val shortCount = output.remaining() / 2
+                val toRead = minOf(shortCount, tempShorts.size)
+                output.asShortBuffer().get(tempShorts, 0, toRead)
+                
+                // Add to outArr
+                if (outSize + toRead > outArr.size) {
+                    outArr = outArr.copyOf(maxOf(outArr.size * 2, outSize + toRead))
+                }
+                System.arraycopy(tempShorts, 0, outArr, outSize, toRead)
+                outSize += toRead
+                
+                output.position(output.position() + toRead * 2)
+            }
+        }
+
+        // Process input
+        sonicProcessor.queueInput(inputByteBuffer)
+        drainOutput()
+
+        // Signal end and drain remaining
+        sonicProcessor.queueEndOfStream()
+        while (!sonicProcessor.isEnded) {
+            drainOutput()
+            if (!sonicProcessor.getOutput().hasRemaining() && !sonicProcessor.isEnded) {
+                // Safety break for unexpected behavior
+                if (outSize > samples.size * 10) break
+                // Keep polling as per Media3 processor contract
+            }
+        }
+
+        return if (outSize == outArr.size) outArr else outArr.copyOf(outSize)
     }
 
     private fun applyFadeToSamples(
