@@ -409,8 +409,8 @@ class AudioLoopViewModel @Inject constructor(
     fun refreshFileList() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            // Only sync current category to avoid "unexpected files" in other categories appearing
-            repository.discoverRecordings(listOf(_uiState.value.currentCategory))
+            // Optimization: Only sync current category and internal files to avoid aggressive public imports
+            repository.syncInternalOnly(listOf(_uiState.value.currentCategory))
             _uiState.update { it.copy(isLoading = false) }
         }
     }
@@ -493,7 +493,7 @@ class AudioLoopViewModel @Inject constructor(
 
         val file = item.file
         if (!file.exists()) {
-            repository.deleteRecording(file.absolutePath)
+            repository.deleteRecording(file.absolutePath, item.isPublic)
             return true
         }
 
@@ -530,7 +530,7 @@ class AudioLoopViewModel @Inject constructor(
             if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
             if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
             
-            repository.deleteRecording(file.absolutePath)
+            repository.deleteRecording(file.absolutePath, item.isPublic)
             return true
         }
         return false
@@ -568,9 +568,9 @@ class AudioLoopViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, showMultiDeleteDialog = false) }
             
-            // Reliability improvement: use items from filtered list or sync repository instead of state snapshot
+            // Reliability improvement: use items from repository to ensure we have paths
             val allItems = repository.getAllRecordingsSync()
-            val itemsToDelete = allItems.filter { it.name in selected }
+            val itemsToDelete = allItems.filter { it.file.absolutePath in selected }
             var deletedCount = 0
             
             itemsToDelete.forEach { item ->
@@ -1278,9 +1278,9 @@ class AudioLoopViewModel @Inject constructor(
         if (!enabled) clearSelection()
     }
 
-    fun toggleFileSelection(name: String) {
+    fun toggleFileSelection(path: String) {
         val current = _uiState.value.selectedFiles.toMutableSet()
-        if (current.contains(name)) current.remove(name) else current.add(name)
+        if (current.contains(path)) current.remove(path) else current.add(path)
         _uiState.update { it.copy(selectedFiles = current) }
     }
 

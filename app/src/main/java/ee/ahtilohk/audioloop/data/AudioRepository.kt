@@ -115,12 +115,24 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         try {
             categories.forEach { cat ->
                 syncCategory(cat)
-                syncPublicStorage(cat) // Ensure recordings in public storage are scanned
+                syncPublicStorage(cat)
             }
             cleanupStaleEntries()
             AudioResult.Success(Unit)
         } catch (e: Exception) {
             AudioResult.Error("Discovery failed", e)
+        }
+    }
+
+    suspend fun syncInternalOnly(categories: List<String>): AudioResult<Unit> = withContext(Dispatchers.IO) {
+        try {
+            categories.forEach { cat ->
+                syncCategory(cat)
+            }
+            cleanupStaleEntries()
+            AudioResult.Success(Unit)
+        } catch (e: Exception) {
+            AudioResult.Error("Internal sync failed", e)
         }
     }
 
@@ -137,8 +149,7 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                 android.provider.MediaStore.Audio.Media.RELATIVE_PATH
             )
             val targetPath = if (category == "General") "Music/AudioLoop/" else "Music/AudioLoop/$category/"
-            // Filter out system temp files and our own processing temps
-            // Using exact RELATIVE_PATH match to avoid duplicates from sub-folders
+            
             val targetPathWithSlash = if (targetPath.endsWith("/")) targetPath else "$targetPath/"
             val targetPathNoSlash = targetPath.trimEnd('/')
             
@@ -160,7 +171,7 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                         val (durStr, durMs) = AudioMetadataHelper.getDuration(File(path))
                         
                         val uri = android.content.ContentUris.withAppendedId(collection, id)
-                        val item = RecordingItem(File(path), name, durStr, durMs, uri, "")
+                        val item = RecordingItem(File(path), name, durStr, durMs, uri, "", true)
                         toInsert.add(item.toEntity(category, true))
                     }
                 }
@@ -192,7 +203,8 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                     durationString = durStr,
                     durationMillis = durMs,
                     uri = Uri.fromFile(file),
-                    note = ""
+                    note = "",
+                    isPublic = false
                 )
                 toInsert.add(item.toEntity(category, false))
             }
@@ -212,11 +224,21 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    suspend fun deleteRecording(path: String): AudioResult<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteRecording(path: String, isPublic: Boolean = false): AudioResult<Unit> = withContext(Dispatchers.IO) {
         try {
             val file = File(path)
             val noteFile = getNoteFile(file)
             val waveFile = getWaveformFile(file)
+
+            if (isPublic && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // For public files, we should also delete from MediaStore if possible
+                val entity = dao.getByPath(path)
+                entity?.mediaStoreUri?.let { uriStr ->
+                    try {
+                        context.contentResolver.delete(Uri.parse(uriStr), null, null)
+                    } catch (_: Exception) {}
+                }
+            }
 
             if (file.exists() && !file.delete()) {
                 return@withContext AudioResult.Error("Failed to delete file from disk")
@@ -237,7 +259,8 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         durationString = durationString,
         durationMillis = durationMillis,
         uri = mediaStoreUri?.let { Uri.parse(it) } ?: Uri.EMPTY,
-        note = note
+        note = note,
+        isPublic = isPublic
     )
 
     private fun RecordingItem.toEntity(category: String, isPublic: Boolean) = RecordingEntity(

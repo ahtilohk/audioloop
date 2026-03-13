@@ -239,8 +239,8 @@ private fun SelectionActionBar(
         Button(
             onClick = {
                 val orderedSelection = uiState.selectedFiles.toList()
-                val filesToPlay = orderedSelection.mapNotNull { name ->
-                    recordingItems.find { it.name == name }
+                val filesToPlay = orderedSelection.mapNotNull { path ->
+                    recordingItems.find { it.file.absolutePath == path }
                 }
                 if (filesToPlay.isNotEmpty()) {
                     viewModel.startPlaylistPlayback(filesToPlay, loop = false, speed = 1.0f) {}
@@ -266,16 +266,16 @@ private fun SelectionActionBar(
         FilledTonalButton(
             onClick = {
                 val orderedSelection = uiState.selectedFiles.toList()
-                val relativePaths = orderedSelection.map { name ->
-                    val item = recordingItems.find { it.name == name }
+                val relativePaths = orderedSelection.map { path ->
+                    val item = recordingItems.find { it.file.absolutePath == path }
                     if (item != null) {
-                        val path = item.file.absolutePath.replace("\\", "/")
-                        val cat = if (path.contains("Music/AudioLoop/")) {
-                            val subPath = path.substringAfter("Music/AudioLoop/")
+                        val pathSlash = item.file.absolutePath.replace("\\", "/")
+                        val cat = if (pathSlash.contains("Music/AudioLoop/")) {
+                            val subPath = pathSlash.substringAfter("Music/AudioLoop/")
                             if (subPath.contains("/")) subPath.substringBefore("/") else ""
                         } else ""
-                        if (cat.isNotEmpty()) "$cat/$name" else name
-                    } else name
+                        if (cat.isNotEmpty()) "$cat/${item.name}" else item.name
+                    } else path
                 }
                 viewModel.openPlaylistEditor(Playlist(
                     id = "new_" + java.util.UUID.randomUUID().toString(),
@@ -304,8 +304,8 @@ private fun SelectionActionBar(
             FilledTonalButton(
                 onClick = {
                     val orderedSelection = uiState.selectedFiles.toList()
-                    val filesToMerge = orderedSelection.mapNotNull { name ->
-                        recordingItems.find { it.name == name }
+                    val filesToMerge = orderedSelection.mapNotNull { path ->
+                        recordingItems.find { it.file.absolutePath == path }
                     }
                     if (filesToMerge.size >= 2) {
                         viewModel.mergeFiles(filesToMerge)
@@ -757,13 +757,13 @@ private fun DraggableFileList(
                     isPlaying = isPlaying,
                     isPaused = if (isPlaying) uiState.isPaused else false,
                     isSelectionMode = uiState.isSelectionMode,
-                    isSelected = uiState.selectedFiles.contains(item.name),
-                    selectionOrder = uiState.selectedFiles.indexOf(item.name) + 1,
+                    isSelected = uiState.selectedFiles.contains(item.file.absolutePath),
+                    selectionOrder = uiState.selectedFiles.toList().indexOf(item.file.absolutePath) + 1,
                     onPlay = { viewModel.playFile(item) },
                     onPause = { viewModel.pausePlaying() },
                     onResume = { viewModel.resumePlaying() },
                     onStop = { viewModel.stopPlayingAndReset() },
-                    onToggleSelect = { viewModel.toggleFileSelection(item.name) },
+                    onToggleSelect = { viewModel.toggleFileSelection(item.file.absolutePath) },
                     onRename = { viewModel.openRenameDialog(item) },
                     onTrim = { viewModel.openTrimDialog(item) },
                     onMove = { viewModel.openMoveDialog(item) },

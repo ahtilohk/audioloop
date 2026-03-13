@@ -9,5 +9,6 @@ data class RecordingItem(
     val durationString: String,
     val durationMillis: Long,
     val uri: Uri,
-    val note: String = "" // text note (lyrics, verse, translation etc.)
+    val note: String = "", // text note (lyrics, verse, translation etc.)
+    val isPublic: Boolean = false
 )

@@ -79,7 +79,7 @@ data class AudioLoopUiState(
     val isSearchVisible: Boolean = false,
     val isRecording: Boolean = false,
     val isSelectionMode: Boolean = false,
-    val selectedFiles: Set<String> = emptySet(),
+    val selectedFiles: Set<String> = emptySet(), // Absolute paths
     val settingsOpen: Boolean = false,
     val showCategorySheet: Boolean = false,
     val isLoading: Boolean = false,
