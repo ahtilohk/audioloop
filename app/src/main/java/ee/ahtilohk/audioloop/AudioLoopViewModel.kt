@@ -487,6 +487,11 @@ class AudioLoopViewModel @Inject constructor(
     }
 
     fun deleteFile(item: RecordingItem) {
+        // Stop playing if this file is the one playing
+        if (_uiState.value.playingFileName == item.name) {
+            stopPlaying()
+        }
+
         viewModelScope.launch {
             val file = item.file
             val noteFile = getNoteFile(file)
@@ -506,11 +511,22 @@ class AudioLoopViewModel @Inject constructor(
             lastDeletedOriginalPath = file
             lastDeletedCategory = _uiState.value.currentCategory
 
-            // 3. Move to trash
-            val moved = file.renameTo(trashFile)
+            // 3. Move to trash with fallback
+            var moved = try { file.renameTo(trashFile) } catch (e: Exception) { false }
+            
+            if (!moved) {
+                // Try copying + deleting (handles cross-partition or permission issues better)
+                try {
+                    file.inputStream().use { input -> trashFile.outputStream().use { output -> input.copyTo(output) } }
+                    moved = file.delete()
+                } catch (e: Exception) {
+                    moved = false
+                }
+            }
+
             if (moved) {
-                if (noteFile.exists()) noteFile.renameTo(trashNote)
-                if (waveFile.exists()) waveFile.renameTo(trashWave)
+                if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
+                if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
                 
                 repository.deleteRecording(file.absolutePath)
                 showSnackbar(
@@ -520,6 +536,62 @@ class AudioLoopViewModel @Inject constructor(
             } else {
                 showSnackbar(ctx.getString(R.string.msg_error_deleting), isError = true)
             }
+        }
+    }
+
+    fun openMultiDeleteDialog() {
+        if (_uiState.value.selectedFiles.isNotEmpty()) {
+            _uiState.update { it.copy(showMultiDeleteDialog = true) }
+        }
+    }
+
+    fun closeMultiDeleteDialog() {
+        _uiState.update { it.copy(showMultiDeleteDialog = false) }
+    }
+
+    fun deleteSelectedFiles() {
+        val selected = _uiState.value.selectedFiles
+        if (selected.isEmpty()) return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, showMultiDeleteDialog = false) }
+            val itemsToDelete = _uiState.value.allRecordings.filter { it.name in selected }
+            var deletedCount = 0
+            
+            itemsToDelete.forEach { item ->
+                if (_uiState.value.playingFileName == item.name) {
+                    stopPlaying()
+                }
+                
+                val file = item.file
+                val trashDir = File(filesDir, ".trash").apply { mkdirs() }
+                val trashFile = File(trashDir, "${System.currentTimeMillis()}_${file.name}")
+                
+                // For batch, we try rename, else copy+delete, else just delete
+                var worked = try { file.renameTo(trashFile) } catch (e: Exception) { false }
+                if (!worked) {
+                    worked = try {
+                        file.inputStream().use { input -> trashFile.outputStream().use { output -> input.copyTo(output) } }
+                        file.delete()
+                    } catch (e: Exception) {
+                        file.delete() // Last resort: just delete
+                    }
+                }
+                
+                if (worked) {
+                    repository.deleteRecording(file.absolutePath)
+                    deletedCount++
+                    // Also cleanup sidecars
+                    getNoteFile(file).delete()
+                    getWaveformFile(file).delete()
+                }
+            }
+            
+            clearSelection()
+            setSelectionMode(false)
+            _uiState.update { it.copy(isLoading = false) }
+            showSnackbar(ctx.getString(R.string.msg_deleted, "$deletedCount files"))
+            refreshFileList()
         }
     }
 

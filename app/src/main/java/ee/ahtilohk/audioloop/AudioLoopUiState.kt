@@ -96,6 +96,7 @@ data class AudioLoopUiState(
     val showPlaylistView: Boolean = false,
     val showPrivacyPolicyDialog: Boolean = false,
     val showExportSegmentDialog: Boolean = false,
+    val showMultiDeleteDialog: Boolean = false,
 
     // --- Contextual Items ---
     val itemToModify: RecordingItem? = null,

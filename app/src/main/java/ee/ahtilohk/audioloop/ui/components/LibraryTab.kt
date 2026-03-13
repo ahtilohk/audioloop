@@ -329,6 +329,18 @@ private fun SelectionActionBar(
                 )
             }
         }
+
+        // Delete selected
+        IconButton(
+            onClick = { viewModel.openMultiDeleteDialog() },
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = AppIcons.Delete,
+                contentDescription = stringResource(R.string.btn_delete),
+                tint = Red500
+            )
+        }
     }
 }
 

@@ -116,6 +116,15 @@ fun MainOverlays(
             onConfirm = { viewModel.deleteFile(uiState.recordingToDelete!!); viewModel.closeDeleteDialog() }
         )
     }
+    
+    if (uiState.showMultiDeleteDialog) {
+        DeleteConfirmDialog(
+            title = stringResource(R.string.dialog_delete_multiple_title, uiState.selectedFiles.size),
+            text = stringResource(R.string.dialog_delete_multiple_confirm, uiState.selectedFiles.size),
+            onDismiss = { viewModel.closeMultiDeleteDialog() },
+            onConfirm = { viewModel.deleteSelectedFiles() }
+        )
+    }
 
     if (uiState.showNoteDialog && uiState.recordingToNote != null) {
         NoteEditDialog(

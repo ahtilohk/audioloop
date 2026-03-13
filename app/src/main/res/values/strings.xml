@@ -190,6 +190,8 @@
     <string name="library_play_count">PLAY %d</string>
     <string name="library_playlist">PLAYLIST</string>
     <string name="library_merge_count">MERGE %d</string>
+    <string name="library_delete_count">DELETE %d</string>
+
     <string name="library_now_playing">NOW PLAYING</string>
     <string name="library_today_format">Today %s</string>
     <string name="library_tracks_count">%d tracks</string>
@@ -213,6 +215,9 @@
     <string name="dialog_close">Close</string>
     <string name="dialog_delete_file">Delete file?</string>
     <string name="dialog_delete_confirm_format">Are you sure you want to delete \'%s\'?</string>
+    <string name="dialog_delete_multiple_title">Delete %d files?</string>
+    <string name="dialog_delete_multiple_confirm">Are you sure you want to delete these %d files? This cannot be undone.</string>
+
     <string name="dialog_file_info">File Info</string>
 
     <!-- File Info -->

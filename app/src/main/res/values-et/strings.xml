@@ -190,6 +190,8 @@
     <string name="library_play_count">MÄNGI %d</string>
     <string name="library_playlist">ESITUSLOEND</string>
     <string name="library_merge_count">ÜHENDA %d</string>
+    <string name="library_delete_count">KUSTUTA %d</string>
+
     <string name="library_now_playing">HETKEL MÄNGIB</string>
     <string name="library_today_format">Täna %s</string>
     <string name="library_tracks_count">%d lugu</string>
@@ -213,6 +215,9 @@
     <string name="dialog_close">Sulge</string>
     <string name="dialog_delete_file">Kustutada fail?</string>
     <string name="dialog_delete_confirm_format">Oled sa kindel, et soovid kustutada \'%s\'?</string>
+    <string name="dialog_delete_multiple_title">Kustutada %d faili?</string>
+    <string name="dialog_delete_multiple_confirm">Oled sa kindel, et soovid kustutada need %d faili? Seda ei saa tagasi võtta.</string>
+
     <string name="dialog_file_info">Faili info</string>
 
     <!-- File Info -->
