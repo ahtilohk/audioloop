@@ -486,53 +486,65 @@ class AudioLoopViewModel @Inject constructor(
         }
     }
 
-    fun deleteFile(item: RecordingItem) {
-        // Stop playing if this file is the one playing
+    private suspend fun performDeletion(item: RecordingItem): Boolean {
         if (_uiState.value.playingFileName == item.name) {
             stopPlaying()
         }
 
-        viewModelScope.launch {
-            val file = item.file
-            val noteFile = getNoteFile(file)
-            val waveFile = getWaveformFile(file)
-            
-            // 1. Prepare Trash folder
-            val trashDir = File(filesDir, ".trash").apply { mkdirs() }
-            val timestamp = System.currentTimeMillis()
-            val trashFile = File(trashDir, "${timestamp}_${file.name}")
-            val trashNote = File(trashDir, "${timestamp}_${file.name}.note")
-            val trashWave = File(trashDir, "${timestamp}_${file.name}.wave")
+        val file = item.file
+        if (!file.exists()) {
+            repository.deleteRecording(file.absolutePath)
+            return true
+        }
 
-            // 2. Backup current state for Undo
-            lastDeletedFile = trashFile
-            lastDeletedNoteFile = if (noteFile.exists()) trashNote else null
-            lastDeletedWaveFile = if (waveFile.exists()) trashWave else null
-            lastDeletedOriginalPath = file
-            lastDeletedCategory = _uiState.value.currentCategory
+        val trashDir = File(filesDir, ".trash").apply { mkdirs() }
+        val timestamp = System.currentTimeMillis()
+        val trashFile = File(trashDir, "${timestamp}_${file.name}")
+        val trashNote = File(trashDir, "${timestamp}_${file.name}.note")
+        val trashWave = File(trashDir, "${timestamp}_${file.name}.wave")
 
-            // 3. Move to trash with fallback
-            var moved = try { file.renameTo(trashFile) } catch (e: Exception) { false }
-            
-            if (!moved) {
-                // Try copying + deleting (handles cross-partition or permission issues better)
-                try {
-                    file.inputStream().use { input -> trashFile.outputStream().use { output -> input.copyTo(output) } }
-                    moved = file.delete()
-                } catch (e: Exception) {
-                    moved = false
-                }
+        val noteFile = getNoteFile(file)
+        val waveFile = getWaveformFile(file)
+
+        // Backup current state for Undo
+        lastDeletedFile = trashFile
+        lastDeletedNoteFile = if (noteFile.exists()) trashNote else null
+        lastDeletedWaveFile = if (waveFile.exists()) trashWave else null
+        lastDeletedOriginalPath = file
+        lastDeletedCategory = _uiState.value.currentCategory
+
+        // 3. Move to trash with fallback
+        var moved = try { file.renameTo(trashFile) } catch (e: Exception) { false }
+        
+        if (!moved) {
+            // Try copying + deleting (handles cross-partition or permission issues better)
+            try {
+                file.inputStream().use { input -> trashFile.outputStream().use { output -> input.copyTo(output) } }
+                moved = file.delete()
+            } catch (e: Exception) {
+                moved = false
             }
+        }
 
-            if (moved) {
-                if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
-                if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
-                
-                repository.deleteRecording(file.absolutePath)
+        if (moved || !file.exists()) {
+            if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
+            if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
+            
+            repository.deleteRecording(file.absolutePath)
+            return true
+        }
+        return false
+    }
+
+    fun deleteFile(item: RecordingItem) {
+        viewModelScope.launch {
+            if (performDeletion(item)) {
                 showSnackbar(
                     message = ctx.getString(R.string.msg_deleted, item.name),
                     actionLabel = ctx.getString(R.string.btn_undo)
                 )
+                closeDeleteDialog()
+                refreshFileList()
             } else {
                 showSnackbar(ctx.getString(R.string.msg_error_deleting), isError = true)
             }
@@ -550,40 +562,20 @@ class AudioLoopViewModel @Inject constructor(
     }
 
     fun deleteSelectedFiles() {
-        val selected = _uiState.value.selectedFiles
+        val selected = _uiState.value.selectedFiles.toSet()
         if (selected.isEmpty()) return
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, showMultiDeleteDialog = false) }
-            val itemsToDelete = _uiState.value.allRecordings.filter { it.name in selected }
+            
+            // Reliability improvement: use items from filtered list or sync repository instead of state snapshot
+            val allItems = repository.getAllRecordingsSync()
+            val itemsToDelete = allItems.filter { it.name in selected }
             var deletedCount = 0
             
             itemsToDelete.forEach { item ->
-                if (_uiState.value.playingFileName == item.name) {
-                    stopPlaying()
-                }
-                
-                val file = item.file
-                val trashDir = File(filesDir, ".trash").apply { mkdirs() }
-                val trashFile = File(trashDir, "${System.currentTimeMillis()}_${file.name}")
-                
-                // For batch, we try rename, else copy+delete, else just delete
-                var worked = try { file.renameTo(trashFile) } catch (e: Exception) { false }
-                if (!worked) {
-                    worked = try {
-                        file.inputStream().use { input -> trashFile.outputStream().use { output -> input.copyTo(output) } }
-                        file.delete()
-                    } catch (e: Exception) {
-                        file.delete() // Last resort: just delete
-                    }
-                }
-                
-                if (worked) {
-                    repository.deleteRecording(file.absolutePath)
+                if (performDeletion(item)) {
                     deletedCount++
-                    // Also cleanup sidecars
-                    getNoteFile(file).delete()
-                    getWaveformFile(file).delete()
                 }
             }
             
@@ -598,17 +590,30 @@ class AudioLoopViewModel @Inject constructor(
     fun undoDelete() {
         val original = lastDeletedOriginalPath ?: return
         val trash = lastDeletedFile ?: return
+        val category = lastDeletedCategory ?: "General"
         
-        if (trash.exists()) {
-            trash.renameTo(original)
-            lastDeletedNoteFile?.let { if (it.exists()) it.renameTo(getNoteFile(original)) }
-            lastDeletedWaveFile?.let { if (it.exists()) it.renameTo(getWaveformFile(original)) }
-            
-            lastDeletedFile = null
-            lastDeletedOriginalPath = null
-            
-            refreshFileList()
-            showSnackbar(ctx.getString(R.string.msg_restored))
+        viewModelScope.launch {
+            val moved = withContext(Dispatchers.IO) {
+                if (trash.exists()) {
+                    trash.renameTo(original)
+                } else false
+            }
+
+            if (moved) {
+                lastDeletedNoteFile?.let { if (it.exists()) it.renameTo(getNoteFile(original)) }
+                lastDeletedWaveFile?.let { if (it.exists()) it.renameTo(getWaveformFile(original)) }
+                
+                // Restore to database
+                val (durStr, durMs) = AudioMetadataHelper.getDuration(original)
+                val item = RecordingItem(original, original.name, durStr, durMs, Uri.fromFile(original), "")
+                repository.insertRecording(item, category)
+
+                lastDeletedFile = null
+                lastDeletedOriginalPath = null
+                
+                refreshFileList()
+                showSnackbar(ctx.getString(R.string.msg_restored))
+            }
         }
     }
 
