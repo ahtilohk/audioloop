@@ -32,6 +32,8 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.AudioAttributes as Media3AudioAttributes
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.audio.DefaultAudioSink
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -414,8 +416,13 @@ class AudioService : Service() {
             try {
                 // Ensure we have a player
                 val player = exoPlayer ?: run {
-                    val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
-                        .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+                    val audioSink = DefaultAudioSink.Builder(this)
+                        .setEnableAudioTrackPlaybackParams(true)
+                        .build()
+
+                    val renderersFactory = DefaultRenderersFactory(this)
+                        .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+                        .setAudioSink(audioSink)
                     
                     ExoPlayer.Builder(this, renderersFactory)
                         .setLooper(Looper.getMainLooper())

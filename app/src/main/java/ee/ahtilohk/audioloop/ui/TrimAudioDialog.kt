@@ -83,8 +83,12 @@ fun TrimAudioScreen(
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current
     val previewPlayer = remember(context) { 
+        val audioSink = androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+            .setEnableAudioTrackPlaybackParams(true)
+            .build()
         val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
             .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+            .setAudioSink(audioSink)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
             repeatMode = Player.REPEAT_MODE_OFF
         }
