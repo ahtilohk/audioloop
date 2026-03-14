@@ -47,6 +47,7 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     // --- Sign-In ---
 
+    @Suppress("DEPRECATION")
     fun getSignInClient(): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -57,14 +58,17 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     fun getSignInIntent(): Intent = getSignInClient().signInIntent
 
+    @Suppress("DEPRECATION")
     fun isSignedIn(): Boolean = GoogleSignIn.getLastSignedInAccount(context) != null
 
+    @Suppress("DEPRECATION")
     fun getSignedInEmail(): String? = GoogleSignIn.getLastSignedInAccount(context)?.email
 
     fun handleSignInResult(acct: GoogleSignInAccount?) {
         account = acct
     }
 
+    @Suppress("DEPRECATION")
     fun initFromLastAccount(): Boolean {
         account = GoogleSignIn.getLastSignedInAccount(context) ?: return false
         return true
@@ -79,6 +83,7 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     // --- Token helper ---
 
+    @Suppress("DEPRECATION")
     private suspend fun getAccessToken(): String = withContext(Dispatchers.IO) {
         val acct = account ?: GoogleSignIn.getLastSignedInAccount(context) ?: throw Exception("Not signed in")
         com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, "oauth2:$SCOPE")

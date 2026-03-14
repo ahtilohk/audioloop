@@ -376,7 +376,7 @@ class AudioService : Service() {
             when (nextStart) {
                 is PendingStart.Mic -> startMicRecording(nextStart.fileName, nextStart.source, nextStart.usePublic, nextStart.category)
                 is PendingStart.Internal -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) startInternalRecording(nextStart.fileName, nextStart.resultCode, nextStart.data)
-                null -> stopForeground(true)
+                null -> stopForeground(STOP_FOREGROUND_REMOVE)
             }
         }
     }
@@ -547,7 +547,7 @@ class AudioService : Service() {
             exoPlayer = null
             playbackListener = null
             mediaSessionManager?.updatePlaybackState(isPlaying = false, isPaused = false)
-            stopForeground(true)
+            stopForeground(STOP_FOREGROUND_REMOVE)
         }
     }
 

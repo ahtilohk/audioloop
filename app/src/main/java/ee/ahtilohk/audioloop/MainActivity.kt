@@ -106,11 +106,13 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         vm?.setReady(true)
     }
 
+    @Suppress("DEPRECATION")
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val data = result.data
         if (data != null) {
             val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(data)
             if (task.isSuccessful) {
+                @Suppress("DEPRECATION")
                 vm?.handleSignInResult(task.result)
             } else {
                 val e = task.exception
@@ -357,8 +359,24 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     private fun extractUrisFromIntent(intent: Intent): List<Uri> {
         val results = LinkedHashSet<Uri>()
         when (intent.action) {
-            Intent.ACTION_SEND -> intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.add(it) }
-            Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { results.addAll(it) }
+            Intent.ACTION_SEND -> {
+                val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM)
+                }
+                uri?.let { results.add(it) }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                val uris = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+                }
+                uris?.let { results.addAll(it) }
+            }
             Intent.ACTION_VIEW -> intent.data?.let { results.add(it) }
         }
         intent.clipData?.let { clip ->

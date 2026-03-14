@@ -16,8 +16,8 @@ class ThemeTest {
     }
 
     @Test
-    fun `all themes have 6 entries`() {
-        assertEquals(6, AppTheme.entries.size)
+    fun `all themes have 7 entries`() {
+        assertEquals(7, AppTheme.entries.size)
     }
 
     @Test
@@ -124,6 +124,6 @@ class ThemeTest {
     fun `all themes can be iterated`() {
         var count = 0
         AppTheme.entries.forEach { count++ }
-        assertEquals(6, count)
+        assertEquals(7, count)
     }
 }

@@ -530,7 +530,7 @@ fun TrimAudioScreen(
                                     val baseColor = if (isKept) {
                                         if (isSilent && autoTrimSilence) Amber500.copy(alpha = 0.5f)
                                         else primaryColor
-                                    } else outlineColor
+                                    } else Color.White
 
                                     val barBrush = if (isKept && !isSilent) {
                                         Brush.verticalGradient(

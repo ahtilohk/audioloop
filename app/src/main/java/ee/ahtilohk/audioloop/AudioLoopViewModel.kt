@@ -267,6 +267,7 @@ class AudioLoopViewModel @Inject constructor(
     private fun syncDatabaseAndObserve() {
         // 1. Observe items for current category (Uses flatMapLatest to cancel old flows)
         viewModelScope.launch {
+            @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
             _uiState.map { it.currentCategory }
                 .distinctUntilChanged()
                 .flatMapLatest { category -> repository.getRecordingsByCategory(category) }
@@ -1000,6 +1001,7 @@ class AudioLoopViewModel @Inject constructor(
 
     // ── Backup & Restore ──
 
+    @Suppress("DEPRECATION")
     fun handleSignInResult(account: com.google.android.gms.auth.api.signin.GoogleSignInAccount?) {
         if (account != null) {
             driveBackupManager.handleSignInResult(account)

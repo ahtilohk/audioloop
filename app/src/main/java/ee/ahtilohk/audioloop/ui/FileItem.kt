@@ -745,7 +745,7 @@ fun FileItem(
                                     icon = AppIcons.Speed,
                                     label = "${speed}x",
                                     onClick = { 
-                                        val speeds = listOf(0.75f, 1f, 1.25f, 1.5f)
+                                        val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f)
                                         val next = speeds[(speeds.indexOf(speed) + 1) % speeds.size]
                                         onSpeedChange(next)
                                         if (!isPlaying) onPlay()
