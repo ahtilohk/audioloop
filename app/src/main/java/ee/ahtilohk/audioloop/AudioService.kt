@@ -34,6 +34,8 @@ import androidx.media3.common.AudioAttributes as Media3AudioAttributes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.common.util.UnstableApi
+import androidx.annotation.OptIn
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -410,24 +412,45 @@ class AudioService : Service() {
 
     // ── Playback Logic (NEW: Managed Foreground Playback with Media3/ExoPlayer) ──
 
+    @OptIn(UnstableApi::class)
     fun playFile(item: RecordingItem, speed: Float, pitch: Float, startMs: Int = 0) {
         val mainHandler = Handler(Looper.getMainLooper())
         mainHandler.post {
             try {
                 // Ensure we have a player
-                val player = exoPlayer ?: run {
-                    val audioSink = DefaultAudioSink.Builder(this)
-                        .setEnableAudioTrackPlaybackParams(true)
-                        .build()
-
-                    val renderersFactory = DefaultRenderersFactory(this)
-                        .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
-                        .setAudioSink(audioSink)
+                if (exoPlayer == null) {
+                    val renderersFactory = object : DefaultRenderersFactory(this@AudioService) {
+                        override fun buildAudioRenderers(
+                            context: Context,
+                            extensionRendererMode: Int,
+                            mediaCodecSelector: androidx.media3.exoplayer.mediacodec.MediaCodecSelector,
+                            enableDecoderFallback: Boolean,
+                            audioSink: androidx.media3.exoplayer.audio.AudioSink,
+                            eventHandler: Handler,
+                            eventListener: androidx.media3.exoplayer.audio.AudioRendererEventListener,
+                            out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
+                        ) {
+                            val customSink = DefaultAudioSink.Builder(context)
+                                .setEnableAudioTrackPlaybackParams(true)
+                                .build()
+                            super.buildAudioRenderers(
+                                context,
+                                extensionRendererMode,
+                                mediaCodecSelector,
+                                enableDecoderFallback,
+                                customSink,
+                                eventHandler,
+                                eventListener,
+                                out
+                            )
+                        }
+                    }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
                     
-                    ExoPlayer.Builder(this, renderersFactory)
+                    exoPlayer = ExoPlayer.Builder(this@AudioService, renderersFactory)
                         .setLooper(Looper.getMainLooper())
-                        .build().also { exoPlayer = it }
+                        .build()
                 }
+                val player = exoPlayer!!
                 
                 player.stop()
                 player.clearMediaItems()

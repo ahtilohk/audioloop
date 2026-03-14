@@ -34,10 +34,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.common.util.UnstableApi
+import androidx.annotation.OptIn
 import android.net.Uri
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.Player
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import java.io.File
 import kotlinx.coroutines.*
 import kotlin.math.min
@@ -69,6 +74,7 @@ private enum class TrimMode {
     Remove
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 fun TrimAudioScreen(
     file: File,
@@ -83,12 +89,32 @@ fun TrimAudioScreen(
     var range by remember { mutableStateOf(0f..durationMs.toFloat()) }
     val context = LocalContext.current
     val previewPlayer = remember(context) { 
-        val audioSink = androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
-            .setEnableAudioTrackPlaybackParams(true)
-            .build()
-        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
-            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
-            .setAudioSink(audioSink)
+        val renderersFactory = object : DefaultRenderersFactory(context) {
+            override fun buildAudioRenderers(
+                context: android.content.Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: androidx.media3.exoplayer.mediacodec.MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                audioSink: androidx.media3.exoplayer.audio.AudioSink,
+                eventHandler: android.os.Handler,
+                eventListener: androidx.media3.exoplayer.audio.AudioRendererEventListener,
+                out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
+            ) {
+                val customSink = DefaultAudioSink.Builder(context)
+                    .setEnableAudioTrackPlaybackParams(true)
+                    .build()
+                super.buildAudioRenderers(
+                    context,
+                    extensionRendererMode,
+                    mediaCodecSelector,
+                    enableDecoderFallback,
+                    customSink,
+                    eventHandler,
+                    eventListener,
+                    out
+                )
+            }
+        }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
             repeatMode = Player.REPEAT_MODE_OFF
         }
