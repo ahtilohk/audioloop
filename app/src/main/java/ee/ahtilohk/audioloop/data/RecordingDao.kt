@@ -40,4 +40,7 @@ interface RecordingDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM recordings WHERE filePath = :path)")
     suspend fun exists(path: String): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM recordings WHERE name = :name)")
+    suspend fun existsByName(name: String): Boolean
 }

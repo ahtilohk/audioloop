@@ -165,9 +165,14 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
 
                 while (cursor.moveToNext()) {
                     val path = cursor.getString(dataCol) ?: continue
-                    if (!dao.exists(path)) {
+                    val name = cursor.getString(nameCol) ?: continue
+
+                    // Extension check to avoid including .wave or .json files indexed as audio
+                    val ext = File(path).extension.lowercase()
+                    if (ext !in listOf("m4a", "mp3", "wav")) continue
+
+                    if (!dao.exists(path) && !dao.existsByName(name)) {
                         val id = cursor.getLong(idCol)
-                        val name = cursor.getString(nameCol)
                         val (durStr, durMs) = AudioMetadataHelper.getDuration(File(path))
                         
                         val uri = android.content.ContentUris.withAppendedId(collection, id)
@@ -299,6 +304,10 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                     val name = cursor.getString(nameCol) ?: continue
                     val relPath = cursor.getString(pathCol) ?: continue
 
+                    // Extension check - only import supported audio
+                    val ext = name.substringAfterLast('.', "").lowercase()
+                    if (ext !in listOf("m4a", "mp3", "wav")) continue
+
                     val categoryName = relPath
                         .removePrefix("Music/AudioLoop/")
                         .trimEnd('/')
@@ -311,7 +320,7 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
                                      else File(filesDir, categoryName).apply { mkdirs() }
                     val destFile = File(destFolder, name)
 
-                    if (destFile.exists() || dao.exists(destFile.absolutePath)) continue
+                    if (destFile.exists() || dao.exists(destFile.absolutePath) || dao.existsByName(name)) continue
 
                     val uri = android.content.ContentUris.withAppendedId(collection, mediaId)
                     try {

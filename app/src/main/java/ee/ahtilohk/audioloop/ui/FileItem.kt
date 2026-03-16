@@ -642,10 +642,10 @@ fun FileItem(
                                     )
                                 }
 
-                                // 2. Background (Subtle but clearly visible gray)
-                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.25f))
+                                // 2. Background Waveform (requested to be white)
+                                drawWaveform(Color.White.copy(alpha = 0.3f))
 
-                                // 3. Active Waveform (Primary themed with full opacity and gradient)
+                                // 3. Active Waveform (Clipping to progress)
                                 clipRect(right = currentProgress * w) {
                                     drawWaveform(primaryColor, isFullColor = true)
                                 }
