@@ -520,6 +520,25 @@ class AudioLoopViewModel @Inject constructor(
             return true
         }
 
+        // Public storage files (MediaStore) cannot be deleted via File API on Android 10+.
+        // Use ContentResolver.delete() directly for these files.
+        if (item.isPublic && item.uri != Uri.EMPTY) {
+            val deleted = withContext(Dispatchers.IO) {
+                try {
+                    ctx.contentResolver.delete(item.uri, null, null) > 0
+                } catch (_: Exception) { false }
+            }
+            if (deleted || !file.exists()) {
+                val noteFile = getNoteFile(file)
+                val waveFile = getWaveformFile(file)
+                if (noteFile.exists()) try { noteFile.delete() } catch (_: Exception) {}
+                if (waveFile.exists()) try { waveFile.delete() } catch (_: Exception) {}
+                repository.deleteRecording(file.absolutePath, item.isPublic)
+                return true
+            }
+            return false
+        }
+
         val trashDir = File(filesDir, ".trash").apply { mkdirs() }
         val timestamp = System.currentTimeMillis()
         val trashFile = File(trashDir, "${timestamp}_${file.name}")
@@ -538,7 +557,7 @@ class AudioLoopViewModel @Inject constructor(
 
         // 3. Move to trash with fallback
         var moved = try { file.renameTo(trashFile) } catch (e: Exception) { false }
-        
+
         if (!moved) {
             // Try copying + deleting (handles cross-partition or permission issues better)
             try {
@@ -552,7 +571,7 @@ class AudioLoopViewModel @Inject constructor(
         if (moved || !file.exists()) {
             if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
             if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
-            
+
             repository.deleteRecording(file.absolutePath, item.isPublic)
             return true
         }
