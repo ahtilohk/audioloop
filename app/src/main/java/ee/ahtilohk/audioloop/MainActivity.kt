@@ -204,35 +204,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Broadcast receiver for recording saved
-                DisposableEffect(Unit) {
-                    val receiver = object : BroadcastReceiver() {
-                        override fun onReceive(ctx: Context?, intent: Intent?) {
-                            if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
-                                coroutineScope.launch {
-                                    try {
-                                        viewModel.refreshFileList()
-                                        delay(500)
-                                        viewModel.refreshFileList()
-                                        // Update widget
-                                        val items = viewModel.uiState.value.savedItems
-                                        val latestItem = items.firstOrNull()
-                                        WidgetStateHelper.updateWidget(
-                                            context,
-                                            category = uiState.currentCategory,
-                                            lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
-                                            lastFileDuration = latestItem?.durationString ?: ""
-                                        )
-                                    } catch (e: Exception) { AppLog.e("Error in recording saved receiver", e) }
-                                }
-                            }
-                        }
-                    }
-                    val filter = IntentFilter(AudioService.ACTION_RECORDING_SAVED)
-                    ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
-                    onDispose { context.unregisterReceiver(receiver) }
-                }
-
                 // Permissions are checked in the ViewModel LaunchedEffect above
 
                 // Onboarding Overlay

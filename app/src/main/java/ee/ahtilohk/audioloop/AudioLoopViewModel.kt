@@ -18,6 +18,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ee.ahtilohk.audioloop.ui.theme.AppTheme
 import ee.ahtilohk.audioloop.ui.PlaybackManager
+import ee.ahtilohk.audioloop.widget.WidgetStateHelper
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -137,7 +138,20 @@ class AudioLoopViewModel @Inject constructor(
             when (intent?.action) {
                 AudioService.ACTION_RECORDING_SAVED -> {
                     setRecording(false)
-                    syncDatabase()
+                    viewModelScope.launch {
+                        _uiState.update { it.copy(isLoading = true) }
+                        repository.discoverRecordings(listOf(_uiState.value.currentCategory))
+                        _uiState.update { it.copy(isLoading = false) }
+                        
+                        // Update widget after discovery
+                        val latestItem = repository.getRecordingsByCategory(_uiState.value.currentCategory).first().firstOrNull()
+                        WidgetStateHelper.updateWidget(
+                            ctx,
+                            category = _uiState.value.currentCategory,
+                            lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
+                            lastFileDuration = latestItem?.durationString ?: ""
+                        )
+                    }
                     intent.getStringExtra(AudioService.EXTRA_FILE_PATH)?.let { path ->
                         viewModelScope.launch {
                             delay(500) // Ensure file is stable
@@ -988,7 +1002,7 @@ class AudioLoopViewModel @Inject constructor(
     fun changeTheme(theme: AppTheme) {
         _uiState.update { it.copy(currentTheme = theme) }
         settingsManager.saveTheme(theme)
-        ee.ahtilohk.audioloop.widget.WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
+        WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
     }
 
     fun changeLanguage(langCode: String) {
