@@ -138,6 +138,9 @@ class AudioLoopViewModel @Inject constructor(
                 AudioService.ACTION_RECORDING_SAVED -> {
                     setRecording(false)
                     syncDatabase()
+                    intent.getStringExtra(AudioService.EXTRA_FILE_PATH)?.let { path ->
+                         precomputeWaveformAsync(File(path))
+                    }
                 }
                 AudioService.ACTION_START_RECORDING_EVENT -> {
                     setRecording(true)

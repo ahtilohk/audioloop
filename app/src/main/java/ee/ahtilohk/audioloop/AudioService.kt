@@ -58,6 +58,7 @@ class AudioService : Service() {
         const val EXTRA_DURATION_MS = "EXTRA_DURATION_MS"
         const val EXTRA_USE_PUBLIC_STORAGE = "EXTRA_USE_PUBLIC_STORAGE"
         const val EXTRA_CATEGORY = "EXTRA_CATEGORY"
+        const val EXTRA_FILE_PATH = "EXTRA_FILE_PATH"
 
         private const val CHANNEL_ID = "audio_service_channel"
         private const val NOTIFICATION_ID_RECORDING = 1
@@ -370,7 +371,10 @@ class AudioService : Service() {
                 if (currentUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try { contentResolver.update(currentUri!!, android.content.ContentValues().apply { put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0) }, null, null) } catch (_: Exception) {}
                 }
-                sendBroadcast(Intent(ACTION_RECORDING_SAVED).apply { setPackage(packageName) })
+                sendBroadcast(Intent(ACTION_RECORDING_SAVED).apply { 
+                    currentFile?.let { putExtra(EXTRA_FILE_PATH, it.absolutePath) }
+                    setPackage(packageName) 
+                })
             }
             val nextStart = synchronized(stateLock) { recordingState = RecordingState.IDLE; val next = pendingStart; pendingStart = null; next }
             when (nextStart) {
