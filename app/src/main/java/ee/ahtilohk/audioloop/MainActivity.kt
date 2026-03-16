@@ -14,23 +14,15 @@ import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.lifecycle.ViewModelProvider
-
-import androidx.compose.animation.*
-import androidx.compose.foundation.*
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import android.media.projection.MediaProjectionManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,10 +33,12 @@ import ee.ahtilohk.audioloop.ui.theme.Zinc400
 import ee.ahtilohk.audioloop.ui.theme.Zinc700
 import ee.ahtilohk.audioloop.ui.theme.Zinc900
 import ee.ahtilohk.audioloop.ui.theme.Sunset400
-import kotlinx.coroutines.Dispatchers
+import ee.ahtilohk.audioloop.ui.AudioLoopMainScreen
+import ee.ahtilohk.audioloop.ui.components.OnboardingScreen
+import ee.ahtilohk.audioloop.ui.components.UpgradeSheet
+import ee.ahtilohk.audioloop.widget.WidgetStateHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -59,12 +53,12 @@ import java.io.File
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : androidx.appcompat.app.AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val viewModel: AudioLoopViewModel by viewModels()
     private var pendingRecordingName = ""
     private var pendingCategory = ""
-    private lateinit var mediaProjectionManager: android.media.projection.MediaProjectionManager
+    private lateinit var mediaProjectionManager: MediaProjectionManager
 
     // Late-bound ViewModel ref (set in setContent)
     private var vm: AudioLoopViewModel? = null
@@ -92,11 +86,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
         val recordGranted = results[Manifest.permission.RECORD_AUDIO] ?: false
-        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            results[Manifest.permission.READ_MEDIA_AUDIO] ?: false
-        } else {
-            results[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
-        }
         
         if (recordGranted) {
             vm?.showSnackbar(getString(R.string.msg_permission_granted))
@@ -228,7 +217,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                                         // Update widget
                                         val items = viewModel.uiState.value.savedItems
                                         val latestItem = items.firstOrNull()
-                                        ee.ahtilohk.audioloop.widget.WidgetStateHelper.updateWidget(
+                                        WidgetStateHelper.updateWidget(
                                             context,
                                             category = uiState.currentCategory,
                                             lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
@@ -248,7 +237,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
                 // Onboarding Overlay
                 if (uiState.showOnboarding) {
-                    ee.ahtilohk.audioloop.ui.components.OnboardingScreen(
+                    OnboardingScreen(
                         onboardingStep = uiState.onboardingStep,
                         viewModel = viewModel,
                         themeColors = uiState.currentTheme.palette
@@ -256,7 +245,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 }
 
                 // Billing / Pro Overlay
-                ee.ahtilohk.audioloop.ui.components.UpgradeSheet(
+                UpgradeSheet(
                     isVisible = uiState.showUpgradeSheet,
                     onDismiss = { viewModel.setUpgradeSheetVisible(false) },
                     products = uiState.billingProducts,
@@ -266,20 +255,19 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     isPro = uiState.isProUser
                 )
 
-                if (uiState.isReady) {
-                    Scaffold(
-                        snackbarHost = { SnackbarHost(snackbarHostState) }
-                    ) { paddingValues ->
+                Scaffold(
+                    snackbarHost = { SnackbarHost(snackbarHostState) }
+                ) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
                         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                                ee.ahtilohk.audioloop.ui.AudioLoopMainScreen(
+                            AudioLoopMainScreen(
                                 context = context,
                                 uiState = uiState,
                                 viewModel = viewModel,
                                 windowSizeClass = windowSizeClass,
                                 onStartRecord = { name, useRaw ->
-                                    if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                                        if (useRaw && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                        if (useRaw && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                             pendingRecordingName = name
                                             pendingCategory = uiState.currentCategory
                                             val captureIntent = mediaProjectionManager.createScreenCaptureIntent()
@@ -296,12 +284,10 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                                 },
                                 onStopRecord = { stopRecording() },
                                 onBackupSignIn = {
-                                    viewModel.signIn(context as androidx.appcompat.app.AppCompatActivity)
+                                    viewModel.signIn(context as AppCompatActivity)
                                 }
                             )
-
                         }
-                    }
                     }
                 }
             }
