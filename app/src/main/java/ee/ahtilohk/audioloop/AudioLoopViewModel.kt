@@ -140,7 +140,32 @@ class AudioLoopViewModel @Inject constructor(
                     setRecording(false)
                     viewModelScope.launch {
                         _uiState.update { it.copy(isLoading = true) }
-                        repository.discoverRecordings(listOf(_uiState.value.currentCategory))
+                        // Only sync internal storage + insert the specific saved file.
+                        // Do NOT call discoverRecordings() here — it scans all of
+                        // MediaStore and would surface old files from previous installs.
+                        val savedPath = intent?.getStringExtra(AudioService.EXTRA_FILE_PATH)
+                        repository.syncInternalOnly(listOf(_uiState.value.currentCategory))
+                        if (savedPath != null) {
+                            val savedFile = File(savedPath)
+                            if (savedFile.exists() && !savedFile.absolutePath.startsWith(ctx.filesDir.absolutePath)) {
+                                // Public storage file — insert directly instead of scanning MediaStore
+                                val (durStr, durMs) = AudioMetadataHelper.getDuration(savedFile)
+                                val uri = try {
+                                    val contentUri = android.provider.MediaStore.Audio.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL)
+                                    val cursor = ctx.contentResolver.query(
+                                        contentUri,
+                                        arrayOf(android.provider.MediaStore.Audio.Media._ID),
+                                        "${android.provider.MediaStore.Audio.Media.DATA} = ?",
+                                        arrayOf(savedFile.absolutePath), null
+                                    )
+                                    cursor?.use { c ->
+                                        if (c.moveToFirst()) android.content.ContentUris.withAppendedId(contentUri, c.getLong(0)) else Uri.fromFile(savedFile)
+                                    } ?: Uri.fromFile(savedFile)
+                                } catch (_: Exception) { Uri.fromFile(savedFile) }
+                                val item = RecordingItem(savedFile, savedFile.name, durStr, durMs, uri, "", true)
+                                repository.insertRecording(item, _uiState.value.currentCategory, isPublic = true)
+                            }
+                        }
                         _uiState.update { it.copy(isLoading = false) }
                         
                         // Update widget after discovery
@@ -315,9 +340,12 @@ class AudioLoopViewModel @Inject constructor(
             }
         }
 
-        // 4. Periodic or initial discovery
+        // 4. Initial sync — only internal storage.
+        // Do NOT call discoverRecordings() here as it scans MediaStore
+        // and would surface old files from previous installs.
+        // Users can explicitly import public storage files via settings.
         viewModelScope.launch {
-            repository.discoverRecordings(_uiState.value.categories)
+            repository.syncInternalOnly(_uiState.value.categories)
         }
 
         // 5. Reactive filtering and sorting (Eliminates runBlocking in the UI thread)

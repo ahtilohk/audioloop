@@ -387,7 +387,13 @@ fun TrimAudioScreen(
                         LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs, fadeInEnabled, fadeOutEnabled) {
                              if (isPreviewPlaying) {
                                   try {
-                                      while (isActive && (try { previewPlayer.isPlaying } catch (_: Exception) { false })) {
+                                      // Loop while coroutine is active (cancelled when isPreviewPlaying changes).
+                                      // Do NOT gate on previewPlayer.isPlaying — ExoPlayer may briefly report
+                                      // false during buffering/seeking right after play(), causing the loop
+                                      // to exit before any position updates happen.
+                                      while (isActive) {
+                                          val ended = try { previewPlayer.playbackState == Player.STATE_ENDED } catch (_: Exception) { true }
+                                          if (ended) break
                                           val currentMs = try { previewPlayer.currentPosition.toLong() } catch (_: Exception) { break }
                                           previewPositionMs = currentMs
 
