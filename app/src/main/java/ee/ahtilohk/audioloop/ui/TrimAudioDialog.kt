@@ -448,8 +448,9 @@ fun TrimAudioScreen(
                                   } catch (_: Exception) {
                                       // Player entered error state during playback
                                   }
-                                  // Playback ended naturally - loop back
+                                  // Playback ended naturally - reset position
                                   try {
+                                      previewPlayer.pause() // Stop playWhenReady so seekTo() doesn't auto-restart
                                       previewPlayer.volume = 1f
                                       if (trimMode == TrimMode.Keep) {
                                           previewPlayer.seekTo(selectionStartMs.toLong())

@@ -371,9 +371,18 @@ class AudioService : Service() {
                 if (currentUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try { contentResolver.update(currentUri!!, android.content.ContentValues().apply { put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0) }, null, null) } catch (_: Exception) {}
                 }
-                sendBroadcast(Intent(ACTION_RECORDING_SAVED).apply { 
-                    currentFile?.let { putExtra(EXTRA_FILE_PATH, it.absolutePath) }
-                    setPackage(packageName) 
+                sendBroadcast(Intent(ACTION_RECORDING_SAVED).apply {
+                    // For internal storage, currentFile is set directly.
+                    // For public storage (MediaStore), resolve the file path from the URI.
+                    val filePath = currentFile?.absolutePath ?: currentUri?.let { uri ->
+                        try {
+                            contentResolver.query(uri, arrayOf(android.provider.MediaStore.Audio.Media.DATA), null, null, null)?.use { c ->
+                                if (c.moveToFirst()) c.getString(0) else null
+                            }
+                        } catch (_: Exception) { null }
+                    }
+                    filePath?.let { putExtra(EXTRA_FILE_PATH, it) }
+                    setPackage(packageName)
                 })
             }
             val nextStart = synchronized(stateLock) { recordingState = RecordingState.IDLE; val next = pendingStart; pendingStart = null; next }
