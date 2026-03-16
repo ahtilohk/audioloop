@@ -62,10 +62,16 @@ fun AudioLoopMainScreen(
         bottomBar = {
             if (isCompact && showNav) {
                 AppNavigationBar(currentTab, onTabSelected = { tab ->
-                    navController.navigate(tab) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute != tab) {
+                        navController.navigate(tab) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = (tab == Screen.Library.route)
+                                saveState = (tab != Screen.Library.route)
+                            }
+                            launchSingleTop = true
+                            restoreState = (tab != Screen.Library.route)
+                        }
                     }
                 })
             }
@@ -78,10 +84,16 @@ fun AudioLoopMainScreen(
         ) {
             if (!isCompact && showNav) {
                 AppNavigationRail(currentTab, onTabSelected = { tab ->
-                    navController.navigate(tab) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute != tab) {
+                        navController.navigate(tab) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = (tab == Screen.Library.route)
+                                saveState = (tab != Screen.Library.route)
+                            }
+                            launchSingleTop = true
+                            restoreState = (tab != Screen.Library.route)
+                        }
                     }
                 })
             }
