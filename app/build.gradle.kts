@@ -105,7 +105,10 @@ dependencies {
     // WorkManager for background long-running tasks
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Google Drive Backup & Restore
+    // Google Drive Backup & Restore (Migrating to Credential Manager)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation(libs.okhttp)
     implementation(libs.navigation.compose)

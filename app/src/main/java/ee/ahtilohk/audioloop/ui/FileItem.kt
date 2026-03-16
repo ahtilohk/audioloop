@@ -89,7 +89,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.runtime.mutableFloatStateOf
 
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FileItem(
     modifier: Modifier = Modifier,
@@ -902,6 +902,7 @@ fun FileItem(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ControlChip(
     icon: ImageVector,

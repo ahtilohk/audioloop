@@ -106,40 +106,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         vm?.setReady(true)
     }
 
-    @Suppress("DEPRECATION")
-    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val data = result.data
-        if (data != null) {
-            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(data)
-            if (task.isSuccessful) {
-                @Suppress("DEPRECATION")
-                vm?.handleSignInResult(task.result)
-            } else {
-                val e = task.exception
-                val msg = if (e is com.google.android.gms.common.api.ApiException) {
-                    when (e.statusCode) {
-                        12501 -> getString(R.string.signin_cancelled)
-                        12500 -> getString(R.string.signin_failed_play_services)
-                        10 -> getString(R.string.signin_dev_error)
-                        4 -> getString(R.string.signin_interrupted)
-                        else -> getString(R.string.signin_error, e.statusCode)
-                    }
-                } else {
-                    getString(R.string.signin_failed, e?.localizedMessage ?: "unknown error")
-                }
-                vm?.handleSignInError(msg)
-            }
-        } else {
-            vm?.driveBackupManager?.getSignInClient()?.silentSignIn()
-                ?.addOnSuccessListener { account ->
-                    vm?.handleSignInResult(account)
-                }
-                ?.addOnFailureListener { e ->
-                    vm?.handleSignInError(getString(R.string.signin_failed, e.localizedMessage))
-                }
-        }
-        vm?.setBackupRunning(false)
-    }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     private fun checkAndRequestNecessaryPermissions() {
@@ -330,8 +296,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                                 },
                                 onStopRecord = { stopRecording() },
                                 onBackupSignIn = {
-                                    viewModel.setBackupRunning(true)
-                                    signInLauncher.launch(viewModel.driveBackupManager.getSignInIntent())
+                                    viewModel.signIn(context as androidx.appcompat.app.AppCompatActivity)
                                 }
                             )
 

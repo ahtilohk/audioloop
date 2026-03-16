@@ -1001,11 +1001,25 @@ class AudioLoopViewModel @Inject constructor(
 
     // ── Backup & Restore ──
 
-    @Suppress("DEPRECATION")
-    fun handleSignInResult(account: com.google.android.gms.auth.api.signin.GoogleSignInAccount?) {
-        if (account != null) {
-            driveBackupManager.handleSignInResult(account)
-            _uiState.update { it.copy(isBackupSignedIn = true, backupEmail = account.email ?: "", backupProgress = "") }
+    fun handleSignInResult(email: String?) {
+        if (email != null) {
+            driveBackupManager.handleSignInResult(email)
+            _uiState.update { it.copy(isBackupSignedIn = true, backupEmail = email, backupProgress = "") }
+        }
+    }
+
+    fun signIn(activity: android.app.Activity) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isBackupRunning = true) }
+            driveBackupManager.signIn(activity)
+                .onSuccess { email ->
+                    handleSignInResult(email)
+                    _uiState.update { it.copy(isBackupRunning = false) }
+                }
+                .onFailure { e ->
+                    handleSignInError(e.localizedMessage ?: "Sign-in failed")
+                    _uiState.update { it.copy(isBackupRunning = false) }
+                }
         }
     }
 
