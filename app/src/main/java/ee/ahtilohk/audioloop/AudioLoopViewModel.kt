@@ -151,11 +151,13 @@ class AudioLoopViewModel @Inject constructor(
                             lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
                             lastFileDuration = latestItem?.durationString ?: ""
                         )
-                    }
-                    intent.getStringExtra(AudioService.EXTRA_FILE_PATH)?.let { path ->
-                        viewModelScope.launch {
+
+                        // Generate waveform for the newly recorded file
+                        val filePath = intent?.getStringExtra(AudioService.EXTRA_FILE_PATH)
+                        val targetFile = if (filePath != null) File(filePath) else latestItem?.file
+                        if (targetFile != null && targetFile.exists()) {
                             delay(500) // Ensure file is stable
-                            precomputeWaveformAsync(File(path))
+                            precomputeWaveformAsync(targetFile)
                         }
                     }
                 }
@@ -1240,7 +1242,13 @@ class AudioLoopViewModel @Inject constructor(
         return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
     }
 
-    private fun getWaveformFile(audioFile: File): File = File(audioFile.parent, "${audioFile.name}.wave")
+    private fun getWaveformsDir(): File {
+        val dir = File(filesDir, ".waveforms")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
+    private fun getWaveformFile(audioFile: File): File = File(getWaveformsDir(), "${audioFile.name}.wave")
 
     private fun saveWaveformToDisk(audioFile: File, waveform: List<Int>) {
         try {

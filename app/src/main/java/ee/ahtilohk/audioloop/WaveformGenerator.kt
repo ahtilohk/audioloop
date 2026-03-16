@@ -16,18 +16,6 @@ object WaveformGenerator {
     private const val TAG = "WaveformGenerator"
 
     suspend fun extractWaveform(file: File, numBars: Int = 60): List<Int> = withContext(Dispatchers.IO) {
-        // 1. Check for pre-calculated .wave file
-        val waveFile = File(file.parent, "${file.name}.wave")
-        if (waveFile.exists()) {
-             try {
-                 val content = waveFile.readText()
-                 if (content.isNotEmpty()) {
-                     val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
-                     if (list.isNotEmpty()) return@withContext list
-                 }
-             } catch (e: Exception) { AppLog.e("Error reading pre-calculated wave file", e) }
-        }
-
         if (!file.exists() || file.length() < 100) return@withContext emptyList()
 
         val extractor = MediaExtractor()

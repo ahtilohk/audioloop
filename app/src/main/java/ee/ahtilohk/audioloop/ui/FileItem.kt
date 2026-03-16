@@ -76,7 +76,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import java.io.File
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -491,28 +490,7 @@ fun FileItem(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
                         // Interactive Waveform with progress + A-B markers
-                        var localWaveform by remember(item.file.absolutePath) { mutableStateOf<List<Int>?>(null) }
-                        
-                        LaunchedEffect(item.file.absolutePath, waveformData) {
-                            if (waveformData.isEmpty() && localWaveform == null) {
-                                withContext(Dispatchers.IO) {
-                                    try {
-                                        val waveFile = File(item.file.parent, "${item.file.name}.wave")
-                                        if (waveFile.exists()) {
-                                            val content = waveFile.readText()
-                                            if (content.isNotEmpty()) {
-                                                val list = content.split(",").mapNotNull { it.trim().toIntOrNull() }
-                                                if (list.isNotEmpty()) {
-                                                    withContext(Dispatchers.Main) { localWaveform = list }
-                                                }
-                                            }
-                                        }
-                                    } catch (_: Exception) {}
-                                }
-                            }
-                        }
-
-                        val bars = if (waveformData.isNotEmpty()) waveformData else (localWaveform ?: remember { List(100) { 15 } })
+                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(100) { 15 } }
                         val barCount = bars.size
                         
                         val primaryColor = themeColors.primary
@@ -642,8 +620,8 @@ fun FileItem(
                                     )
                                 }
 
-                                // 2. Background Waveform (requested to be white)
-                                drawWaveform(Color.White.copy(alpha = 0.3f))
+                                // 2. Background Waveform (white, clearly visible before playback)
+                                drawWaveform(Color.White.copy(alpha = 0.7f))
 
                                 // 3. Active Waveform (Clipping to progress)
                                 clipRect(right = currentProgress * w) {
