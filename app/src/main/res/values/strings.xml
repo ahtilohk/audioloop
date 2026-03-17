@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Loop &amp; Learn Audio</string>
-    <string name="default_web_client_id">YOUR_CLIENT_ID_HERE</string>
     <string name="app_title">Loop &amp; Learn</string>
 
     <!-- General -->

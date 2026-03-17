@@ -51,10 +51,11 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     suspend fun signIn(activity: android.app.Activity): Result<String> = withContext(Dispatchers.Main) {
         try {
-            val serverClientId = context.getString(R.string.default_web_client_id)
-            if (serverClientId.isBlank() || serverClientId == "YOUR_CLIENT_ID_HERE") {
+            val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+            val serverClientId = if (resId != 0) context.getString(resId) else ""
+            if (serverClientId.isBlank()) {
                 return@withContext Result.failure(
-                    IllegalStateException("Google Sign-In is not configured. Set default_web_client_id in strings.xml.")
+                    IllegalStateException("Google Sign-In is not configured. Ensure google-services.json contains a valid Web OAuth client.")
                 )
             }
 
