@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -314,7 +315,7 @@ fun TrimAudioScreen(
                             .height(160.dp) // Slightly shorter to fit
                             .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
-                            .clip(RoundedCornerShape(20.dp))
+                            .clipToBounds()
                             .padding(horizontal = 8.dp, vertical = 6.dp)
                     ) {
                         val widthPx = constraints.maxWidth.toFloat()
