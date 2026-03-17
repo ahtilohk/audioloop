@@ -737,7 +737,7 @@ fun FileItem(
                                     icon = AppIcons.Loop,
                                     label = if (loopCount == -1) "∞" else "${loopCount}x",
                                     onClick = {
-                                        val loops = listOf(1, 3, 5, -1)
+                                        val loops = listOf(1, 2, 3, 5, -1)
                                         val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
                                         onLoopCountChange(next)
                                         if (!isPlaying) onPlay()

@@ -313,8 +313,8 @@ fun TrimAudioScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(160.dp) // Slightly shorter to fit
-                            .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
+                            .background(Color.Black, RoundedCornerShape(12.dp)) // Black background for contrast
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                             .clipToBounds()
                             .padding(horizontal = 8.dp, vertical = 6.dp)
                     ) {

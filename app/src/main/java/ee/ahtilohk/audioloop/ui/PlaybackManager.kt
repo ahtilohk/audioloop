@@ -361,13 +361,6 @@ class PlaybackManager @Inject constructor(
 
     fun setLoopMode(mode: Int) {
         _playbackState.update { it.copy(loopMode = mode, currentPlaylistIteration = 1) }
-        
-        // Restart playback if a file is selected to show it's active
-        if (_playbackState.value.playingFileName.isNotEmpty()) {
-            if (currentPlaylist.isNotEmpty() && currentFileIndex in currentPlaylist.indices) {
-                playPlaylist(currentPlaylist, currentFileIndex)
-            }
-        }
     }
 
     fun setShadowingMode(enabled: Boolean) {
