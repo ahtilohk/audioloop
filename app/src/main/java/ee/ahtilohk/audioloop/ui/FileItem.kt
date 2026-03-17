@@ -163,10 +163,10 @@ fun FileItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 8.dp)
-            .shadow(if (isPlaying) 6.dp else 2.dp, RoundedCornerShape(16.dp))
+            .shadow(if (isPlaying) 3.dp else 1.dp, RoundedCornerShape(16.dp))
             .border(
                 1.dp,
-                if (isPlaying) themeColors.primary.copy(alpha = 0.5f) else Color.Transparent,
+                if (isPlaying) themeColors.primary.copy(alpha = 0.3f) else Color.Transparent,
                 RoundedCornerShape(16.dp)
             ),
         color = backgroundColor,
@@ -620,8 +620,8 @@ fun FileItem(
                                     )
                                 }
 
-                                // 2. Background Waveform (white, clearly visible before playback)
-                                drawWaveform(Color.White.copy(alpha = 0.7f))
+                                // 2. Background Waveform (theme-aware, visible in both light and dark)
+                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.5f))
 
                                 // 3. Active Waveform (Clipping to progress)
                                 clipRect(right = currentProgress * w) {
@@ -632,7 +632,7 @@ fun FileItem(
                                     val ax = abLoopStart * w
                                     // A Marker - Refined visualization
                                     drawLine(
-                                        color = Color.White.copy(alpha = 0.9f),
+                                        color = onSurfaceColor.copy(alpha = 0.9f),
                                         start = Offset(ax, 0f),
                                         end = Offset(ax, h),
                                         strokeWidth = 2.5.dp.toPx(),
@@ -641,13 +641,13 @@ fun FileItem(
                                     // Glow effect
                                     drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, 0f))
                                     drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, h))
-                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(ax, 0f))
-                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(ax, h))
+                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(ax, 0f))
+                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(ax, h))
                                 }
                                 if (abLoopEnd >= 0f) {
                                     val bx = abLoopEnd * w
                                     drawLine(
-                                        color = Color.White.copy(alpha = 0.9f),
+                                        color = onSurfaceColor.copy(alpha = 0.9f),
                                         start = Offset(bx, 0f),
                                         end = Offset(bx, h),
                                         strokeWidth = 2.5.dp.toPx(),
@@ -656,8 +656,8 @@ fun FileItem(
                                     // Glow effect
                                     drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, 0f))
                                     drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, h))
-                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(bx, 0f))
-                                    drawCircle(Color.White, radius = 3.dp.toPx(), center = Offset(bx, h))
+                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(bx, 0f))
+                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(bx, h))
                                 }
 
 

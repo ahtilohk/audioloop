@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.Dispatchers
@@ -51,30 +52,46 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
     suspend fun signIn(activity: android.app.Activity): Result<String> = withContext(Dispatchers.Main) {
         try {
             val serverClientId = context.getString(R.string.default_web_client_id)
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(true)
-                .setServerClientId(serverClientId)
-                .setAutoSelectEnabled(true)
-                .build()
+            if (serverClientId.isBlank() || serverClientId == "YOUR_CLIENT_ID_HERE") {
+                return@withContext Result.failure(
+                    IllegalStateException("Google Sign-In is not configured. Set default_web_client_id in strings.xml.")
+                )
+            }
 
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
+            // Try authorized accounts first, fall back to all accounts for first-time sign-in
+            val email = try {
+                getGoogleCredential(activity, serverClientId, filterByAuthorized = true)
+            } catch (e: NoCredentialException) {
+                AppLog.d("No authorized account found, trying all accounts")
+                getGoogleCredential(activity, serverClientId, filterByAuthorized = false)
+            }
 
-            val result = credentialManager.getCredential(activity, request)
-            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-            val email = googleIdTokenCredential.id
             signedInEmail = email
-            
-            // Note: In a real app, you might also need to handle authorization for scopes separately 
-            // if the ID token doesn't include them. For Drive, we rely on GoogleAuthUtil.getToken 
-            // which will trigger an authorization prompt if needed.
-            
             Result.success(email)
         } catch (e: Exception) {
-            AppLog.e("Sign-in failed", e)
+            AppLog.e("Sign-in failed: ${e.javaClass.simpleName}: ${e.message}", e)
             Result.failure(e)
         }
+    }
+
+    private suspend fun getGoogleCredential(
+        activity: android.app.Activity,
+        serverClientId: String,
+        filterByAuthorized: Boolean
+    ): String {
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(filterByAuthorized)
+            .setServerClientId(serverClientId)
+            .setAutoSelectEnabled(filterByAuthorized)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        val result = credentialManager.getCredential(activity, request)
+        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+        return googleIdTokenCredential.id
     }
 
     fun isSignedIn(): Boolean = signedInEmail != null || getSignedInEmail() != null

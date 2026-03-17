@@ -103,7 +103,7 @@ fun PracticeProgressCard(
         } else {
             val context = LocalContext.current
             Text(
-                "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
+                "${(goalProgress * 100).toInt()}%  Â·  ${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
                 style = TextStyle(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 11.sp,
