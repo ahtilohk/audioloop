@@ -5,12 +5,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Intent
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.NoCredentialException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -43,100 +41,51 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
         private val JSON_MEDIA_TYPE = "application/json; charset=UTF-8".toMediaType()
     }
 
-    private var signedInEmail: String? = null
+    private var account: com.google.android.gms.auth.api.signin.GoogleSignInAccount? = null
     private val client = NetworkHelper.newClient()
-    private val credentialManager = CredentialManager.create(context)
 
     // --- Sign-In ---
 
-    suspend fun signIn(activity: android.app.Activity): Result<String> = withContext(Dispatchers.Main) {
-        try {
-            val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
-            val serverClientId = if (resId != 0) context.getString(resId) else ""
-            if (serverClientId.isBlank()) {
-                return@withContext Result.failure(
-                    IllegalStateException("Google Sign-In is not configured. Ensure google-services.json contains a valid Web OAuth client.")
-                )
-            }
-
-            // Try authorized accounts first, fall back to all accounts for first-time sign-in
-            val email = try {
-                getGoogleCredential(activity, serverClientId, filterByAuthorized = true)
-            } catch (e: NoCredentialException) {
-                AppLog.d("No authorized account found, trying all accounts")
-                getGoogleCredential(activity, serverClientId, filterByAuthorized = false)
-            }
-
-            signedInEmail = email
-            Result.success(email)
-        } catch (e: Exception) {
-            AppLog.e("Sign-in failed: ${e.javaClass.simpleName}: ${e.message}", e)
-            Result.failure(e)
-        }
-    }
-
-    private suspend fun getGoogleCredential(
-        activity: android.app.Activity,
-        serverClientId: String,
-        filterByAuthorized: Boolean
-    ): String {
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(filterByAuthorized)
-            .setServerClientId(serverClientId)
-            .setAutoSelectEnabled(filterByAuthorized)
+    @Suppress("DEPRECATION")
+    fun getSignInClient(): GoogleSignInClient {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(SCOPE))
             .build()
-
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
-
-        val result = credentialManager.getCredential(activity, request)
-        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-        return googleIdTokenCredential.id
+        return GoogleSignIn.getClient(context, gso)
     }
 
-    fun isSignedIn(): Boolean = signedInEmail != null || getSignedInEmail() != null
+    fun getSignInIntent(): Intent = getSignInClient().signInIntent
 
-    fun getSignedInEmail(): String? {
-        if (signedInEmail != null) return signedInEmail
-        // Fallback to internal storage or a more persistent session check if needed
-        return context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).getString("last_email", null)
+    @Suppress("DEPRECATION")
+    fun isSignedIn(): Boolean = GoogleSignIn.getLastSignedInAccount(context) != null
+
+    @Suppress("DEPRECATION")
+    fun getSignedInEmail(): String? = GoogleSignIn.getLastSignedInAccount(context)?.email
+
+    fun handleSignInResult(acct: com.google.android.gms.auth.api.signin.GoogleSignInAccount?) {
+        account = acct
     }
 
-    fun handleSignInResult(email: String?) {
-        signedInEmail = email
-        email?.let {
-            context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).edit().putString("last_email", it).apply()
-        }
-    }
-
+    @Suppress("DEPRECATION")
     fun initFromLastAccount(): Boolean {
-        val lastEmail = getSignedInEmail()
-        if (lastEmail != null) {
-            signedInEmail = lastEmail
-            return true
-        }
-        return false
+        account = GoogleSignIn.getLastSignedInAccount(context) ?: return false
+        return true
     }
 
     suspend fun signOut() {
         withContext(Dispatchers.Main) {
-            try {
-                credentialManager.clearCredentialState(ClearCredentialStateRequest())
-            } catch (e: Exception) {
-                AppLog.e("Sign-out failed", e)
-            }
+            getSignInClient().signOut()
         }
-        signedInEmail = null
-        context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).edit().remove("last_email").apply()
+        account = null
     }
 
     // --- Token helper ---
 
+    @Suppress("DEPRECATION")
     private suspend fun getAccessToken(): String = withContext(Dispatchers.IO) {
-        val email = getSignedInEmail() ?: throw Exception("Not signed in")
-        val account = android.accounts.Account(email, "com.google")
-        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, account, "oauth2:$SCOPE")
+        val acct = account ?: GoogleSignIn.getLastSignedInAccount(context) ?: throw Exception("Not signed in")
+        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, "oauth2:$SCOPE")
     }
 
     // --- Backup ---

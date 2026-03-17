@@ -1072,23 +1072,7 @@ class AudioLoopViewModel @Inject constructor(
 
     fun handleSignInResult(email: String?) {
         if (email != null) {
-            driveBackupManager.handleSignInResult(email)
             _uiState.update { it.copy(isBackupSignedIn = true, backupEmail = email, backupProgress = "") }
-        }
-    }
-
-    fun signIn(activity: android.app.Activity) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isBackupRunning = true) }
-            driveBackupManager.signIn(activity)
-                .onSuccess { email ->
-                    handleSignInResult(email)
-                    _uiState.update { it.copy(isBackupRunning = false) }
-                }
-                .onFailure { e ->
-                    handleSignInError(e.localizedMessage ?: "Sign-in failed")
-                    _uiState.update { it.copy(isBackupRunning = false) }
-                }
         }
     }
 
