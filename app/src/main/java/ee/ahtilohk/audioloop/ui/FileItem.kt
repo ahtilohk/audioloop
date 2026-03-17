@@ -163,10 +163,9 @@ fun FileItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 8.dp)
-            .shadow(if (isPlaying) 1.dp else 0.dp, RoundedCornerShape(16.dp))
             .border(
-                if (isPlaying) 0.5.dp else 0.dp,
-                if (isPlaying) themeColors.primary.copy(alpha = 0.25f) else Color.Transparent,
+                0.dp,
+                Color.Transparent,
                 RoundedCornerShape(16.dp)
             ),
         color = backgroundColor,
