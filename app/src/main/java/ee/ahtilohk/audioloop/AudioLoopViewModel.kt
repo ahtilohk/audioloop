@@ -1308,19 +1308,26 @@ class AudioLoopViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Point 1 fix: for newly created files, wait a bit for disk flush
-                if (force) delay(300) 
+                if (force) delay(300)
 
                 val cached = loadWaveformFromDisk(file)
                 if (cached != null && cached.isNotEmpty()) {
                     waveformCache[key] = cached
                     return@launch
                 }
-                val waveform = WaveformGenerator.extractWaveform(file, fullBars)
-                if (waveform.isNotEmpty() && waveform.any { it > 10 }) {
-                    saveWaveformToDisk(file, waveform)
-                    waveformCache[key] = waveform
+                // Progressive: emit partial waveforms so UI shows early preview
+                var lastWaveform: List<Int> = emptyList()
+                WaveformGenerator.extractWaveformProgressive(file, fullBars).collect { partial ->
+                    if (partial.isNotEmpty()) {
+                        waveformCache[key] = partial
+                        lastWaveform = partial
+                    }
+                }
+                // Save final result to disk cache
+                if (lastWaveform.isNotEmpty() && lastWaveform.any { it > 10 }) {
+                    saveWaveformToDisk(file, lastWaveform)
                 } else if (!force) {
-                    // Try one more time with force if it's empty (maybe file was still being written)
+                    // Try one more time if it's empty (maybe file was still being written)
                     delay(500)
                     val retry = WaveformGenerator.extractWaveform(file, fullBars)
                     if (retry.isNotEmpty()) {

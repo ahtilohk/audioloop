@@ -5,6 +5,9 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
@@ -14,6 +17,127 @@ import kotlin.math.sqrt
 object WaveformGenerator {
 
     private const val TAG = "WaveformGenerator"
+
+    /**
+     * Progressive waveform extraction that emits partial results as the file is decoded.
+     * Emits increasingly refined waveform snapshots so the UI can show early previews.
+     */
+    fun extractWaveformProgressive(file: File, numBars: Int = 60): Flow<List<Int>> = flow {
+        if (!file.exists() || file.length() < 100) {
+            emit(emptyList())
+            return@flow
+        }
+
+        val extractor = MediaExtractor()
+        var codec: MediaCodec? = null
+
+        try {
+            extractor.setDataSource(file.absolutePath)
+            var audioTrackIndex = -1
+            var durationUs = 0L
+
+            for (i in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(i)
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
+                if (mime.startsWith("audio/")) {
+                    audioTrackIndex = i
+                    if (format.containsKey(MediaFormat.KEY_DURATION)) {
+                        durationUs = format.getLong(MediaFormat.KEY_DURATION)
+                    }
+                    extractor.selectTrack(audioTrackIndex)
+                    codec = MediaCodec.createDecoderByType(mime)
+                    codec.configure(format, null, null, 0)
+                    codec.start()
+                    break
+                }
+            }
+
+            if (audioTrackIndex == -1 || codec == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            val bufferInfo = MediaCodec.BufferInfo()
+            var isEOS = false
+            val rawAmplitudes = ArrayList<Int>()
+            val timeoutUs = 5000L
+
+            // Determine emit interval based on estimated file length
+            // For short files (<1min), don't bother with progressive (just emit final)
+            // For longer files, emit every ~5% of estimated progress
+            val estimatedTotalRawSamples = if (durationUs > 0) {
+                // rough estimate: ~22 raw amplitude points per second of audio
+                // (44100 samples/sec / 2000 window size = ~22)
+                (durationUs / 1_000_000.0 * 22).toLong().coerceAtLeast(100)
+            } else 10000L
+
+            val isLongFile = durationUs > 30_000_000L // > 30 seconds
+            val emitInterval = if (isLongFile) {
+                (estimatedTotalRawSamples / 20).coerceIn(200, 5000).toInt() // ~20 updates
+            } else {
+                Int.MAX_VALUE // short files: only emit final result
+            }
+            var lastEmitSize = 0
+
+            while (true) {
+                if (!isEOS) {
+                    val inputIndex = codec.dequeueInputBuffer(timeoutUs)
+                    if (inputIndex >= 0) {
+                        val inputBuffer = codec.getInputBuffer(inputIndex)
+                        if (inputBuffer != null) {
+                            val sampleSize = extractor.readSampleData(inputBuffer, 0)
+                            if (sampleSize < 0) {
+                                codec.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                                isEOS = true
+                            } else {
+                                val time = extractor.sampleTime
+                                codec.queueInputBuffer(inputIndex, 0, sampleSize, time, 0)
+                                extractor.advance()
+                            }
+                        }
+                    }
+                }
+
+                val outputIndex = codec.dequeueOutputBuffer(bufferInfo, timeoutUs)
+                if (outputIndex >= 0) {
+                    val outputBuffer = codec.getOutputBuffer(outputIndex)
+                    if (outputBuffer != null && bufferInfo.size > 0) {
+                        processOutputBuffer(outputBuffer, bufferInfo, rawAmplitudes)
+                    }
+                    codec.releaseOutputBuffer(outputIndex, false)
+
+                    // Emit partial result periodically
+                    if (rawAmplitudes.size - lastEmitSize >= emitInterval) {
+                        emit(downsample(ArrayList(rawAmplitudes), numBars))
+                        lastEmitSize = rawAmplitudes.size
+                    }
+
+                    if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                        break
+                    }
+                } else if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                    if (isEOS) break
+                }
+            }
+
+            // Emit final complete result
+            if (rawAmplitudes.isNotEmpty()) {
+                emit(downsample(rawAmplitudes, numBars))
+            } else {
+                emit(List(numBars) { 10 })
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error generating waveform", e)
+            emit(List(numBars) { 10 })
+        } finally {
+            try {
+                codec?.stop()
+                codec?.release()
+                extractor.release()
+            } catch (e: Exception) { AppLog.e("Error releasing media resources in WaveformGenerator", e) }
+        }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun extractWaveform(file: File, numBars: Int = 60): List<Int> = withContext(Dispatchers.IO) {
         if (!file.exists() || file.length() < 100) return@withContext emptyList()

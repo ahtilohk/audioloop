@@ -50,6 +50,7 @@ import kotlin.math.min
 import kotlin.math.max
 import ee.ahtilohk.audioloop.ui.theme.*
 import ee.ahtilohk.audioloop.WaveformGenerator
+import kotlinx.coroutines.flow.collectLatest
 import ee.ahtilohk.audioloop.AppIcons
 import ee.ahtilohk.audioloop.R
 import androidx.compose.ui.res.stringResource
@@ -158,10 +159,12 @@ fun TrimAudioScreen(
         }
     }
     
-    // Waveform Loading
-    val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
-        value = withContext(Dispatchers.IO) {
-            WaveformGenerator.extractWaveform(file, 500) // High resolution for zooming
+    // Waveform Loading (progressive: emits partial results for fast first render)
+    val waveform = remember { mutableStateOf<List<Int>?>(null) }
+    LaunchedEffect(file) {
+        waveform.value = null
+        WaveformGenerator.extractWaveformProgressive(file, 500).collectLatest { partial ->
+            waveform.value = partial
         }
     }
 
