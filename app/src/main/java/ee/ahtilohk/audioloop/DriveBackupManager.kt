@@ -220,7 +220,7 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
     }
 
     private fun uploadToDrive(token: String, file: File, fileName: String, onProgress: (Long, Long) -> Unit) {
-        val boundary = "===backup_boundary_${System.currentTimeMillis()}==="
+        val boundary = "---backup_boundary_${System.currentTimeMillis()}---"
         
         val metadata = JSONObject().apply {
             put("name", fileName)
@@ -286,6 +286,8 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
             val result = NetworkHelper.executeWithRetry {
                 client.newCall(request).execute().use { response ->
                     if (response.code == 401 || response.code == 403) {
+                        val errorDetail = response.body?.string() ?: ""
+                        AppLog.e("Drive list auth error (${response.code}): $errorDetail")
                         // Token may be stale – invalidate and retry once
                         token = invalidateAndRefreshToken()
                         request = Request.Builder()
@@ -294,12 +296,16 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
                             .get()
                             .build()
                         client.newCall(request).execute().use { retryResponse ->
-                            if (!retryResponse.isSuccessful) throw IOException("List failed (${retryResponse.code})")
+                            if (!retryResponse.isSuccessful) {
+                                val retryError = retryResponse.body?.string() ?: ""
+                                throw IOException("List failed (${retryResponse.code}): $retryError")
+                            }
                             val body = retryResponse.body?.string() ?: throw IOException("Empty response")
                             Result.success(parseBackupList(body))
                         }
                     } else if (!response.isSuccessful) {
-                        throw IOException("List failed (${response.code})")
+                        val errorBody = response.body?.string() ?: ""
+                        throw IOException("List failed (${response.code}): $errorBody")
                     } else {
                         val body = response.body?.string() ?: throw IOException("Empty response")
                         Result.success(parseBackupList(body))
