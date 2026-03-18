@@ -365,9 +365,12 @@ private fun NormalHeader(
 
     Text(
         text = titleText,
-        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.weight(1f, fill = false).padding(end = 12.dp)
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Button(
             onClick = {
                 onImportClick()
@@ -410,22 +413,17 @@ private fun SortMenuButton(currentSort: SortMode, onSortSelected: (SortMode) -> 
     
     Box {
         Surface(
-            onClick = { 
+            onClick = {
                 expanded = true
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             },
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.height(32.dp)
+            modifier = Modifier.size(32.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(AppIcons.Sort, contentDescription = stringResource(R.string.menu_sort), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
-                Text(stringResource(R.string.menu_sort), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(AppIcons.Sort, contentDescription = stringResource(R.string.menu_sort), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
             }
         }
         

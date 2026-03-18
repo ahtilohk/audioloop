@@ -78,7 +78,7 @@ fun CategoryTabs(
             modifier = Modifier.size(36.dp)
         ) {
             Icon(
-                imageVector = AppIcons.Settings, // Or an Edit icon
+                imageVector = AppIcons.Edit,
                 contentDescription = stringResource(R.string.a11y_manage_categories),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)

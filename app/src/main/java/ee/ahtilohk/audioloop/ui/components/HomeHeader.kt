@@ -36,7 +36,7 @@ fun HomeHeader(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
         ) {
             Icon(
                 imageVector = AppIcons.GraphicEq,
