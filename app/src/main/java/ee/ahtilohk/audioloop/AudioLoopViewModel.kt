@@ -473,13 +473,14 @@ class AudioLoopViewModel @Inject constructor(
         val targetFile = File(targetDir, item.file.name)
         val noteFile = getNoteFile(item.file)
         val waveFile = getWaveformFile(item.file)
+        val movedItem = item.copy(file = targetFile, uri = android.net.Uri.fromFile(targetFile))
 
         if (item.file.renameTo(targetFile)) {
             if (noteFile.exists()) noteFile.renameTo(getNoteFile(targetFile))
             if (waveFile.exists()) waveFile.renameTo(getWaveformFile(targetFile))
             viewModelScope.launch {
                 repository.deleteRecording(item.file.absolutePath)
-                repository.insertRecording(item.copy(file = targetFile), targetCategory)
+                repository.insertRecording(movedItem, targetCategory)
             }
             updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
             showSnackbar(ctx.getString(R.string.msg_moved))
@@ -489,7 +490,7 @@ class AudioLoopViewModel @Inject constructor(
                 item.file.delete()
                 viewModelScope.launch {
                     repository.deleteRecording(item.file.absolutePath)
-                    repository.insertRecording(item.copy(file = targetFile), targetCategory)
+                    repository.insertRecording(movedItem, targetCategory)
                 }
                 updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
                 showSnackbar(ctx.getString(R.string.msg_moved))
