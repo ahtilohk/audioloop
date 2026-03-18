@@ -345,7 +345,7 @@ private fun SelectionActionBar(
 }
 
 @Composable
-private fun NormalHeader(
+private fun RowScope.NormalHeader(
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
     onImportClick: () -> Unit,
