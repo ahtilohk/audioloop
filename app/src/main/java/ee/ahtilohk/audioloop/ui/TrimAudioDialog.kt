@@ -158,11 +158,22 @@ fun TrimAudioScreen(
         }
     }
     
-    // Waveform Loading
+    // Waveform Loading — show cached preview instantly, then compute full resolution
     val waveform = remember { mutableStateOf<List<Int>?>(null) }
     LaunchedEffect(file) {
         waveform.value = null
-        waveform.value = WaveformGenerator.extractWaveform(file, 500)
+        // Instant preview from Library's disk cache (typically 120 bars)
+        val cached = withContext(Dispatchers.IO) {
+            WaveformGenerator.loadCachedWaveform(context.filesDir, file)
+        }
+        if (cached != null && cached.isNotEmpty()) {
+            waveform.value = cached
+        }
+        // Compute full-resolution waveform in background
+        val full = WaveformGenerator.extractWaveform(file, 500)
+        if (full.isNotEmpty()) {
+            waveform.value = full
+        }
     }
 
     // Initialize ExoPlayer

@@ -19,8 +19,24 @@ object WaveformGenerator {
     private const val TAG = "WaveformGenerator"
 
     /**
+     * Load a previously cached waveform from the disk cache directory.
+     * Returns null if no cache exists.
+     */
+    fun loadCachedWaveform(filesDir: File, audioFile: File): List<Int>? {
+        return try {
+            val waveFile = File(File(filesDir, ".waveforms"), "${audioFile.name}.wave")
+            if (!waveFile.exists()) return null
+            val content = waveFile.readText()
+            if (content.isBlank()) return null
+            content.split(",").map { it.toInt() }
+        } catch (_: Exception) { null }
+    }
+
+    /**
      * Progressive waveform extraction that emits partial results as the file is decoded.
-     * Emits increasingly refined waveform snapshots so the UI can show early previews.
+     * Bars are placed at their correct time positions — decoded regions show real data,
+     * not-yet-decoded regions show a baseline placeholder, so the waveform fills in
+     * uniformly across its full width rather than growing from one side.
      */
     fun extractWaveformProgressive(file: File, numBars: Int = 60): Flow<List<Int>> = flow {
         if (!file.exists() || file.length() < 100) {
@@ -62,20 +78,16 @@ object WaveformGenerator {
             val rawAmplitudes = ArrayList<Int>()
             val timeoutUs = 5000L
 
-            // Determine emit interval based on estimated file length
-            // For short files (<1min), don't bother with progressive (just emit final)
-            // For longer files, emit every ~5% of estimated progress
-            val estimatedTotalRawSamples = if (durationUs > 0) {
-                // rough estimate: ~22 raw amplitude points per second of audio
-                // (44100 samples/sec / 2000 window size = ~22)
+            // Estimate total raw amplitude points for the entire file
+            val estimatedTotal = if (durationUs > 0) {
                 (durationUs / 1_000_000.0 * 22).toLong().coerceAtLeast(100)
             } else 10000L
 
             val isLongFile = durationUs > 30_000_000L // > 30 seconds
             val emitInterval = if (isLongFile) {
-                (estimatedTotalRawSamples / 20).coerceIn(200, 5000).toInt() // ~20 updates
+                (estimatedTotal / 20).coerceIn(200, 5000).toInt()
             } else {
-                Int.MAX_VALUE // short files: only emit final result
+                Int.MAX_VALUE
             }
             var lastEmitSize = 0
 
@@ -106,9 +118,9 @@ object WaveformGenerator {
                     }
                     codec.releaseOutputBuffer(outputIndex, false)
 
-                    // Emit partial result periodically
+                    // Emit partial result with correct bar positioning
                     if (rawAmplitudes.size - lastEmitSize >= emitInterval) {
-                        emit(downsample(ArrayList(rawAmplitudes), numBars))
+                        emit(downsamplePositioned(rawAmplitudes, numBars, estimatedTotal.toInt()))
                         lastEmitSize = rawAmplitudes.size
                     }
 
@@ -120,7 +132,7 @@ object WaveformGenerator {
                 }
             }
 
-            // Emit final complete result
+            // Emit final complete result (use full downsample, all data is available)
             if (rawAmplitudes.isNotEmpty()) {
                 emit(downsample(rawAmplitudes, numBars))
             } else {
@@ -264,6 +276,22 @@ object WaveformGenerator {
             list.add(peak)
             i = windowEnd
         }
+    }
+
+    /**
+     * Position-aware downsample for progressive rendering.
+     * Places decoded data at the correct bar positions based on how far through
+     * the file we are. Bars beyond the decoded region get a baseline placeholder (5).
+     */
+    private fun downsamplePositioned(data: List<Int>, targetSize: Int, estimatedTotal: Int): List<Int> {
+        if (data.isEmpty()) return List(targetSize) { 5 }
+        val decodedFraction = (data.size.toDouble() / estimatedTotal).coerceIn(0.0, 1.0)
+        val decodedBars = (decodedFraction * targetSize).toInt().coerceIn(1, targetSize)
+        // Downsample only the decoded portion to fill the correct number of bars
+        val filled = downsample(data, decodedBars)
+        if (decodedBars >= targetSize) return filled
+        // Pad remaining bars with baseline placeholder
+        return filled + List(targetSize - decodedBars) { 5 }
     }
 
     private fun downsample(data: List<Int>, targetSize: Int): List<Int> {
