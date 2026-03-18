@@ -1315,17 +1315,10 @@ class AudioLoopViewModel @Inject constructor(
                     waveformCache[key] = cached
                     return@launch
                 }
-                // Progressive: emit partial waveforms so UI shows early preview
-                var lastWaveform: List<Int> = emptyList()
-                WaveformGenerator.extractWaveformProgressive(file, fullBars).collect { partial ->
-                    if (partial.isNotEmpty()) {
-                        waveformCache[key] = partial
-                        lastWaveform = partial
-                    }
-                }
-                // Save final result to disk cache
-                if (lastWaveform.isNotEmpty() && lastWaveform.any { it > 10 }) {
-                    saveWaveformToDisk(file, lastWaveform)
+                val waveform = WaveformGenerator.extractWaveform(file, fullBars)
+                if (waveform.isNotEmpty() && waveform.any { it > 10 }) {
+                    waveformCache[key] = waveform
+                    saveWaveformToDisk(file, waveform)
                 } else if (!force) {
                     // Try one more time if it's empty (maybe file was still being written)
                     delay(500)
