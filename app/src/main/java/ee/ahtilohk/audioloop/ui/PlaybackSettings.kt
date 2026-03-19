@@ -550,5 +550,3 @@ fun PlaybackSettingsCard(
         }
     }
 }
-
-}
