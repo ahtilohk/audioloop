@@ -190,7 +190,7 @@ private fun LibraryHeader(
     }
 
     // Cancel hint when in selection mode with empty selection
-    if (uiState.isSelectionMode && uiState.selectedFiles.isEmpty()) {
+    if (recordingItems.isNotEmpty() && uiState.isSelectionMode && uiState.selectedFiles.isEmpty()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
