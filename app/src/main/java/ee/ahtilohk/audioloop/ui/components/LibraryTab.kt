@@ -558,6 +558,13 @@ private fun PlaylistPlayingBanner(
             if (activePlaylist.shuffle) {
                 Pill(text = "🔀 " + stringResource(R.string.label_shuffle), color = MaterialTheme.colorScheme.onSurface)
             }
+            if (uiState.sleepTimerRemainingMs > 0) {
+                val totalSecs = uiState.sleepTimerRemainingMs / 1000
+                val mins = totalSecs / 60
+                val secs = totalSecs % 60
+                val timeStr = String.format("%02d:%02d", mins, secs)
+                Pill(text = "⌛ $timeStr", color = MaterialTheme.colorScheme.primary)
+            }
             Spacer(Modifier.weight(1f))
             Text(stringResource(R.string.library_tracks_count, activePlaylist.files.size), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
         }
@@ -808,7 +815,9 @@ private fun DraggableFileList(
                             0L, 0L, false,
                             uiState.playbackSpeed
                         )
-                    }
+                    },
+                    sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
+                    onSleepTimerChange = { viewModel.setSleepTimer(it) }
                 )
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -855,7 +864,9 @@ private fun DraggableFileList(
                 onSpeedChange = { viewModel.setPlaybackSpeed(it) },
                 loopCount = uiState.loopMode,
                 onLoopCountChange = { viewModel.setLoopMode(it) },
-                onSaveLoopToFile = { }
+                onSaveLoopToFile = { },
+                sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
+                onSleepTimerChange = { viewModel.setSleepTimer(it) }
             )
         }
     }

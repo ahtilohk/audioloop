@@ -780,8 +780,14 @@ class AudioLoopViewModel @Inject constructor(
     fun playFile(item: RecordingItem) = playbackManager.playFile(item)
     fun pausePlaying() = playbackManager.pausePlaying()
     fun resumePlaying() = playbackManager.resumePlaying()
-    fun stopPlaying() = playbackManager.stopPlaying()
-    fun stopPlayingAndReset() = playbackManager.stopPlaying(true)
+    fun stopPlaying() {
+        cancelSleepTimer()
+        playbackManager.stopPlaying()
+    }
+    fun stopPlayingAndReset() {
+        cancelSleepTimer()
+        playbackManager.stopPlaying(true)
+    }
     fun changeShadowingMode(enabled: Boolean) = setShadowingMode(enabled)
 
     fun setAbLoopStart(pos: Float) = playbackManager.setAbLoopStart(pos)
@@ -1419,7 +1425,36 @@ class AudioLoopViewModel @Inject constructor(
 
     fun setSleepTimer(minutes: Int) {
         _uiState.update { it.copy(selectedSleepMinutes = minutes) }
+        sleepTimerJob?.cancel()
+        
+        if (minutes > 0) {
+            val totalMs = minutes * 60 * 1000L
+            _uiState.update { it.copy(sleepTimerRemainingMs = totalMs) }
+            
+            sleepTimerJob = viewModelScope.launch {
+                var remaining = totalMs
+                while (remaining > 0 && isActive) {
+                    delay(1000L)
+                    remaining -= 1000L
+                    val finalRemaining = remaining.coerceAtLeast(0L)
+                    _uiState.update { it.copy(sleepTimerRemainingMs = finalRemaining) }
+                }
+                if (remaining <= 0) {
+                    stopPlaying()
+                    _uiState.update { it.copy(selectedSleepMinutes = 0, sleepTimerRemainingMs = 0L) }
+                }
+            }
+        } else {
+            _uiState.update { it.copy(sleepTimerRemainingMs = 0L) }
+        }
+        
         playbackManager.setSleepTimer(minutes)
+    }
+
+    private fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _uiState.update { it.copy(selectedSleepMinutes = 0, sleepTimerRemainingMs = 0L) }
     }
 
     private fun updatePlaybackParams(speed: Float, pitch: Float) {
@@ -1548,6 +1583,7 @@ class AudioLoopViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        sleepTimerJob?.cancel()
         stopPlaying()
         try { ctx.unregisterReceiver(recordingReceiver) } catch (_: Exception) {}
         mediaSessionManager.release()

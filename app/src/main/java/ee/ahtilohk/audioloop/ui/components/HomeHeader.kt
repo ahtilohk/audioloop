@@ -79,6 +79,43 @@ fun HomeHeader(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.wrapContentWidth()
         ) {
+            // Sleep Timer Indicator
+            if (uiState.sleepTimerRemainingMs > 0) {
+                val totalSecs = uiState.sleepTimerRemainingMs / 1000
+                val mins = totalSecs / 60
+                val secs = totalSecs % 60
+                val timeStr = String.format("%02d:%02d", mins, secs)
+                
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Sleep, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.primary, 
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = timeStr, 
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.primary, 
+                                fontWeight = FontWeight.Bold, 
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp
+                            )
+                        )
+                    }
+                }
+            }
+
             IconButton(
                 onClick = onSearchClick,
                 modifier = Modifier.size(40.dp)

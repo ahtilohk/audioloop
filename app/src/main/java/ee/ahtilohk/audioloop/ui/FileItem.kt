@@ -135,7 +135,9 @@ fun FileItem(
     onSpeedChange: (Float) -> Unit = {},
     loopCount: Int = 1,
     onLoopCountChange: (Int) -> Unit = {},
-    onSaveLoopToFile: () -> Unit = {}
+    onSaveLoopToFile: () -> Unit = {},
+    sleepTimerRemainingMs: Long = 0L,
+    onSleepTimerChange: (Int) -> Unit = {}
 ) {
     val ctx = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
@@ -740,6 +742,32 @@ fun FileItem(
                                         val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
                                         onLoopCountChange(next)
                                         if (!isPlaying) onPlay()
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    themeColors = themeColors
+                                )
+
+                                // Sleep Timer Chip
+                                val sleepActive = sleepTimerRemainingMs > 0L
+                                val sleepLabel = if (sleepActive) {
+                                    val totalSecs = sleepTimerRemainingMs / 1000
+                                    val mins = totalSecs / 60
+                                    val secs = totalSecs % 60
+                                    String.format("%02d:%02d", mins, secs)
+                                } else "Off"
+                                
+                                ControlChip(
+                                    icon = AppIcons.Sleep,
+                                    label = sleepLabel,
+                                    onClick = {
+                                        val nextMinutes = when {
+                                            !sleepActive -> 15
+                                            sleepTimerRemainingMs <= 15 * 60 * 1000L -> 30
+                                            sleepTimerRemainingMs <= 30 * 60 * 1000L -> 45
+                                            sleepTimerRemainingMs <= 45 * 60 * 1000L -> 60
+                                            else -> 0
+                                        }
+                                        onSleepTimerChange(nextMinutes)
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     },
                                     themeColors = themeColors
