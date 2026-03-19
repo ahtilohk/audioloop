@@ -74,6 +74,9 @@ fun SettingsTab(
                 onSleepTimerChange = { viewModel.setSleepTimer(it) },
                 sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
                 themeColors = themeColors,
+                showHeader = false,
+                showOuterBorder = false,
+                showBackground = false,
                 modifier = Modifier.fillMaxWidth()
             )
         }

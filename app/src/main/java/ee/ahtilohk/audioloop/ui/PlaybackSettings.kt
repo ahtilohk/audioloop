@@ -46,6 +46,9 @@ fun PlaybackSettingsCard(
     onGapChange: ((Int) -> Unit)? = null,
     themeColors: AppColorPalette,
     modifier: Modifier = Modifier,
+    showHeader: Boolean = true,
+    showOuterBorder: Boolean = true,
+    showBackground: Boolean = true,
     currentTheme: AppTheme? = null,
     onThemeChange: ((AppTheme) -> Unit)? = null,
     currentLanguage: String? = null,
@@ -55,19 +58,20 @@ fun PlaybackSettingsCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        color = if (showBackground) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f) else Color.Transparent,
+        border = if (showBackground && showOuterBorder) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
     ) {
         Column {
             // Settings Header (Collapsible)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onToggleSettings() }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            if (showHeader) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggleSettings() }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 Icon(
                     imageVector = AppIcons.Settings,
                     contentDescription = stringResource(R.string.settings_playback_title),
@@ -180,25 +184,29 @@ fun PlaybackSettingsCard(
                     imageVector = if (settingsOpen) AppIcons.ChevronUp else AppIcons.ChevronDown,
                     contentDescription = null,
                     tint = if (settingsOpen) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
                 )
             }
+        }
 
             AnimatedVisibility(visible = settingsOpen) {
+                val itemModifier = if (!showBackground) Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .padding(12.dp)
+                else Modifier.fillMaxWidth()
+
                 Column(
                     modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .padding(bottom = 8.dp)
+                        .padding(horizontal = if (showBackground) 12.dp else 4.dp)
+                        .padding(bottom = if (showBackground) 8.dp else 4.dp)
                         .fillMaxWidth()
-                        .heightIn(max = 300.dp)
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                        .padding(12.dp)
+                        .heightIn(max = 400.dp)
+                        .padding(if (showHeader) 12.dp else 0.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (showBackground) 12.dp else 16.dp)
                 ) {
                     // Speed
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(modifier = itemModifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.settings_speed), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text("${String.format("%.2f", selectedSpeed)}x", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
@@ -229,7 +237,7 @@ fun PlaybackSettingsCard(
                     }
 
                     // Repeats
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(modifier = itemModifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.settings_repeats), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                             Text(
@@ -275,7 +283,7 @@ fun PlaybackSettingsCard(
 
                     // Gap support (only shown in Playlist context)
                     if (onGapChange != null) {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(modifier = itemModifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(stringResource(R.string.settings_gap), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
                                 Text("${gapSeconds}s", style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold))
@@ -300,49 +308,52 @@ fun PlaybackSettingsCard(
                     }
 
                     // Listen & Repeat
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Column {
-                            Text(stringResource(R.string.settings_listen_repeat), style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp))
-                            Text(stringResource(R.string.settings_listen_repeat_desc), style = TextStyle(color = MaterialTheme.colorScheme.outline, fontSize = 10.sp))
-                        }
-                        Box(
-                            modifier = Modifier
-                                .width(44.dp)
-                                .height(24.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isShadowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
-                                .clickable { 
-                                    onShadowingChange(!isShadowing)
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                        ) {
+                    Column(modifier = itemModifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text(stringResource(R.string.settings_listen_repeat), style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp))
+                                Text(stringResource(R.string.settings_listen_repeat_desc), style = TextStyle(color = MaterialTheme.colorScheme.outline, fontSize = 10.sp))
+                            }
                             Box(
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .offset(x = if (isShadowing) 22.dp else 2.dp, y = 2.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White),
-                                contentAlignment = Alignment.Center
+                                    .width(44.dp)
+                                    .height(24.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isShadowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
+                                    .clickable { 
+                                        onShadowingChange(!isShadowing)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
                             ) {
-                                if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(10.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .offset(x = if (isShadowing) 22.dp else 2.dp, y = 2.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isShadowing) Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(10.dp))
+                                }
                             }
                         }
-                    }
 
-                    if (isShadowing) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.settings_pause_duration), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(0 to stringResource(R.string.settings_pause_auto), 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
-                                    val active = shadowPauseSeconds == secs
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                            .clickable { onShadowPauseChange(secs) }
-                                            .padding(horizontal = 8.dp, vertical = 5.dp)
-                                    ) {
-                                        Text(label, style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                        if (isShadowing) {
+                            Spacer(Modifier.height(4.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.settings_pause_duration), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    listOf(0 to stringResource(R.string.settings_pause_auto), 2 to "2s", 5 to "5s", 10 to "10s").forEach { (secs, label) ->
+                                        val active = shadowPauseSeconds == secs
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                                .clickable { onShadowPauseChange(secs) }
+                                                .padding(horizontal = 8.dp, vertical = 5.dp)
+                                        ) {
+                                            Text(label, style = TextStyle(color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                        }
                                     }
                                 }
                             }
@@ -350,69 +361,71 @@ fun PlaybackSettingsCard(
                     }
 
                     // Sleep Timer
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.settings_sleep_timer), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
-                            Text(
-                                if (selectedSleepMinutes == 0) stringResource(R.string.settings_sleep_off) else "${selectedSleepMinutes}m",
-                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            )
-                        }
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            val isOffSelected = selectedSleepMinutes == 0
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isOffSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { 
-                                        onSleepTimerChange(0)
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    }
-                                    .padding(vertical = 5.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(stringResource(R.string.settings_sleep_off), style = TextStyle(color = if (isOffSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                    Column(modifier = itemModifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.settings_sleep_timer), style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp))
+                                Text(
+                                    if (selectedSleepMinutes == 0) stringResource(R.string.settings_sleep_off) else "${selectedSleepMinutes}m",
+                                    style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                )
                             }
-                            listOf(15, 30, 45, 60).forEach { m ->
-                                val isSelected = selectedSleepMinutes == m
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                val isOffSelected = selectedSleepMinutes == 0
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                                        .clickable { onSleepTimerChange(m) }
+                                        .background(if (isOffSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                        .clickable { 
+                                            onSleepTimerChange(0)
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        }
                                         .padding(vertical = 5.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    Text(stringResource(R.string.settings_sleep_off), style = TextStyle(color = if (isOffSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                }
+                                listOf(15, 30, 45, 60).forEach { m ->
+                                    val isSelected = selectedSleepMinutes == m
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                            .clickable { onSleepTimerChange(m) }
+                                            .padding(vertical = 5.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("${m}m", style = TextStyle(color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (sleepTimerRemainingMs > 0L) {
-                        val totalSec = (sleepTimerRemainingMs / 1000).toInt()
-                        val min = totalSec / 60
-                        val sec = totalSec % 60
-                        val remaining = String.format("%d:%02d", min, sec)
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                stringResource(R.string.settings_sleep_stops_in, remaining),
-                                style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            )
-                            Text(
-                                stringResource(R.string.btn_cancel),
-                                style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium),
-                                modifier = Modifier.clickable { onSleepTimerChange(0) }
-                            )
+                        if (sleepTimerRemainingMs > 0L) {
+                            val totalSec = (sleepTimerRemainingMs / 1000).toInt()
+                            val min = totalSec / 60
+                            val sec = totalSec % 60
+                            val remaining = String.format("%d:%02d", min, sec)
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    stringResource(R.string.settings_sleep_stops_in, remaining),
+                                    style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                )
+                                Text(
+                                    stringResource(R.string.btn_cancel),
+                                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                                    modifier = Modifier.clickable { onSleepTimerChange(0) }
+                                )
+                            }
                         }
                     }
 
@@ -477,17 +490,17 @@ fun PlaybackSettingsCard(
                                 val languages = listOf(
                                     "en" to "English",
                                     "et" to "Eesti",
-                                    "es" to "Español",
-                                    "fr" to "Français",
+                                    "es" to "EspaÃ±ol",
+                                    "fr" to "FranÃ§ais",
                                     "de" to "Deutsch",
                                     "it" to "Italiano",
-                                    "pt" to "Português",
+                                    "pt" to "PortuguÃªs",
                                     "ru" to "???????",
                                     "pl" to "Polski",
                                     "fi" to "Suomi",
                                     "sv" to "Svenska",
                                     "no" to "Norsk",
-                                    "lv" to "Latviešu",
+                                    "lv" to "LatvieÅ¡u",
                                     "lt" to "Lietuviu",
                                     "id" to "Bahasa Indo",
                                     "ar" to "???????",
@@ -495,7 +508,7 @@ fun PlaybackSettingsCard(
                                     "zh" to "??",
                                     "ja" to "???",
                                     "ko" to "???",
-                                    "tr" to "Türkçe",
+                                    "tr" to "TÃ¼rkÃ§e",
                                     "vi" to "Ti?ng Vi?t",
                                     "da" to "Dansk",
                                     "uk" to "??????????",
@@ -538,3 +551,4 @@ fun PlaybackSettingsCard(
     }
 }
 
+}
