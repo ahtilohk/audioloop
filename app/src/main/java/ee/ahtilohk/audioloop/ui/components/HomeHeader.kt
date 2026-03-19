@@ -29,7 +29,7 @@ fun HomeHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -93,14 +93,13 @@ fun HomeHeader(
 
             Surface(
                 onClick = onPlaylistClick,
-                modifier = Modifier.widthIn(min = 100.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = themeColors.primaryContainer.copy(alpha = 0.25f),
                 border = BorderStroke(1.2.dp, themeColors.primary.copy(alpha = 0.6f))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
