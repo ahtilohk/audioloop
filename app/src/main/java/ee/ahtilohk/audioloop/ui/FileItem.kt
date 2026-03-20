@@ -1057,9 +1057,6 @@ private fun <T> CompactOptionSelector(
     }
 }
 
-    }
-}
-
 // Reusable expert controls for the Bottom Sheet
 @Composable
 fun PracticeControlsContent(
