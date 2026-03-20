@@ -137,7 +137,8 @@ fun FileItem(
     onLoopCountChange: (Int) -> Unit = {},
     onSaveLoopToFile: () -> Unit = {},
     sleepTimerRemainingMs: Long = 0L,
-    onSleepTimerChange: (Int) -> Unit = {}
+    onSleepTimerChange: (Int) -> Unit = {},
+    onTuneClick: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
@@ -478,6 +479,39 @@ fun FileItem(
             var hudText by remember { mutableStateOf("") }
             var hudIcon by remember { mutableStateOf<ImageVector>(AppIcons.Speed) }
             var accumulatedSpeedDelta by remember { mutableFloatStateOf(0f) }
+
+            // Simplified playing row with Tune button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "$currentTimeString / ${item.durationString}",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), 
+                        fontSize = 10.sp, 
+                        fontWeight = FontWeight.Bold, 
+                        letterSpacing = 0.4.sp,
+                        fontFamily = FontFamily.Monospace
+                    ),
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+
+                IconButton(
+                    onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onTuneClick() },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Tune,
+                        contentDescription = "Practice Toolbox",
+                        tint = themeColors.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -841,21 +875,6 @@ fun FileItem(
                                 }
                             }
 
-                            // B-Group
-                            MarkerControlGroup(
-                                label = "B",
-                                isActive = abLoopEnd >= 0f,
-                                onMainClick = { 
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) 
-                                },
-                                onNudge = { delta -> 
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onNudgeAbLoopEnd(delta) 
-                                },
-                                themeColors = themeColors
-                            )
-                        }
                     }
                 }
             }
@@ -1036,3 +1055,196 @@ private fun <T> CompactOptionSelector(
     }
 }
 
+    }
+}
+
+// Reusable expert controls for the Bottom Sheet
+@Composable
+fun PracticeControlsContent(
+    item: RecordingItem,
+    speed: Float,
+    onSpeedChange: (Float) -> Unit,
+    loopCount: Int,
+    onLoopCountChange: (Int) -> Unit,
+    sleepTimerRemainingMs: Long,
+    onSleepTimerChange: (Int) -> Unit,
+    isShadowingMode: Boolean,
+    onToggleShadowingMode: (Boolean) -> Unit,
+    abLoopStart: Float,
+    abLoopEnd: Float,
+    onSetAbLoopStart: (Float) -> Unit,
+    onSetAbLoopEnd: (Float) -> Unit,
+    onNudgeAbLoopStart: (Int) -> Unit,
+    onNudgeAbLoopEnd: (Int) -> Unit,
+    onSaveLoopToFile: () -> Unit,
+    currentProgress: Float,
+    themeColors: AppColorPalette
+) {
+    val haptic = LocalHapticFeedback.current
+    val primaryColor = themeColors.primary
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Practice Toolbox",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = primaryColor
+            )
+            
+            // Listen & Repeat Toggle
+            Surface(
+                onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                shape = RoundedCornerShape(8.dp),
+                color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
+                border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(
+                            imageVector = AppIcons.Shadow,
+                            contentDescription = null,
+                            tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp).graphicsLayer { rotationZ = 90f }
+                        )
+                        Text(
+                            "Listen & Repeat", 
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isShadowingMode) primaryColor else onSurfaceVariantColor
+                        )
+                    }
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Speed Chip
+            ControlChip(
+                icon = AppIcons.Speed,
+                label = "${speed}x",
+                onClick = { 
+                    val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f)
+                    val next = speeds[(speeds.indexOf(speed) + 1) % speeds.size]
+                    onSpeedChange(next)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+                themeColors = themeColors
+            )
+
+            // Loop Chip
+            ControlChip(
+                icon = AppIcons.Loop,
+                label = if (loopCount == -1) "∞" else "${loopCount}x",
+                onClick = {
+                    val loops = listOf(1, 2, 3, 5, -1)
+                    val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
+                    onLoopCountChange(next)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+                themeColors = themeColors
+            )
+
+            // Sleep Timer Chip
+            val sleepActive = sleepTimerRemainingMs > 0L
+            val sleepLabel = if (sleepActive) {
+                val totalSecs = sleepTimerRemainingMs / 1000
+                val mins = totalSecs / 60
+                val secs = totalSecs % 60
+                String.format("%02d:%02d", mins, secs)
+            } else "Off"
+            
+            ControlChip(
+                icon = AppIcons.Sleep,
+                label = sleepLabel,
+                onClick = {
+                    val nextMinutes = when {
+                        !sleepActive -> 15
+                        sleepTimerRemainingMs <= 15 * 60 * 1000L -> 30
+                        sleepTimerRemainingMs <= 30 * 60 * 1000L -> 45
+                        sleepTimerRemainingMs <= 45 * 60 * 1000L -> 60
+                        else -> 0
+                    }
+                    onSleepTimerChange(nextMinutes)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+                themeColors = themeColors
+            )
+        }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+        // Marker Controls
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MarkerControlGroup(
+                label = "A",
+                isActive = abLoopStart >= 0f,
+                onMainClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onSetAbLoopStart(if (abLoopStart >= 0f && abLoopEnd < 0f) -1f else currentProgress) 
+                },
+                onNudge = { delta -> 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onNudgeAbLoopStart(delta) 
+                },
+                themeColors = themeColors
+            )
+
+            // Export Button (Only when A-B active)
+            if (abActive) {
+                Button(
+                    onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
+                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary, contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(AppIcons.Save, null, Modifier.size(16.dp))
+                        Text("Export Loop", fontSize = 12.sp)
+                    }
+                }
+            } else if (abLoopStart >= 0f || abLoopEnd >= 0f) {
+                OutlinedButton(
+                    onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f) },
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Clear A-B", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+
+            MarkerControlGroup(
+                label = "B",
+                isActive = abLoopEnd >= 0f,
+                onMainClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) 
+                },
+                onNudge = { delta -> 
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onNudgeAbLoopEnd(delta) 
+                },
+                themeColors = themeColors
+            )
+        }
+    }
+}

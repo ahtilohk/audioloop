@@ -83,6 +83,7 @@ data class AudioLoopUiState(
     val settingsOpen: Boolean = false,
     val showCategorySheet: Boolean = false,
     val isLoading: Boolean = false,
+    val showPracticeControls: Boolean = false,
 
     // --- Dialog Visibility ---
     val showRenameDialog: Boolean = false,

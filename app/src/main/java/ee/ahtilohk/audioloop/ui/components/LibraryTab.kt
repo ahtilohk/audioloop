@@ -40,6 +40,7 @@ import ee.ahtilohk.audioloop.Playlist
 import ee.ahtilohk.audioloop.RecordingItem
 import ee.ahtilohk.audioloop.SortMode
 import ee.ahtilohk.audioloop.ui.FileItem
+import ee.ahtilohk.audioloop.ui.PracticeControlsContent
 import ee.ahtilohk.audioloop.ui.PracticeProgressCard
 import ee.ahtilohk.audioloop.ui.formatSessionTime
 import ee.ahtilohk.audioloop.ui.theme.Red500
@@ -126,6 +127,48 @@ fun LibraryTab(
                 EmptyLibraryState(uiState.searchQuery.isNotEmpty(), viewModel, onImportClick, onNavigate)
             } else {
                 DraggableFileList(uiState, viewModel, uiRecordingItems)
+            }
+        }
+
+        if (uiState.showPracticeControls) {
+            val playingItem = uiRecordingItems.find { it.file.name == uiState.playingFileName }
+            if (playingItem != null) {
+                ModalBottomSheet(
+                    onDismissRequest = { viewModel.setShowPracticeControls(false) },
+                    sheetState = rememberModalBottomSheetState(),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                ) {
+                    PracticeControlsContent(
+                        item = playingItem,
+                        speed = uiState.playbackSpeed,
+                        onSpeedChange = { viewModel.setPlaybackSpeed(it) },
+                        loopCount = uiState.loopMode,
+                        onLoopCountChange = { viewModel.setLoopMode(it) },
+                        sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
+                        onSleepTimerChange = { viewModel.setSleepTimer(it) },
+                        isShadowingMode = uiState.isShadowingMode,
+                        onToggleShadowingMode = { viewModel.setShadowingMode(it) },
+                        abLoopStart = uiState.abLoopStart,
+                        abLoopEnd = uiState.abLoopEnd,
+                        onSetAbLoopStart = { viewModel.setAbLoopStart(it) },
+                        onSetAbLoopEnd = { viewModel.setAbLoopEnd(it) },
+                        onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
+                        onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
+                        onSaveLoopToFile = {
+                            viewModel.startExportLoop(
+                                playingItem,
+                                (uiState.abLoopStart * playingItem.durationMillis).toLong(),
+                                (uiState.abLoopEnd * playingItem.durationMillis).toLong(),
+                                0L, 0L, false,
+                                uiState.playbackSpeed
+                            )
+                        },
+                        currentProgress = uiState.currentProgress,
+                        themeColors = uiState.currentTheme.palette
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }
@@ -801,7 +844,8 @@ private fun DraggableFileList(
                         )
                     },
                     sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                    onSleepTimerChange = { viewModel.setSleepTimer(it) }
+                    onSleepTimerChange = { viewModel.setSleepTimer(it) },
+                    onTuneClick = { viewModel.setShowPracticeControls(true) }
                 )
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -850,7 +894,8 @@ private fun DraggableFileList(
                 onLoopCountChange = { viewModel.setLoopMode(it) },
                 onSaveLoopToFile = { },
                 sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                onSleepTimerChange = { viewModel.setSleepTimer(it) }
+                onSleepTimerChange = { viewModel.setSleepTimer(it) },
+                onTuneClick = { }
             )
         }
     }

@@ -1469,6 +1469,10 @@ class AudioLoopViewModel @Inject constructor(
         _uiState.update { it.copy(showCategorySheet = show) }
     }
 
+    fun setShowPracticeControls(show: Boolean) {
+        _uiState.update { it.copy(showPracticeControls = show) }
+    }
+
     fun setShowPlaylistSheet(show: Boolean) {
         _uiState.update { it.copy(showPlaylistSheet = show) }
     }
