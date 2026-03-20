@@ -248,17 +248,17 @@ private fun LibraryHeader(
             Surface(
                 onClick = { viewModel.setSelectionMode(false) },
                 shape = MaterialTheme.shapes.small,
-                color = Red500.copy(alpha = 0.15f),
-                border = BorderStroke(1.dp, Red500.copy(alpha = 0.5f)),
-                modifier = Modifier.height(32.dp)
+                color = Red500.copy(alpha = 0.12f),
+                border = BorderStroke(1.dp, Red500.copy(alpha = 0.4f)),
+                modifier = Modifier.height(40.dp) // Professional touch target
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(14.dp))
-                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red500, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(16.dp))
+                    Text(stringResource(R.string.btn_cancel), fontSize = 13.sp, color = Red500, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }

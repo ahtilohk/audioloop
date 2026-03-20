@@ -52,7 +52,7 @@ fun HomeHeader(
                         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                     ),
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.5).sp
+                    letterSpacing = 0.2.sp
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -61,13 +61,13 @@ fun HomeHeader(
             if (uiState.isProUser) {
                 Surface(
                     color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(6.dp),
-                    modifier = Modifier.padding(start = 6.dp)
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(start = 4.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.label_pro),
                         color = Color.White,
-                        fontSize = 9.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
@@ -88,13 +88,13 @@ fun HomeHeader(
                 val timeStr = String.format("%02d:%02d", mins, secs)
                 
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                     modifier = Modifier.padding(end = 4.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -102,15 +102,15 @@ fun HomeHeader(
                             imageVector = AppIcons.Sleep, 
                             contentDescription = null, 
                             tint = MaterialTheme.colorScheme.primary, 
-                            modifier = Modifier.size(12.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = timeStr, 
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.primary, 
-                                fontWeight = FontWeight.Bold, 
+                                fontWeight = FontWeight.ExtraBold, 
                                 fontFamily = FontFamily.Monospace,
-                                fontSize = 10.sp
+                                fontSize = 11.sp
                             )
                         )
                     }
@@ -119,38 +119,39 @@ fun HomeHeader(
 
             IconButton(
                 onClick = onSearchClick,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(44.dp) // Standard touch target
             ) {
                 Icon(
                     imageVector = AppIcons.Search,
                     contentDescription = stringResource(R.string.a11y_search),
                     tint = if (uiState.searchQuery.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
             Surface(
                 onClick = onPlaylistClick,
-                shape = RoundedCornerShape(16.dp),
-                color = themeColors.primaryContainer.copy(alpha = 0.25f),
-                border = BorderStroke(1.2.dp, themeColors.primary.copy(alpha = 0.6f))
+                shape = RoundedCornerShape(12.dp),
+                color = themeColors.primaryContainer.copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.4f))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = AppIcons.QueueMusic,
                         contentDescription = stringResource(R.string.a11y_playlists),
                         tint = themeColors.primary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(R.string.label_playlists),
                         style = MaterialTheme.typography.labelLarge.copy(
                             color = themeColors.primary,
-                            fontWeight = FontWeight.ExtraBold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
                         ),
                         maxLines = 1
                     )

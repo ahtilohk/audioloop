@@ -974,12 +974,13 @@ private fun MarkerControlGroup(
         // Nudge Back
         SmallFloatingActionButton(
             onClick = { onNudge(-100) },
-            modifier = Modifier.size(28.dp),
-            containerColor = Color.Transparent,
+            modifier = Modifier.size(36.dp), // Improved touch target
+            containerColor = themeColors.primary.copy(alpha = 0.08f),
             contentColor = themeColors.primary,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp)
+            elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            shape = CircleShape
         ) {
-            Icon(AppIcons.ChevronLeft, null, modifier = Modifier.size(14.dp))
+            Icon(AppIcons.ChevronLeft, null, modifier = Modifier.size(18.dp))
         }
 
         // Main A/B Circle
@@ -987,15 +988,15 @@ private fun MarkerControlGroup(
             onClick = onMainClick,
             shape = CircleShape,
             color = if (isActive) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.size(32.dp),
-            border = BorderStroke(1.2.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.2f))
+            modifier = Modifier.size(36.dp), // Normalized size
+            border = BorderStroke(1.dp, if (isActive) themeColors.primary else themeColors.primary.copy(alpha = 0.3f))
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = label,
                     style = TextStyle(
                         color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Black
                     )
                 )
@@ -1005,12 +1006,13 @@ private fun MarkerControlGroup(
         // Nudge Forward
         SmallFloatingActionButton(
             onClick = { onNudge(100) },
-            modifier = Modifier.size(28.dp),
-            containerColor = Color.Transparent,
+            modifier = Modifier.size(36.dp), // Improved touch target
+            containerColor = themeColors.primary.copy(alpha = 0.08f),
             contentColor = themeColors.primary,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp)
+            elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            shape = CircleShape
         ) {
-            Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(14.dp))
+            Icon(AppIcons.ChevronRight, null, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -1043,11 +1045,11 @@ private fun <T> CompactOptionSelector(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = labelProvider(item),
+                    text = labelProvider(item).uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = if (isActive) Color.White else MaterialTheme.colorScheme.onSurface,
-                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 9.sp
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
                     )
                 )
             }
@@ -1106,11 +1108,11 @@ fun PracticeControlsContent(
             Surface(
                 onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
                 shape = RoundedCornerShape(8.dp),
-                color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
-                border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
+                color = if (isShadowingMode) primaryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.3f) else Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp), // Improved touch target
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1118,12 +1120,13 @@ fun PracticeControlsContent(
                             imageVector = AppIcons.Shadow,
                             contentDescription = null,
                             tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor.copy(alpha = 0.7f),
-                            modifier = Modifier.size(14.dp).graphicsLayer { rotationZ = 90f }
+                            modifier = Modifier.size(18.dp).graphicsLayer { rotationZ = 90f }
                         )
                         Text(
-                            "Listen & Repeat", 
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (isShadowingMode) primaryColor else onSurfaceVariantColor
+                            "LISTEN & REPEAT", 
+                            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
+                            color = if (isShadowingMode) primaryColor else onSurfaceVariantColor,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
