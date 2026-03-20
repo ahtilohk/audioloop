@@ -40,10 +40,10 @@ import ee.ahtilohk.audioloop.Playlist
 import ee.ahtilohk.audioloop.RecordingItem
 import ee.ahtilohk.audioloop.SortMode
 import ee.ahtilohk.audioloop.ui.FileItem
-import ee.ahtilohk.audioloop.ui.PracticeControlsContent
 import ee.ahtilohk.audioloop.ui.PracticeProgressCard
 import ee.ahtilohk.audioloop.ui.formatSessionTime
 import ee.ahtilohk.audioloop.ui.theme.Red500
+import ee.ahtilohk.audioloop.ui.theme.AppColorPalette
 import ee.ahtilohk.audioloop.ui.theme.LocalSpacing
 import ee.ahtilohk.audioloop.ui.theme.LocalRadius
 import kotlinx.coroutines.delay
@@ -131,50 +131,6 @@ fun LibraryTab(
             }
         }
 
-        if (uiState.showPracticeControls) {
-            val playingItem = uiRecordingItems.find { it.file.name == uiState.playingFileName }
-            if (playingItem != null) {
-                ModalBottomSheet(
-                    onDismissRequest = { viewModel.setShowPracticeControls(false) },
-                    sheetState = rememberModalBottomSheetState(),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                ) {
-                    PracticeControlsContent(
-                        item = playingItem,
-                        speed = uiState.playbackSpeed,
-                        onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                        loopCount = uiState.loopMode,
-                        onLoopCountChange = { viewModel.setLoopMode(it) },
-                        sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                        onSleepTimerChange = { viewModel.setSleepTimer(it) },
-                        isShadowingMode = uiState.isShadowingMode,
-                        onToggleShadowingMode = { viewModel.setShadowingMode(it) },
-                        abLoopStart = uiState.abLoopStart,
-                        abLoopEnd = uiState.abLoopEnd,
-                        onSetAbLoopStart = { viewModel.setAbLoopStart(it) },
-                        onSetAbLoopEnd = { viewModel.setAbLoopEnd(it) },
-                        onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
-                        onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
-                        onSaveLoopToFile = {
-                            viewModel.startExportLoop(
-                                playingItem,
-                                (uiState.abLoopStart * playingItem.durationMillis).toLong(),
-                                (uiState.abLoopEnd * playingItem.durationMillis).toLong(),
-                                0L, 0L, false,
-                                uiState.playbackSpeed
-                            )
-                        },
-                        currentProgress = uiState.currentProgress,
-                        currentTimeString = uiState.currentTimeString,
-                        waveformData = viewModel.waveformCache[playingItem.file.absolutePath] ?: emptyList(),
-                        onSeek = { viewModel.seekTo(it) },
-                        themeColors = uiState.currentTheme.palette
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
-            }
-        }
     }
 }
 
@@ -816,39 +772,12 @@ private fun DraggableFileList(
                     onShowInfo = { viewModel.openInfoDialog(item) },
                     currentProgress = if (isPlaying) uiState.currentProgress else 0f,
                     currentTimeString = if (isPlaying) uiState.currentTimeString else "00:00",
-                    onSeek = { viewModel.seekTo(it) },
                     onReorder = { },
                     isDragging = draggingItemIndex == index,
                     themeColors = uiState.currentTheme.palette,
                     playlistPosition = if (uiState.currentlyPlayingPlaylistId != null) {
                         uiState.playlists.find { it.id == uiState.currentlyPlayingPlaylistId }?.files?.indexOf(item.name) ?: -1
                     } else -1,
-                    waveformData = viewModel.waveformCache[item.file.absolutePath] ?: emptyList(),
-                    onSeekAbsolute = { viewModel.seekAbsolute(it) }, // use absolute ms
-                    shadowCountdownText = if (isPlaying) uiState.shadowCountdownText else "",
-                    abLoopStart = if (isPlaying) uiState.abLoopStart else -1f,
-                    abLoopEnd = if (isPlaying) uiState.abLoopEnd else -1f,
-                    onSetAbLoopStart = { viewModel.setAbLoopStart(it) },
-                    onSetAbLoopEnd = { viewModel.setAbLoopEnd(it) },
-                    onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
-                    onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
-                    isShadowingMode = uiState.isShadowingMode,
-                    onToggleShadowingMode = { viewModel.setShadowingMode(it) },
-                    speed = uiState.playbackSpeed,
-                    onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                    loopCount = uiState.loopMode,
-                    onLoopCountChange = { viewModel.setLoopMode(it) },
-                    onSaveLoopToFile = { 
-                        viewModel.startExportLoop(
-                            item, 
-                            (uiState.abLoopStart * item.durationMillis).toLong(),
-                            (uiState.abLoopEnd * item.durationMillis).toLong(),
-                            0L, 0L, false,
-                            uiState.playbackSpeed
-                        )
-                    },
-                    sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                    onSleepTimerChange = { viewModel.setSleepTimer(it) },
                     onTuneClick = { viewModel.setShowPracticeControls(true) }
                 )
             }
@@ -865,8 +794,8 @@ private fun DraggableFileList(
                 isPlaying = item.file.name == uiState.playingFileName,
                 isPaused = if (item.file.name == uiState.playingFileName) uiState.isPaused else false,
                 isSelectionMode = uiState.isSelectionMode,
-                isSelected = uiState.selectedFiles.contains(item.name),
-                selectionOrder = uiState.selectedFiles.indexOf(item.name) + 1,
+                isSelected = uiState.selectedFiles.contains(item.file.absolutePath),
+                selectionOrder = uiState.selectedFiles.toList().indexOf(item.file.absolutePath) + 1,
                 currentProgress = if (item.file.name == uiState.playingFileName) uiState.currentProgress else 0f,
                 currentTimeString = if (item.file.name == uiState.playingFileName) uiState.currentTimeString else "00:00",
                 onPlay = {},
@@ -879,26 +808,10 @@ private fun DraggableFileList(
                 onMove = {},
                 onShare = {},
                 onDelete = {},
-                onSeek = {},
                 onReorder = {},
                 isDragging = true,
                 themeColors = uiState.currentTheme.palette,
                 playlistPosition = -1,
-                abLoopStart = -1f,
-                abLoopEnd = -1f,
-                onSetAbLoopStart = {},
-                onSetAbLoopEnd = {},
-                onNudgeAbLoopStart = {},
-                onNudgeAbLoopEnd = {},
-                isShadowingMode = uiState.isShadowingMode,
-                onToggleShadowingMode = { viewModel.setShadowingMode(it) },
-                speed = uiState.playbackSpeed,
-                onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                loopCount = uiState.loopMode,
-                onLoopCountChange = { viewModel.setLoopMode(it) },
-                onSaveLoopToFile = { },
-                sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
-                onSleepTimerChange = { viewModel.setSleepTimer(it) },
                 onTuneClick = { }
             )
         }
