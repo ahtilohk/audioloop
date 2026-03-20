@@ -924,6 +924,7 @@ fun FileItem(
         }
     }
 }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1248,4 +1249,4 @@ fun PracticeControlsContent(
         }
     }
 }
-}
+

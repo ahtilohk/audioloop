@@ -25,6 +25,7 @@ import ee.ahtilohk.audioloop.AudioLoopUiState
 import ee.ahtilohk.audioloop.AudioLoopViewModel
 import ee.ahtilohk.audioloop.ui.PracticeProgressCard
 import ee.ahtilohk.audioloop.ui.theme.*
+import ee.ahtilohk.audioloop.CoachEngine
 
 @Composable
 fun CoachTab(
@@ -106,7 +107,7 @@ fun CoachTab(
 
 @Composable
 private fun CoachRecommendationCard(
-    recommendation: ee.ahtilohk.audioloop.CoachRecommendation,
+    recommendation: CoachEngine.Recommendation,
     themeColors: AppColorPalette,
     onStart: (Int) -> Unit
 ) {
