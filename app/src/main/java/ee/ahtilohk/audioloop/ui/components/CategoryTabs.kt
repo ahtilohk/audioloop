@@ -30,7 +30,7 @@ fun CategoryTabs(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -56,7 +56,7 @@ fun CategoryTabs(
                             color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
                         ),
-                        modifier = Modifier.padding(vertical = 12.dp)
+                        modifier = Modifier.padding(vertical = 10.dp)
                     )
                     // Underline indicator
                     Box(

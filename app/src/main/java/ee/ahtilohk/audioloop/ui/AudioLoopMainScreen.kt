@@ -132,8 +132,6 @@ fun AudioLoopMainScreen(
                 )
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = 0.5.dp)
-
 
             // Main Content Area (NavHost)
             Box(modifier = Modifier.weight(1f)) {

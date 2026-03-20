@@ -145,9 +145,9 @@ private fun LibraryHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.large)
-            .padding(bottom = spacing.small),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (uiState.isSelectionMode && uiState.selectedFiles.isNotEmpty()) {
@@ -166,11 +166,11 @@ private fun LibraryHeader(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = spacing.large)
-                .padding(bottom = spacing.small)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
                 .background(themeColors.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                 .border(1.dp, themeColors.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -351,25 +351,9 @@ private fun RowScope.NormalHeader(
     onImportClick: () -> Unit,
     onSelectClick: () -> Unit
 ) {
-    val titleText = if (uiState.searchQuery.isNotEmpty()) {
-        val count = viewModel.getFilteredItems().size
-        if (uiState.searchCategory != null) {
-             stringResource(R.string.search_header_category, uiState.searchCategory, count)
-        } else {
-             stringResource(R.string.search_header_all, count)
-        }
-    } else {
-        stringResource(R.string.library_files_header, uiState.currentCategory)
-    }
     val haptic = LocalHapticFeedback.current
 
-    Text(
-        text = titleText,
-        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.weight(1f, fill = false).padding(end = 12.dp)
-    )
+    // No title label anymore - the CategoryTabs above already show where we are.
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Button(
             onClick = {
@@ -751,7 +735,7 @@ private fun DraggableFileList(
             modifier = Modifier.fillMaxSize(),
             state = scrollState,
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             itemsIndexed(uiRecordingItems, key = { _, item -> item.file.absolutePath }) { index, item ->
                 // Ensure waveform data is loaded for visible items
