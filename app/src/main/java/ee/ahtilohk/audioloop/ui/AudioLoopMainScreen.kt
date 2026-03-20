@@ -39,6 +39,25 @@ fun AudioLoopMainScreen(
         uris.forEach { uri -> viewModel.importFile(uri) }
     }
 
+    // Handle post-onboarding actions
+    LaunchedEffect(uiState.showOnboarding) {
+        if (!uiState.showOnboarding && uiState.onboardingPendingAction != null) {
+            when (uiState.onboardingPendingAction) {
+                "record" -> {
+                    navController.navigate(Screen.Record.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+                "import" -> {
+                    filePickerLauncher.launch("audio/*")
+                }
+            }
+            viewModel.finishOnboarding(null) // Clear the pending action
+        }
+    }
+
     // Back handler: return to playlist view to playlist list if we are using the flag (while transitioning)
     // Actually, popBackStack should handle most of this now.
     

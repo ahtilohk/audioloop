@@ -19,6 +19,9 @@
     <string name="btn_add">Add</string>
     <string name="btn_continue">Continue</string>
     <string name="btn_start_short">Start</string>
+    <string name="btn_skip">Skip</string>
+    <string name="btn_onboarding_record">Record My First Loop</string>
+    <string name="btn_onboarding_import">Import Audio File</string>
 
 
     <!-- Labels -->

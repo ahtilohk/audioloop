@@ -53,7 +53,7 @@ fun OnboardingScreen(
                 1 -> StepWelcome(themeColors) { viewModel.nextOnboardingStep() }
                 2 -> StepUseCase(themeColors) { viewModel.selectOnboardingUseCase(it) }
                 3 -> StepValueProp(themeColors) { viewModel.nextOnboardingStep() }
-                4 -> StepFinal(themeColors) { viewModel.finishOnboarding() }
+                4 -> StepFinal(themeColors, viewModel)
             }
         }
 
@@ -237,7 +237,7 @@ private fun StepValueProp(themeColors: AppColorPalette, onNext: () -> Unit) {
 }
 
 @Composable
-private fun StepFinal(themeColors: AppColorPalette, onFinish: () -> Unit) {
+private fun StepFinal(themeColors: AppColorPalette, viewModel: AudioLoopViewModel) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -262,15 +262,39 @@ private fun StepFinal(themeColors: AppColorPalette, onFinish: () -> Unit) {
             textAlign = TextAlign.Center
         )
 
-        Spacer(Modifier.height(60.dp))
+        Spacer(Modifier.height(40.dp))
 
+        // Record CTA
         Button(
-            onClick = onFinish,
+            onClick = { viewModel.finishOnboarding("record") },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text(stringResource(R.string.btn_got_it), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Icon(AppIcons.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.btn_onboarding_record), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        }
+        
+        Spacer(Modifier.height(12.dp))
+
+        // Import CTA
+        OutlinedButton(
+            onClick = { viewModel.finishOnboarding("import") },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            border = BorderStroke(1.dp, Zinc700),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(AppIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.btn_onboarding_import), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        }
+
+        Spacer(Modifier.height(20.dp))
+        
+        TextButton(onClick = { viewModel.finishOnboarding() }) {
+            Text(stringResource(R.string.btn_skip).uppercase(), color = Zinc500, fontWeight = FontWeight.SemiBold)
         }
     }
 }

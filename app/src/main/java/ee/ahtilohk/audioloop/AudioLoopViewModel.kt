@@ -1581,9 +1581,9 @@ class AudioLoopViewModel @Inject constructor(
         nextOnboardingStep()
     }
 
-    fun finishOnboarding() {
+    fun finishOnboarding(pendingAction: String? = null) {
         settingsManager.setFirstLaunchComplete()
-        _uiState.update { it.copy(showOnboarding = false) }
+        _uiState.update { it.copy(showOnboarding = false, onboardingPendingAction = pendingAction) }
     }
 
     override fun onCleared() {
