@@ -455,7 +455,7 @@ fun PracticeControlsContent(
         }
 
         // --- TRACK GROUP ---
-        SectionHeader("TRACK TIMELINE", themeColors)
+        SectionHeader("A-B LOOP", themeColors)
 
         // Markers and Save row
         Row(
@@ -468,7 +468,7 @@ fun PracticeControlsContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 MarkerControlGroup(
-                    label = "A",
+                    label = "START (A)",
                     isActive = abLoopStart >= 0f,
                     onMainClick = { onSetAbLoopStart(if (abLoopStart >= 0f) -1f else currentProgress) },
                     onNudge = onNudgeAbLoopStart,
@@ -476,7 +476,7 @@ fun PracticeControlsContent(
                 )
 
                 MarkerControlGroup(
-                    label = "B",
+                    label = "END (B)",
                     isActive = abLoopEnd >= 0f,
                     onMainClick = { onSetAbLoopEnd(if (abLoopEnd >= 0f) -1f else currentProgress) },
                     onNudge = onNudgeAbLoopEnd,

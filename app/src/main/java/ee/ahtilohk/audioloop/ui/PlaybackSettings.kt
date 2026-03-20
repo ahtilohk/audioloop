@@ -81,11 +81,17 @@ fun PlaybackSettingsCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.settings_playback_title),
+                        text = "DEFAULT PRACTICE BEHAVIOR",
                         style = MaterialTheme.typography.labelLarge.copy(
                             color = if (settingsOpen) themeColors.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp
                         )
+                    )
+                    Text(
+                        text = "Set app-wide defaults for new sessions",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
 
                     // Quick preview when collapsed

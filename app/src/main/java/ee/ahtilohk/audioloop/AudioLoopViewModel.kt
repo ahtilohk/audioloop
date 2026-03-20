@@ -777,7 +777,12 @@ class AudioLoopViewModel @Inject constructor(
 
     // ── Playback ──
 
-    fun playFile(item: RecordingItem) = playbackManager.playFile(item)
+    fun playFile(item: RecordingItem) {
+        playbackManager.playFile(item)
+        if (!_uiState.value.hasShownPracticeHint) {
+            _uiState.update { it.copy(showPracticeControls = true, hasShownPracticeHint = true) }
+        }
+    }
     fun pausePlaying() = playbackManager.pausePlaying()
     fun resumePlaying() = playbackManager.resumePlaying()
     fun stopPlaying() {
@@ -825,6 +830,9 @@ class AudioLoopViewModel @Inject constructor(
                     }
                 )
                 if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
+                if (!_uiState.value.hasShownPracticeHint) {
+                    _uiState.update { it.copy(showPracticeControls = true, hasShownPracticeHint = true) }
+                }
             } else {
                 playbackManager.updateCurrentlyPlayingPlaylist(null, 1)
                 showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)

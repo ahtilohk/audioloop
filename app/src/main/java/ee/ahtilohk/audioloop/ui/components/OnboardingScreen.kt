@@ -243,10 +243,10 @@ private fun StepFinal(uiState: AudioLoopUiState, viewModel: AudioLoopViewModel, 
     val category = uiState.currentCategory
     
     val (title, desc) = when(category) {
-        "Music" -> "Ready for your first session?" to "Capture that melody and start looping."
-        "Studies/Languages" -> "Ready for your first lesson?" to "Record a lecture or import your audio study materials."
-        "Content" -> "Ready for your first recording?" to "Capture your idea or import your podcast raw file."
-        else -> stringResource(R.string.onboarding_ready_title) to stringResource(R.string.onboarding_ready_desc)
+        "musician" -> "Start your first Practice Session" to "Import a backing track or record your melody to start looping segments immediately."
+        "student" -> "Master your first Lesson" to "Import a lecture or record a class to start using A-B repeats and shadowing."
+        "podcaster" -> "Record your first Clip" to "Capture your idea or import raw audio to practice your delivery with speed controls."
+        else -> "Start your first Practice Session" to "Record or import audio to experience A-B looping, speed practice, and shadowing."
     }
 
     Column(

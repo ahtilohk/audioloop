@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -248,9 +249,27 @@ private fun NowPlayingBar(
             )
             
             Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Left: Playing Icon / Waveform animation stub
+                Surface(
+                    modifier = Modifier.size(32.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = themeColors.primary.copy(alpha = 0.1f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = AppIcons.GraphicEq, 
+                            contentDescription = null, 
+                            tint = themeColors.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(12.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     val displayName = uiState.playingFileName.substringBeforeLast(".")
                     Text(
@@ -259,35 +278,58 @@ private fun NowPlayingBar(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = uiState.currentTimeString,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = uiState.currentTimeString,
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                            color = themeColors.primary
+                        )
+                        Text(
+                            text = " • Playing",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
                 }
                 
                 Spacer(Modifier.width(8.dp))
                 
-                // Active PRACTICE button
-                Button(
+                // Active PRACTICE button - more prominent
+                Surface(
                     onClick = onOpenPractice,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                    modifier = Modifier.height(36.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary.copy(alpha = 0.1f), contentColor = themeColors.primary),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    color = themeColors.primary,
+                    tonalElevation = 4.dp,
+                    enabled = true,
+                    modifier = Modifier.height(36.dp)
                 ) {
-                    Icon(AppIcons.Tune, null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("PRACTICE", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black, letterSpacing = 1.sp))
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(AppIcons.Tune, null, modifier = Modifier.size(16.dp), tint = Color.White)
+                        Text(
+                            "PRACTICE", 
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Black, 
+                                letterSpacing = 1.sp,
+                                color = Color.White
+                            )
+                        )
+                    }
                 }
                 
                 Spacer(Modifier.width(8.dp))
                 
-                IconButton(onClick = onTogglePlay) {
+                IconButton(
+                    onClick = onTogglePlay,
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Icon(
                         if (uiState.isPaused) AppIcons.PlayArrow else AppIcons.Pause, 
                         null, 
-                        tint = themeColors.primary,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(28.dp)
                     )
                 }
