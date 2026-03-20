@@ -201,684 +201,185 @@ fun FileItem(
                     )
                 }
 
-            if (isSelectionMode) {
-                Surface(
-                    onClick = { onToggleSelect() },
-                    modifier = Modifier.size(36.dp),
-                    shape = CircleShape,
-                    color = if (isSelected) themeColors.primary else Color.Transparent,
-                    border = BorderStroke(
-                        2.dp,
-                        if (isSelected) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isSelected) {
-                            Text(
-                                text = selectionOrder.toString(),
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    color = Color.White, // Always white on secondary solid color
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    }
-                }
-            } else if (isPlaying) {
-                // Modern Play/Pause Button
-                if (!isPaused) {
-                   FilledIconButton(
-                        onClick = { onPause() },
-                        modifier = Modifier.size(44.dp).shadow(4.dp, CircleShape),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White
+                if (isSelectionMode) {
+                    Surface(
+                        onClick = { onToggleSelect() },
+                        modifier = Modifier.size(36.dp),
+                        shape = CircleShape,
+                        color = if (isSelected) themeColors.primary else Color.Transparent,
+                        border = BorderStroke(
+                            2.dp,
+                            if (isSelected) themeColors.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Box(
-                            modifier = Modifier.fillMaxSize().background(themeColors.primaryGradient, CircleShape),
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Pause Icon
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
-                                Box(modifier = Modifier.size(width = 4.dp, height = 14.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            if (isSelected) {
+                                Text(
+                                    text = selectionOrder.toString(),
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
                             }
                         }
                     }
-
                 } else {
-                    // Paused -> Show Play (Resume)
+                    val icon = when {
+                        isPlaying && !isPaused -> AppIcons.Pause
+                        isPlaying && isPaused -> AppIcons.PlayArrow
+                        else -> AppIcons.PlayArrow
+                    }
+                    val containerColor = if (isPlaying) themeColors.primary else themeColors.primaryContainer
+                    val contentColor = if (isPlaying) Color.White else themeColors.onPrimaryContainer
+                    
                     FilledIconButton(
-                        onClick = { onResume() },
-                        modifier = Modifier.size(44.dp).shadow(4.dp, CircleShape),
+                        onClick = { if (isPlaying) (if (isPaused) onResume() else onPause()) else onPlay() },
+                        modifier = Modifier.size(36.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White
+                            containerColor = containerColor,
+                            contentColor = contentColor
                         )
                     ) {
-                         Box(
-                            modifier = Modifier.fillMaxSize().background(themeColors.primaryGradient, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.PlayArrow,
-                                contentDescription = stringResource(R.string.btn_resume),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
+                        Icon(icon, null, modifier = Modifier.size(18.dp))
                     }
-
                 }
 
-               // Stop Button
-                FilledIconButton(
-                    onClick = { onStop() },
-                    modifier = Modifier.size(36.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Red800.copy(alpha = 0.4f),
-                        contentColor = Red400
-                    )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 4.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .background(Red400, RoundedCornerShape(2.dp))
-                    )
-                }
-            } else {
-                // Not playing - show play button
-                FilledIconButton(
-                    onClick = { onPlay() },
-                    modifier = Modifier.size(40.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = themeColors.primaryContainer,
-                        contentColor = themeColors.onPrimaryContainer
-                    )
-                ) {
-                    Icon(
-                        imageVector = AppIcons.PlayArrow,
-                        contentDescription = stringResource(R.string.menu_play),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 4.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Restore colons in time portion (sanitizeName replaces : with _ for filesystem)
-                    val displayName = item.name.substringBeforeLast(".")
-                        .replace(Regex("(\\d{2})_(\\d{2})_(\\d{2})"), "$1:$2:$3")
-                    Text(
-                        text = displayName,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = if (isPlaying) FontWeight.SemiBold else FontWeight.Medium
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    // Note indicator
-                    if (item.note.isNotBlank()) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                        ) {
-                            Text(
-                                text = "Aa",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 9.sp
-                                ),
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                            )
-                        }
-                    }
-                    // Selection/Playlist position badge
-                    val badgeNumber = when {
-                        isSelectionMode && isSelected -> selectionOrder
-                        !isSelectionMode && playlistPosition > 0 -> playlistPosition
-                        else -> 0
-                    }
-                    if (badgeNumber > 0) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = when {
-                                isPlaying -> themeColors.primary
-                                isSelectionMode -> themeColors.secondary
-                                else -> themeColors.tertiary.copy(alpha = 0.8f)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val displayName = item.name.substringBeforeLast(".")
+                            .replace(Regex("(\\d{2})_(\\d{2})_(\\d{2})"), "$1:$2:$3")
+                        Text(
+                            text = displayName,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = if (isPlaying) themeColors.primary else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Medium
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (item.note.isNotBlank()) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = themeColors.primary.copy(alpha = 0.1f)
+                            ) {
+                                Text(
+                                    text = "Aa",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = themeColors.primary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 9.sp
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
                             }
-                        ) {
-                            Text(
-                                text = "\u266B $badgeNumber",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
                         }
-                    }
-                }
-                Box(modifier = Modifier.height(20.dp), contentAlignment = Alignment.CenterStart) {
-                    androidx.compose.animation.AnimatedContent(
-                        targetState = isPlaying && shadowCountdownText.isNotEmpty(),
-                        label = "status_text"
-                    ) { showShadow ->
-                        if (showShadow) {
-                            Text(
-                                text = "\u23F8 $shadowCountdownText",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            )
-                        } else {
-                            Text(
-                                text = "${if (isPlaying) stringResource(R.string.label_playing_indicator) else ""}${item.durationString}",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-            if (!isSelectionMode && !isPlaying) {
-                Box {
-                    IconButton(
-                        onClick = { menuExpanded = true },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.MoreVert,
-                            contentDescription = stringResource(R.string.a11y_menu),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
                     }
                     
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_rename), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onRename() }
+                    // Time / Status text
+                    val statusText = if (isPlaying) {
+                        if (shadowCountdownText.isNotEmpty()) "\u23F8 $shadowCountdownText" 
+                        else "$currentTimeString / ${item.durationString}"
+                    } else item.durationString
+                    
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = if (isPlaying) themeColors.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Normal
                         )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_trim), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onTrim() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.label_auto_trim_silence), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onAutoTrim() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_normalize), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.GraphicEq, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onNormalize() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(if (item.note.isNotBlank()) stringResource(R.string.menu_note_edit) else stringResource(R.string.menu_note_add), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onEditNote() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_move), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onMove() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_share), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.Share, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onShare() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_info), color = MaterialTheme.colorScheme.onSurface) },
-                            leadingIcon = { Icon(AppIcons.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            onClick = { menuExpanded = false; onShowInfo() }
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.btn_delete), color = Red400) },
-                            leadingIcon = { Icon(AppIcons.Delete, null, tint = Red400) },
-                            onClick = { menuExpanded = false; onDelete() }
-                        )
-                    }
-                }
-            }
-            }
-
-
-            if (isPlaying) {
-            val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
-            val haptic = LocalHapticFeedback.current
-            
-            // HUD State for gestures
-            var hudVisible by remember { mutableStateOf(false) }
-            var hudText by remember { mutableStateOf("") }
-            var hudIcon by remember { mutableStateOf<ImageVector>(AppIcons.Speed) }
-            var accumulatedSpeedDelta by remember { mutableFloatStateOf(0f) }
-
-            // Simplified playing row with Tune button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "$currentTimeString / ${item.durationString}",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), 
-                        fontSize = 10.sp, 
-                        fontWeight = FontWeight.Bold, 
-                        letterSpacing = 0.4.sp,
-                        fontFamily = FontFamily.Monospace
-                    ),
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-
-                IconButton(
-                    onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onTuneClick() },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Tune,
-                        contentDescription = "Practice Toolbox",
-                        tint = themeColors.primary,
-                        modifier = Modifier.size(18.dp)
                     )
                 }
-            }
 
-            Box(
-                modifier = Modifier
-                    .padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
-                    .fillMaxWidth()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 6.dp)
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)) {
-                        // Interactive Waveform with progress + A-B markers
-                        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(100) { 15 } }
-                        val barCount = bars.size
-                        
-                        val primaryColor = themeColors.primary
-                        val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-                        val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        val markerWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(onSurfaceVariantColor.copy(alpha = 0.04f)),
-                            contentAlignment = Alignment.Center
+                // Tune (Practice Toolbox) Icon
+                // Always visible Overflow Menu (unless in selection mode)
+                if (!isSelectionMode) {
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            androidx.compose.foundation.Canvas(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .semantics {
-                                        contentDescription = ctx.getString(R.string.a11y_waveform_seeker)
-                                        progressBarRangeInfo = ProgressBarRangeInfo(currentProgress, 0f..1f)
-                                    }
-                                    .pointerInput(item.file.absolutePath) {
-                                        awaitEachGesture {
-                                            val down = awaitFirstDown(requireUnconsumed = false)
-                                            var isTwoFinger = false
-                                            
-                                            // Look for common states
-                                            while (true) {
-                                                val event = awaitPointerEvent()
-                                                if (event.changes.size > 1) {
-                                                    isTwoFinger = true
-                                                    hudIcon = AppIcons.Speed
-                                                    hudVisible = true
-                                                    accumulatedSpeedDelta = 0f
-                                                    break
-                                                }
-                                                if (event.changes.any { it.positionChanged() }) break
-                                                if (event.changes.all { !it.pressed }) break
-                                            }
-
-                                            if (isTwoFinger) {
-                                                // Handle Speed Adjustment (Two fingers)
-                                                while (true) {
-                                                    val event = awaitPointerEvent()
-                                                    val changes = event.changes
-                                                    if (changes.all { !it.pressed }) break
-                                                    
-                                                    // Average delta of all fingers
-                                                    val deltaX = changes.map { it.position.x - it.previousPosition.x }.average().toFloat()
-                                                    accumulatedSpeedDelta += deltaX
-                                                    
-                                                    // Change speed every 120 pixels
-                                                    if (kotlin.math.abs(accumulatedSpeedDelta) > 120f) {
-                                                        val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
-                                                        val currentIndex = speeds.indexOf(speed).coerceAtLeast(1) // default to 1x
-                                                        val direction = if (accumulatedSpeedDelta > 0) 1 else -1
-                                                        val nextIndex = (currentIndex + direction).coerceIn(0, speeds.size - 1)
-                                                        val nextSpeed = speeds[nextIndex]
-                                                        
-                                                        if (nextSpeed != speed) {
-                                                            onSpeedChange(nextSpeed)
-                                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                        }
-                                                        accumulatedSpeedDelta = 0f
-                                                    }
-                                                    
-                                                    hudText = "${speed}x"
-                                                    changes.forEach { it.consume() }
-                                                }
-                                            } else {
-                                                // Standard Seek (One finger)
-                                                onSeek((down.position.x / size.width.toFloat()).coerceIn(0f, 1f))
-                                                drag(down.id) { change ->
-                                                    change.consume()
-                                                    onSeek((change.position.x / size.width.toFloat()).coerceIn(0f, 1f))
-                                                }
-                                            }
-                                            hudVisible = false
-                                        }
-                                    }
-                            ) {
-                                val barCount = bars.size
-                                val w = size.width
-                                val h = size.height
-                                val barWidth = if (barCount > 0) w / barCount else 1f
-                                // Thinner lines for higher definition and more "Premium" feel
-                                val strokeWidth = (barWidth * 0.4f).coerceIn(1f, 2.5.dp.toPx())
-
-                                fun drawWaveform(color: Color, isFullColor: Boolean = false) {
-                                    for (i in 0 until barCount) {
-                                        val amp = bars[i]
-                                        val barFraction = (amp / 100f).coerceIn(0.08f, 1f)
-                                        val barH = barFraction * h * 0.7f
-                                        val x = i * barWidth + barWidth / 2f
-                                        
-                                        val barColor = if (isFullColor) {
-                                            Brush.verticalGradient(
-                                                colors = listOf(color.copy(alpha = 0.7f), color, color.copy(alpha = 0.7f)),
-                                                startY = (h - barH) / 2,
-                                                endY = (h + barH) / 2
-                                            )
-                                        } else {
-                                            SolidColor(color)
-                                        }
-
-                                        drawLine(
-                                            brush = if (barColor is Brush) barColor else SolidColor(color),
-                                            start = Offset(x, (h - barH) / 2),
-                                            end = Offset(x, (h + barH) / 2),
-                                            strokeWidth = strokeWidth,
-                                            cap = StrokeCap.Round
-                                        )
-                                    }
-                                }
-
-                                // 1. Draw A-B loop region highlight (Premium Gradient)
-                                if (abActive) {
-                                    drawRect(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(primaryColor.copy(alpha = 0.1f), primaryColor.copy(alpha = 0.25f), primaryColor.copy(alpha = 0.1f)),
-                                            startX = abLoopStart * w,
-                                            endX = abLoopEnd * w
-                                        ),
-                                        topLeft = Offset(abLoopStart * w, 0f),
-                                        size = androidx.compose.ui.geometry.Size((abLoopEnd - abLoopStart) * w, h)
-                                    )
-                                }
-
-                                // 2. Background Waveform (theme-aware, visible in both light and dark)
-                                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.5f))
-
-                                // 3. Active Waveform (Clipping to progress)
-                                clipRect(right = currentProgress * w) {
-                                    drawWaveform(primaryColor, isFullColor = true)
-                                }
-                                // 4. A-B Markers (Premium Glowing Lines)
-                                if (abLoopStart >= 0f) {
-                                    val ax = abLoopStart * w
-                                    // A Marker - Refined visualization
-                                    drawLine(
-                                        color = onSurfaceColor.copy(alpha = 0.9f),
-                                        start = Offset(ax, 0f),
-                                        end = Offset(ax, h),
-                                        strokeWidth = 2.5.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
-                                    // Glow effect
-                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, 0f))
-                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(ax, h))
-                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(ax, 0f))
-                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(ax, h))
-                                }
-                                if (abLoopEnd >= 0f) {
-                                    val bx = abLoopEnd * w
-                                    drawLine(
-                                        color = onSurfaceColor.copy(alpha = 0.9f),
-                                        start = Offset(bx, 0f),
-                                        end = Offset(bx, h),
-                                        strokeWidth = 2.5.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
-                                    // Glow effect
-                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, 0f))
-                                    drawCircle(primaryColor, radius = 7.dp.toPx(), center = Offset(bx, h))
-                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(bx, 0f))
-                                    drawCircle(onSurfaceColor, radius = 3.dp.toPx(), center = Offset(bx, h))
-                                }
-
-
-                                // 5. Playhead
-                                val px = currentProgress * w
-                                drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx * 1f)
-                                drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, 0f))
-                                drawCircle(onSurfaceColor, radius = markerWidthPx * 2f, center = Offset(px, h))
-                            }
-                            
-                            // Gesture HUD Overlay
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = hudVisible,
-                                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
-                                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                Surface(
-                                    color = Color.Black.copy(alpha = 0.75f),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.padding(8.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(hudIcon, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                        Text(
-                                            text = hudText, 
-                                            color = Color.White, 
-                                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Modern Minimal Controls Row
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            // Time Display
-                             Text(
-                                    text = "$currentTimeString / ${item.durationString}",
-                                    style = TextStyle(
-                                        color = onSurfaceColor.copy(alpha = 0.7f), 
-                                        fontSize = 10.sp, 
-                                        fontWeight = FontWeight.Bold, 
-                                        letterSpacing = 0.4.sp,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                // Speed Chip
-                                ControlChip(
-                                    icon = AppIcons.Speed,
-                                    label = "${speed}x",
-                                    onClick = { 
-                                        val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f)
-                                        val next = speeds[(speeds.indexOf(speed) + 1) % speeds.size]
-                                        onSpeedChange(next)
-                                        if (!isPlaying) onPlay()
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    },
-                                    themeColors = themeColors
-                                )
-
-                                // Loop Chip
-                                ControlChip(
-                                    icon = AppIcons.Loop,
-                                    label = if (loopCount == -1) "∞" else "${loopCount}x",
-                                    onClick = {
-                                        val loops = listOf(1, 2, 3, 5, -1)
-                                        val next = loops[(loops.indexOf(loopCount) + 1) % loops.size]
-                                        onLoopCountChange(next)
-                                        if (!isPlaying) onPlay()
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    },
-                                    themeColors = themeColors
-                                )
-
-                                // Sleep Timer Chip
-                                val sleepActive = sleepTimerRemainingMs > 0L
-                                val sleepLabel = if (sleepActive) {
-                                    val totalSecs = sleepTimerRemainingMs / 1000
-                                    val mins = totalSecs / 60
-                                    val secs = totalSecs % 60
-                                    String.format("%02d:%02d", mins, secs)
-                                } else "Off"
-                                
-                                ControlChip(
-                                    icon = AppIcons.Sleep,
-                                    label = sleepLabel,
-                                    onClick = {
-                                        val nextMinutes = when {
-                                            !sleepActive -> 15
-                                            sleepTimerRemainingMs <= 15 * 60 * 1000L -> 30
-                                            sleepTimerRemainingMs <= 30 * 60 * 1000L -> 45
-                                            sleepTimerRemainingMs <= 45 * 60 * 1000L -> 60
-                                            else -> 0
-                                        }
-                                        onSleepTimerChange(nextMinutes)
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    },
-                                    themeColors = themeColors
-                                )
-
-                                 // Listen & Repeat Toggle
-                                 Surface(
-                                        onClick = { onToggleShadowingMode(!isShadowingMode); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = if (isShadowingMode) primaryColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
-                                        border = BorderStroke(1.dp, if (isShadowingMode) primaryColor.copy(alpha = 0.4f) else Color.Transparent)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = AppIcons.Shadow,
-                                                contentDescription = null,
-                                                tint = if (isShadowingMode) primaryColor else onSurfaceVariantColor.copy(alpha = 0.7f),
-                                                modifier = Modifier.size(12.dp).graphicsLayer { rotationZ = 90f }
-                                            )
-                                        }
-                                    }
-                            }
-                        }
-
-                        
-                        // Marker Controls (A-B Buttons + Export combined for maximum compactness)
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // A-Group
-                            MarkerControlGroup(
-                                label = "A",
-                                isActive = abLoopStart >= 0f,
-                                onMainClick = { 
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onSetAbLoopStart(if (abLoopStart >= 0f && abLoopEnd < 0f) -1f else currentProgress) 
-                                },
-                                onNudge = { delta -> 
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onNudgeAbLoopStart(delta) 
-                                },
-                                themeColors = themeColors
+                            Icon(
+                                imageVector = AppIcons.MoreVert,
+                                contentDescription = stringResource(R.string.a11y_menu),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(16.dp)
                             )
-
-                            // Export Button (Only when A-B active)
-                            if (abActive) {
-                                FilledIconButton(
-                                    onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSaveLoopToFile() },
-                                    modifier = Modifier.size(32.dp),
-                                    colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = themeColors.primary,
-                                        contentColor = Color.White
-                                    )
-                                ) {
-                                    Icon(AppIcons.Save, null, Modifier.size(16.dp))
-                                }
-                            } else {
-                                // Close/Clear AB when only one marker exists
-                                if (abLoopStart >= 0f || abLoopEnd >= 0f) {
-                                    IconButton(
-                                        onClick = { onSetAbLoopStart(-1f); onSetAbLoopEnd(-1f) },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(AppIcons.Close, null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(14.dp))
-                                    }
-                                }
+                        }
+                        
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                        ) {
+                            if (isPlaying) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.btn_stop), color = Red400) },
+                                    leadingIcon = { Icon(AppIcons.Stop, null, tint = Red400) },
+                                    onClick = { menuExpanded = false; onStop() }
+                                )
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                             }
-
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_rename), color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(AppIcons.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { menuExpanded = false; onRename() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_trim), color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(AppIcons.ContentCut, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { menuExpanded = false; onTrim() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_move), color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(AppIcons.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { menuExpanded = false; onMove() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_share), color = MaterialTheme.colorScheme.onSurface) },
+                                leadingIcon = { Icon(AppIcons.Share, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { menuExpanded = false; onShare() }
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.btn_delete), color = Red400) },
+                                leadingIcon = { Icon(AppIcons.Delete, null, tint = Red400) },
+                                onClick = { menuExpanded = false; onDelete() }
+                            )
+                        }
                     }
                 }
             }
+            
+            // Minimal Progress Bar below the row
+            if (isPlaying && !isSelectionMode) {
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = currentProgress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .padding(horizontal = 4.dp)
+                        .clip(CircleShape),
+                    color = themeColors.primary,
+                    trackColor = themeColors.primary.copy(alpha = 0.1f)
+                )
             }
+
+
+
 
 
 
@@ -923,7 +424,6 @@ fun FileItem(
             }
         }
     }
-}
 }
 
 
@@ -1078,12 +578,23 @@ fun PracticeControlsContent(
     onNudgeAbLoopEnd: (Int) -> Unit,
     onSaveLoopToFile: () -> Unit,
     currentProgress: Float,
+    currentTimeString: String,
+    waveformData: List<Int>,
+    onSeek: (Float) -> Unit,
     themeColors: AppColorPalette
 ) {
+    val ctx = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val primaryColor = themeColors.primary
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
     val abActive = abLoopStart >= 0f && abLoopEnd >= 0f && abLoopEnd > abLoopStart
+
+    // Waveform HUD state
+    var hudVisible by remember { mutableStateOf(false) }
+    var hudText by remember { mutableStateOf("") }
+    var hudIcon by remember { mutableStateOf<ImageVector>(AppIcons.Speed) }
+    var accumulatedSpeedDelta by remember { mutableFloatStateOf(0f) }
 
     Column(
         modifier = Modifier
@@ -1091,16 +602,152 @@ fun PracticeControlsContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Waveform Seeker
+        val bars = if (waveformData.isNotEmpty()) waveformData else remember { List(100) { 15 } }
+        val markerWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp) // Taller in MD3/Practice sheet
+                .clip(RoundedCornerShape(12.dp))
+                .background(onSurfaceVariantColor.copy(alpha = 0.06f)),
+            contentAlignment = Alignment.Center
+        ) {
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(item.file.absolutePath) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            var isTwoFinger = false
+                            
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                if (event.changes.size > 1) {
+                                    isTwoFinger = true
+                                    hudIcon = AppIcons.Speed
+                                    hudVisible = true
+                                    accumulatedSpeedDelta = 0f
+                                    break
+                                }
+                                if (event.changes.any { it.positionChanged() }) break
+                                if (event.changes.all { !it.pressed }) break
+                            }
+
+                            if (isTwoFinger) {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val changes = event.changes
+                                    if (changes.all { !it.pressed }) break
+                                    val deltaX = changes.map { it.position.x - it.previousPosition.x }.average().toFloat()
+                                    accumulatedSpeedDelta += deltaX
+                                    if (kotlin.math.abs(accumulatedSpeedDelta) > 120f) {
+                                        val speeds = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+                                        val currentIndex = speeds.indexOf(speed).coerceAtLeast(1)
+                                        val direction = if (accumulatedSpeedDelta > 0) 1 else -1
+                                        val nextIndex = (currentIndex + direction).coerceIn(0, speeds.size - 1)
+                                        val nextSpeed = speeds[nextIndex]
+                                        if (nextSpeed != speed) {
+                                            onSpeedChange(nextSpeed)
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        }
+                                        accumulatedSpeedDelta = 0f
+                                    }
+                                    hudText = "${speed}x"
+                                    changes.forEach { it.consume() }
+                                }
+                            } else {
+                                onSeek((down.position.x / size.width.toFloat()).coerceIn(0f, 1f))
+                                drag(down.id) { change ->
+                                    change.consume()
+                                    onSeek((change.position.x / size.width.toFloat()).coerceIn(0f, 1f))
+                                }
+                            }
+                            hudVisible = false
+                        }
+                    }
+            ) {
+                val w = size.width
+                val h = size.height
+                val barCount = bars.size
+                val barWidth = if (barCount > 0) w / barCount else 1f
+                val strokeWidth = (barWidth * 0.5f).coerceIn(1f, 4.dp.toPx())
+
+                fun drawWaveform(color: Color, isFullColor: Boolean = false) {
+                    for (i in 0 until barCount) {
+                        val amp = bars[i]
+                        val barFraction = (amp / 100f).coerceIn(0.08f, 1f)
+                        val barH = barFraction * h * 0.75f
+                        val x = i * barWidth + barWidth / 2f
+                        
+                        drawLine(
+                            brush = SolidColor(if (isFullColor) color else color.copy(alpha = 0.5f)),
+                            start = Offset(x, (h - barH) / 2),
+                            end = Offset(x, (h + barH) / 2),
+                            strokeWidth = strokeWidth,
+                            cap = StrokeCap.Round
+                        )
+                    }
+                }
+
+                // A-B region
+                if (abActive) {
+                    drawRect(
+                        brush = SolidColor(primaryColor.copy(alpha = 0.15f)),
+                        topLeft = Offset(abLoopStart * w, 0f),
+                        size = androidx.compose.ui.geometry.Size((abLoopEnd - abLoopStart) * w, h)
+                    )
+                }
+
+                drawWaveform(onSurfaceVariantColor.copy(alpha = 0.4f))
+                clipRect(right = currentProgress * w) {
+                    drawWaveform(primaryColor, isFullColor = true)
+                }
+
+                // Markers
+                if (abLoopStart >= 0f) {
+                    val ax = abLoopStart * w
+                    drawLine(onSurfaceColor, Offset(ax, 0f), Offset(ax, h), strokeWidth = 3.dp.toPx())
+                }
+                if (abLoopEnd >= 0f) {
+                    val bx = abLoopEnd * w
+                    drawLine(onSurfaceColor, Offset(bx, 0f), Offset(bx, h), strokeWidth = 3.dp.toPx())
+                }
+
+                // Playhead
+                val px = currentProgress * w
+                drawLine(onSurfaceColor, Offset(px, 0f), Offset(px, h), strokeWidth = markerWidthPx)
+            }
+            
+            // HUD
+            androidx.compose.animation.AnimatedVisibility(visible = hudVisible) {
+                Surface(color = Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(8.dp)) {
+                    Row(Modifier.padding(8.dp)) {
+                        Icon(hudIcon, null, tint = Color.White)
+                        Text(hudText, color = Color.White)
+                    }
+                }
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Practice Toolbox",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = primaryColor
-            )
+            Column {
+                Text(
+                    text = "Practice Toolbox",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = primaryColor
+                )
+                Text(
+                    text = "$currentTimeString / ${item.durationString}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariantColor
+                )
+            }
             
             // Listen & Repeat Toggle
             Surface(

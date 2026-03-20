@@ -34,6 +34,7 @@ fun SettingsTab(
 ) {
     val themeColors = uiState.currentTheme.palette
     val scrollState = rememberScrollState()
+    var playbackSettingsExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,11 +58,10 @@ fun SettingsTab(
             )
         )
 
-        // 1. Playback Settings Group
-        SettingsGroup(title = stringResource(R.string.settings_playback_title), themeColors = themeColors) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             PlaybackSettingsCard(
-                settingsOpen = true, // Always expanded in Settings Tab
-                onToggleSettings = { },
+                settingsOpen = playbackSettingsExpanded,
+                onToggleSettings = { playbackSettingsExpanded = !playbackSettingsExpanded },
                 selectedSpeed = uiState.playbackSpeed,
                 onSpeedChange = { viewModel.setPlaybackSpeed(it) },
                 selectedLoopCount = uiState.loopMode,
@@ -74,9 +74,9 @@ fun SettingsTab(
                 onSleepTimerChange = { viewModel.setSleepTimer(it) },
                 sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
                 themeColors = themeColors,
-                showHeader = false,
-                showOuterBorder = false,
-                showBackground = false,
+                showHeader = true,
+                showOuterBorder = true,
+                showBackground = true,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -370,14 +370,15 @@ fun LanguageSettingsRow(
                 Text(
                     text = stringResource(R.string.settings_language_label),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
                 )
                 
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     languages.forEach { (code, label) ->
                         val isSelected = currentLanguage == code
@@ -388,18 +389,30 @@ fun LanguageSettingsRow(
                                 showSheet = false
                             },
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            border = BorderStroke(1.dp, if (isSelected) themeColors.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
-                            modifier = Modifier.height(40.dp)
+                            color = if (isSelected) themeColors.primary.copy(alpha = 0.1f) else Color.Transparent,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Box(modifier = Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
                                 Text(
                                     text = label,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                    style = MaterialTheme.typography.bodyLarge.copy(
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                        color = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.onSurface
                                     )
                                 )
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = AppIcons.Check,
+                                        contentDescription = null,
+                                        tint = themeColors.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity() {
                 // Onboarding Overlay
                 if (uiState.showOnboarding) {
                     OnboardingScreen(
-                        onboardingStep = uiState.onboardingStep,
+                        uiState = uiState,
                         viewModel = viewModel,
                         themeColors = uiState.currentTheme.palette
                     )

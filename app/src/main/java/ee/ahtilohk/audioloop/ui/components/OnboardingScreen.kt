@@ -23,16 +23,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ee.ahtilohk.audioloop.AppIcons
+import ee.ahtilohk.audioloop.AudioLoopUiState
 import ee.ahtilohk.audioloop.AudioLoopViewModel
 import ee.ahtilohk.audioloop.R
 import ee.ahtilohk.audioloop.ui.theme.*
 
 @Composable
 fun OnboardingScreen(
-    onboardingStep: Int,
+    uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
     themeColors: AppColorPalette
 ) {
+    val onboardingStep = uiState.onboardingStep
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +55,7 @@ fun OnboardingScreen(
                 1 -> StepWelcome(themeColors) { viewModel.nextOnboardingStep() }
                 2 -> StepUseCase(themeColors) { viewModel.selectOnboardingUseCase(it) }
                 3 -> StepValueProp(themeColors) { viewModel.nextOnboardingStep() }
-                4 -> StepFinal(themeColors, viewModel)
+                4 -> StepFinal(uiState, viewModel, themeColors)
             }
         }
 
@@ -237,7 +239,16 @@ private fun StepValueProp(themeColors: AppColorPalette, onNext: () -> Unit) {
 }
 
 @Composable
-private fun StepFinal(themeColors: AppColorPalette, viewModel: AudioLoopViewModel) {
+private fun StepFinal(uiState: AudioLoopUiState, viewModel: AudioLoopViewModel, themeColors: AppColorPalette) {
+    val category = uiState.currentCategory
+    
+    val (title, desc) = when(category) {
+        "Music" -> "Ready for your first session?" to "Capture that melody and start looping."
+        "Studies/Languages" -> "Ready for your first lesson?" to "Record a lecture or import your audio study materials."
+        "Content" -> "Ready for your first recording?" to "Capture your idea or import your podcast raw file."
+        else -> stringResource(R.string.onboarding_ready_title) to stringResource(R.string.onboarding_ready_desc)
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -248,7 +259,7 @@ private fun StepFinal(themeColors: AppColorPalette, viewModel: AudioLoopViewMode
         Spacer(Modifier.height(32.dp))
 
         Text(
-            text = stringResource(R.string.onboarding_ready_title),
+            text = title,
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
             textAlign = TextAlign.Center
         )
@@ -256,7 +267,7 @@ private fun StepFinal(themeColors: AppColorPalette, viewModel: AudioLoopViewMode
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.onboarding_ready_desc),
+            text = desc,
             style = MaterialTheme.typography.bodyLarge,
             color = Zinc400,
             textAlign = TextAlign.Center
@@ -276,7 +287,13 @@ private fun StepFinal(themeColors: AppColorPalette, viewModel: AudioLoopViewMode
             Text(stringResource(R.string.btn_onboarding_record), fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
         
-        Spacer(Modifier.height(12.dp))
+        // Small hint below Primary CTA
+        Text(
+            text = "Tap to start capturing audio now",
+            style = MaterialTheme.typography.labelSmall,
+            color = themeColors.primary.copy(alpha = 0.7f),
+            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+        )
 
         // Import CTA
         OutlinedButton(

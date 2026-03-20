@@ -166,6 +166,9 @@ fun LibraryTab(
                             )
                         },
                         currentProgress = uiState.currentProgress,
+                        currentTimeString = uiState.currentTimeString,
+                        waveformData = viewModel.waveformCache[playingItem.file.absolutePath] ?: emptyList(),
+                        onSeek = { viewModel.seekTo(it) },
                         themeColors = uiState.currentTheme.palette
                     )
                     Spacer(modifier = Modifier.height(32.dp))
