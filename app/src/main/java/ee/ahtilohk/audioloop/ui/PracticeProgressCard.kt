@@ -53,7 +53,7 @@ fun PracticeProgressCard(
             .clickable { onToggleExpanded() },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.2f))
+        border =  BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.2f))
     ) {
         Row(
             modifier = Modifier
