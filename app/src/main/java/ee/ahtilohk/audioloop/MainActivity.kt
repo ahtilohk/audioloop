@@ -96,6 +96,43 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @Suppress("DEPRECATION")
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result.data
+        if (data != null) {
+            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(data)
+            if (task.isSuccessful) {
+                val acct = task.result
+                vm?.driveBackupManager?.handleSignInResult(acct)
+                vm?.handleSignInResult(acct?.email)
+            } else {
+                val e = task.exception
+                val msg = if (e is com.google.android.gms.common.api.ApiException) {
+                    when (e.statusCode) {
+                        12501 -> getString(R.string.signin_cancelled)
+                        12500 -> getString(R.string.signin_failed_play_services)
+                        10 -> getString(R.string.signin_dev_error)
+                        4 -> getString(R.string.signin_interrupted)
+                        else -> getString(R.string.signin_error, e.statusCode)
+                    }
+                } else {
+                    getString(R.string.signin_failed, e?.localizedMessage ?: "unknown error")
+                }
+                vm?.handleSignInError(msg)
+            }
+        } else {
+            vm?.driveBackupManager?.getSignInClient()?.silentSignIn()
+                ?.addOnSuccessListener { account ->
+                    vm?.driveBackupManager?.handleSignInResult(account)
+                    vm?.handleSignInResult(account?.email)
+                }
+                ?.addOnFailureListener { e ->
+                    vm?.handleSignInError(getString(R.string.signin_failed, e.localizedMessage))
+                }
+        }
+        vm?.setBackupRunning(false)
+    }
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     private fun checkAndRequestNecessaryPermissions() {
         val permissions = mutableListOf<String>()
@@ -204,41 +241,12 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Broadcast receiver for recording saved
-                DisposableEffect(Unit) {
-                    val receiver = object : BroadcastReceiver() {
-                        override fun onReceive(ctx: Context?, intent: Intent?) {
-                            if (intent?.action == AudioService.ACTION_RECORDING_SAVED) {
-                                coroutineScope.launch {
-                                    try {
-                                        viewModel.refreshFileList()
-                                        delay(500)
-                                        viewModel.refreshFileList()
-                                        // Update widget
-                                        val items = viewModel.uiState.value.savedItems
-                                        val latestItem = items.firstOrNull()
-                                        WidgetStateHelper.updateWidget(
-                                            context,
-                                            category = uiState.currentCategory,
-                                            lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
-                                            lastFileDuration = latestItem?.durationString ?: ""
-                                        )
-                                    } catch (e: Exception) { AppLog.e("Error in recording saved receiver", e) }
-                                }
-                            }
-                        }
-                    }
-                    val filter = IntentFilter(AudioService.ACTION_RECORDING_SAVED)
-                    ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
-                    onDispose { context.unregisterReceiver(receiver) }
-                }
-
                 // Permissions are checked in the ViewModel LaunchedEffect above
 
                 // Onboarding Overlay
                 if (uiState.showOnboarding) {
                     OnboardingScreen(
-                        onboardingStep = uiState.onboardingStep,
+                        uiState = uiState,
                         viewModel = viewModel,
                         themeColors = uiState.currentTheme.palette
                     )
@@ -284,7 +292,8 @@ class MainActivity : AppCompatActivity() {
                                 },
                                 onStopRecord = { stopRecording() },
                                 onBackupSignIn = {
-                                    viewModel.signIn(context as AppCompatActivity)
+                                    viewModel.setBackupRunning(true)
+                                    signInLauncher.launch(viewModel.driveBackupManager.getSignInIntent())
                                 }
                             )
                         }

@@ -5,11 +5,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Intent
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -42,83 +41,66 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
         private val JSON_MEDIA_TYPE = "application/json; charset=UTF-8".toMediaType()
     }
 
-    private var signedInEmail: String? = null
+    private var account: com.google.android.gms.auth.api.signin.GoogleSignInAccount? = null
     private val client = NetworkHelper.newClient()
-    private val credentialManager = CredentialManager.create(context)
 
     // --- Sign-In ---
 
-    suspend fun signIn(activity: android.app.Activity): Result<String> = withContext(Dispatchers.Main) {
-        try {
-            val serverClientId = context.getString(R.string.default_web_client_id)
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(true)
-                .setServerClientId(serverClientId)
-                .setAutoSelectEnabled(true)
-                .build()
-
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
-
-            val result = credentialManager.getCredential(activity, request)
-            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-            val email = googleIdTokenCredential.id
-            signedInEmail = email
-            
-            // Note: In a real app, you might also need to handle authorization for scopes separately 
-            // if the ID token doesn't include them. For Drive, we rely on GoogleAuthUtil.getToken 
-            // which will trigger an authorization prompt if needed.
-            
-            Result.success(email)
-        } catch (e: Exception) {
-            AppLog.e("Sign-in failed", e)
-            Result.failure(e)
-        }
+    @Suppress("DEPRECATION")
+    fun getSignInClient(): GoogleSignInClient {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(SCOPE))
+            .build()
+        return GoogleSignIn.getClient(context, gso)
     }
 
-    fun isSignedIn(): Boolean = signedInEmail != null || getSignedInEmail() != null
+    fun getSignInIntent(): Intent = getSignInClient().signInIntent
 
-    fun getSignedInEmail(): String? {
-        if (signedInEmail != null) return signedInEmail
-        // Fallback to internal storage or a more persistent session check if needed
-        return context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).getString("last_email", null)
+    @Suppress("DEPRECATION")
+    fun isSignedIn(): Boolean = GoogleSignIn.getLastSignedInAccount(context) != null
+
+    @Suppress("DEPRECATION")
+    fun getSignedInEmail(): String? = GoogleSignIn.getLastSignedInAccount(context)?.email
+
+    fun handleSignInResult(acct: com.google.android.gms.auth.api.signin.GoogleSignInAccount?) {
+        account = acct
     }
 
-    fun handleSignInResult(email: String?) {
-        signedInEmail = email
-        email?.let {
-            context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).edit().putString("last_email", it).apply()
-        }
-    }
-
+    @Suppress("DEPRECATION")
     fun initFromLastAccount(): Boolean {
-        val lastEmail = getSignedInEmail()
-        if (lastEmail != null) {
-            signedInEmail = lastEmail
-            return true
+        val lastAccount = GoogleSignIn.getLastSignedInAccount(context) ?: return false
+        if (!GoogleSignIn.hasPermissions(lastAccount, Scope(SCOPE))) {
+            return false
         }
-        return false
+        account = lastAccount
+        return true
     }
 
     suspend fun signOut() {
         withContext(Dispatchers.Main) {
-            try {
-                credentialManager.clearCredentialState(ClearCredentialStateRequest())
-            } catch (e: Exception) {
-                AppLog.e("Sign-out failed", e)
-            }
+            getSignInClient().signOut()
         }
-        signedInEmail = null
-        context.getSharedPreferences("BackupPrefs", Context.MODE_PRIVATE).edit().remove("last_email").apply()
+        account = null
     }
 
     // --- Token helper ---
 
+    @Suppress("DEPRECATION")
     private suspend fun getAccessToken(): String = withContext(Dispatchers.IO) {
-        val email = getSignedInEmail() ?: throw Exception("Not signed in")
-        val account = android.accounts.Account(email, "com.google")
-        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, account, "oauth2:$SCOPE")
+        val acct = account ?: GoogleSignIn.getLastSignedInAccount(context) ?: throw Exception("Not signed in")
+        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, "oauth2:$SCOPE")
+    }
+
+    @Suppress("DEPRECATION")
+    private suspend fun invalidateAndRefreshToken(): String = withContext(Dispatchers.IO) {
+        val acct = account ?: GoogleSignIn.getLastSignedInAccount(context) ?: throw Exception("Not signed in")
+        val scopeStr = "oauth2:$SCOPE"
+        try {
+            val oldToken = com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, scopeStr)
+            com.google.android.gms.auth.GoogleAuthUtil.clearToken(context, oldToken)
+        } catch (_: Exception) { /* token may already be invalid */ }
+        com.google.android.gms.auth.GoogleAuthUtil.getToken(context, acct.account!!, scopeStr)
     }
 
     // --- Backup ---
@@ -127,7 +109,7 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
         onProgress: (String) -> Unit
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val token = getAccessToken()
+            var token = getAccessToken()
 
             onProgress(context.getString(R.string.msg_backup_creating))
             val zipFile = createBackupZip(onProgress)
@@ -136,11 +118,23 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
             val fileName = "audioloop_backup_$dateStr.zip"
 
             onProgress(context.getString(R.string.msg_backup_uploading))
-            NetworkHelper.executeWithRetry {
-                uploadToDrive(token, zipFile, fileName) { current, total ->
-                    val percent = if (total > 0) (current * 100 / total).toInt() else 0
-                    onProgress(context.getString(R.string.msg_backup_uploading_perc, percent))
+            try {
+                NetworkHelper.executeWithRetry {
+                    uploadToDrive(token, zipFile, fileName) { current, total ->
+                        val percent = if (total > 0) (current * 100 / total).toInt() else 0
+                        onProgress(context.getString(R.string.msg_backup_uploading_perc, percent))
+                    }
                 }
+            } catch (e: IOException) {
+                if (e.message?.contains("(401)") == true || e.message?.contains("(403)") == true) {
+                    token = invalidateAndRefreshToken()
+                    NetworkHelper.executeWithRetry {
+                        uploadToDrive(token, zipFile, fileName) { current, total ->
+                            val percent = if (total > 0) (current * 100 / total).toInt() else 0
+                            onProgress(context.getString(R.string.msg_backup_uploading_perc, percent))
+                        }
+                    }
+                } else throw e
             }
             zipFile.delete()
 
@@ -226,7 +220,7 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
     }
 
     private fun uploadToDrive(token: String, file: File, fileName: String, onProgress: (Long, Long) -> Unit) {
-        val boundary = "===backup_boundary_${System.currentTimeMillis()}==="
+        val boundary = "---backup_boundary_${System.currentTimeMillis()}---"
         
         val metadata = JSONObject().apply {
             put("name", fileName)
@@ -256,43 +250,69 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     // --- List Backups ---
 
+    private fun parseBackupList(responseBody: String): List<BackupInfo> {
+        val json = JSONObject(responseBody)
+        val files = json.optJSONArray("files") ?: JSONArray()
+        val backups = mutableListOf<BackupInfo>()
+        for (i in 0 until files.length()) {
+            val file = files.getJSONObject(i)
+            val name = file.getString("name")
+            val dateStr = try {
+                val datePart = name.removePrefix("audioloop_backup_").removeSuffix(".zip")
+                val parsed = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).parse(datePart)
+                SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.US).format(parsed ?: Date())
+            } catch (_: Exception) { file.optString("createdTime", "Unknown") }
+            backups.add(BackupInfo(
+                id = file.getString("id"),
+                name = name,
+                date = dateStr,
+                sizeBytes = file.optLong("size", 0L)
+            ))
+        }
+        return backups
+    }
+
     suspend fun listBackups(): Result<List<BackupInfo>> = withContext(Dispatchers.IO) {
         try {
-            val token = getAccessToken()
-            val request = Request.Builder()
-                .url("$DRIVE_FILES_URL?spaces=appDataFolder&fields=files(id,name,createdTime,size)&orderBy=createdTime%20desc&pageSize=20")
+            var token = getAccessToken()
+            val url = "$DRIVE_FILES_URL?spaces=appDataFolder&fields=files(id,name,createdTime,size)&orderBy=createdTime%20desc&pageSize=20"
+
+            var request = Request.Builder()
+                .url(url)
                 .header("Authorization", "Bearer $token")
                 .get()
                 .build()
 
-            NetworkHelper.executeWithRetry {
+            val result = NetworkHelper.executeWithRetry {
                 client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("List failed (${response.code})")
-                    
-                    val body = response.body?.string() ?: throw IOException("Empty response")
-                    val json = JSONObject(body)
-                    val files = json.optJSONArray("files") ?: JSONArray()
-
-                    val backups = mutableListOf<BackupInfo>()
-                    for (i in 0 until files.length()) {
-                        val file = files.getJSONObject(i)
-                        val name = file.getString("name")
-                        val dateStr = try {
-                            val datePart = name.removePrefix("audioloop_backup_").removeSuffix(".zip")
-                            val parsed = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).parse(datePart)
-                            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.US).format(parsed ?: Date())
-                        } catch (_: Exception) { file.optString("createdTime", "Unknown") }
-
-                        backups.add(BackupInfo(
-                            id = file.getString("id"),
-                            name = name,
-                            date = dateStr,
-                            sizeBytes = file.optLong("size", 0L)
-                        ))
+                    if (response.code == 401 || response.code == 403) {
+                        val errorDetail = response.body?.string() ?: ""
+                        AppLog.e("Drive list auth error (${response.code}): $errorDetail")
+                        // Token may be stale – invalidate and retry once
+                        token = invalidateAndRefreshToken()
+                        request = Request.Builder()
+                            .url(url)
+                            .header("Authorization", "Bearer $token")
+                            .get()
+                            .build()
+                        client.newCall(request).execute().use { retryResponse ->
+                            if (!retryResponse.isSuccessful) {
+                                val retryError = retryResponse.body?.string() ?: ""
+                                throw IOException("List failed (${retryResponse.code}): $retryError")
+                            }
+                            val body = retryResponse.body?.string() ?: throw IOException("Empty response")
+                            Result.success(parseBackupList(body))
+                        }
+                    } else if (!response.isSuccessful) {
+                        val errorBody = response.body?.string() ?: ""
+                        throw IOException("List failed (${response.code}): $errorBody")
+                    } else {
+                        val body = response.body?.string() ?: throw IOException("Empty response")
+                        Result.success(parseBackupList(body))
                     }
-                    Result.success(backups)
                 }
             }
+            result
         } catch (e: Exception) {
             AppLog.e("Drive backup listing failed", e)
             Result.failure(e)
@@ -301,44 +321,51 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     // --- Restore ---
 
+    private fun downloadBackupFile(token: String, backupId: String, tempZip: File, onProgress: (String) -> Unit) {
+        val request = Request.Builder()
+            .url("$DRIVE_FILES_URL/$backupId?alt=media")
+            .header("Authorization", "Bearer $token")
+            .get()
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Download failed (${response.code})")
+            val totalSize = response.body?.contentLength() ?: -1L
+            var bytesRead = 0L
+            response.body?.byteStream()?.use { input ->
+                FileOutputStream(tempZip).use { output ->
+                    val buffer = ByteArray(8192)
+                    var read: Int
+                    while (input.read(buffer).also { read = it } != -1) {
+                        output.write(buffer, 0, read)
+                        bytesRead += read
+                        if (totalSize > 0) {
+                            val percent = (bytesRead * 100 / totalSize).toInt()
+                            onProgress("Downloading: $percent%")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun downloadAndRestore(
         backupId: String,
         onProgress: (String) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val token = getAccessToken()
+            var token = getAccessToken()
 
             onProgress("Downloading backup...")
             val tempZip = File(context.cacheDir, "restore_temp.zip")
 
-            val request = Request.Builder()
-                .url("$DRIVE_FILES_URL/$backupId?alt=media")
-                .header("Authorization", "Bearer $token")
-                .get()
-                .build()
-
-            NetworkHelper.executeWithRetry {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Download failed (${response.code})")
-                    
-                    val totalSize = response.body?.contentLength() ?: -1L
-                    var bytesRead = 0L
-                    
-                    response.body?.byteStream()?.use { input ->
-                        FileOutputStream(tempZip).use { output ->
-                            val buffer = ByteArray(8192)
-                            var read: Int
-                            while (input.read(buffer).also { read = it } != -1) {
-                                output.write(buffer, 0, read)
-                                bytesRead += read
-                                if (totalSize > 0) {
-                                    val percent = (bytesRead * 100 / totalSize).toInt()
-                                    onProgress("Downloading: $percent%")
-                                }
-                            }
-                        }
-                    }
-                }
+            try {
+                NetworkHelper.executeWithRetry { downloadBackupFile(token, backupId, tempZip, onProgress) }
+            } catch (e: IOException) {
+                if (e.message?.contains("(401)") == true || e.message?.contains("(403)") == true) {
+                    token = invalidateAndRefreshToken()
+                    NetworkHelper.executeWithRetry { downloadBackupFile(token, backupId, tempZip, onProgress) }
+                } else throw e
             }
 
             onProgress("Restoring files...")
@@ -452,17 +479,33 @@ class DriveBackupManager @Inject constructor(@ApplicationContext private val con
 
     suspend fun deleteBackup(backupId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val token = getAccessToken()
-            val request = Request.Builder()
-                .url("$DRIVE_FILES_URL/$backupId")
+            var token = getAccessToken()
+            val url = "$DRIVE_FILES_URL/$backupId"
+
+            var request = Request.Builder()
+                .url(url)
                 .header("Authorization", "Bearer $token")
                 .delete()
                 .build()
 
             NetworkHelper.executeWithRetry {
                 client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Delete failed (${response.code})")
-                    Result.success(Unit)
+                    if (response.code == 401 || response.code == 403) {
+                        token = invalidateAndRefreshToken()
+                        request = Request.Builder()
+                            .url(url)
+                            .header("Authorization", "Bearer $token")
+                            .delete()
+                            .build()
+                        client.newCall(request).execute().use { retryResponse ->
+                            if (!retryResponse.isSuccessful) throw IOException("Delete failed (${retryResponse.code})")
+                            Result.success(Unit)
+                        }
+                    } else if (!response.isSuccessful) {
+                        throw IOException("Delete failed (${response.code})")
+                    } else {
+                        Result.success(Unit)
+                    }
                 }
             }
         } catch (e: Exception) {

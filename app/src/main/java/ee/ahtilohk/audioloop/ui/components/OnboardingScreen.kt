@@ -23,16 +23,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ee.ahtilohk.audioloop.AppIcons
+import ee.ahtilohk.audioloop.AudioLoopUiState
 import ee.ahtilohk.audioloop.AudioLoopViewModel
 import ee.ahtilohk.audioloop.R
 import ee.ahtilohk.audioloop.ui.theme.*
 
 @Composable
 fun OnboardingScreen(
-    onboardingStep: Int,
+    uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
     themeColors: AppColorPalette
 ) {
+    val onboardingStep = uiState.onboardingStep
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +55,7 @@ fun OnboardingScreen(
                 1 -> StepWelcome(themeColors) { viewModel.nextOnboardingStep() }
                 2 -> StepUseCase(themeColors) { viewModel.selectOnboardingUseCase(it) }
                 3 -> StepValueProp(themeColors) { viewModel.nextOnboardingStep() }
-                4 -> StepFinal(themeColors) { viewModel.finishOnboarding() }
+                4 -> StepFinal(uiState, viewModel, themeColors)
             }
         }
 
@@ -237,7 +239,16 @@ private fun StepValueProp(themeColors: AppColorPalette, onNext: () -> Unit) {
 }
 
 @Composable
-private fun StepFinal(themeColors: AppColorPalette, onFinish: () -> Unit) {
+private fun StepFinal(uiState: AudioLoopUiState, viewModel: AudioLoopViewModel, themeColors: AppColorPalette) {
+    val category = uiState.currentCategory
+    
+    val (title, desc) = when(category) {
+        "musician" -> "Start your first Practice Session" to "Import a backing track or record your melody to start looping segments immediately."
+        "student" -> "Master your first Lesson" to "Import a lecture or record a class to start using A-B repeats and shadowing."
+        "podcaster" -> "Record your first Clip" to "Capture your idea or import raw audio to practice your delivery with speed controls."
+        else -> "Start your first Practice Session" to "Record or import audio to experience A-B looping, speed practice, and shadowing."
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -248,7 +259,7 @@ private fun StepFinal(themeColors: AppColorPalette, onFinish: () -> Unit) {
         Spacer(Modifier.height(32.dp))
 
         Text(
-            text = stringResource(R.string.onboarding_ready_title),
+            text = title,
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
             textAlign = TextAlign.Center
         )
@@ -256,21 +267,51 @@ private fun StepFinal(themeColors: AppColorPalette, onFinish: () -> Unit) {
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.onboarding_ready_desc),
+            text = desc,
             style = MaterialTheme.typography.bodyLarge,
             color = Zinc400,
             textAlign = TextAlign.Center
         )
 
-        Spacer(Modifier.height(60.dp))
+        Spacer(Modifier.height(40.dp))
 
+        // Record CTA
         Button(
-            onClick = onFinish,
+            onClick = { viewModel.finishOnboarding("record") },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text(stringResource(R.string.btn_got_it), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Icon(AppIcons.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.btn_onboarding_record), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        }
+        
+        // Small hint below Primary CTA
+        Text(
+            text = "Tap to start capturing audio now",
+            style = MaterialTheme.typography.labelSmall,
+            color = themeColors.primary.copy(alpha = 0.7f),
+            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+        )
+
+        // Import CTA
+        OutlinedButton(
+            onClick = { viewModel.finishOnboarding("import") },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            border = BorderStroke(1.dp, Zinc700),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(AppIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.btn_onboarding_import), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        }
+
+        Spacer(Modifier.height(20.dp))
+        
+        TextButton(onClick = { viewModel.finishOnboarding() }) {
+            Text(stringResource(R.string.btn_skip).uppercase(), color = Zinc500, fontWeight = FontWeight.SemiBold)
         }
     }
 }

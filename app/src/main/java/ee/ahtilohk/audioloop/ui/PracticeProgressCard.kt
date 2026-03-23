@@ -1,5 +1,6 @@
 package ee.ahtilohk.audioloop.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,70 +47,64 @@ fun PracticeProgressCard(
     modifier: Modifier = Modifier
 ) {
     // -- Collapsed bar (always visible, always compact) --
-    Row(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+            .clickable { onToggleExpanded() },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border =  BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.2f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.label_smart_coach).uppercase(),
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp
                     )
                 )
-            )
-            .border(
-                1.dp,
-                themeColors.primary700.copy(alpha = 0.25f),
-                RoundedCornerShape(16.dp)
-            )
-            .clickable { onToggleExpanded() }
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(R.string.label_smart_coach),
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    AppIcons.ChevronDown,
+                    contentDescription = "Open",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                 )
-            )
-            Spacer(Modifier.width(4.dp))
-            Icon(
-                AppIcons.ChevronDown,
-                contentDescription = "Open",
-                modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
+            }
 
-        // Right side: live timer when playing, or static summary
-        if (isPlaying) {
-            val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
-            Text(
-                formatHhMmSs(totalTodayMs),
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 0.5.sp
+            // Right side: live timer when playing, or static summary
+            if (isPlaying) {
+                val totalTodayMs = (todayMinutes * 60_000L).toLong() + currentSessionElapsedMs
+                Text(
+                    formatHhMmSs(totalTodayMs),
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 0.5.sp
+                    )
                 )
-            )
-        } else {
-            val context = LocalContext.current
-            Text(
-                "${(goalProgress * 100).toInt()}%  ·  ${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
+            } else {
+                val context = LocalContext.current
+                Text(
+                    "${(goalProgress * 100).toInt()}%  Â·  ${formatMinutes(weeklyMinutes, context)} / ${formatMinutes(weeklyGoal.toFloat(), context)}",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -167,10 +162,10 @@ private fun SmartCoachDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    stringResource(R.string.label_smart_coach),
+                    stringResource(R.string.label_smart_coach).uppercase(),
                     style = TextStyle(
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
                     )
@@ -179,8 +174,8 @@ private fun SmartCoachDialog(
                     stringResource(R.string.btn_view_details),
                     style = TextStyle(
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier.clickable {
                         onDismiss()
@@ -331,14 +326,14 @@ private fun StatPill(
         Text(
             value,
             color = color,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 16.sp,
+            fontWeight = FontWeight.ExtraBold
         )
         Text(
-            label,
+            label.uppercase(),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }

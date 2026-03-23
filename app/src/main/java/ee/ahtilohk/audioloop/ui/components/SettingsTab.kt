@@ -34,6 +34,7 @@ fun SettingsTab(
 ) {
     val themeColors = uiState.currentTheme.palette
     val scrollState = rememberScrollState()
+    var playbackSettingsExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,11 +58,10 @@ fun SettingsTab(
             )
         )
 
-        // 1. Playback Settings Group
-        SettingsGroup(title = stringResource(R.string.settings_playback_title), themeColors = themeColors) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             PlaybackSettingsCard(
-                settingsOpen = true, // Always expanded in Settings Tab
-                onToggleSettings = { },
+                settingsOpen = playbackSettingsExpanded,
+                onToggleSettings = { playbackSettingsExpanded = !playbackSettingsExpanded },
                 selectedSpeed = uiState.playbackSpeed,
                 onSpeedChange = { viewModel.setPlaybackSpeed(it) },
                 selectedLoopCount = uiState.loopMode,
@@ -74,14 +74,17 @@ fun SettingsTab(
                 onSleepTimerChange = { viewModel.setSleepTimer(it) },
                 sleepTimerRemainingMs = uiState.sleepTimerRemainingMs,
                 themeColors = themeColors,
+                showHeader = true,
+                showOuterBorder = true,
+                showBackground = true,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         // 2. Visual & Language
         SettingsGroup(title = stringResource(R.string.title_general), themeColors = themeColors) {
-            // Language Selector
-            LanguageSelector(
+            // Language Selector Row
+            LanguageSettingsRow(
                 currentLanguage = uiState.appLanguage,
                 onLanguageChange = { viewModel.changeLanguage(it) },
                 themeColors = themeColors
@@ -306,64 +309,112 @@ fun SettingsGroup(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageSelector(
+fun LanguageSettingsRow(
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
     themeColors: AppColorPalette
 ) {
     val haptic = LocalHapticFeedback.current
+    var showSheet by remember { mutableStateOf(false) }
+    
+    val languages = listOf(
+        "en" to "English", "et" to "Eesti", "es" to "Español", "fr" to "Français",
+        "de" to "Deutsch", "it" to "Italiano", "pt" to "Português", "ru" to "Русский",
+        "fi" to "Suomi", "sv" to "Svenska", "no" to "Norsk", "tr" to "Türkçe",
+        "uk" to "Українська", "ja" to "日本語", "ko" to "한국어", "ar" to "العربية",
+        "bn" to "বাংলা", "da" to "Dansk", "fil" to "Filipino", "hi" to "हिन्दी",
+        "id" to "Bahasa Indonesia", "lt" to "Lietuvių", "lv" to "Latviešu", "nl" to "Nederlands",
+        "pl" to "Polski", "vi" to "Tiếng Việt", "zh" to "中文"
+    )
+    val currentLabel = languages.find { it.first == currentLanguage }?.second ?: currentLanguage
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-            .padding(12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .clickable { showSheet = true; haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+            .padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(AppIcons.Language, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(18.dp))
-            Text(stringResource(R.string.settings_language_label), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-        }
-        
-        Spacer(Modifier.height(12.dp))
-
-        // Reuse the language list logic but in a compact way or link to a dialog if too many
-        // For now, let's keep it embedded as a scrollable row or flow
-        @OptIn(ExperimentalLayoutApi::class)
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            val languages = listOf(
-                "en" to "English", "et" to "Eesti", "es" to "Español", "fr" to "Français",
-                "de" to "Deutsch", "it" to "Italiano", "pt" to "Português", "ru" to "Русский",
-                "fi" to "Suomi", "sv" to "Svenska", "no" to "Norsk", "tr" to "Türkçe",
-                "uk" to "Українська", "ja" to "日本語", "ko" to "한국어", "ar" to "العربية",
-                "bn" to "বাংলা", "da" to "Dansk", "fil" to "Filipino", "hi" to "हिन्दी",
-                "id" to "Bahasa Indonesia", "lt" to "Lietuvių", "lv" to "Latviešu", "nl" to "Nederlands",
-                "pl" to "Polski", "vi" to "Tiếng Việt", "zh" to "中文"
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(AppIcons.Language, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.settings_language_label), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(currentLabel, color = themeColors.primary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Icon(AppIcons.ChevronRight, contentDescription = null, tint = themeColors.primary, modifier = Modifier.size(16.dp))
+            }
+        }
+    }
 
-            languages.forEach { (code, label) ->
-                val isSelected = currentLanguage == code
-                Surface(
-                    onClick = { 
-                        onLanguageChange(code)
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, if (isSelected) themeColors.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-                    modifier = Modifier.height(32.dp)
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = rememberModalBottomSheetState(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = themeColors.primary.copy(alpha = 0.5f)) }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_language_label),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                    modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
+                )
+                
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Box(modifier = Modifier.padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
-                            )
-                        )
+                    languages.forEach { (code, label) ->
+                        val isSelected = currentLanguage == code
+                        Surface(
+                            onClick = { 
+                                onLanguageChange(code)
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showSheet = false
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) themeColors.primary.copy(alpha = 0.1f) else Color.Transparent,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = AppIcons.Check,
+                                        contentDescription = null,
+                                        tint = themeColors.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

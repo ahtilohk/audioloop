@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -157,10 +158,21 @@ fun TrimAudioScreen(
         }
     }
     
-    // Waveform Loading
-    val waveform = produceState<List<Int>?>(initialValue = null, key1 = file) {
-        value = withContext(Dispatchers.IO) {
-            WaveformGenerator.extractWaveform(file, 500) // High resolution for zooming
+    // Waveform Loading — show cached preview instantly, then compute full resolution
+    val waveform = remember { mutableStateOf<List<Int>?>(null) }
+    LaunchedEffect(file) {
+        waveform.value = null
+        // Instant preview from Library's disk cache (typically 120 bars)
+        val cached = withContext(Dispatchers.IO) {
+            WaveformGenerator.loadCachedWaveform(context.filesDir, file)
+        }
+        if (cached != null && cached.isNotEmpty()) {
+            waveform.value = cached
+        }
+        // Compute full-resolution waveform in background
+        val full = WaveformGenerator.extractWaveform(file, 500)
+        if (full.isNotEmpty()) {
+            waveform.value = full
         }
     }
 
@@ -312,9 +324,9 @@ fun TrimAudioScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(160.dp) // Slightly shorter to fit
-                            .background(Color.Black, RoundedCornerShape(20.dp)) // Black background for contrast
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
-                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black, RoundedCornerShape(12.dp)) // Black background for contrast
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                            .clipToBounds()
                             .padding(horizontal = 8.dp, vertical = 6.dp)
                     ) {
                         val widthPx = constraints.maxWidth.toFloat()
@@ -387,7 +399,13 @@ fun TrimAudioScreen(
                         LaunchedEffect(isPreviewPlaying, trimMode, selectionStartMs, selectionEndMs, fadeInEnabled, fadeOutEnabled) {
                              if (isPreviewPlaying) {
                                   try {
-                                      while (isActive && (try { previewPlayer.isPlaying } catch (_: Exception) { false })) {
+                                      // Loop while coroutine is active (cancelled when isPreviewPlaying changes).
+                                      // Do NOT gate on previewPlayer.isPlaying — ExoPlayer may briefly report
+                                      // false during buffering/seeking right after play(), causing the loop
+                                      // to exit before any position updates happen.
+                                      while (isActive) {
+                                          val ended = try { previewPlayer.playbackState == Player.STATE_ENDED } catch (_: Exception) { true }
+                                          if (ended) break
                                           val currentMs = try { previewPlayer.currentPosition.toLong() } catch (_: Exception) { break }
                                           previewPositionMs = currentMs
 
@@ -442,8 +460,9 @@ fun TrimAudioScreen(
                                   } catch (_: Exception) {
                                       // Player entered error state during playback
                                   }
-                                  // Playback ended naturally - loop back
+                                  // Playback ended naturally - reset position
                                   try {
+                                      previewPlayer.pause() // Stop playWhenReady so seekTo() doesn't auto-restart
                                       previewPlayer.volume = 1f
                                       if (trimMode == TrimMode.Keep) {
                                           previewPlayer.seekTo(selectionStartMs.toLong())

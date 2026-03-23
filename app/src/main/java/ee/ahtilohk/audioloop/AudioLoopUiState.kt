@@ -83,6 +83,7 @@ data class AudioLoopUiState(
     val settingsOpen: Boolean = false,
     val showCategorySheet: Boolean = false,
     val isLoading: Boolean = false,
+    val showPracticeControls: Boolean = false,
 
     // --- Dialog Visibility ---
     val showRenameDialog: Boolean = false,
@@ -116,6 +117,8 @@ data class AudioLoopUiState(
     // --- Onboarding ---
     val showOnboarding: Boolean = false,
     val onboardingStep: Int = 1,
+    val onboardingPendingAction: String? = null, // "record" or "import"
+    val hasShownPracticeHint: Boolean = false,
     
     // --- App Lifecycle ---
     val isReady: Boolean = false,

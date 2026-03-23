@@ -27,7 +27,7 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         File(getNotesDir(), "${audioFile.name}.note.txt")
     }
     private suspend fun getWaveformFile(audioFile: File): File = withContext(Dispatchers.IO) {
-        File(audioFile.parent, "${audioFile.name}.wave")
+        File(filesDir, ".waveforms").apply { if (!exists()) mkdirs() }.let { File(it, "${audioFile.name}.wave") }
     }
 
     fun getAllRecordings(): Flow<List<RecordingItem>> {
@@ -192,10 +192,11 @@ class AudioRepository @Inject constructor(@ApplicationContext private val contex
         if (!targetDir.exists()) return
 
         val files = targetDir.listFiles { _, name ->
-            val isAudio = name.endsWith(".m4a", ignoreCase = true) || 
-                          name.endsWith(".mp3", ignoreCase = true) || 
+            val isAudio = name.endsWith(".m4a", ignoreCase = true) ||
+                          name.endsWith(".mp3", ignoreCase = true) ||
                           name.endsWith(".wav", ignoreCase = true)
             isAudio && !name.startsWith("temp_", ignoreCase = true)
+                    && !name.endsWith(".wave", ignoreCase = true)
         }
 
         val toInsert = mutableListOf<RecordingEntity>()

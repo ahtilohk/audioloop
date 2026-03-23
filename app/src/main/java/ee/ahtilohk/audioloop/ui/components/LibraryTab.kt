@@ -43,12 +43,14 @@ import ee.ahtilohk.audioloop.ui.FileItem
 import ee.ahtilohk.audioloop.ui.PracticeProgressCard
 import ee.ahtilohk.audioloop.ui.formatSessionTime
 import ee.ahtilohk.audioloop.ui.theme.Red500
+import ee.ahtilohk.audioloop.ui.theme.AppColorPalette
 import ee.ahtilohk.audioloop.ui.theme.LocalSpacing
 import ee.ahtilohk.audioloop.ui.theme.LocalRadius
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryTab(
     uiState: AudioLoopUiState,
@@ -128,6 +130,7 @@ fun LibraryTab(
                 DraggableFileList(uiState, viewModel, uiRecordingItems)
             }
         }
+
     }
 }
 
@@ -145,9 +148,9 @@ private fun LibraryHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.large)
-            .padding(bottom = spacing.small),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (uiState.isSelectionMode && uiState.selectedFiles.isNotEmpty()) {
@@ -166,11 +169,11 @@ private fun LibraryHeader(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = spacing.large)
-                .padding(bottom = spacing.small)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
                 .background(themeColors.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                 .border(1.dp, themeColors.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -190,7 +193,7 @@ private fun LibraryHeader(
     }
 
     // Cancel hint when in selection mode with empty selection
-    if (uiState.isSelectionMode && uiState.selectedFiles.isEmpty()) {
+    if (recordingItems.isNotEmpty() && uiState.isSelectionMode && uiState.selectedFiles.isEmpty()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -205,17 +208,17 @@ private fun LibraryHeader(
             Surface(
                 onClick = { viewModel.setSelectionMode(false) },
                 shape = MaterialTheme.shapes.small,
-                color = Red500.copy(alpha = 0.15f),
-                border = BorderStroke(1.dp, Red500.copy(alpha = 0.5f)),
-                modifier = Modifier.height(32.dp)
+                color = Red500.copy(alpha = 0.12f),
+                border = BorderStroke(1.dp, Red500.copy(alpha = 0.4f)),
+                modifier = Modifier.height(40.dp) // Professional touch target
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(14.dp))
-                    Text(stringResource(R.string.btn_cancel), fontSize = 12.sp, color = Red500, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.a11y_cancel_selection), tint = Red500, modifier = Modifier.size(16.dp))
+                    Text(stringResource(R.string.btn_cancel), fontSize = 13.sp, color = Red500, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -345,29 +348,16 @@ private fun SelectionActionBar(
 }
 
 @Composable
-private fun NormalHeader(
+private fun RowScope.NormalHeader(
     uiState: AudioLoopUiState,
     viewModel: AudioLoopViewModel,
     onImportClick: () -> Unit,
     onSelectClick: () -> Unit
 ) {
-    val titleText = if (uiState.searchQuery.isNotEmpty()) {
-        val count = viewModel.getFilteredItems().size
-        if (uiState.searchCategory != null) {
-             stringResource(R.string.search_header_category, uiState.searchCategory, count)
-        } else {
-             stringResource(R.string.search_header_all, count)
-        }
-    } else {
-        stringResource(R.string.library_files_header, uiState.currentCategory)
-    }
     val haptic = LocalHapticFeedback.current
 
-    Text(
-        text = titleText,
-        style = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-    )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // No title label anymore - the CategoryTabs above already show where we are.
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Button(
             onClick = {
                 onImportClick()
@@ -410,22 +400,17 @@ private fun SortMenuButton(currentSort: SortMode, onSortSelected: (SortMode) -> 
     
     Box {
         Surface(
-            onClick = { 
+            onClick = {
                 expanded = true
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             },
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.height(32.dp)
+            modifier = Modifier.size(32.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(AppIcons.Sort, contentDescription = stringResource(R.string.menu_sort), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
-                Text(stringResource(R.string.menu_sort), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(AppIcons.Sort, contentDescription = stringResource(R.string.menu_sort), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
             }
         }
         
@@ -559,6 +544,13 @@ private fun PlaylistPlayingBanner(
             }
             if (activePlaylist.shuffle) {
                 Pill(text = "🔀 " + stringResource(R.string.label_shuffle), color = MaterialTheme.colorScheme.onSurface)
+            }
+            if (uiState.sleepTimerRemainingMs > 0) {
+                val totalSecs = uiState.sleepTimerRemainingMs / 1000
+                val mins = totalSecs / 60
+                val secs = totalSecs % 60
+                val timeStr = String.format("%02d:%02d", mins, secs)
+                Pill(text = "⌛ $timeStr", color = MaterialTheme.colorScheme.primary)
             }
             Spacer(Modifier.weight(1f))
             Text(stringResource(R.string.library_tracks_count, activePlaylist.files.size), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
@@ -746,9 +738,13 @@ private fun DraggableFileList(
             modifier = Modifier.fillMaxSize(),
             state = scrollState,
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             itemsIndexed(uiRecordingItems, key = { _, item -> item.file.absolutePath }) { index, item ->
+                // Ensure waveform data is loaded for visible items
+                LaunchedEffect(item.file.absolutePath) {
+                    viewModel.precomputeWaveformAsync(item.file)
+                }
                 val isPlaying = item.name == uiState.playingFileName
                 val alpha = if (draggingItemIndex == index) 0f else 1f
                 FileItem(
@@ -776,37 +772,13 @@ private fun DraggableFileList(
                     onShowInfo = { viewModel.openInfoDialog(item) },
                     currentProgress = if (isPlaying) uiState.currentProgress else 0f,
                     currentTimeString = if (isPlaying) uiState.currentTimeString else "00:00",
-                    onSeek = { viewModel.seekTo(it) },
                     onReorder = { },
                     isDragging = draggingItemIndex == index,
                     themeColors = uiState.currentTheme.palette,
                     playlistPosition = if (uiState.currentlyPlayingPlaylistId != null) {
                         uiState.playlists.find { it.id == uiState.currentlyPlayingPlaylistId }?.files?.indexOf(item.name) ?: -1
                     } else -1,
-                    waveformData = viewModel.waveformCache[item.file.absolutePath] ?: emptyList(),
-                    onSeekAbsolute = { viewModel.seekAbsolute(it) }, // use absolute ms
-                    shadowCountdownText = if (isPlaying) uiState.shadowCountdownText else "",
-                    abLoopStart = if (isPlaying) uiState.abLoopStart else -1f,
-                    abLoopEnd = if (isPlaying) uiState.abLoopEnd else -1f,
-                    onSetAbLoopStart = { viewModel.setAbLoopStart(it) },
-                    onSetAbLoopEnd = { viewModel.setAbLoopEnd(it) },
-                    onNudgeAbLoopStart = { viewModel.nudgeAbLoopStart(it) },
-                    onNudgeAbLoopEnd = { viewModel.nudgeAbLoopEnd(it) },
-                    isShadowingMode = uiState.isShadowingMode,
-                    onToggleShadowingMode = { viewModel.setShadowingMode(it) },
-                    speed = uiState.playbackSpeed,
-                    onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                    loopCount = uiState.loopMode,
-                    onLoopCountChange = { viewModel.setLoopMode(it) },
-                    onSaveLoopToFile = { 
-                        viewModel.startExportLoop(
-                            item, 
-                            (uiState.abLoopStart * item.durationMillis).toLong(),
-                            (uiState.abLoopEnd * item.durationMillis).toLong(),
-                            0L, 0L, false,
-                            uiState.playbackSpeed
-                        )
-                    }
+                    onTuneClick = { viewModel.setShowPracticeControls(true) }
                 )
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -822,8 +794,8 @@ private fun DraggableFileList(
                 isPlaying = item.file.name == uiState.playingFileName,
                 isPaused = if (item.file.name == uiState.playingFileName) uiState.isPaused else false,
                 isSelectionMode = uiState.isSelectionMode,
-                isSelected = uiState.selectedFiles.contains(item.name),
-                selectionOrder = uiState.selectedFiles.indexOf(item.name) + 1,
+                isSelected = uiState.selectedFiles.contains(item.file.absolutePath),
+                selectionOrder = uiState.selectedFiles.toList().indexOf(item.file.absolutePath) + 1,
                 currentProgress = if (item.file.name == uiState.playingFileName) uiState.currentProgress else 0f,
                 currentTimeString = if (item.file.name == uiState.playingFileName) uiState.currentTimeString else "00:00",
                 onPlay = {},
@@ -836,24 +808,11 @@ private fun DraggableFileList(
                 onMove = {},
                 onShare = {},
                 onDelete = {},
-                onSeek = {},
                 onReorder = {},
                 isDragging = true,
                 themeColors = uiState.currentTheme.palette,
                 playlistPosition = -1,
-                abLoopStart = -1f,
-                abLoopEnd = -1f,
-                onSetAbLoopStart = {},
-                onSetAbLoopEnd = {},
-                onNudgeAbLoopStart = {},
-                onNudgeAbLoopEnd = {},
-                isShadowingMode = uiState.isShadowingMode,
-                onToggleShadowingMode = { viewModel.setShadowingMode(it) },
-                speed = uiState.playbackSpeed,
-                onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                loopCount = uiState.loopMode,
-                onLoopCountChange = { viewModel.setLoopMode(it) },
-                onSaveLoopToFile = { }
+                onTuneClick = { }
             )
         }
     }

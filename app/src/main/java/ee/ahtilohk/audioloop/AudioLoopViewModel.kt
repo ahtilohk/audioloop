@@ -18,6 +18,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ee.ahtilohk.audioloop.ui.theme.AppTheme
 import ee.ahtilohk.audioloop.ui.PlaybackManager
+import ee.ahtilohk.audioloop.widget.WidgetStateHelper
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -137,11 +138,51 @@ class AudioLoopViewModel @Inject constructor(
             when (intent?.action) {
                 AudioService.ACTION_RECORDING_SAVED -> {
                     setRecording(false)
-                    syncDatabase()
-                    intent.getStringExtra(AudioService.EXTRA_FILE_PATH)?.let { path ->
-                        viewModelScope.launch {
+                    viewModelScope.launch {
+                        _uiState.update { it.copy(isLoading = true) }
+                        // Only sync internal storage + insert the specific saved file.
+                        // Do NOT call discoverRecordings() here — it scans all of
+                        // MediaStore and would surface old files from previous installs.
+                        val savedPath = intent?.getStringExtra(AudioService.EXTRA_FILE_PATH)
+                        repository.syncInternalOnly(listOf(_uiState.value.currentCategory))
+                        if (savedPath != null) {
+                            val savedFile = File(savedPath)
+                            if (savedFile.exists() && !savedFile.absolutePath.startsWith(ctx.filesDir.absolutePath)) {
+                                // Public storage file — insert directly instead of scanning MediaStore
+                                val (durStr, durMs) = AudioMetadataHelper.getDuration(savedFile)
+                                val uri = try {
+                                    val contentUri = android.provider.MediaStore.Audio.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL)
+                                    val cursor = ctx.contentResolver.query(
+                                        contentUri,
+                                        arrayOf(android.provider.MediaStore.Audio.Media._ID),
+                                        "${android.provider.MediaStore.Audio.Media.DATA} = ?",
+                                        arrayOf(savedFile.absolutePath), null
+                                    )
+                                    cursor?.use { c ->
+                                        if (c.moveToFirst()) android.content.ContentUris.withAppendedId(contentUri, c.getLong(0)) else Uri.fromFile(savedFile)
+                                    } ?: Uri.fromFile(savedFile)
+                                } catch (_: Exception) { Uri.fromFile(savedFile) }
+                                val item = RecordingItem(savedFile, savedFile.name, durStr, durMs, uri, "", true)
+                                repository.insertRecording(item, _uiState.value.currentCategory, isPublic = true)
+                            }
+                        }
+                        _uiState.update { it.copy(isLoading = false) }
+                        
+                        // Update widget after discovery
+                        val latestItem = repository.getRecordingsByCategory(_uiState.value.currentCategory).first().firstOrNull()
+                        WidgetStateHelper.updateWidget(
+                            ctx,
+                            category = _uiState.value.currentCategory,
+                            lastFileName = latestItem?.name?.substringBeforeLast(".") ?: "",
+                            lastFileDuration = latestItem?.durationString ?: ""
+                        )
+
+                        // Generate waveform for the newly recorded file
+                        val filePath = intent?.getStringExtra(AudioService.EXTRA_FILE_PATH)
+                        val targetFile = if (filePath != null) File(filePath) else latestItem?.file
+                        if (targetFile != null && targetFile.exists()) {
                             delay(500) // Ensure file is stable
-                            precomputeWaveformAsync(File(path))
+                            precomputeWaveformAsync(targetFile)
                         }
                     }
                 }
@@ -299,9 +340,12 @@ class AudioLoopViewModel @Inject constructor(
             }
         }
 
-        // 4. Periodic or initial discovery
+        // 4. Initial sync — only internal storage.
+        // Do NOT call discoverRecordings() here as it scans MediaStore
+        // and would surface old files from previous installs.
+        // Users can explicitly import public storage files via settings.
         viewModelScope.launch {
-            repository.discoverRecordings(_uiState.value.categories)
+            repository.syncInternalOnly(_uiState.value.categories)
         }
 
         // 5. Reactive filtering and sorting (Eliminates runBlocking in the UI thread)
@@ -429,13 +473,14 @@ class AudioLoopViewModel @Inject constructor(
         val targetFile = File(targetDir, item.file.name)
         val noteFile = getNoteFile(item.file)
         val waveFile = getWaveformFile(item.file)
+        val movedItem = item.copy(file = targetFile, uri = android.net.Uri.fromFile(targetFile))
 
         if (item.file.renameTo(targetFile)) {
             if (noteFile.exists()) noteFile.renameTo(getNoteFile(targetFile))
             if (waveFile.exists()) waveFile.renameTo(getWaveformFile(targetFile))
             viewModelScope.launch {
                 repository.deleteRecording(item.file.absolutePath)
-                repository.insertRecording(item.copy(file = targetFile), targetCategory)
+                repository.insertRecording(movedItem, targetCategory)
             }
             updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
             showSnackbar(ctx.getString(R.string.msg_moved))
@@ -445,7 +490,7 @@ class AudioLoopViewModel @Inject constructor(
                 item.file.delete()
                 viewModelScope.launch {
                     repository.deleteRecording(item.file.absolutePath)
-                    repository.insertRecording(item.copy(file = targetFile), targetCategory)
+                    repository.insertRecording(movedItem, targetCategory)
                 }
                 updateOrderAfterMove(item.file.name, _uiState.value.currentCategory, targetCategory)
                 showSnackbar(ctx.getString(R.string.msg_moved))
@@ -504,6 +549,25 @@ class AudioLoopViewModel @Inject constructor(
             return true
         }
 
+        // Public storage files (MediaStore) cannot be deleted via File API on Android 10+.
+        // Use ContentResolver.delete() directly for these files.
+        if (item.isPublic && item.uri != Uri.EMPTY) {
+            val deleted = withContext(Dispatchers.IO) {
+                try {
+                    ctx.contentResolver.delete(item.uri, null, null) > 0
+                } catch (_: Exception) { false }
+            }
+            if (deleted || !file.exists()) {
+                val noteFile = getNoteFile(file)
+                val waveFile = getWaveformFile(file)
+                if (noteFile.exists()) try { noteFile.delete() } catch (_: Exception) {}
+                if (waveFile.exists()) try { waveFile.delete() } catch (_: Exception) {}
+                repository.deleteRecording(file.absolutePath, item.isPublic)
+                return true
+            }
+            return false
+        }
+
         val trashDir = File(filesDir, ".trash").apply { mkdirs() }
         val timestamp = System.currentTimeMillis()
         val trashFile = File(trashDir, "${timestamp}_${file.name}")
@@ -522,7 +586,7 @@ class AudioLoopViewModel @Inject constructor(
 
         // 3. Move to trash with fallback
         var moved = try { file.renameTo(trashFile) } catch (e: Exception) { false }
-        
+
         if (!moved) {
             // Try copying + deleting (handles cross-partition or permission issues better)
             try {
@@ -536,7 +600,7 @@ class AudioLoopViewModel @Inject constructor(
         if (moved || !file.exists()) {
             if (noteFile.exists()) try { noteFile.renameTo(trashNote) } catch (_: Exception) { noteFile.delete() }
             if (waveFile.exists()) try { waveFile.renameTo(trashWave) } catch (_: Exception) { waveFile.delete() }
-            
+
             repository.deleteRecording(file.absolutePath, item.isPublic)
             return true
         }
@@ -713,11 +777,22 @@ class AudioLoopViewModel @Inject constructor(
 
     // ── Playback ──
 
-    fun playFile(item: RecordingItem) = playbackManager.playFile(item)
+    fun playFile(item: RecordingItem) {
+        playbackManager.playFile(item)
+        if (!_uiState.value.hasShownPracticeHint) {
+            _uiState.update { it.copy(showPracticeControls = true, hasShownPracticeHint = true) }
+        }
+    }
     fun pausePlaying() = playbackManager.pausePlaying()
     fun resumePlaying() = playbackManager.resumePlaying()
-    fun stopPlaying() = playbackManager.stopPlaying()
-    fun stopPlayingAndReset() = playbackManager.stopPlaying(true)
+    fun stopPlaying() {
+        cancelSleepTimer()
+        playbackManager.stopPlaying()
+    }
+    fun stopPlayingAndReset() {
+        cancelSleepTimer()
+        playbackManager.stopPlaying(true)
+    }
     fun changeShadowingMode(enabled: Boolean) = setShadowingMode(enabled)
 
     fun setAbLoopStart(pos: Float) = playbackManager.setAbLoopStart(pos)
@@ -755,6 +830,9 @@ class AudioLoopViewModel @Inject constructor(
                     }
                 )
                 if (playlist.sleepMinutes > 0) setSleepTimer(playlist.sleepMinutes)
+                if (!_uiState.value.hasShownPracticeHint) {
+                    _uiState.update { it.copy(showPracticeControls = true, hasShownPracticeHint = true) }
+                }
             } else {
                 playbackManager.updateCurrentlyPlayingPlaylist(null, 1)
                 showSnackbar(ctx.getString(R.string.msg_playlist_empty), isError = true)
@@ -988,7 +1066,7 @@ class AudioLoopViewModel @Inject constructor(
     fun changeTheme(theme: AppTheme) {
         _uiState.update { it.copy(currentTheme = theme) }
         settingsManager.saveTheme(theme)
-        ee.ahtilohk.audioloop.widget.WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
+        WidgetStateHelper.updateWidget(ctx, themeName = theme.name)
     }
 
     fun changeLanguage(langCode: String) {
@@ -1009,23 +1087,7 @@ class AudioLoopViewModel @Inject constructor(
 
     fun handleSignInResult(email: String?) {
         if (email != null) {
-            driveBackupManager.handleSignInResult(email)
             _uiState.update { it.copy(isBackupSignedIn = true, backupEmail = email, backupProgress = "") }
-        }
-    }
-
-    fun signIn(activity: android.app.Activity) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isBackupRunning = true) }
-            driveBackupManager.signIn(activity)
-                .onSuccess { email ->
-                    handleSignInResult(email)
-                    _uiState.update { it.copy(isBackupRunning = false) }
-                }
-                .onFailure { e ->
-                    handleSignInError(e.localizedMessage ?: "Sign-in failed")
-                    _uiState.update { it.copy(isBackupRunning = false) }
-                }
         }
     }
 
@@ -1226,7 +1288,13 @@ class AudioLoopViewModel @Inject constructor(
         return if (noteFile.exists()) try { noteFile.readText() } catch (_: Exception) { "" } else ""
     }
 
-    private fun getWaveformFile(audioFile: File): File = File(audioFile.parent, "${audioFile.name}.wave")
+    private fun getWaveformsDir(): File {
+        val dir = File(filesDir, ".waveforms")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
+    private fun getWaveformFile(audioFile: File): File = File(getWaveformsDir(), "${audioFile.name}.wave")
 
     private fun saveWaveformToDisk(audioFile: File, waveform: List<Int>) {
         try {
@@ -1255,19 +1323,26 @@ class AudioLoopViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Point 1 fix: for newly created files, wait a bit for disk flush
-                if (force) delay(300) 
+                if (force) delay(300)
 
                 val cached = loadWaveformFromDisk(file)
                 if (cached != null && cached.isNotEmpty()) {
                     waveformCache[key] = cached
                     return@launch
                 }
-                val waveform = WaveformGenerator.extractWaveform(file, fullBars)
-                if (waveform.isNotEmpty() && waveform.any { it > 10 }) {
-                    saveWaveformToDisk(file, waveform)
-                    waveformCache[key] = waveform
+                // Progressive: bars fill in at correct time positions (no stretching)
+                var lastWaveform: List<Int> = emptyList()
+                WaveformGenerator.extractWaveformProgressive(file, fullBars).collect { partial ->
+                    if (partial.isNotEmpty()) {
+                        waveformCache[key] = partial
+                        lastWaveform = partial
+                    }
+                }
+                // Save final result to disk cache
+                if (lastWaveform.isNotEmpty() && lastWaveform.any { it > 10 }) {
+                    saveWaveformToDisk(file, lastWaveform)
                 } else if (!force) {
-                    // Try one more time with force if it's empty (maybe file was still being written)
+                    // Try one more time if it's empty (maybe file was still being written)
                     delay(500)
                     val retry = WaveformGenerator.extractWaveform(file, fullBars)
                     if (retry.isNotEmpty()) {
@@ -1358,7 +1433,36 @@ class AudioLoopViewModel @Inject constructor(
 
     fun setSleepTimer(minutes: Int) {
         _uiState.update { it.copy(selectedSleepMinutes = minutes) }
+        sleepTimerJob?.cancel()
+        
+        if (minutes > 0) {
+            val totalMs = minutes * 60 * 1000L
+            _uiState.update { it.copy(sleepTimerRemainingMs = totalMs) }
+            
+            sleepTimerJob = viewModelScope.launch {
+                var remaining = totalMs
+                while (remaining > 0 && isActive) {
+                    delay(1000L)
+                    remaining -= 1000L
+                    val finalRemaining = remaining.coerceAtLeast(0L)
+                    _uiState.update { it.copy(sleepTimerRemainingMs = finalRemaining) }
+                }
+                if (remaining <= 0) {
+                    stopPlaying()
+                    _uiState.update { it.copy(selectedSleepMinutes = 0, sleepTimerRemainingMs = 0L) }
+                }
+            }
+        } else {
+            _uiState.update { it.copy(sleepTimerRemainingMs = 0L) }
+        }
+        
         playbackManager.setSleepTimer(minutes)
+    }
+
+    private fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _uiState.update { it.copy(selectedSleepMinutes = 0, sleepTimerRemainingMs = 0L) }
     }
 
     private fun updatePlaybackParams(speed: Float, pitch: Float) {
@@ -1371,6 +1475,10 @@ class AudioLoopViewModel @Inject constructor(
 
     fun setShowCategorySheet(show: Boolean) {
         _uiState.update { it.copy(showCategorySheet = show) }
+    }
+
+    fun setShowPracticeControls(show: Boolean) {
+        _uiState.update { it.copy(showPracticeControls = show) }
     }
 
     fun setShowPlaylistSheet(show: Boolean) {
@@ -1481,12 +1589,13 @@ class AudioLoopViewModel @Inject constructor(
         nextOnboardingStep()
     }
 
-    fun finishOnboarding() {
+    fun finishOnboarding(pendingAction: String? = null) {
         settingsManager.setFirstLaunchComplete()
-        _uiState.update { it.copy(showOnboarding = false) }
+        _uiState.update { it.copy(showOnboarding = false, onboardingPendingAction = pendingAction) }
     }
 
     override fun onCleared() {
+        sleepTimerJob?.cancel()
         stopPlaying()
         try { ctx.unregisterReceiver(recordingReceiver) } catch (_: Exception) {}
         mediaSessionManager.release()

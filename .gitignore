@@ -28,4 +28,4 @@ build_env.txt
 
 # Scripts and temp files
 replace_colors.py
-run_build.bat
+run_build.bat.kotlin/errors/
